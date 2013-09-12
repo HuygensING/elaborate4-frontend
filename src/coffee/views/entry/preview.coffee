@@ -14,12 +14,11 @@ define (require) ->
 		initialize: ->
 			super
 
-			
-
 			@highlighter = Fn.highlighter()
 
 			@currentTranscription = @model.get('transcriptions').current
-			@listenTo @currentTranscription, 'change', @render
+			@listenTo @currentTranscription, 'current:change', @render
+			@listenTo @currentTranscription, 'change:body', => @render()
 
 			@render()
 
@@ -28,10 +27,17 @@ define (require) ->
 			@$el.html @currentTranscription.get('body')
 
 			@addAnnotationTooltip = new Views.AddAnnotationTooltip container: @el
-			@listenTo @addAnnotationTooltip, 'clicked', (model) => @trigger 'addAnnotation', model
+
 
 			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el
 			@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
+			@listenTo @editAnnotationTooltip, 'delete', (model) =>
+				if model?
+					# Remove the annotation from the collection, the transcription model wil take care of the rest
+					@currentTranscription.get('annotations').remove model
+				else
+					@$('[data-id="newannotation"]').remove()
+					@trigger 'newAnnotationRemoved'
 
 			@onHover()
 
@@ -40,13 +46,12 @@ define (require) ->
 		# ### Events
 		events: ->
 			'click sup[data-marker]': 'supClicked'
+			'mousedown': 'onMousedown'
 			'mouseup': 'onMouseup'
 			'scroll': 'onScroll'
 
 		onScroll: (ev) ->		
 			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget, 'horizontal'
-
-			
 
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id') >> 0
@@ -56,13 +61,19 @@ define (require) ->
 				$el: $(ev.currentTarget)
 				model: annotation
 
+		onMousedown: (ev) ->
+			if ev.target is @el
+				@stopListening @addAnnotationTooltip
+				@addAnnotationTooltip.hide()
+
 		onMouseup: (ev) ->
 			sel = document.getSelection()
 
-			# If there is no range to get
+			# If there is no range to get (for example when using the scrollbar)
 			# or
 			# If the mouseup was not directly on this view (for example, when clicking the tooltip), don't execute function
 			if sel.rangeCount is 0 or ev.target isnt @el
+				# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
 				@addAnnotationTooltip.hide()
 				return false
 
@@ -71,16 +82,41 @@ define (require) ->
 			# Boolean to check if the selection start or ends on a <span data-marker="start"> or <sup data-marker="end">.
 			# A selection cannot start inside a marker.
 			isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') or range.endContainer.parentNode.hasAttribute('data-marker')
-			
+
 			# if not range.collapsed and not startIsSup and not endIsSup
-			unless range.collapsed or isInsideMarker
+			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
+				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
+					@addNewAnnotationTags range
+					@trigger 'addAnnotation', model
 				@addAnnotationTooltip.show
 					left: ev.pageX
 					top: ev.pageY
-			else
-				@addAnnotationTooltip.hide()
 
 		# ### Methods
+
+		addNewAnnotationTags: (range) ->
+			# Create marker at the beginning of the selection
+			span = document.createElement 'span'
+			span.setAttribute 'data-marker', 'begin'
+			span.setAttribute 'data-id', 'newannotation'
+			range.insertNode span
+
+			# Create marker at the end of the selection
+			# range.collapse(false) collapses the range to the end (true collapses to the beginning)
+			sup = document.createElement 'sup'
+			sup.setAttribute 'data-marker', 'end'
+			sup.setAttribute 'data-id', 'newannotation'
+			sup.innerHTML = 'new'
+			range.collapse false
+			range.insertNode sup
+
+			@currentTranscription.set 'body', @$el.html(), silent: true
+
+		# replaceNewAnnotationID: (model) ->
+		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
+
+			# @currentTranscription.set 'body', @$el.html()
+
 		onHover: ->
 			supEnter = (ev) =>
 				id = ev.currentTarget.getAttribute('data-id')

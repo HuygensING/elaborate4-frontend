@@ -22,28 +22,30 @@
       Entries.prototype.initialize = function(models, options) {
         Entries.__super__.initialize.apply(this, arguments);
         this.projectId = options.projectId;
-        return this.currentEntry = null;
+        return this.current = null;
       };
 
       Entries.prototype.url = function() {
         return config.baseUrl + ("projects/" + this.projectId + "/entries");
       };
 
-      Entries.prototype.setCurrentEntry = function(model) {
-        this.currentEntry = model;
-        return this.publish('currentEntry:change', this.currentEntry);
+      Entries.prototype.setCurrent = function(modelID) {
+        var model;
+        model = this.get(modelID);
+        this.publish('entries:current:change', model);
+        return this.current = model;
       };
 
       Entries.prototype.previous = function() {
         var previousIndex;
-        previousIndex = this.indexOf(this.currentEntry) - 1;
-        return this.setCurrentEntry(this.at(previousIndex));
+        previousIndex = this.indexOf(this.current) - 1;
+        return this.setCurrent(this.at(previousIndex));
       };
 
       Entries.prototype.next = function() {
         var nextIndex;
-        nextIndex = this.indexOf(this.currentEntry) + 1;
-        return this.setCurrentEntry(this.at(nextIndex));
+        nextIndex = this.indexOf(this.current) + 1;
+        return this.setCurrent(this.at(nextIndex));
       };
 
       return Entries;

@@ -19,23 +19,6 @@
 
       Tooltip.prototype.id = "tooltip";
 
-      Tooltip.prototype.events = function() {
-        return {
-          'click .close': 'closeClicked',
-          'click .edit': 'editClicked'
-        };
-      };
-
-      Tooltip.prototype.editClicked = function(ev) {
-        return this.trigger('edit', this.model);
-      };
-
-      Tooltip.prototype.closeClicked = function(ev) {
-        this.contentId = null;
-        this.$el.hide();
-        return this.trigger('close');
-      };
-
       Tooltip.prototype.initialize = function() {
         Tooltip.__super__.initialize.apply(this, arguments);
         this.container = this.options.container || document.querySelector('body');
@@ -51,22 +34,47 @@
         return $('body').prepend(this.$el);
       };
 
+      Tooltip.prototype.events = function() {
+        return {
+          'click .edit': 'editClicked',
+          'click .delete': 'deleteClicked',
+          'click': 'clicked'
+        };
+      };
+
+      Tooltip.prototype.editClicked = function(ev) {
+        return this.trigger('edit', this.model);
+      };
+
+      Tooltip.prototype.deleteClicked = function(ev) {
+        return this.trigger('delete', this.model);
+      };
+
+      Tooltip.prototype.clicked = function(ev) {
+        return this.hide();
+      };
+
       Tooltip.prototype.show = function(args) {
-        var $el, content, contentId;
+        var $el, contentId;
         $el = args.$el, this.model = args.model;
-        content = this.model.get('body');
-        contentId = this.model.get('annotationNo');
-        if (contentId === this.contentId) {
-          this.close();
-          return;
+        contentId = (this.model != null) && (this.model.get('annotationNo') != null) ? this.model.get('annotationNo') : -1;
+        if (contentId === +this.el.getAttribute('data-id')) {
+          this.hide();
+          return false;
         }
-        this.contentId = contentId;
-        this.$('.body').html(content);
+        this.el.setAttribute('data-id', contentId);
+        if (this.model != null) {
+          this.$el.removeClass('newannotation');
+          this.$('.body').html(this.model.get('body'));
+        } else {
+          this.$el.addClass('newannotation');
+        }
         this.setPosition($el.offset());
         return this.$el.fadeIn('fast');
       };
 
       Tooltip.prototype.hide = function() {
+        this.el.removeAttribute('data-id');
         return this.el.style.display = 'none';
       };
 

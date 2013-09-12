@@ -8,17 +8,7 @@ define (require) ->
 
 		id: "tooltip"
 
-		events: ->
-			'click .close': 'closeClicked'
-			'click .edit': 'editClicked'
-
-		editClicked: (ev) -> @trigger 'edit', @model
-
-		closeClicked: (ev) ->
-			@contentId = null
-			@$el.hide()
-			@trigger 'close'
-
+		# ### Initialize
 		initialize: ->
 			super
 
@@ -27,6 +17,7 @@ define (require) ->
 
 			@render()
 
+		# ### Render
 		render: ->
 			rtpl = _.template Templates.Tooltip
 			@$el.html rtpl
@@ -34,22 +25,40 @@ define (require) ->
 			$('#tooltip').remove() # There can be only one!
 			$('body').prepend @$el
 
+		# ### Events
+		events: ->
+			'click .edit': 'editClicked'
+			'click .delete': 'deleteClicked'
+			'click': 'clicked'
+
+		editClicked: (ev) -> @trigger 'edit', @model
+
+		deleteClicked: (ev) -> @trigger 'delete', @model
+
+		clicked: (ev) -> @hide()
+
+		# ### Methods
 		show: (args) ->
 			{$el, @model} = args
 
-			content = @model.get 'body'
-			contentId = @model.get 'annotationNo'
+			# If there is no annotationNo (in case of a new annotation) we give the tooltip the contentId of -1
+			contentId = if @model? and @model.get('annotationNo')? then @model.get('annotationNo') else -1
 
 			# If the tooltip is already visible, we close the tooltip
-			if contentId is @contentId
-				@close()
-				return
-			
-			# Save the contentId to the object, to be able to check if the wanted tooltip is already visible (and should be closed)
-			@contentId = contentId
+			if contentId is +@el.getAttribute 'data-id'
+				@hide()
+				return false
 
-			# Add content to the tooltip
-			@$('.body').html content
+			# Set the new contentId to the el
+			@el.setAttribute 'data-id', contentId
+
+			if @model?
+				@$el.removeClass 'newannotation'
+
+				# Add body of the model to the tooltip
+				@$('.body').html @model.get 'body'
+			else
+				@$el.addClass 'newannotation'
 			
 			# Calculate and set the absolute position
 			@setPosition $el.offset()
@@ -57,8 +66,9 @@ define (require) ->
 			# Show the tooltip
 			@$el.fadeIn 'fast'
 
-		# Hide the tooltip
-		hide: -> @el.style.display = 'none'
+		hide: -> 
+			@el.removeAttribute 'data-id'
+			@el.style.display = 'none'
 
 		setPosition: (position) ->
 			@$el.removeClass 'tipright tipleft tipbottom'

@@ -28,6 +28,15 @@
         };
       };
 
+      Transcription.prototype.initialize = function() {
+        var _this = this;
+        Transcription.__super__.initialize.apply(this, arguments);
+        return this.listenToOnce(this.get('annotations'), 'sync', function() {
+          _this.listenTo(_this.get('annotations'), 'add', _this.addAnnotation);
+          return _this.listenTo(_this.get('annotations'), 'remove', _this.removeAnnotation);
+        });
+      };
+
       Transcription.prototype.parse = function(attrs) {
         var i,
           _this = this;
@@ -52,6 +61,33 @@
           projectId: this.collection.projectId
         });
         return attrs;
+      };
+
+      Transcription.prototype.addAnnotation = function(model) {
+        var $body;
+        $body = $("<div>" + (this.get('body')) + "</div>");
+        $body.find('[data-id="newannotation"]').attr('data-id', model.get('annotationNo'));
+        return this.resetAnnotationOrder($body);
+      };
+
+      Transcription.prototype.removeAnnotation = function(model) {
+        var jqXHR,
+          _this = this;
+        jqXHR = model.destroy();
+        return jqXHR.done(function() {
+          var $body;
+          $body = $("<div>" + (_this.get('body')) + "</div>");
+          $body.find("[data-id='" + (model.get('annotationNo')) + "']").remove();
+          return _this.resetAnnotationOrder($body);
+        });
+      };
+
+      Transcription.prototype.resetAnnotationOrder = function($body) {
+        var _this = this;
+        $body.find('sup[data-marker="end"]').each(function(index, sup) {
+          return sup.innerHTML = index + 1;
+        });
+        return this.set('body', $body.html());
       };
 
       return Transcription;

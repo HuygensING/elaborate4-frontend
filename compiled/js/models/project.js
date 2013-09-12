@@ -8,7 +8,8 @@
       Base: require('models/base')
     };
     Collections = {
-      Entries: require('collections/entries')
+      Entries: require('collections/entries'),
+      AnnotationTypes: require('collections/project/annotation.types')
     };
     return Project = (function(_super) {
       __extends(Project, _super);
@@ -18,12 +19,29 @@
         return _ref;
       }
 
-      Project.prototype.initialize = function() {
-        return Project.__super__.initialize.apply(this, arguments);
+      Project.prototype.defaults = function() {
+        return {
+          annotationtypes: null,
+          createdOn: '',
+          creator: null,
+          entries: null,
+          level1: '',
+          level2: '',
+          level3: '',
+          modifiedOn: '',
+          modifier: null,
+          name: '',
+          projectLeaderId: null,
+          textLayers: [],
+          title: ''
+        };
       };
 
       Project.prototype.parse = function(attrs) {
         attrs.entries = new Collections.Entries([], {
+          projectId: attrs.id
+        });
+        attrs.annotationtypes = new Collections.AnnotationTypes([], {
           projectId: attrs.id
         });
         return attrs;

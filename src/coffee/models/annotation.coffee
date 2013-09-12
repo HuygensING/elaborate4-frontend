@@ -3,6 +3,7 @@ define (require) ->
 	ajax = require 'managers/ajax'
 	token = require 'managers/token'
 	ajax.token = token.get()
+	console.log token.get()
 
 	config = require 'config'
 
@@ -16,7 +17,7 @@ define (require) ->
 			annotationNo: null
 			annotationType:
 				id: 1
-			body: 'toet'
+			body: ''
 			createdOn: ''
 			creator: null
 			modifiedOn: ''
@@ -40,3 +41,5 @@ define (require) ->
 							options.success data
 
 				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+			else
+				super

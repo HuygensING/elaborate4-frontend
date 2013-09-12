@@ -16,6 +16,18 @@ define (require) ->
 			title: ''
 			body: ''
 
+		initialize: ->
+			super
+
+			# Start listening to annotations after the annotations are fetched from the server
+			@listenToOnce @get('annotations'), 'sync', =>
+				@listenTo @get('annotations'), 'add', @addAnnotation
+				@listenTo @get('annotations'), 'remove', @removeAnnotation
+
+			# TODO: PUT transcription does not yet work!
+			# Save transcription to the server, everytime the body attr changes
+			# @on 'change:body', @save
+
 		parse: (attrs) ->
 			attrs.body = attrs.body.trim()
 
@@ -37,3 +49,28 @@ define (require) ->
 				projectId: @collection.projectId
 
 			attrs
+
+		addAnnotation: (model) ->
+			$body = $ "<div>#{@get('body')}</div>"
+
+			$body.find('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
+
+			@resetAnnotationOrder $body
+
+		removeAnnotation: (model) ->
+			jqXHR = model.destroy()
+			jqXHR.done =>
+				# Add div tags to body string so jQuery can read it
+				$body = $ "<div>#{@get('body')}</div>"
+				
+				# Find and remove the <span> and <sup>
+				$body.find("[data-id='#{model.get('annotationNo')}']").remove()
+
+				@resetAnnotationOrder $body
+
+		resetAnnotationOrder: ($body) ->
+			$body.find('sup[data-marker="end"]').each (index, sup) =>
+				sup.innerHTML = index+1
+
+			# .html() does not include the <div> tags so we can set it immediately
+			@set 'body', $body.html()

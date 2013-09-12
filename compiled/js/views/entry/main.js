@@ -15,7 +15,8 @@
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview'),
-      SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor')
+      SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
+      AnnotationMetadata: require('views/entry/metadata.annotation')
     };
     Templates = {
       Entry: require('text!html/entry/main.html')
@@ -31,36 +32,40 @@
       Entry.prototype.className = 'entry';
 
       Entry.prototype.initialize = function() {
-        var _this = this;
+        var async,
+          _this = this;
         Entry.__super__.initialize.apply(this, arguments);
+        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes']);
+        this.listenToOnce(async, 'ready', function() {
+          return _this.render();
+        });
         return Models.state.getCurrentProject(function(project) {
           _this.project = project;
-          return project.get('entries').fetch({
+          project.get('entries').fetch({
             success: function(collection, response, options) {
-              var async;
-              _this.model = collection.get(_this.options.entryId);
-              collection.setCurrentEntry(_this.model);
-              async = new Async(['transcriptions', 'facsimiles', 'settings']);
+              _this.model = collection.setCurrent(_this.options.entryId);
               _this.model.get('transcriptions').fetch({
                 success: function(collection, response, options) {
-                  collection.setCurrent();
+                  _this.currentTranscription = collection.setCurrent();
                   return async.called('transcriptions');
                 }
               });
               _this.model.get('facsimiles').fetch({
                 success: function(collection, response, options) {
-                  collection.setCurrentFacsimile();
+                  _this.currentFacsimile = collection.setCurrent();
                   return async.called('facsimiles');
                 }
               });
-              _this.model.get('settings').fetch({
+              return _this.model.get('settings').fetch({
                 success: function() {
                   return async.called('settings');
                 }
               });
-              return _this.listenToOnce(async, 'ready', function() {
-                return _this.render();
-              });
+            }
+          });
+          return project.get('annotationtypes').fetch({
+            success: function() {
+              return async.called('annotationtypes');
             }
           });
         });
@@ -79,14 +84,19 @@
         this.listenTo(this.preview, 'scrolled', function(percentage) {
           return _this.transcriptionEdit.setScrollPercentage(percentage, 'horizontal');
         });
+        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
         this.listenTo(this.transcriptionEdit, 'scrolled', function(percentage) {
           return Fn.setScrollPercentage(_this.preview.el, percentage, 'horizontal');
         });
         this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
           return currentTranscription.set('body', doc);
         });
-        this.listenTo(this.model.get('facsimiles'), 'currentFacsimile:change', this.renderFacsimile);
-        return this.listenTo(this.model.get('transcriptions'), 'current:change', function() {
+        this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
+          _this.currentFacsimile = current;
+          return _this.renderFacsimile();
+        });
+        return this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
+          _this.currentTranscription = current;
           return _this.renderTranscription();
         });
       };
@@ -94,21 +104,15 @@
       Entry.prototype.renderFacsimile = function() {
         var url;
         if (this.model.get('facsimiles').length) {
-          url = this.model.get('facsimiles').currentFacsimile.get('zoomableUrl');
+          url = this.model.get('facsimiles').current.get('zoomableUrl');
           return this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
         }
       };
 
       Entry.prototype.renderTranscription = function() {
-        var currentTranscription, el, li, showTranscriptionEdit, text, textLayer, textLayerNode,
-          _this = this;
-        showTranscriptionEdit = function() {
-          _this.transcriptionEdit.$el.siblings().hide();
-          return _this.transcriptionEdit.$el.show();
-        };
+        var currentTranscription, el, li, text, textLayer, textLayerNode;
         if (this.transcriptionEdit != null) {
-          showTranscriptionEdit();
-          return console.log('tran exists');
+          console.log('tran exists');
         } else {
           textLayer = this.model.get('transcriptions').current.get('textLayer');
           textLayerNode = document.createTextNode(textLayer + ' layer');
@@ -127,24 +131,20 @@
             height: this.preview.$el.innerHeight(),
             width: el.width() - 20
           });
-          return showTranscriptionEdit();
         }
+        return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        var showAnnotationEdit,
-          _this = this;
-        if (model == null) {
-          console.error('No model given!');
-        }
-        showAnnotationEdit = function() {
-          _this.annotationEdit.$el.siblings().hide();
-          return _this.annotationEdit.$el.show();
-        };
+        console.log(model);
         if (this.annotationEdit != null) {
-          showAnnotationEdit();
-          return this.annotationEdit.setModel(model);
+          if (model != null) {
+            this.annotationEdit.setModel(model);
+          }
         } else {
+          if (model == null) {
+            console.error('No annotation given as argument!');
+          }
           this.annotationEdit = new Views.SuperTinyEditor({
             model: model,
             htmlAttribute: 'body',
@@ -154,8 +154,8 @@
             html: model.get('body'),
             wrap: true
           });
-          return showAnnotationEdit();
         }
+        return this.toggleEditPane('annotation');
       };
 
       Entry.prototype.renderPreview = function() {
@@ -171,7 +171,8 @@
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
-          'click .menu li[data-key="save"]': 'save'
+          'click .menu li[data-key="save"]': 'save',
+          'click .menu li[data-key="metadata"]': 'metadata'
         };
       };
 
@@ -188,7 +189,7 @@
         facsimileID = ev.currentTarget.getAttribute('data-value');
         model = this.model.get('facsimiles').get(facsimileID);
         if (model != null) {
-          return this.model.get('facsimiles').setCurrentFacsimile(model);
+          return this.model.get('facsimiles').setCurrent(model);
         }
       };
 
@@ -200,9 +201,45 @@
       };
 
       Entry.prototype.save = function(ev) {
+        var annotations,
+          _this = this;
         if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
-          return this.model.get('transcriptions').current.get('annotations').create(this.annotationEdit.model.attributes);
+          annotations = this.model.get('transcriptions').current.get('annotations');
+          return annotations.create(this.annotationEdit.model.attributes, {
+            wait: true,
+            success: function() {
+              return _this.renderTranscription();
+            }
+          });
         }
+      };
+
+      Entry.prototype.metadata = function(ev) {
+        this.annotationMetadata = new Views.AnnotationMetadata({
+          collection: this.project.get('annotationtypes'),
+          el: this.el.querySelector('.container .middle .annotationmetadata')
+        });
+        return this.toggleEditPane('annotationmetadata');
+      };
+
+      Entry.prototype.toggleEditPane = function(viewName) {
+        var view;
+        view = (function() {
+          switch (viewName) {
+            case 'transcription':
+              return this.transcriptionEdit;
+            case 'annotation':
+              return this.annotationEdit;
+            case 'annotationmetadata':
+              return this.annotationMetadata;
+          }
+        }).call(this);
+        if (viewName === 'annotationmetadata') {
+          viewName = 'am';
+        }
+        this.$('.submenu [data-key="save"]').html('Save ' + viewName);
+        view.$el.siblings().hide();
+        return view.$el.show();
       };
 
       return Entry;

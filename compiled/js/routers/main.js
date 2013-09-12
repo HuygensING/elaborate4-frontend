@@ -72,7 +72,7 @@
             });
           });
         });
-        return this.subscribe('currentEntry:change', function(model) {
+        return this.subscribe('entries:current:change', function(model) {
           return Models.state.getCurrentProjectName(function(name) {
             return _this.navigate("projects/" + name + "/entries/" + model.id, {
               trigger: true

@@ -49,10 +49,7 @@
       };
 
       ProjectSearch.prototype.goToEntry = function(ev) {
-        var entries, entry;
-        entries = this.project.get('entries');
-        entry = entries.get(ev.currentTarget.getAttribute('data-id'));
-        return entries.setCurrentEntry(entry);
+        return this.project.get('entries').setCurrent(ev.currentTarget.getAttribute('data-id'));
       };
 
       ProjectSearch.prototype.initialize = function() {

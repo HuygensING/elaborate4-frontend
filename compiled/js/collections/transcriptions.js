@@ -34,7 +34,8 @@
         } else {
           this.current = this.at(0);
         }
-        return this.trigger('current:change', this.current);
+        this.trigger('current:change', this.current);
+        return this.current;
       };
 
       return Transcriptions;

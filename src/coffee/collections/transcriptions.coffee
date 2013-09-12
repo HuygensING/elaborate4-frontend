@@ -22,3 +22,5 @@ define (require) ->
 				@current = @at 0
 
 			@trigger 'current:change', @current
+
+			@current

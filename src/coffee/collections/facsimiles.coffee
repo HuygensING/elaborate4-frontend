@@ -15,10 +15,12 @@ define (require) ->
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/facsimiles"
 
-		setCurrentFacsimile: (model) ->
+		setCurrent: (model) ->
 			if model?
-				@currentFacsimile = model
+				@current = model
 			else
-				@currentFacsimile = @at 0
+				@current = @at 0
 
-			@trigger 'currentFacsimile:change', @currentFacsimile
+			@trigger 'current:change', @current
+
+			@current

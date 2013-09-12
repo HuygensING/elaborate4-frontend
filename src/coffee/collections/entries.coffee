@@ -14,18 +14,22 @@ define (require) ->
 
 			@projectId = options.projectId
 
-			@currentEntry = null
+			@current = null
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/entries"
 
-		setCurrentEntry: (model) ->
-			@currentEntry = model
-			@publish 'currentEntry:change', @currentEntry
+		setCurrent: (modelID) ->
+			model = @get modelID
+			
+			@publish 'entries:current:change', model
+
+			# Set and return @current
+			@current = model
 
 		previous: ->
-			previousIndex = @indexOf(@currentEntry) - 1
-			@setCurrentEntry @at previousIndex
+			previousIndex = @indexOf(@current) - 1
+			@setCurrent @at previousIndex
 
 		next: ->
-			nextIndex = @indexOf(@currentEntry) + 1
-			@setCurrentEntry @at nextIndex
+			nextIndex = @indexOf(@current) + 1
+			@setCurrent @at nextIndex

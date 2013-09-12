@@ -67,6 +67,11 @@ define(function(require) {
       return it("", function() {});
     });
   });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
   describe("module", function() {
     return describe("method", function() {
       return it("should", function() {});
@@ -284,6 +289,16 @@ define(function(require) {
     return after(function() {
       currentUser.off();
       return $('#password').val('qe9hEtra');
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
     });
   });
   describe("", function() {

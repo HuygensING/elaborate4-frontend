@@ -50,7 +50,7 @@ define (require) ->
 			# 	Models.state.getCurrentProjectName (name) =>
 			# 		@navigate "projects/#{name}/entries/#{id}", trigger: true
 
-			@subscribe 'currentEntry:change', (model) =>
+			@subscribe 'entries:current:change', (model) =>
 				Models.state.getCurrentProjectName (name) =>
 					@navigate "projects/#{name}/entries/#{model.id}", trigger: true
 

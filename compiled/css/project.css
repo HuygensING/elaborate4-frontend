@@ -1,7 +1,7 @@
 #debug{position:fixed;width:100px;height:100px;bottom:0;right:0;background:#000;color:#fff}
 
 .entry .container .right{line-height:1.75em;white-space:nowrap;overflow-y:auto;margin:78px 10px 0 10px;padding-bottom:10px;}
-.entry .container .right sup[data-marker]{cursor:pointer;color:#ff9bfb;font-family:Courier;font-size:.75em;vertical-align:super;line-height:0;background-color:#fff}
+.entry .container .right sup[data-marker]{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:pointer;color:#ff9bfb;font-family:Courier;font-size:.75em;vertical-align:super;line-height:0;background-color:#fff}
 .entry .container .right span.hilite{vertical-align:baseline;background-color:#ffebfe}
 .supertinyeditor iframe{margin:0 10px}
 body.ste-iframe-body{line-height:1.75em;}
@@ -363,6 +363,12 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 
 #tooltip,.tooltip{display:none;position:absolute;padding:0;z-index:1000;background:#f1e8e1;border-radius:10px;box-shadow:1px 1px 5px #969696;min-width:72px;max-width:200px;}
 #tooltip.addannotation button,.tooltip.addannotation button{border:0;background:none;padding-top:4px}
+#tooltip.newannotation,.tooltip.newannotation{min-width:36px;}
+#tooltip.newannotation .body,.tooltip.newannotation .body{display:none}
+#tooltip.newannotation .horizontal.menu,.tooltip.newannotation .horizontal.menu{border-bottom-left-radius:10px;border-bottom-right-radius:10px;padding-bottom:4px;}
+#tooltip.newannotation .horizontal.menu.left,.tooltip.newannotation .horizontal.menu.left{width:36px;text-align:center;}
+#tooltip.newannotation .horizontal.menu.left li.delete,.tooltip.newannotation .horizontal.menu.left li.delete{margin:0}
+#tooltip.newannotation .horizontal.menu.right,.tooltip.newannotation .horizontal.menu.right{display:none}
 #tooltip .horizontal.menu,.tooltip .horizontal.menu{border-top-left-radius:10px;border-top-right-radius:10px;padding-top:8px;background:#f1e8e1;display:inline-block;}
 #tooltip .horizontal.menu.left,.tooltip .horizontal.menu.left{text-align:left}
 #tooltip .horizontal.menu.right,.tooltip .horizontal.menu.right{float:right;padding-right:4px}

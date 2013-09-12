@@ -16,6 +16,7 @@ define (require) ->
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview'
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
+		AnnotationMetadata: require 'views/entry/metadata.annotation'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
@@ -30,27 +31,29 @@ define (require) ->
 			super
 
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
+			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes']
+			@listenToOnce async, 'ready', => @render()
 
 			Models.state.getCurrentProject (project) => 
 				@project = project # TMP
+
 				project.get('entries').fetch
 					success: (collection, response, options) =>
-						@model = collection.get @options.entryId
-						collection.setCurrentEntry @model
-
-						async = new Async ['transcriptions', 'facsimiles', 'settings']
-
-						@model.get('transcriptions').fetch success: (collection, response, options) -> 
-							collection.setCurrent()
+						# setCurrent returns the current model/entry
+						@model = collection.setCurrent @options.entryId
+						
+						@model.get('transcriptions').fetch success: (collection, response, options) => 
+							@currentTranscription = collection.setCurrent()
 							async.called 'transcriptions'
 
-						@model.get('facsimiles').fetch success: (collection, response, options) ->
-							collection.setCurrentFacsimile()
+						@model.get('facsimiles').fetch success: (collection, response, options) =>
+							@currentFacsimile = collection.setCurrent()
 							async.called 'facsimiles'
 
 						@model.get('settings').fetch success: -> async.called 'settings'
 
-						@listenToOnce async, 'ready', => @render()
+				project.get('annotationtypes').fetch
+					success: => async.called 'annotationtypes'
 
 		# ### Render
 		render: ->
@@ -65,27 +68,28 @@ define (require) ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
 			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentage) => @transcriptionEdit.setScrollPercentage percentage, 'horizontal'
+			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
 			@listenTo @transcriptionEdit, 'scrolled', (percentage) => Fn.setScrollPercentage @preview.el, percentage, 'horizontal'
 			@listenTo @transcriptionEdit, 'change', (cmd, doc) => currentTranscription.set 'body', doc
 
-			@listenTo @model.get('facsimiles'), 'currentFacsimile:change', @renderFacsimile
-			@listenTo @model.get('transcriptions'), 'current:change', => @renderTranscription()
+			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
+				@currentFacsimile = current
+				@renderFacsimile()
+			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
+				@currentTranscription = current
+				@renderTranscription()
 
 		renderFacsimile: ->
 			if @model.get('facsimiles').length
-				url = @model.get('facsimiles').currentFacsimile.get('zoomableUrl')
+				url = @model.get('facsimiles').current.get('zoomableUrl')
 				@$('.left iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id='+ url
 
 		# * TODO: Create separate View?
 		# * TODO: Resize iframe width on window.resize
+		# * TODO: How many times is renderTranscription called on init?
 		renderTranscription: ->
 
-			showTranscriptionEdit = =>
-				@transcriptionEdit.$el.siblings().hide()
-				@transcriptionEdit.$el.show()
-
 			if @transcriptionEdit?
-				showTranscriptionEdit()
 				console.log 'tran exists'
 			else
 				textLayer = @model.get('transcriptions').current.get 'textLayer'
@@ -109,19 +113,17 @@ define (require) ->
 					html: text
 					height: @preview.$el.innerHeight()
 					width: el.width() - 20
-				showTranscriptionEdit()
+			
+			@toggleEditPane 'transcription'
 
 		renderAnnotation: (model) ->
-			console.error 'No model given!' unless model?
-
-			showAnnotationEdit = =>
-				@annotationEdit.$el.siblings().hide()
-				@annotationEdit.$el.show()
+			console.log model
 
 			if @annotationEdit?
-				showAnnotationEdit()
-				@annotationEdit.setModel model
+				@annotationEdit.setModel model if model?
 			else
+				console.error 'No annotation given as argument!' unless model?
+				
 				@annotationEdit = new Views.SuperTinyEditor
 					model: model
 					htmlAttribute: 'body'
@@ -130,7 +132,8 @@ define (require) ->
 					cssFile: '/css/main.css'
 					html: model.get 'body'
 					wrap: true
-				showAnnotationEdit()
+				
+			@toggleEditPane 'annotation'
 				
 		renderPreview: ->
 			@preview = new Views.Preview
@@ -144,6 +147,7 @@ define (require) ->
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li[data-key="save"]': 'save'
+			'click .menu li[data-key="metadata"]': 'metadata'
 
 		previousEntry: ->
 			@model.collection.previous()
@@ -155,7 +159,7 @@ define (require) ->
 			facsimileID = ev.currentTarget.getAttribute 'data-value'
 
 			model = @model.get('facsimiles').get facsimileID
-			@model.get('facsimiles').setCurrentFacsimile model if model?
+			@model.get('facsimiles').setCurrent model if model?
 
 		changeTranscription: (ev) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
@@ -164,8 +168,20 @@ define (require) ->
 			@model.get('transcriptions').setCurrent model
 
 		save: (ev) ->
-			# console.log @annotationEdit.model.attributes
-			@model.get('transcriptions').current.get('annotations').create @annotationEdit.model.attributes if @annotationEdit? and @annotationEdit.$el.is(':visible')
+			if @annotationEdit? and @annotationEdit.$el.is(':visible')
+				annotations = @model.get('transcriptions').current.get('annotations')	
+
+				# Create on a collection will save the model and add it to the collection.
+				# Pass wait:true to wait for the server response, because we need the ID from the server
+				annotations.create @annotationEdit.model.attributes, 
+					wait: true
+					success: => @renderTranscription()
+
+		metadata: (ev) ->
+			@annotationMetadata = new Views.AnnotationMetadata
+				collection: @project.get 'annotationtypes'
+				el: @el.querySelector('.container .middle .annotationmetadata')
+			@toggleEditPane 'annotationmetadata'
 
 
 		# menuItemClicked: (ev) ->
@@ -173,3 +189,15 @@ define (require) ->
 
 
 		# ### Methods
+
+		toggleEditPane: (viewName) ->
+			view = switch viewName
+				when 'transcription' then @transcriptionEdit
+				when 'annotation' then @annotationEdit
+				when 'annotationmetadata' then @annotationMetadata
+
+			viewName = 'am' if viewName is 'annotationmetadata'
+
+			@$('.submenu [data-key="save"]').html 'Save '+viewName
+			view.$el.siblings().hide()
+			view.$el.show()

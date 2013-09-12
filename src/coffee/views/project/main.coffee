@@ -39,9 +39,7 @@ define (require) ->
 
 
 		goToEntry: (ev) ->
-			entries = @project.get 'entries'
-			entry = entries.get ev.currentTarget.getAttribute 'data-id'
-			entries.setCurrentEntry entry
+			@project.get('entries').setCurrent ev.currentTarget.getAttribute 'data-id'
 			# id = ev.currentTarget.id.replace 'entry', ''
 			# @publish 'navigate:entry', id
 

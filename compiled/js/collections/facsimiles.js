@@ -28,13 +28,14 @@
         return config.baseUrl + ("projects/" + this.projectId + "/entries/" + this.entryId + "/facsimiles");
       };
 
-      Facsimiles.prototype.setCurrentFacsimile = function(model) {
+      Facsimiles.prototype.setCurrent = function(model) {
         if (model != null) {
-          this.currentFacsimile = model;
+          this.current = model;
         } else {
-          this.currentFacsimile = this.at(0);
+          this.current = this.at(0);
         }
-        return this.trigger('currentFacsimile:change', this.currentFacsimile);
+        this.trigger('current:change', this.current);
+        return this.current;
       };
 
       return Facsimiles;

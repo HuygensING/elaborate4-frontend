@@ -7,6 +7,7 @@
     ajax = require('managers/ajax');
     token = require('managers/token');
     ajax.token = token.get();
+    console.log(token.get());
     config = require('config');
     Models = {
       Base: require('models/base')
@@ -26,7 +27,7 @@
           annotationType: {
             id: 1
           },
-          body: 'toet',
+          body: '',
           createdOn: '',
           creator: null,
           modifiedOn: '',
@@ -61,6 +62,8 @@
           return jqXHR.fail(function(a, b, c) {
             return console.log('fail', a, b, c);
           });
+        } else {
+          return Annotation.__super__.sync.apply(this, arguments);
         }
       };
 
