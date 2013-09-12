@@ -1,0 +1,20 @@
+{
+  "name": "elaborate",
+  "version": "0.0.0",
+  "dependencies": {
+    "almond": "*",
+    "requirejs": "*",
+    "requirejs-text": "*",
+    "requirejs-domready": "*",
+    "jquery": "*",
+    "underscore-amd": "*",
+    "backbone-amd": "*",
+    "normalize-css": "*",
+    "helpers": "git@github.com:Gijsjan/helpers.git",
+    "managers": "git@github.com:Gijsjan/managers.git"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  }
+}

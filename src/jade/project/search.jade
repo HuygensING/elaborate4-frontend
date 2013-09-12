@@ -1,0 +1,29 @@
+.row.span3
+	.cell.span1.faceted-search-placeholder
+
+	.cell.span2
+		.padl4.resultview
+			header
+				.row.span2
+					.cell.span1 
+						h3.numfound
+						//- span <%= numFound %> letters found
+					.cell.span1.alignright
+						nav
+							ul
+								li 
+									input#cb_showkeywords(type="checkbox")
+									label(for="cb_showkeywords") Display keywords
+								li Select all
+								li Deselect all
+				.row.span2
+					.cell.span1 
+						ul.horizontal.menu.pagination
+							li.prev.inactive &lt;
+							li.currentpage.text
+							li.text of
+							li.pagecount.text
+							li.next &gt;
+					.cell.span1.alignright
+
+			ul.entries

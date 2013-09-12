@@ -1,0 +1,93 @@
+vertical_menu_width = 200px
+horizontal_li_padding = 10px
+vertical_li_padding = 0px
+
+.menu
+	position relative
+	padding 0
+	margin 0
+	font-size 0
+
+	li
+		font-size 1rem
+		position relative
+		list-style none
+		padding vertical_li_padding horizontal_li_padding
+		margin 0
+		color spotcolor
+		white-space nowrap
+		text-shadow none
+
+		&:hover
+			cursor pointer
+
+		&.active
+			cursor default
+
+		&:hover > ul, &.active.persist > ul
+			display block
+
+		&.arrowleft
+			padding-left 18px
+
+			&:before
+				position absolute
+				width 0
+				height 0
+				border-style solid
+				border-width 5px
+				border-color rgba(0, 0, 0, 0) white rgba(0, 0, 0, 0) rgba(0, 0, 0, 0)
+				content ""
+				margin 7px 0 0 -15px
+
+		&.arrowright
+			padding-right 18px
+
+			&:after
+				position absolute
+				width 0
+				height 0
+				border-style solid
+				border-width 5px
+				border-color rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) white
+				content ""
+				margin 7px 0 0 6px
+
+		&.arrowdown
+			padding-right 22px
+
+			&:after
+				position absolute
+				width 0
+				height 0
+				border-style solid
+				border-width 5px
+				border-color white rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0)
+				content ""
+				margin 10px 0 0 6px
+
+		ul
+			position absolute
+			display none
+			padding 0
+	
+
+.menu.horizontal > li
+	position static
+	display inline-block
+
+	ul
+		margin-left -1 * horizontal_li_padding // To compensate for li:first-child's 10px padding
+		// box-shadow 2px 2px 4px #AAA
+
+		li
+			line-height	24px
+			// border-top 1px solid rgb(88, 88, 88)
+
+.menu.vertical
+	width vertical_menu_width
+	text-align left
+
+	ul
+		top -1px
+		left vertical_menu_width + horizontal_li_padding

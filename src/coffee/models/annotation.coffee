@@ -1,0 +1,42 @@
+define (require) ->
+
+	ajax = require 'managers/ajax'
+	token = require 'managers/token'
+	ajax.token = token.get()
+
+	config = require 'config'
+
+	Models = 
+		Base: require 'models/base'
+
+	class Annotation extends Models.Base
+
+		defaults: ->
+			annotationMetadataItems: []
+			annotationNo: null
+			annotationType:
+				id: 1
+			body: 'toet'
+			createdOn: ''
+			creator: null
+			modifiedOn: ''
+			modifier: null
+
+		sync: (method, model, options) ->
+			if method is 'create'
+				jqXHR = ajax.post
+					url: @url()
+					data: JSON.stringify
+						body: @get 'body'
+						typeId: @get('annotationType').id
+					dataType: 'text'
+
+				jqXHR.done (data, textStatus, jqXHR) =>
+					if jqXHR.status is 201
+						url = jqXHR.getResponseHeader('Location')
+
+						xhr = ajax.get url: url
+						xhr.done (data, textStatus, jqXHR) =>
+							options.success data
+
+				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c

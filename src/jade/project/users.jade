@@ -1,0 +1,11 @@
+h3 Users
+
+ul
+	| <% allusers.each(function(user) { %>
+	li <%= user.get('lastName') %>
+	| <% }); %>
+
+ul
+	| <% projectusers.each(function(user) { %>
+	li <%= user.get('lastName') %>
+	| <% }); %>

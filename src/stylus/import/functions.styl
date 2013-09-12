@@ -1,0 +1,25 @@
+fn_spin()
+	-webkit-animation: fn_spin 2s 3 linear;
+	-moz-animation: fn_spin 2s 3 linear;
+	-o-animation: fn_spin 2s 3 linear;
+	-ms-animation: fn_spin 2s 3 linear;
+	animation: fn_spin 2s 3 linear;
+	-webkit-animation-name: fn_spin
+
+vertical_gradient(topColor, bottomColor)
+	background topColor
+	background -moz-linear-gradient(top, topColor 0%, bottomColor 100%)
+	background -webkit-gradient(linear, left top, left bottom, color-stop(0%,topColor), color-stop(100%,bottomColor))
+	background -webkit-linear-gradient(top, topColor 0%,bottomColor 100%)
+	background -o-linear-gradient(top, topColor 0%,bottomColor 100%)
+	background -ms-linear-gradient(top, topColor 0%,bottomColor 100%)
+	background linear-gradient(to bottom, topColor 0%,bottomColor 100%)
+	filter unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )')
+
+select_none()
+	-webkit-touch-callout none
+	-webkit-user-select none
+	-khtml-user-select none
+	-moz-user-select none
+	-ms-user-select none
+	user-select none

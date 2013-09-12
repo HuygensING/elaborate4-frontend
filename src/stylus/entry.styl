@@ -1,0 +1,60 @@
+.entry
+	// .transcription
+
+	// .minimalfacsimile, .minimaltranscription, .minimalpreview
+	// 	width 20px
+	// 	height 200px
+	// 	display inline-block
+
+	// .minimalfacsimile
+	// 	background-color gray
+	// .minimaltranscription
+	// 	background-color lighten(gray, 10%)
+	// .minimalpreview
+	// 	background-color lighten(gray, 20%)
+
+	// .facsimile, .preview, .transcription
+	// 	position relative
+
+	.container
+		.right
+			line-height 1.75em
+			// padding 0 10px
+			// padding-top 78px + 6px
+			white-space nowrap
+			overflow-y auto
+			margin 78px 10px 0 10px
+			padding-bottom 10px
+			
+			sup[data-marker]
+				cursor pointer
+				color #FF9BFB
+				// font-weight bold
+				font-family Courier
+				font-size 0.75em
+				vertical-align super
+				line-height 0
+				background-color white
+
+			span.hilite
+				vertical-align baseline
+				background-color lighten(#FF9BFB, 80%)
+
+.supertinyeditor
+	iframe
+		margin 0 10px
+
+body.ste-iframe-body
+	line-height 1.75em
+
+	sup[data-marker]
+		display none
+
+div.closebutton
+	cursor pointer
+	position absolute
+	padding 2px
+	margin 4px
+	background-color white
+	border-radius 4px
+	opacity 0

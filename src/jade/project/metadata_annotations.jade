@@ -1,0 +1,6 @@
+h3 Metadata annotations
+
+ul
+	| <% annotations.each(function(annotation) { %>
+	li(data-id!="<%= annotation.id %>") <%= annotation.get('description') %>
+	| <% }); %>

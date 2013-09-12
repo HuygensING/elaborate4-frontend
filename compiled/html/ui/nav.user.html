@@ -1,0 +1,1 @@
+<ul class="horizontal menu"><li class="username"><%= user.title %><ul class="vertical menu"><li class="logout">Logout</li></ul></li><li class="projects">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get('title') %></li><% }); %></ul></li></ul>

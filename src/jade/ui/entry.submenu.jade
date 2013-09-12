@@ -1,0 +1,24 @@
+//- .row.span7
+//- 	.cell.span3.left
+//- 		ul.horizontal.menu
+//- 			li(data-key="previous") Previous entry
+//- 			li(data-key="next") Next entry
+//- 			li(data-key="print") Print
+//- 			li(data-key="facsimiles") Facsimiles
+//- 				ul.vertical.menu
+//- 					| <% facsimiles.each(function(facs) { %>
+//- 					li(data-key="facsimile", data-value!="<%= facs.id %>") <%= facs.get('name') %>
+//- 					| <% }); %>
+//- 	.cell.span2.center
+//- 		ul.horizontal.menu
+//- 			li(data-key="save") Save
+//- 			li(data-key="layer")
+//- 				span.title Layer
+//- 				ul.vertical.menu
+//- 					| <% transcriptions.each(function(trans) { %>
+//- 					li(data-key="transcription", data-value!="<%= trans.id %>") <%= trans.get('textLayer') %>
+//- 					| <% }); %>
+//- 			li(data-key="metadata") Metadata
+//- 	.cell.span2.right
+//- 		ul.horizontal.menu
+//- 			li(data-key="preview") Preview full screen

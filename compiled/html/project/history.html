@@ -1,0 +1,1 @@
+<h2>History</h2><% collection.each(function(item) { %><div class="row span18"><div class="cell span2"><%= item.get('userName') %></div><div class="cell span3"><%= (new Date(item.get('createdOn'))).toDateString() %> </div><div class="cell span13"><%= item.get('comment') %></div></div><% }); %>
