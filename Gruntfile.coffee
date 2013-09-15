@@ -68,23 +68,24 @@ module.exports = (grunt) ->
 				src: 'images'
 				dest: 'compiled/images'
 			,
-				src: '/home/gijs/Projects/faceted-search'
+				src: '~/Projects/faceted-search'
 				dest: 'compiled/lib/faceted-search'
 			,
-				src: '/home/gijs/Projects/faceted-search/images'
+				src: '~/Projects/faceted-search/images'
 				dest: 'images/faceted-search'
+			# ,
+			# 	src: '~/Projects/supertinyeditor'
+			# 	dest: 'compiled/lib/supertinyeditor'
 			,
-				src: '/home/gijs/Projects/supertinyeditor'
-				dest: 'compiled/lib/supertinyeditor'
-			,
-				src: '/home/gijs/Projects/views/compiled'
+				src: '~/Projects/views'
 				dest: 'compiled/lib/views2'
+			# ,
 			,
-				src: 'compiled/lib/views2/supertinyeditor/images'
+				src: 'compiled/lib/views/compiled/supertinyeditor/images'
 				dest: 'images/supertinyeditor'
-			,
-				src: '/home/gijs/Projects/helpers'
-				dest: 'compiled/lib/helpers2'
+			# ,
+			# 	src: '~/Projects/helpers'
+			# 	dest: 'compiled/lib/helpers2'
 			]
 			dist: [{
 				src: 'images'
@@ -159,7 +160,7 @@ module.exports = (grunt) ->
 					'compiled/css/project.css'
 					'compiled/lib/faceted-search/dev/css/main.css'
 					'compiled/lib/supertinyeditor/main.css'
-					'compiled/lib/views2/supertinyeditor/supertinyeditor.css'
+					'compiled/lib/views/compiled/supertinyeditor/supertinyeditor.css'
 				]
 				dest:
 					'compiled/css/main.css'
@@ -212,7 +213,7 @@ module.exports = (grunt) ->
 						'domready': '../lib/requirejs-domready/domReady'
 						'faceted-search': '../lib/faceted-search/stage/js/main'
 						'supertinyeditor': '../lib/supertinyeditor/main'
-						'views2': '../lib/views2'
+						'views': '../lib/views'
 						'managers': '../lib/managers/dev'
 						'helpers': '../lib/helpers/dev'
 						'helpers2': '../lib/helpers2'
@@ -239,12 +240,12 @@ module.exports = (grunt) ->
 				files: ['src/stylus/**/*.styl']
 				tasks: ['stylus:compile', 'concat:css']
 			html: 
-				files: ['compiled/lib/views2/**/*.html']
+				files: ['compiled/lib/views/**/*.html']
 			css:
-				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/views2/**/*.css']
+				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/views/**/*.css']
 				tasks: ['concat:css']
 			js:
-				files: ['compiled/lib/views2/**/*.js']
+				files: ['compiled/lib/views/**/*.js']
 
 	#############
 	### TASKS ###
@@ -310,8 +311,22 @@ module.exports = (grunt) ->
 
 	grunt.registerMultiTask 'createSymlinks', 'Creates a symlink', ->
 		for own index, config of this.data
-			src = if config.src[0] isnt '/' then process.cwd() + '/' + config.src else config.src
-			dest = if config.dest[0] isnt '/' then process.cwd() + '/' + config.dest else config.dest
+
+			src = config.src
+			dest = config.dest
+
+			src = process.env.HOME + src.substr(1) if src[0] is '~'
+			dest = process.env.HOME + dest.substr(1) if dest[0] is '~'
+
+			src = process.cwd() + '/' + src if src[0] isnt '/'
+			dest = process.cwd() + '/' + dest if dest[0] isnt '/'
+
+
+
+
+			# src = if config.src[0] isnt '/' then process.cwd() + '/' + config.src else config.src
+			# dest = if config.dest[0] isnt '/' then process.cwd() + '/' + config.dest else config.dest
+			# console.log src
 
 			grunt.log.writeln 'ERROR: source dir does not exist!' if not fs.existsSync(src) # Without a source, all is lost.
 

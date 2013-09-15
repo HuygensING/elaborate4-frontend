@@ -1,7 +1,7 @@
 define (require) ->
 
-	Fn = require 'helpers2/general'
-	require 'helpers2/jquery.mixin'
+	Fn = require 'helpers/general'
+	require 'helpers/jquery.mixin'
 	Async = require 'managers/async'
 	# console.log require 'supertinyeditor'
 	# SuperTinyEditor = require 'supertinyeditor'
@@ -61,7 +61,6 @@ define (require) ->
 			@$el.html rtpl
 
 			@renderFacsimile()
-			@renderPreview()
 			@renderTranscription()
 
 			@listenTo @preview, 'addAnnotation', @renderAnnotation
@@ -70,14 +69,14 @@ define (require) ->
 			@listenTo @preview, 'scrolled', (percentage) => @transcriptionEdit.setScrollPercentage percentage, 'horizontal'
 			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
 			@listenTo @transcriptionEdit, 'scrolled', (percentage) => Fn.setScrollPercentage @preview.el, percentage, 'horizontal'
-			@listenTo @transcriptionEdit, 'change', (cmd, doc) => currentTranscription.set 'body', doc
+			@listenTo @transcriptionEdit, 'change', (cmd, doc) => @currentTranscription.set 'body', doc
 
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
 				@renderFacsimile()
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
-				@renderTranscription()
+				@renderTranscription current
 
 		renderFacsimile: ->
 			if @model.get('facsimiles').length
@@ -87,10 +86,11 @@ define (require) ->
 		# * TODO: Create separate View?
 		# * TODO: Resize iframe width on window.resize
 		# * TODO: How many times is renderTranscription called on init?
-		renderTranscription: ->
-
+		renderTranscription: (model) ->
+			@renderPreview()
+			
 			if @transcriptionEdit?
-				console.log 'tran exists'
+				@transcriptionEdit.setModel model if model?
 			else
 				textLayer = @model.get('transcriptions').current.get 'textLayer'
 
@@ -116,9 +116,8 @@ define (require) ->
 			
 			@toggleEditPane 'transcription'
 
-		renderAnnotation: (model) ->
-			console.log model
 
+		renderAnnotation: (model) ->
 			if @annotationEdit?
 				@annotationEdit.setModel model if model?
 			else
@@ -178,10 +177,12 @@ define (require) ->
 					success: => @renderTranscription()
 
 		metadata: (ev) ->
-			@annotationMetadata = new Views.AnnotationMetadata
-				collection: @project.get 'annotationtypes'
-				el: @el.querySelector('.container .middle .annotationmetadata')
-			@toggleEditPane 'annotationmetadata'
+			if @annotationEdit? and @annotationEdit.$el.is(':visible')
+				@annotationMetadata = new Views.AnnotationMetadata
+					model: @annotationEdit.model
+					collection: @project.get 'annotationtypes'
+					el: @el.querySelector('.container .middle .annotationmetadata')
+				@toggleEditPane 'annotationmetadata'
 
 
 		# menuItemClicked: (ev) ->

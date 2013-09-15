@@ -1,3 +1,6 @@
-select
-	option one
-	option two
+label Type
+select(name="type")
+	| <% collection.each(function(item) { %>
+	| <% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
+	| <option data-id!="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
+	| <% }); %>

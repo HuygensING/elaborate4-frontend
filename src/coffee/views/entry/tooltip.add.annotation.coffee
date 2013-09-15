@@ -1,5 +1,5 @@
 define (require) ->
-	Fn = require 'helpers2/general'
+	Fn = require 'helpers/general'
 	BaseView = require 'views/base'
 
 	Annotation = require 'models/annotation'

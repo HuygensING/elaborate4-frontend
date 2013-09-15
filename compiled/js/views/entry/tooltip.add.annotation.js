@@ -4,7 +4,7 @@
 
   define(function(require) {
     var AddAnnotationTooltip, Annotation, BaseView, Fn, Templates, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('helpers/general');
     BaseView = require('views/base');
     Annotation = require('models/annotation');
     Templates = {

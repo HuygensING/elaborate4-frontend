@@ -10,8 +10,10 @@
     "underscore-amd": "*",
     "backbone-amd": "*",
     "normalize-css": "*",
-    "helpers": "git@github.com:Gijsjan/helpers.git",
-    "managers": "git@github.com:Gijsjan/managers.git"
+    "helpers": "https://github.com/Gijsjan/helpers.git",
+    "managers": "https://github.com/Gijsjan/managers.git",
+    "mixins": "https://github.com/Gijsjan/mixins.git",
+    "views": "https://github.com/Gijsjan/views.git"
   },
   "devDependencies": {
     "mocha": "*",

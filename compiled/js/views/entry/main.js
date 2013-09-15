@@ -4,8 +4,8 @@
 
   define(function(require) {
     var Async, Entry, Fn, Models, Templates, Views, _ref;
-    Fn = require('helpers2/general');
-    require('helpers2/jquery.mixin');
+    Fn = require('helpers/general');
+    require('helpers/jquery.mixin');
     Async = require('managers/async');
     Models = {
       state: require('models/state'),
@@ -77,7 +77,6 @@
         rtpl = _.template(Templates.Entry, this.model.attributes);
         this.$el.html(rtpl);
         this.renderFacsimile();
-        this.renderPreview();
         this.renderTranscription();
         this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
@@ -89,7 +88,7 @@
           return Fn.setScrollPercentage(_this.preview.el, percentage, 'horizontal');
         });
         this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
-          return currentTranscription.set('body', doc);
+          return _this.currentTranscription.set('body', doc);
         });
         this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
           _this.currentFacsimile = current;
@@ -97,7 +96,7 @@
         });
         return this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
-          return _this.renderTranscription();
+          return _this.renderTranscription(current);
         });
       };
 
@@ -109,10 +108,13 @@
         }
       };
 
-      Entry.prototype.renderTranscription = function() {
+      Entry.prototype.renderTranscription = function(model) {
         var currentTranscription, el, li, text, textLayer, textLayerNode;
+        this.renderPreview();
         if (this.transcriptionEdit != null) {
-          console.log('tran exists');
+          if (model != null) {
+            this.transcriptionEdit.setModel(model);
+          }
         } else {
           textLayer = this.model.get('transcriptions').current.get('textLayer');
           textLayerNode = document.createTextNode(textLayer + ' layer');
@@ -136,7 +138,6 @@
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        console.log(model);
         if (this.annotationEdit != null) {
           if (model != null) {
             this.annotationEdit.setModel(model);
@@ -215,11 +216,14 @@
       };
 
       Entry.prototype.metadata = function(ev) {
-        this.annotationMetadata = new Views.AnnotationMetadata({
-          collection: this.project.get('annotationtypes'),
-          el: this.el.querySelector('.container .middle .annotationmetadata')
-        });
-        return this.toggleEditPane('annotationmetadata');
+        if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
+          this.annotationMetadata = new Views.AnnotationMetadata({
+            model: this.annotationEdit.model,
+            collection: this.project.get('annotationtypes'),
+            el: this.el.querySelector('.container .middle .annotationmetadata')
+          });
+          return this.toggleEditPane('annotationmetadata');
+        }
       };
 
       Entry.prototype.toggleEditPane = function(viewName) {

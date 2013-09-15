@@ -1,5 +1,5 @@
 define (require) ->
-	Fn = require 'helpers2/general'
+	Fn = require 'helpers/general'
 	BaseView = require 'views/base'
 	Templates =
 		Tooltip: require 'text!html/ui/tooltip.html'

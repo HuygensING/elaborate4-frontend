@@ -5,14 +5,14 @@ require.config
 		'underscore': '../lib/underscore-amd/underscore'
 		'backbone': '../lib/backbone-amd/backbone'
 		'domready': '../lib/requirejs-domready/domReady'
-		'supertinyeditor': '../lib/supertinyeditor/main'
+		# 'supertinyeditor': '../lib/supertinyeditor/main'
 		'text': '../lib/requirejs-text/text'
 		'managers': '../lib/managers/dev'
 		'helpers': '../lib/helpers/dev'
-		'helpers2': '../lib/helpers2/dev'
-		'views2': '../lib/views2'
+		# 'helpers2': '../lib/helpers/dev'
+		'views2': '../lib/views2/compiled'
 		'html': '../html'
-		'viewshtml': '../lib/views2'
+		'viewshtml': '../lib/views2/compiled'
 
 	shim:
 		'underscore':

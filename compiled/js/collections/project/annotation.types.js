@@ -28,6 +28,10 @@
         return config.baseUrl + ("projects/" + this.projectId + "/annotationtypes");
       };
 
+      AnnotationTypes.prototype.comparator = function(annotationType) {
+        return annotationType.get('description');
+      };
+
       return AnnotationTypes;
 
     })(Base);

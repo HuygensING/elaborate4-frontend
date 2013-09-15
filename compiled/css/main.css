@@ -430,25 +430,7 @@ header .main nav.user .vertical.menu li,header .main nav.project .vertical.menu 
 header .main nav.user .vertical.menu li:hover,header .main nav.project .vertical.menu li:hover{background:#222;text-shadow:1px 2px #000}
 header .main nav.user .vertical.menu li:hover + li,header .main nav.project .vertical.menu li:hover + li{box-shadow:0 -9px 30px #444}
 
-keyframes fn_spin{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-keyframes fn_spin{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-@-webkit-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-o-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-ms-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-moz-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-webkit-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-o-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@-ms-keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}@keyframes fn_spin{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-o-transform:rotate(0);-ms-transform:rotate(0);transform:rotate(0)}
-100%{-webkit-transform:rotate(359deg);-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-ms-transform:rotate(359deg);transform:rotate(359deg)}
-}
+
 .row{font-size:0;}
 .row *{vertical-align:top}
 .row sub{vertical-align:sub}
@@ -1072,48 +1054,6 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .faceted-search form .align.middle{line-height:24px;}
 .faceted-search form .align.middle *{vertical-align:middle}
 
-.tinyeditor, .tinyeditor html, .tinyeditor body, .tinyeditor iframe {
-	height: 100%;
-}
-
-.tinyeditor iframe {
-	/*overflow: hidden;*/
-}
-
-.tinyeditor iframe body {
-	/*overflow: hidden;*/
-	margin:0; 
-	padding:25px; 
-	font:12px Verdana,Arial
-}
-
-#tinyeditor {border:none; margin:0; padding:0; font:14px 'Courier New',Verdana}
-
-.tinyeditor {
-	/*position: relative;*/
-	/*min-width: 380px;*/
-/*	border:1px solid #bbb; 
-	padding:0 1px 1px;*/
-	font:12px Verdana,Arial
-}
-
-.tinyeditor iframe {border:none; overflow-x:hidden}
-.tinyeditor-header {height:31px; border-bottom:1px solid #bbb; background:url(../images/supertinyeditor/header-bg.gif) repeat-x; padding-top:1px}
-.tinyeditor-header select {float:left; margin-top:5px}
-.tinyeditor-body {
-	margin-top: 12px;
-}
-.tinyeditor-font {margin-left:12px}
-.tinyeditor-size {margin:0 3px}
-.tinyeditor-style {margin-right:12px}
-.tinyeditor-divider {float:left; width:1px; height:30px; background:#ccc}
-.tinyeditor-control {float:left; width:34px; height:30px; cursor:pointer; background-image:url(../images/supertinyeditor/icons2.png)}
-.tinyeditor-control:hover {background-color:#fff; background-position:30px 0}
-.tinyeditor-footer {height:32px; border-top:1px solid #bbb; background:#f5f5f5}
-.toggle {float:left; background:url(../images/supertinyeditor/icons2.png) -34px 2px no-repeat; padding:9px 13px 0 31px; height:23px; border-right:1px solid #ccc; cursor:pointer; color:#666}
-.toggle:hover {background-color:#fff}
-.resize {float:right; height:32px; width:32px; background:url(../images/supertinyeditor/resize.gif) 15px 15px no-repeat; cursor:s-resize}
-#editor {cursor:text; margin:10px}
 .ste-iframe-body{margin:0;padding:0 0 10px 0;font:12px Verdana,Arial,Helvetica,sans-serif;white-space:nowrap}
 .supertinyeditor iframe{border:none}
 .supertinyeditor .ste-header{height:31px;border-bottom:1px solid #bbb;background:url("../images/supertinyeditor/header-bg.gif") repeat-x;padding-top:1px;}

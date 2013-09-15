@@ -4,7 +4,7 @@
 
   define(function(require) {
     var EntryPreview, Fn, Views, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('helpers/general');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/tooltip.add.annotation'),

@@ -4,7 +4,7 @@
 
   define(function(require) {
     var AnnotationMetadata, Fn, Tpl, Views, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('helpers/general');
     Views = {
       Base: require('views/base')
     };
@@ -25,13 +25,25 @@
       AnnotationMetadata.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Tpl, {
-          collection: this.collection.toJSON()
+          model: this.model,
+          collection: this.collection
         });
         this.$el.html(rtpl);
         return this;
       };
 
-      AnnotationMetadata.prototype.events = function() {};
+      AnnotationMetadata.prototype.events = function() {
+        return {
+          'change select': 'selectChanged'
+        };
+      };
+
+      AnnotationMetadata.prototype.selectChanged = function(ev) {
+        var annotationTypeID;
+        annotationTypeID = ev.currentTarget.options[ev.currentTarget.selectedIndex].getAttribute('data-id');
+        this.model.set('annotationType', this.collection.get(annotationTypeID));
+        return console.log(this.model);
+      };
 
       return AnnotationMetadata;
 

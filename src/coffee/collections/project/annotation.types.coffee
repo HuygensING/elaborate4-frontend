@@ -15,3 +15,5 @@ define (require) ->
 			@projectId = options.projectId
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/annotationtypes"
+
+		comparator: (annotationType) -> annotationType.get 'description'
