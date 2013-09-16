@@ -1,6 +1,6 @@
 define (require) ->
 
-	Async = require 'managers/async'
+	Async = require 'managers2/async'
 
 	Views =
 		Base: require 'views/base'
@@ -83,6 +83,7 @@ define (require) ->
 		loadTabData: ->
 			@entries = new Collections.Entries()
 			@entries.fetch (data) =>
+				console.log data
 				rtpl = _.template Templates.Entries, entries: data
 				@$('div[data-tab="metadata-entries"]').html rtpl
 
@@ -110,8 +111,6 @@ define (require) ->
 			async.on 'ready', (data) =>
 				rtpl = _.template Templates.Users, data
 				@$('div[data-tab="users"]').html rtpl
-				
-				console.log data
 
 		loadStatistics: ->
 			start = new Date().getTime()

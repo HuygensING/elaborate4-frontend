@@ -4,7 +4,7 @@
 
   define(function(require) {
     var Async, Collections, Models, ProjectSettings, Templates, Views, _ref;
-    Async = require('managers/async');
+    Async = require('managers2/async');
     Views = {
       Base: require('views/base'),
       SubMenu: require('views/ui/settings.submenu')
@@ -102,6 +102,7 @@
         this.entries = new Collections.Entries();
         this.entries.fetch(function(data) {
           var rtpl;
+          console.log(data);
           rtpl = _.template(Templates.Entries, {
             entries: data
           });
@@ -136,8 +137,7 @@
         return async.on('ready', function(data) {
           var rtpl;
           rtpl = _.template(Templates.Users, data);
-          _this.$('div[data-tab="users"]').html(rtpl);
-          return console.log(data);
+          return _this.$('div[data-tab="users"]').html(rtpl);
         });
       };
 
