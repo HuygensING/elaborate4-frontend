@@ -90,6 +90,7 @@ define (require) ->
 			@annotations = new Collections.Annotations()
 			@annotations.fetch
 				success: (collection, value, options) =>
+					console.log value
 					rtpl = _.template Templates.Annotations, annotations: collection
 					@$('div[data-tab="metadata-annotations"]').html rtpl
 				error: =>

@@ -218,12 +218,14 @@ module.exports = (grunt) ->
 						'text': '../lib/requirejs-text/text'
 						'domready': '../lib/requirejs-domready/domReady'
 						'faceted-search': '../lib/faceted-search/stage/js/main'
-						'supertinyeditor': '../lib/supertinyeditor/main'
-						'views': '../lib/views'
+						# 'supertinyeditor': '../lib/supertinyeditor/main'
+						'views2': '../lib/views/compiled'
 						'managers': '../lib/managers/dev'
+						'managers2': '../lib/managers2/dev'
 						'helpers': '../lib/helpers/dev'
-						'helpers2': '../lib/helpers2'
+						'helpers2': '../lib/helpers2/dev'
 						'html': '../html'
+						'viewshtml': '../lib/views2/compiled'
 					wrap: true
 					# wrap:
 					# 	startFile: 'wrap.start.js'

@@ -6,7 +6,9 @@ define (require) ->
 
 	class Tooltip extends BaseView
 
-		id: "tooltip"
+		className: 'tooltip editannotation'
+
+		id: "editannotationtooltip"
 
 		# ### Initialize
 		initialize: ->
@@ -22,7 +24,9 @@ define (require) ->
 			rtpl = _.template Templates.Tooltip
 			@$el.html rtpl
 
-			$('#tooltip').remove() # There can be only one!
+			# There can be only one!
+			$('#editannotationtooltip').remove() 
+
 			$('body').prepend @$el
 
 		# ### Events

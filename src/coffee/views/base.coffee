@@ -15,3 +15,5 @@ define (require) ->
 			viewManager.register(this) if @options.managed
 
 			_.extend @, Pubsub # extend the view with pubsub terminology (just aliases for listenTo and trigger)
+
+		destroy: -> @remove()

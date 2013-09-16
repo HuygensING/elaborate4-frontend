@@ -17,7 +17,9 @@
         return _ref;
       }
 
-      Tooltip.prototype.id = "tooltip";
+      Tooltip.prototype.className = 'tooltip editannotation';
+
+      Tooltip.prototype.id = "editannotationtooltip";
 
       Tooltip.prototype.initialize = function() {
         Tooltip.__super__.initialize.apply(this, arguments);
@@ -30,7 +32,7 @@
         var rtpl;
         rtpl = _.template(Templates.Tooltip);
         this.$el.html(rtpl);
-        $('#tooltip').remove();
+        $('#editannotationtooltip').remove();
         return $('body').prepend(this.$el);
       };
 

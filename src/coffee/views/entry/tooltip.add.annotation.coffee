@@ -9,12 +9,16 @@ define (require) ->
 
 	class AddAnnotationTooltip extends BaseView
 
+		id: 'addannotationtooltip'
+
 		className: "tooltip addannotation"
 
 		events: ->
 			'click button': 'buttonClicked'
 
-		buttonClicked: (ev) -> @trigger 'clicked', new Annotation()
+		buttonClicked: (ev) -> 
+			@hide()
+			@trigger 'clicked', new Annotation()
 
 		initialize: ->
 			super
@@ -28,8 +32,13 @@ define (require) ->
 			rtpl = _.template Templates.Tooltip, {}
 			@$el.html rtpl
 
+			# There can be only one!
+			$('#addannotationtooltip').remove()
+
 			# Native prepend
-			@container.insertBefore @el, @container.firstChild
+			# @container.insertBefore @el, @container.firstChild
+
+			$('body').prepend @$el
 
 			@
 

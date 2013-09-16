@@ -38,23 +38,6 @@
       };
 
       Transcription.prototype.parse = function(attrs) {
-        var i,
-          _this = this;
-        attrs.body = attrs.body.trim();
-        if (attrs.body.substr(0, 6) === '<body>') {
-          attrs.body = attrs.body.substr(6);
-        }
-        if (attrs.body.substr(-7) === '</body>') {
-          attrs.body = attrs.body.slice(0, -7);
-        }
-        i = 1;
-        attrs.body = attrs.body.replace(/<ab id="(.*?)"\/>/g, function(match, p1, offset, string) {
-          return '<span data-marker="begin" data-id="' + p1 + '"></span>';
-        });
-        attrs.body = attrs.body.replace(/<ae id="(.*?)"\/>/g, function(match, p1, offset, string) {
-          return '<sup data-marker="end" data-id="' + p1 + '">' + (i++) + '</sup> ';
-        });
-        attrs.body = attrs.body.replace(/\n/g, '<br>');
         attrs.annotations = new Collections.Annotations([], {
           transcriptionId: attrs.id,
           entryId: this.collection.entryId,

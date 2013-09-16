@@ -18,6 +18,8 @@
         return _ref;
       }
 
+      AddAnnotationTooltip.prototype.id = 'addannotationtooltip';
+
       AddAnnotationTooltip.prototype.className = "tooltip addannotation";
 
       AddAnnotationTooltip.prototype.events = function() {
@@ -27,6 +29,7 @@
       };
 
       AddAnnotationTooltip.prototype.buttonClicked = function(ev) {
+        this.hide();
         return this.trigger('clicked', new Annotation());
       };
 
@@ -41,7 +44,8 @@
         var rtpl;
         rtpl = _.template(Templates.Tooltip, {});
         this.$el.html(rtpl);
-        this.container.insertBefore(this.el, this.container.firstChild);
+        $('#addannotationtooltip').remove();
+        $('body').prepend(this.$el);
         return this;
       };
 

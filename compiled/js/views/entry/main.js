@@ -3,7 +3,8 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Entry, Fn, Models, StringFn, Templates, Views, _ref;
+    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, _ref;
+    Backbone = require('backbone');
     Fn = require('helpers/general');
     StringFn = require('helpers2/string');
     require('helpers/jquery.mixin');
@@ -189,11 +190,11 @@
       };
 
       Entry.prototype.previousEntry = function() {
-        return this.model.collection.previous();
+        return this.publish('navigate:entry', this.model.collection.previous().id);
       };
 
       Entry.prototype.nextEntry = function() {
-        return this.model.collection.next();
+        return this.publish('navigate:entry', this.model.collection.next().id);
       };
 
       Entry.prototype.changeFacsimile = function(ev) {
@@ -211,8 +212,9 @@
         model = this.model.get('transcriptions').get(transcriptionID);
         if (model !== this.model.get('transcriptions').current) {
           this.model.get('transcriptions').setCurrent(model);
-          return this.navigateToTextLayer(model);
+          this.navigateToTextLayer(model);
         }
+        return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.navigateToTextLayer = function(model) {

@@ -1,4 +1,5 @@
 define (require) ->
+	Backbone = require 'backbone'
 
 	Fn = require 'helpers/general'
 	StringFn = require 'helpers2/string'
@@ -160,10 +161,11 @@ define (require) ->
 			'click .menu li[data-key="metadata"]': 'metadata'
 
 		previousEntry: ->
-			@model.collection.previous()
+			# @model.collection.previous() returns an entry model
+			@publish 'navigate:entry', @model.collection.previous().id
 
 		nextEntry: ->
-			@model.collection.next()
+			@publish 'navigate:entry', @model.collection.next().id
 
 		changeFacsimile: (ev) ->
 			facsimileID = ev.currentTarget.getAttribute 'data-value'
@@ -183,6 +185,8 @@ define (require) ->
 				@model.get('transcriptions').setCurrent model
 
 				@navigateToTextLayer model
+
+			@toggleEditPane 'transcription'
 
 		navigateToTextLayer: (model) ->
 			# Cut of '/transcriptions/*' if it exists

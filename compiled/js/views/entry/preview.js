@@ -3,13 +3,14 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var EntryPreview, Fn, Views, _ref;
+    var EntryPreview, Fn, Tpl, Views, _ref;
     Fn = require('helpers/general');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/tooltip.add.annotation'),
       EditAnnotationTooltip: require('views/entry/tooltip.edit.annotation')
     };
+    Tpl = require('text!html/entry/preview.html');
     return EntryPreview = (function(_super) {
       __extends(EntryPreview, _super);
 
@@ -19,23 +20,30 @@
       }
 
       EntryPreview.prototype.initialize = function() {
-        var _this = this;
         EntryPreview.__super__.initialize.apply(this, arguments);
         this.highlighter = Fn.highlighter();
         this.currentTranscription = this.model.get('transcriptions').current;
         this.listenTo(this.currentTranscription, 'current:change', this.render);
-        this.listenTo(this.currentTranscription, 'change:body', function() {
-          return _this.render();
-        });
+        this.listenTo(this.currentTranscription, 'change:body', this.render);
         return this.render();
       };
 
       EntryPreview.prototype.render = function() {
-        var _this = this;
-        this.$el.html(this.currentTranscription.get('body'));
+        var rtpl,
+          _this = this;
+        rtpl = _.template(Tpl, this.currentTranscription.attributes);
+        this.$el.html(rtpl);
+        if (this.addAnnotationTooltip != null) {
+          this.stopListening(this.addAnnotationTooltip);
+          this.addAnnotationTooltip.remove();
+        }
         this.addAnnotationTooltip = new Views.AddAnnotationTooltip({
           container: this.el
         });
+        if (this.editAnnotationTooltip != null) {
+          this.stopListening(this.editAnnotationTooltip);
+          this.editAnnotationTooltip.remove();
+        }
         this.editAnnotationTooltip = new Views.EditAnnotationTooltip({
           container: this.el
         });
@@ -56,9 +64,9 @@
 
       EntryPreview.prototype.events = function() {
         return {
-          'click sup[data-marker]': 'supClicked',
-          'mousedown': 'onMousedown',
-          'mouseup': 'onMouseup',
+          'click sup[data-marker="end"]': 'supClicked',
+          'mousedown .preview': 'onMousedown',
+          'mouseup .preview': 'onMouseup',
           'scroll': 'onScroll'
         };
       };
@@ -72,6 +80,7 @@
 
       EntryPreview.prototype.supClicked = function(ev) {
         var annotation, id;
+        console.log('clicked');
         id = ev.currentTarget.getAttribute('data-id') >> 0;
         annotation = this.model.get('transcriptions').current.get('annotations').findWhere({
           annotationNo: id
@@ -93,13 +102,15 @@
         var isInsideMarker, range, sel,
           _this = this;
         sel = document.getSelection();
-        if (sel.rangeCount === 0 || ev.target !== this.el) {
+        if (sel.rangeCount === 0 || ev.target !== this.el.querySelector('.preview')) {
           this.addAnnotationTooltip.hide();
           return false;
         }
         range = sel.getRangeAt(0);
         isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') || range.endContainer.parentNode.hasAttribute('data-marker');
+        console.log(range.collapsed, isInsideMarker, this.$('[data-id="newannotation"]').length > 0);
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
+          console.log(this.addAnnotationTooltip);
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
             _this.addNewAnnotationTags(range);
             return _this.trigger('addAnnotation', model);
@@ -123,7 +134,7 @@
         sup.innerHTML = 'new';
         range.collapse(false);
         range.insertNode(sup);
-        return this.currentTranscription.set('body', this.$el.html(), {
+        return this.currentTranscription.set('body', this.$('.preview').html(), {
           silent: true
         });
       };

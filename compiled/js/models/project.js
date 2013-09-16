@@ -4,8 +4,8 @@
 
   define(function(require) {
     var Collections, Models, Project, ajax, config, token, _ref;
-    ajax = require('managers2/ajax');
-    token = require('managers2/token');
+    ajax = require('managers/ajax');
+    token = require('managers/token');
     config = require('config');
     Models = {
       Base: require('models/base')

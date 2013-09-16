@@ -112,6 +112,7 @@
         this.annotations.fetch({
           success: function(collection, value, options) {
             var rtpl;
+            console.log(value);
             rtpl = _.template(Templates.Annotations, {
               annotations: collection
             });

@@ -29,6 +29,10 @@
         return _.extend(this, Pubsub);
       };
 
+      BaseView.prototype.destroy = function() {
+        return this.remove();
+      };
+
       return BaseView;
 
     })(Backbone.View);
