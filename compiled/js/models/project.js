@@ -3,7 +3,10 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Collections, Models, Project, _ref;
+    var Collections, Models, Project, ajax, config, token, _ref;
+    ajax = require('managers2/ajax');
+    token = require('managers2/token');
+    config = require('config');
     Models = {
       Base: require('models/base')
     };
@@ -25,6 +28,7 @@
           createdOn: '',
           creator: null,
           entries: null,
+          entrymetadatafields: [],
           level1: '',
           level2: '',
           level3: '',
@@ -45,6 +49,24 @@
           projectId: attrs.id
         });
         return attrs;
+      };
+
+      Project.prototype.fetchEntrymetadatafields = function(cb) {
+        var jqXHR,
+          _this = this;
+        ajax.token = token.get();
+        jqXHR = ajax.get({
+          url: config.baseUrl + ("projects/" + this.id + "/entrymetadatafields"),
+          dataType: 'text'
+        });
+        jqXHR.done(function(response) {
+          _this.set('entrymetadatafields', response);
+          return cb();
+        });
+        return jqXHR.fail(function(a, b, c) {
+          console.log(a, b, c);
+          return console.error('fetchEntrymetadatafields failed!');
+        });
       };
 
       return Project;

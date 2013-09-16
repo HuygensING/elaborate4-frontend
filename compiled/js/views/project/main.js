@@ -3,7 +3,8 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Models, ProjectSearch, Templates, Views, config, token, _ref;
+    var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
+    Fn = require('helpers2/general');
     config = require('config');
     token = require('managers/token');
     Models = {
@@ -19,6 +20,8 @@
       Results: require('text!html/project/search.results.html')
     };
     return ProjectSearch = (function(_super) {
+      var _this = this;
+
       __extends(ProjectSearch, _super);
 
       function ProjectSearch() {
@@ -27,30 +30,6 @@
       }
 
       ProjectSearch.prototype.className = 'projectsearch';
-
-      ProjectSearch.prototype.events = {
-        'click li.entry': 'goToEntry',
-        'click .pagination li.prev': 'changePage',
-        'click .pagination li.next': 'changePage'
-      };
-
-      ProjectSearch.prototype.changePage = function(ev) {
-        var ct;
-        ct = $(ev.currentTarget);
-        if (ct.hasClass('inactive')) {
-          return;
-        }
-        $('.pagination li').removeClass('inactive');
-        if (ct.hasClass('prev')) {
-          return this.facetedSearch.prev();
-        } else if (ct.hasClass('next')) {
-          return this.facetedSearch.next();
-        }
-      };
-
-      ProjectSearch.prototype.goToEntry = function(ev) {
-        return this.project.get('entries').setCurrent(ev.currentTarget.getAttribute('data-id'));
-      };
 
       ProjectSearch.prototype.initialize = function() {
         var _this = this;
@@ -87,9 +66,52 @@
           }
         });
         this.listenTo(this.facetedSearch, 'results:change', function(response) {
+          console.log(response);
           return _this.model.set(response);
         });
         return this;
+      };
+
+      ProjectSearch.prototype.renderEntries = function() {
+        var rtpl;
+        rtpl = _.template(Templates.Results, {
+          entries: this.project.get('entries')
+        });
+        this.$('ul.entries').html(rtpl);
+        return this;
+      };
+
+      ProjectSearch.prototype.events = {
+        'click li.entry label': 'goToEntry',
+        'click .pagination li.prev': 'changePage',
+        'click .pagination li.next': 'changePage',
+        'click li[data-key="selectall"]': function() {
+          return Fn.checkCheckboxes('.entries input[type="checkbox"]', true, ProjectSearch.el);
+        },
+        'click li[data-key="deselectall"]': function() {
+          return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
+        }
+      };
+
+      ProjectSearch.prototype.changePage = function(ev) {
+        var ct;
+        ct = $(ev.currentTarget);
+        if (ct.hasClass('inactive')) {
+          return;
+        }
+        $('.pagination li').removeClass('inactive');
+        if (ct.hasClass('prev')) {
+          return this.facetedSearch.prev();
+        } else if (ct.hasClass('next')) {
+          return this.facetedSearch.next();
+        }
+      };
+
+      ProjectSearch.prototype.goToEntry = function(ev) {
+        var entryID;
+        entryID = ev.currentTarget.getAttribute('data-id');
+        this.project.get('entries').setCurrent(entryID);
+        return this.publish('navigate:entry', entryID);
       };
 
       ProjectSearch.prototype.updateHeader = function() {
@@ -112,18 +134,9 @@
         }
       };
 
-      ProjectSearch.prototype.renderEntries = function() {
-        var rtpl;
-        rtpl = _.template(Templates.Results, {
-          entries: this.project.get('entries')
-        });
-        this.$('ul.entries').html(rtpl);
-        return this;
-      };
-
       return ProjectSearch;
 
-    })(Views.Base);
+    }).call(this, Views.Base);
   });
 
 }).call(this);

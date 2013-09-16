@@ -1,8 +1,9 @@
 define (require) ->
 
 	Fn = require 'helpers/general'
+	StringFn = require 'helpers2/string'
 	require 'helpers/jquery.mixin'
-	Async = require 'managers/async'
+	Async = require 'managers2/async'
 	# console.log require 'supertinyeditor'
 	# SuperTinyEditor = require 'supertinyeditor'
 
@@ -31,7 +32,7 @@ define (require) ->
 			super
 
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
-			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes']
+			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']
 			@listenToOnce async, 'ready', => @render()
 
 			Models.state.getCurrentProject (project) => 
@@ -42,8 +43,16 @@ define (require) ->
 						# setCurrent returns the current model/entry
 						@model = collection.setCurrent @options.entryId
 						
-						@model.get('transcriptions').fetch success: (collection, response, options) => 
-							@currentTranscription = collection.setCurrent()
+						@model.get('transcriptions').fetch success: (collection, response, options) =>
+
+							# Find the model with the given textLayer
+							model = collection.find (model) => model.get('textLayer').toLowerCase() is @options.transcriptionName.toLowerCase() if @options.transcriptionName?
+
+							# Set the current transcription. If the model is undefined, the collection will return the first model.
+							@currentTranscription = collection.setCurrent model
+
+							@navigateToTextLayer @currentTranscription
+
 							async.called 'transcriptions'
 
 						@model.get('facsimiles').fetch success: (collection, response, options) =>
@@ -54,6 +63,8 @@ define (require) ->
 
 				project.get('annotationtypes').fetch
 					success: => async.called 'annotationtypes'
+
+				project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
 
 		# ### Render
 		render: ->
@@ -144,7 +155,7 @@ define (require) ->
 			'click .menu li[data-key="previous"]': 'previousEntry'
 			'click .menu li[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
-			'click .menu li[data-key="transcription"]': 'changeTranscription'
+			'click .menu li[data-key="transcription"]': 'changeTextlayer'
 			'click .menu li[data-key="save"]': 'save'
 			'click .menu li[data-key="metadata"]': 'metadata'
 
@@ -160,11 +171,26 @@ define (require) ->
 			model = @model.get('facsimiles').get facsimileID
 			@model.get('facsimiles').setCurrent model if model?
 
-		changeTranscription: (ev) ->
+		changeTextlayer: (ev) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
 
 			model = @model.get('transcriptions').get transcriptionID
-			@model.get('transcriptions').setCurrent model
+
+			# We don't want to navigateToTextlayer if the model hasn't changed.
+			# Transcriptions.setCurrent has a check for setting the same model, so this is redundant, but reads better,
+			# otherwise we would have to navigateToTextlayer and setCurrent after that.
+			if model isnt @model.get('transcriptions').current
+				@model.get('transcriptions').setCurrent model
+
+				@navigateToTextLayer model
+
+		navigateToTextLayer: (model) ->
+			# Cut of '/transcriptions/*' if it exists
+			index = Backbone.history.fragment.indexOf '/transcriptions/'
+			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
+
+			# Navigate to the new fragement
+			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(model.get('textLayer')), replace: true
 
 		save: (ev) ->
 			if @annotationEdit? and @annotationEdit.$el.is(':visible')

@@ -29,12 +29,14 @@
       };
 
       Facsimiles.prototype.setCurrent = function(model) {
-        if (model != null) {
-          this.current = model;
-        } else {
-          this.current = this.at(0);
+        if ((model == null) || model !== this.current) {
+          if (model != null) {
+            this.current = model;
+          } else {
+            this.current = this.at(0);
+          }
+          this.trigger('current:change', this.current);
         }
-        this.trigger('current:change', this.current);
         return this.current;
       };
 

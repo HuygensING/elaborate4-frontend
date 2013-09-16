@@ -1,1 +1,5 @@
-<% entries.each(function(entry) { %><li id="entry<%=entry.id %>" data-id="<%=entry.id%>" class="entry"> <input type="checkbox"/><label><%= entry.get('name') %></label></li><% }); %>
+<% entries.each(function(entry) { %>
+<li id="entry<%=entry.id %>" class="entry"> 
+  <input type="checkbox"/>
+  <label data-id="<%=entry.id%>"><%= entry.get('name') %></label>
+</li><% }); %>

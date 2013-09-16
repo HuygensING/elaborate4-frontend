@@ -8,7 +8,9 @@
       'domready': '../lib/requirejs-domready/domReady',
       'text': '../lib/requirejs-text/text',
       'managers': '../lib/managers/dev',
+      'managers2': '../lib/managers2/dev',
       'helpers': '../lib/helpers/dev',
+      'helpers2': '../lib/helpers2/dev',
       'views2': '../lib/views2/compiled',
       'html': '../html',
       'viewshtml': '../lib/views2/compiled'

@@ -32,7 +32,6 @@
       Entries.prototype.setCurrent = function(modelID) {
         var model;
         model = this.get(modelID);
-        this.publish('entries:current:change', model);
         return this.current = model;
       };
 

@@ -46,13 +46,17 @@ define (require) ->
 				Models.state.getCurrentProjectName (name) =>
 					@navigate "projects/#{name}", trigger: true
 
+			@subscribe 'navigate:entry', (entryID) =>
+				Models.state.getCurrentProjectName (name) =>
+					@navigate "projects/#{name}/entries/#{entryID}", trigger: true
+
 			# @subscribe 'navigate:entry', (id) =>
 			# 	Models.state.getCurrentProjectName (name) =>
 			# 		@navigate "projects/#{name}/entries/#{id}", trigger: true
 
-			@subscribe 'entries:current:change', (model) =>
-				Models.state.getCurrentProjectName (name) =>
-					@navigate "projects/#{name}/entries/#{model.id}", trigger: true
+			# @subscribe 'entries:current:change', (model) =>
+			# 	Models.state.getCurrentProjectName (name) =>
+			# 		@navigate "projects/#{name}/entries/#{model.id}", trigger: true
 
 		'routes':
 			'': 'projectSearch'
@@ -61,6 +65,7 @@ define (require) ->
 			'projects/:name/settings': 'projectSettings'
 			'projects/:name/history': 'projectHistory'
 			'projects/:name/entries/:id': 'entry'
+			'projects/:name/entries/:id/transcriptions/:name': 'entry'
 
 		home: ->
 			viewManager.show Views.Home
@@ -77,5 +82,7 @@ define (require) ->
 		projectHistory: (name) ->
 			viewManager.show Views.ProjectHistory
 
-		entry: (name, id) ->
-			viewManager.show Views.Entry, entryId: id
+		entry: (projectName, entryID, transcriptionName) ->
+			viewManager.show Views.Entry, 
+				entryId: entryID
+				transcriptionName: transcriptionName

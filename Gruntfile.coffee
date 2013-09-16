@@ -77,6 +77,12 @@ module.exports = (grunt) ->
 			# 	src: '~/Projects/supertinyeditor'
 			# 	dest: 'compiled/lib/supertinyeditor'
 			,
+				src: '~/Projects/helpers'
+				dest: 'compiled/lib/helpers2'
+			,
+				src: '~/Projects/managers'
+				dest: 'compiled/lib/managers2'
+			,
 				src: '~/Projects/views'
 				dest: 'compiled/lib/views2'
 			# ,
@@ -159,8 +165,8 @@ module.exports = (grunt) ->
 					'compiled/lib/normalize-css/normalize.css'
 					'compiled/css/project.css'
 					'compiled/lib/faceted-search/dev/css/main.css'
-					'compiled/lib/supertinyeditor/main.css'
-					'compiled/lib/views/compiled/supertinyeditor/supertinyeditor.css'
+					# 'compiled/lib/supertinyeditor/main.css'
+					'compiled/lib/views2/compiled/supertinyeditor/supertinyeditor.css'
 				]
 				dest:
 					'compiled/css/main.css'
@@ -204,7 +210,7 @@ module.exports = (grunt) ->
 					include: 'main'
 					preserveLicenseComments: false
 					out: "dist/js/main.js"
-					# optimize: 'none'
+					optimize: 'none'
 					paths:
 						'jquery': '../lib/jquery/jquery.min'
 						'underscore': '../lib/underscore-amd/underscore'
@@ -240,12 +246,12 @@ module.exports = (grunt) ->
 				files: ['src/stylus/**/*.styl']
 				tasks: ['stylus:compile', 'concat:css']
 			html: 
-				files: ['compiled/lib/views/**/*.html']
+				files: ['compiled/lib/views2/**/*.html']
 			css:
-				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/views/**/*.css']
+				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/views2/**/*.css']
 				tasks: ['concat:css']
 			js:
-				files: ['compiled/lib/views/**/*.js']
+				files: ['compiled/lib/views2/**/*.js']
 
 	#############
 	### TASKS ###

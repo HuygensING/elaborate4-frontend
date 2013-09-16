@@ -1,4 +1,8 @@
 define (require) ->
+	ajax = require 'managers2/ajax'
+	token = require 'managers2/token'
+
+	config = require 'config'
 
 	Models = 
 		Base: require 'models/base'
@@ -14,6 +18,7 @@ define (require) ->
 			createdOn: ''
 			creator: null
 			entries: null
+			entrymetadatafields: []
 			level1: ''
 			level2: ''
 			level3: ''
@@ -34,3 +39,15 @@ define (require) ->
 			attrs.annotationtypes = new Collections.AnnotationTypes([], projectId: attrs.id)
 
 			attrs
+
+		fetchEntrymetadatafields: (cb) ->
+			ajax.token = token.get()
+			jqXHR = ajax.get
+				url: config.baseUrl + "projects/#{@id}/entrymetadatafields"
+				dataType: 'text'
+			jqXHR.done (response) =>
+				@set 'entrymetadatafields', response
+				cb()
+			jqXHR.fail (a, b, c) => 
+				console.log a, b, c
+				console.error 'fetchEntrymetadatafields failed!'

@@ -21,7 +21,7 @@ define (require) ->
 		setCurrent: (modelID) ->
 			model = @get modelID
 			
-			@publish 'entries:current:change', model
+			# @publish 'entries:current:change', model
 
 			# Set and return @current
 			@current = model

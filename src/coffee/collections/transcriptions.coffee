@@ -16,11 +16,13 @@ define (require) ->
 		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/transcriptions"
 
 		setCurrent: (model) ->
-			if model?
-				@current = model
-			else
-				@current = @at 0
+			if not model? or model isnt @current
+				if model?
+					@current = model
+				else
+					@current = @at 0
 
-			@trigger 'current:change', @current
+				@trigger 'current:change', @current
+
 
 			@current

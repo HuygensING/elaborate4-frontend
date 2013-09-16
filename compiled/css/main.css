@@ -1055,7 +1055,7 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .faceted-search form .align.middle *{vertical-align:middle}
 
 .ste-iframe-body{margin:0;padding:0 0 10px 0;font:12px Verdana,Arial,Helvetica,sans-serif;white-space:nowrap}
-.supertinyeditor iframe{border:none}
+.supertinyeditor iframe{min-height:46px;border:none}
 .supertinyeditor .ste-header{height:31px;border-bottom:1px solid #bbb;background:url("../images/supertinyeditor/header-bg.gif") repeat-x;padding-top:1px;}
 .supertinyeditor .ste-header select{float:left;margin-top:5px}
 .supertinyeditor .ste-body{margin-top:12px}

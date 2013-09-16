@@ -2,6 +2,8 @@
 
 define (require) ->
 
+	Fn = require 'helpers2/general'
+
 	config = require 'config'
 	token = require 'managers/token'
 
@@ -21,28 +23,7 @@ define (require) ->
 
 		className: 'projectsearch'
 
-		events:
-			'click li.entry': 'goToEntry'
-			'click .pagination li.prev': 'changePage'
-			'click .pagination li.next': 'changePage'
-
-		changePage: (ev) ->
-			ct = $(ev.currentTarget)
-			return if ct.hasClass 'inactive'
-
-			$('.pagination li').removeClass 'inactive'
-
-			if ct.hasClass 'prev'
-				@facetedSearch.prev()
-			else if ct.hasClass 'next'
-				@facetedSearch.next()
-
-
-		goToEntry: (ev) ->
-			@project.get('entries').setCurrent ev.currentTarget.getAttribute 'data-id'
-			# id = ev.currentTarget.id.replace 'entry', ''
-			# @publish 'navigate:entry', id
-
+		# ### Initialize
 		initialize: ->
 			super
 
@@ -60,6 +41,7 @@ define (require) ->
 				@project = project
 				@render()
 
+		# ### Render
 		render: ->
 			rtpl = _.template Templates.Search, @project.attributes
 			@$el.html rtpl
@@ -75,9 +57,46 @@ define (require) ->
 					searchInTranscriptions: false
 				queryOptions:
 					resultRows: 12
-			@listenTo @facetedSearch, 'results:change', (response) => @model.set response
+			@listenTo @facetedSearch, 'results:change', (response) => 
+				console.log response
+				@model.set response
 
 			@
+
+		renderEntries: ->
+			rtpl = _.template Templates.Results, entries: @project.get('entries')
+			@$('ul.entries').html rtpl
+
+			@
+
+		# ### Events
+		events:
+			'click li.entry label': 'goToEntry'
+			'click .pagination li.prev': 'changePage'
+			'click .pagination li.next': 'changePage'
+			'click li[data-key="selectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
+			'click li[data-key="deselectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
+
+		changePage: (ev) ->
+			ct = $(ev.currentTarget)
+			return if ct.hasClass 'inactive'
+
+			$('.pagination li').removeClass 'inactive'
+
+			if ct.hasClass 'prev'
+				@facetedSearch.prev()
+			else if ct.hasClass 'next'
+				@facetedSearch.next()
+
+
+		goToEntry: (ev) ->
+			entryID = ev.currentTarget.getAttribute 'data-id'
+			@project.get('entries').setCurrent entryID
+			# id = ev.currentTarget.id.replace 'entry', ''
+			@publish 'navigate:entry', entryID
+			
+
+		# ### Methods
 
 		updateHeader: ->
 			@$('h3.numfound').html @model.get('numFound') + ' letters found'
@@ -95,9 +114,3 @@ define (require) ->
 				@$('.pagination').show()
 			else
 				@$('.pagination').hide()
-
-		renderEntries: ->
-			rtpl = _.template Templates.Results, entries: @project.get('entries')
-			@$('ul.entries').html rtpl
-
-			@

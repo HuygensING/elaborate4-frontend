@@ -72,9 +72,9 @@
             });
           });
         });
-        return this.subscribe('entries:current:change', function(model) {
+        return this.subscribe('navigate:entry', function(entryID) {
           return Models.state.getCurrentProjectName(function(name) {
-            return _this.navigate("projects/" + name + "/entries/" + model.id, {
+            return _this.navigate("projects/" + name + "/entries/" + entryID, {
               trigger: true
             });
           });
@@ -87,7 +87,8 @@
         'projects/:name': 'projectSearch',
         'projects/:name/settings': 'projectSettings',
         'projects/:name/history': 'projectHistory',
-        'projects/:name/entries/:id': 'entry'
+        'projects/:name/entries/:id': 'entry',
+        'projects/:name/entries/:id/transcriptions/:name': 'entry'
       };
 
       MainRouter.prototype.home = function() {
@@ -110,9 +111,10 @@
         return viewManager.show(Views.ProjectHistory);
       };
 
-      MainRouter.prototype.entry = function(name, id) {
+      MainRouter.prototype.entry = function(projectName, entryID, transcriptionName) {
         return viewManager.show(Views.Entry, {
-          entryId: id
+          entryId: entryID,
+          transcriptionName: transcriptionName
         });
       };
 

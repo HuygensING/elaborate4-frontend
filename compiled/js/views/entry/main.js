@@ -3,10 +3,11 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Entry, Fn, Models, Templates, Views, _ref;
+    var Async, Entry, Fn, Models, StringFn, Templates, Views, _ref;
     Fn = require('helpers/general');
+    StringFn = require('helpers2/string');
     require('helpers/jquery.mixin');
-    Async = require('managers/async');
+    Async = require('managers2/async');
     Models = {
       state: require('models/state'),
       Entry: require('models/entry')
@@ -35,7 +36,7 @@
         var async,
           _this = this;
         Entry.__super__.initialize.apply(this, arguments);
-        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes']);
+        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
         this.listenToOnce(async, 'ready', function() {
           return _this.render();
         });
@@ -46,7 +47,14 @@
               _this.model = collection.setCurrent(_this.options.entryId);
               _this.model.get('transcriptions').fetch({
                 success: function(collection, response, options) {
-                  _this.currentTranscription = collection.setCurrent();
+                  var model;
+                  model = collection.find(function(model) {
+                    if (_this.options.transcriptionName != null) {
+                      return model.get('textLayer').toLowerCase() === _this.options.transcriptionName.toLowerCase();
+                    }
+                  });
+                  _this.currentTranscription = collection.setCurrent(model);
+                  _this.navigateToTextLayer(_this.currentTranscription);
                   return async.called('transcriptions');
                 }
               });
@@ -63,10 +71,13 @@
               });
             }
           });
-          return project.get('annotationtypes').fetch({
+          project.get('annotationtypes').fetch({
             success: function() {
               return async.called('annotationtypes');
             }
+          });
+          return project.fetchEntrymetadatafields(function() {
+            return async.called('entrymetadatafields');
           });
         });
       };
@@ -171,7 +182,7 @@
           'click .menu li[data-key="previous"]': 'previousEntry',
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
-          'click .menu li[data-key="transcription"]': 'changeTranscription',
+          'click .menu li[data-key="transcription"]': 'changeTextlayer',
           'click .menu li[data-key="save"]': 'save',
           'click .menu li[data-key="metadata"]': 'metadata'
         };
@@ -194,11 +205,25 @@
         }
       };
 
-      Entry.prototype.changeTranscription = function(ev) {
+      Entry.prototype.changeTextlayer = function(ev) {
         var model, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
         model = this.model.get('transcriptions').get(transcriptionID);
-        return this.model.get('transcriptions').setCurrent(model);
+        if (model !== this.model.get('transcriptions').current) {
+          this.model.get('transcriptions').setCurrent(model);
+          return this.navigateToTextLayer(model);
+        }
+      };
+
+      Entry.prototype.navigateToTextLayer = function(model) {
+        var index;
+        index = Backbone.history.fragment.indexOf('/transcriptions/');
+        if (index !== -1) {
+          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
+        }
+        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(model.get('textLayer')), {
+          replace: true
+        });
       };
 
       Entry.prototype.save = function(ev) {
