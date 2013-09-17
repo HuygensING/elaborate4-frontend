@@ -1,3 +1,70 @@
+.subsubmenu
+	position fixed
+	left 0
+	right 0
+	top -200px
+	// height 120px
+	background-color #666
+	box-shadow 0 30px 60px rgba(17, 17, 17, 0.8)
+	transition top 300ms
+	z-index 48
+	// top mainHeaderHeight + 40px /* tmp */
+
+	&.active
+		top mainHeaderHeight + 40px
+
+	ul
+		list-style none
+
+		li
+			margin-bottom 6px
+			color lighten(spotcolor, 30%)
+
+			label
+				display inline-block
+				width 40px
+				
+
+			input, textarea
+				width 200px
+				border 1px solid #666
+				padding 0 0 0 2px
+				margin 0
+
+			button
+				button()
+				margin-left 40px
+
+			img
+				margin-right 6px
+
+		&.textlayers
+			white-space nowrap
+
+			li.destroy
+				cursor default
+
+				label
+					cursor pointer
+					color #C90000
+					width auto
+					border 1px solid #C90000
+					padding 1px 4px 2px 4px
+					font-weight bold
+					border-radius 6px
+					text-shadow 1px 1px 1px #6D6D6D
+					background-color #AAA
+
+				&:after
+					position absolute
+					margin 2px 0 0 8px
+					color #AAA
+					content 'Click name to remove, bin to cancel.'
+					font-weight normal
+
+			img:hover
+				cursor pointer
+
 .submenu
 	select_none()
 	background-color #444
@@ -6,6 +73,7 @@
 	right 0
 	top mainHeaderHeight
 	z-index 49 // render .main above .sub
+	height 40px
 
 	.row
 		margin 0 auto
@@ -16,22 +84,35 @@
 	& .cell
 		line-height subHeaderHeight
 
-		li
-			vertical_gradient(#565656, #444)
-			border 0
-			box-shadow 1px 1px 1px #666
-			color lighten(spotcolor, 30%)
-			border-radius 6px
-			line-height 24px
-			// padding 4px 24px
-			margin -1px 6px 0 0
-			cursor pointer
-			font-size 0.9rem
+		.horizontal.menu > li
+			button()
 
-			&:active
-				vertical_gradient(#444, #565656)
-				box-shadow -1px -1px 1px #333
-				color spotcolor
+			&.alignright
+				position absolute
+				right 0
+				top 50%
+				margin-top -0.5 * @line-height
 
-			&.inactive
-				color #969696
+		.vertical.menu 
+			border-bottom-left-radius 6px
+			border-bottom-right-radius 6px
+
+			& > li
+				border-bottom 1px solid #666
+				background-color #444
+				box-shadow 2px 0px 4px #888
+				overflow hidden
+				text-overflow ellipsis
+
+				&.spacer
+					background none
+					height 8px
+					box-shadow none
+
+				&:hover
+					color lighten(spotcolor, 50%)
+
+				&:last-child
+					border-bottom-left-radius 6px
+					border-bottom-right-radius 6px
+					box-shadow 2px 0px 4px #888

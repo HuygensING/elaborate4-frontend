@@ -1,0 +1,20 @@
+.row.span3
+	.cell.span1
+		.pad2
+			ul.textlayers
+				| <% transcriptions.each(function(trans) { %>
+				li
+					img(src="/images/icon.bin.png", width="14px", height="14px")
+					label(data-id!="<%= trans.id %>")  <%= trans.get('textLayer') %>
+				| <% }); %>
+	.cell.span2
+		.pad2
+			ul.form.addtextlayer
+				li
+					label Name
+					input(type="text", name="name")
+				li
+					label Text
+					textarea(name="text")
+				li
+					button.addtextlayer Add textlayer

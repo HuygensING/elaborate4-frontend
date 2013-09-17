@@ -22,9 +22,8 @@
       EntryPreview.prototype.initialize = function() {
         EntryPreview.__super__.initialize.apply(this, arguments);
         this.highlighter = Fn.highlighter();
-        this.currentTranscription = this.model.get('transcriptions').current;
-        this.listenTo(this.currentTranscription, 'current:change', this.render);
-        this.listenTo(this.currentTranscription, 'change:body', this.render);
+        this.listenTo(this.model, 'current:change', this.render);
+        this.listenTo(this.model, 'change:body', this.render);
         this.render();
         this.renderTooltips();
         this.setHeight();
@@ -33,7 +32,7 @@
 
       EntryPreview.prototype.render = function() {
         var rtpl;
-        rtpl = _.template(Tpl, this.currentTranscription.attributes);
+        rtpl = _.template(Tpl, this.model.toJSON());
         this.$el.html(rtpl);
         return this;
       };
@@ -51,7 +50,7 @@
         });
         return this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
           if (model != null) {
-            return _this.currentTranscription.get('annotations').remove(model);
+            return _this.model.get('annotations').remove(model);
           } else {
             _this.$('[data-id="newannotation"]').remove();
             return _this.trigger('newAnnotationRemoved');
@@ -78,7 +77,7 @@
       EntryPreview.prototype.supClicked = function(ev) {
         var annotation, id;
         id = ev.currentTarget.getAttribute('data-id') >> 0;
-        annotation = this.model.get('transcriptions').current.get('annotations').findWhere({
+        annotation = this.model.get('annotations').findWhere({
           annotationNo: id
         });
         return this.editAnnotationTooltip.show({
@@ -130,7 +129,7 @@
         sup.innerHTML = 'new';
         range.collapse(false);
         range.insertNode(sup);
-        return this.currentTranscription.set('body', this.$('.preview').html(), {
+        return this.model.set('body', this.$('.preview').html(), {
           silent: true
         });
       };
@@ -154,6 +153,11 @@
 
       EntryPreview.prototype.setHeight = function() {
         return this.$el.height(document.documentElement.clientHeight - 89 - 78 - 10);
+      };
+
+      EntryPreview.prototype.setModel = function(currentTranscription) {
+        this.model = currentTranscription;
+        return this.render();
       };
 
       return EntryPreview;

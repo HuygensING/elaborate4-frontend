@@ -12,6 +12,8 @@ define (require) ->
 		initialize: (models, options) ->
 			@projectId = options.projectId
 			@entryId = options.entryId
+
+			@on 'remove', (model) => model.destroy()
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/transcriptions"
 

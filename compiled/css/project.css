@@ -365,13 +365,34 @@ div p:first-child{margin-top:0}
 .projectsettings div[data-tab] form input{display:inline-block;width:94%;padding:2%;border:1px solid #ddd}
 input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,170,168,0.5);outline:0}
 
-.submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;}
+.subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);transition:top 300ms;z-index:48;}
+.subsubmenu.active{top:88px}
+.subsubmenu ul{list-style:none;}
+.subsubmenu ul li{margin-bottom:6px;color:#79c8c6;}
+.subsubmenu ul li label{display:inline-block;width:40px}
+.subsubmenu ul li input,.subsubmenu ul li textarea{width:200px;border:1px solid #666;padding:0 0 0 2px;margin:0}
+.subsubmenu ul li button{background:#565656;background:-moz-linear-gradient(top,#565656 0%,#444 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#565656),color-stop(100%,#444));background:-webkit-linear-gradient(top,#565656 0%,#444 100%);background:-o-linear-gradient(top,#565656 0%,#444 100%);background:-ms-linear-gradient(top,#565656 0%,#444 100%);background:linear-gradient(to bottom,#565656 0%,#444 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');border:0;box-shadow:1px 1px 1px #666;color:#79c8c6;border-radius:6px;line-height:24px;margin:-1px 6px 0 0;cursor:pointer;font-size:.9rem;margin-left:40px}
+.subsubmenu ul li button:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
+.subsubmenu ul li button.inactive{color:#969696}
+.subsubmenu ul li img{margin-right:6px}
+.subsubmenu ul.textlayers{white-space:nowrap;}
+.subsubmenu ul.textlayers li.destroy{cursor:default;}
+.subsubmenu ul.textlayers li.destroy label{cursor:pointer;color:#c90000;width:auto;border:1px solid #c90000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #6d6d6d;background-color:#aaa}
+.subsubmenu ul.textlayers li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
+.subsubmenu ul.textlayers img:hover{cursor:pointer}
+.submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}
 .submenu .cell{line-height:40px;}
-.submenu .cell li{background:#565656;background:-moz-linear-gradient(top,#565656 0%,#444 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#565656),color-stop(100%,#444));background:-webkit-linear-gradient(top,#565656 0%,#444 100%);background:-o-linear-gradient(top,#565656 0%,#444 100%);background:-ms-linear-gradient(top,#565656 0%,#444 100%);background:linear-gradient(to bottom,#565656 0%,#444 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');border:0;box-shadow:1px 1px 1px #666;color:#79c8c6;border-radius:6px;line-height:24px;margin:-1px 6px 0 0;cursor:pointer;font-size:.9rem;}
-.submenu .cell li:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
-.submenu .cell li.inactive{color:#969696}
+.submenu .cell .horizontal.menu > li{background:#565656;background:-moz-linear-gradient(top,#565656 0%,#444 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#565656),color-stop(100%,#444));background:-webkit-linear-gradient(top,#565656 0%,#444 100%);background:-o-linear-gradient(top,#565656 0%,#444 100%);background:-ms-linear-gradient(top,#565656 0%,#444 100%);background:linear-gradient(to bottom,#565656 0%,#444 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');border:0;box-shadow:1px 1px 1px #666;color:#79c8c6;border-radius:6px;line-height:24px;margin:-1px 6px 0 0;cursor:pointer;font-size:.9rem;}
+.submenu .cell .horizontal.menu > li:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
+.submenu .cell .horizontal.menu > li.inactive{color:#969696}
+.submenu .cell .horizontal.menu > li.alignright{position:absolute;right:0;top:50%;margin-top:-12px}
+.submenu .cell .vertical.menu{border-bottom-left-radius:6px;border-bottom-right-radius:6px;}
+.submenu .cell .vertical.menu > li{border-bottom:1px solid #666;background-color:#444;box-shadow:2px 0 4px #888;overflow:hidden;text-overflow:ellipsis;}
+.submenu .cell .vertical.menu > li.spacer{background:none;height:8px;box-shadow:none}
+.submenu .cell .vertical.menu > li:hover{color:#9fd8d6}
+.submenu .cell .vertical.menu > li:last-child{border-bottom-left-radius:6px;border-bottom-right-radius:6px;box-shadow:2px 0 4px #888}
 
 #tooltip,.tooltip{display:none;position:absolute;padding:0;z-index:1000;background:#f1e8e1;border-radius:10px;box-shadow:1px 1px 5px #969696;min-width:72px;max-width:200px;}
 #tooltip.addannotation button,.tooltip.addannotation button{border:0;background:none;padding-top:4px}

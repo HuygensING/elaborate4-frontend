@@ -4,24 +4,31 @@
 			ul.horizontal.menu
 				li.arrowleft(data-key="previous") Previous entry
 				li.arrowright(data-key="next") Next entry
-				li(data-key="print") Print
-				li.arrowdown(data-key="facsimiles") Facsimiles
+				li.arrowdown.alignright(data-key="facsimiles") Facsimiles
 					ul.vertical.menu
+						li.spacer &nbsp;
 						| <% facsimiles.each(function(facs) { %>
 						li(data-key="facsimile", data-value!="<%= facs.id %>") <%= facs.get('name') %>
 						| <% }); %>
-		.cell.span2
-			ul.horizontal.menu
-				li(data-key="save") Save
-				li.arrowdown(data-key="layer") Layer
-					ul.vertical.menu
-						| <% transcriptions.each(function(trans) { %>
-						li(data-key="transcription", data-value!="<%= trans.id %>") <%= trans.get('textLayer') %>
-						| <% }); %>
-				li(data-key="metadata") Metadata
 		.cell.span2.alignright
 			ul.horizontal.menu
+				li(data-key="save") MoveSave
+				li(data-key="edittextlayers") Edit textlayers
+				li.arrowdown(data-key="layer") Layer
+					ul.vertical.menu.textlayers
+						li.spacer &nbsp;
+						| <% transcriptions.each(function(trans) { %>
+						li(data-key="transcription", data-value!="<%= trans.id %>") <%= trans.get('textLayer') %> layer
+						| <% }); %>
+				//- li(data-key="metadata") Metadata
+		.cell.span2.alignright
+			ul.horizontal.menu
+				li(data-key="print") Print
 				li(data-key="preview") Preview full screen
+
+.subsubmenu
+	.textlayers
+	.facsimiles
 
 .row.span7.container
 	.cell.span3

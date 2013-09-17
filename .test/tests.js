@@ -1,148 +1,82 @@
-(function() {
-  define(function(require) {
-    var chai, should;
-    chai = require('chai');
-    return should = chai.should();
-  });
-
-}).call(this);
-
-(function() {
+define(function(require) {
+  var chai, should;
+  chai = require('chai');
+  should = chai.should();
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("module", function() {
     return describe("method", function() {
       return it("should", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("Fn", function() {
     var Fn;
     Fn = require('helpers/fns');
@@ -230,51 +164,26 @@
       });
     });
   });
-
-}).call(this);
-
-(function() {
-
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("Token", function() {
     var token;
     token = require('managers/token');
@@ -312,37 +221,21 @@
       });
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("currentUser", function() {
     var Backbone, currentUser;
     currentUser = require('models/currentUser');
@@ -398,271 +291,154 @@
       return $('#password').val('qe9hEtra');
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
-
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
-
-(function() {
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
     });
   });
-
-}).call(this);
+  return describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
+});

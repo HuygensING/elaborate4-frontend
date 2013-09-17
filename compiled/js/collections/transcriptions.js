@@ -20,8 +20,12 @@
       Transcriptions.prototype.model = Models.Transcription;
 
       Transcriptions.prototype.initialize = function(models, options) {
+        var _this = this;
         this.projectId = options.projectId;
-        return this.entryId = options.entryId;
+        this.entryId = options.entryId;
+        return this.on('remove', function(model) {
+          return model.destroy();
+        });
       };
 
       Transcriptions.prototype.url = function() {

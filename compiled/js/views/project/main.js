@@ -41,7 +41,8 @@
           return _this.renderEntries();
         });
         return Models.state.getCurrentProject(function(project) {
-          console.log('callback called');
+          /* console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once*/
+
           _this.project = project;
           return _this.render();
         });
@@ -66,7 +67,6 @@
           }
         });
         this.listenTo(this.facetedSearch, 'results:change', function(response) {
-          console.log(response);
           return _this.model.set(response);
         });
         return this;

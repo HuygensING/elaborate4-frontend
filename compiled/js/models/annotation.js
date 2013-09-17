@@ -7,7 +7,6 @@
     ajax = require('managers/ajax');
     token = require('managers/token');
     ajax.token = token.get();
-    console.log(token.get());
     config = require('config');
     Models = {
       Base: require('models/base')

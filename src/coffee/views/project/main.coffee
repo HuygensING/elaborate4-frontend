@@ -37,7 +37,7 @@ define (require) ->
 				
 
 			Models.state.getCurrentProject (project) =>
-				console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once
+				### console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once ###
 				@project = project
 				@render()
 
@@ -57,9 +57,7 @@ define (require) ->
 					searchInTranscriptions: false
 				queryOptions:
 					resultRows: 12
-			@listenTo @facetedSearch, 'results:change', (response) => 
-				console.log response
-				@model.set response
+			@listenTo @facetedSearch, 'results:change', (response) => @model.set response
 
 			@
 

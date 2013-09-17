@@ -3,7 +3,6 @@ define (require) ->
 	ajax = require 'managers/ajax'
 	token = require 'managers/token'
 	ajax.token = token.get()
-	console.log token.get()
 
 	config = require 'config'
 
@@ -24,6 +23,7 @@ define (require) ->
 			modifier: null
 
 		sync: (method, model, options) ->
+
 			if method is 'create'
 				jqXHR = ajax.post
 					url: @url()

@@ -18,9 +18,9 @@ define (require) ->
 
 			@highlighter = Fn.highlighter()
 
-			@currentTranscription = @model.get('transcriptions').current
-			@listenTo @currentTranscription, 'current:change', @render
-			@listenTo @currentTranscription, 'change:body', @render
+			# @model is the currentTranscription
+			@listenTo @model, 'current:change', @render
+			@listenTo @model, 'change:body', @render
 
 			@render()
 
@@ -32,7 +32,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Tpl, @currentTranscription.attributes
+			rtpl = _.template Tpl, @model.toJSON()
 			@$el.html rtpl
 
 			# Set the height of EntryPreview to the clientHeight - menu & submenu (89px) - margin (78px) - padding (10px)
@@ -47,7 +47,7 @@ define (require) ->
 			@listenTo @editAnnotationTooltip, 'delete', (model) =>
 				if model?
 					# Remove the annotation from the collection, the transcription model wil take care of the rest
-					@currentTranscription.get('annotations').remove model
+					@model.get('annotations').remove model
 				else
 					@$('[data-id="newannotation"]').remove()
 					@trigger 'newAnnotationRemoved'
@@ -64,7 +64,7 @@ define (require) ->
 
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id') >> 0
-			annotation = @model.get('transcriptions').current.get('annotations').findWhere annotationNo: id
+			annotation = @model.get('annotations').findWhere annotationNo: id
 			@editAnnotationTooltip.show
 				$el: $(ev.currentTarget)
 				model: annotation
@@ -119,12 +119,12 @@ define (require) ->
 			range.collapse false
 			range.insertNode sup
 
-			@currentTranscription.set 'body', @$('.preview').html(), silent: true
+			@model.set 'body', @$('.preview').html(), silent: true
 
 		# replaceNewAnnotationID: (model) ->
 		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
 
-			# @currentTranscription.set 'body', @$el.html()
+			# @model.set 'body', @$el.html()
 
 		onHover: ->
 			supEnter = (ev) =>
@@ -139,7 +139,11 @@ define (require) ->
 
 			@$('sup[data-marker]').hover supEnter, supLeave
 
-		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10 
+		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10
+
+		setModel: (currentTranscription) ->
+			@model = currentTranscription
+			@render()
 
 		# scrollByPercentage: (percentage, orientation='vertical') ->
 		# 	clientWidth = @el.clientWidth

@@ -19,6 +19,7 @@ define (require) ->
 		Preview: require 'views/entry/preview'
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/metadata.annotation'
+		EditTextlayers: require 'views/entry/textlayers.edit'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
@@ -32,9 +33,13 @@ define (require) ->
 		initialize: ->
 			super
 
+			@subviews = {}
+
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
 			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']
-			@listenToOnce async, 'ready', => @render()
+			@listenToOnce async, 'ready', => 
+				@render()
+				@addListeners()
 
 			Models.state.getCurrentProject (project) => 
 				@project = project # TMP
@@ -52,8 +57,6 @@ define (require) ->
 							# Set the current transcription. If the model is undefined, the collection will return the first model.
 							@currentTranscription = collection.setCurrent model
 
-							@navigateToTextLayer @currentTranscription
-
 							async.called 'transcriptions'
 
 						@model.get('facsimiles').fetch success: (collection, response, options) =>
@@ -67,33 +70,20 @@ define (require) ->
 
 				project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
 
-				window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
-					@renderFacsimile()
-					@preview.setHeight()
-					@transcriptionEdit.setIframeHeight @preview.$el.innerHeight()
+				
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Entry, @model.attributes
+			rtpl = _.template Templates.Entry, @model.toJSON()
 			@$el.html rtpl
+
+			@navigateToTextLayer()
+			@changeTextlayerInMenu()
 
 			@renderFacsimile()
 			@renderTranscription()
 
-			@listenTo @preview, 'editAnnotation', @renderAnnotation
-			@listenTo @preview, 'addAnnotation', @renderAnnotation
-			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
-			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
-			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
-			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
-			@listenTo @transcriptionEdit, 'change', (cmd, doc) => @currentTranscription.set 'body', doc
-
-			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
-				@currentFacsimile = current
-				@renderFacsimile()
-			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
-				@currentTranscription = current
-				@renderTranscription current
+			@renderSubsubmenu()
 
 		renderFacsimile: ->
 			if @model.get('facsimiles').length
@@ -102,37 +92,27 @@ define (require) ->
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
 				@$('.left iframe').height document.documentElement.clientHeight - 89
+			else
+				@el.querySelector('li[data-key="facsimiles"]').style.display = 'none'
 
 		# * TODO: Create separate View?
-		# * TODO: Resize iframe width on window.resize
 		# * TODO: How many times is renderTranscription called on init?
-		renderTranscription: (model) ->
+		renderTranscription: ->
 			@renderPreview()
 			
 			if @transcriptionEdit?
-				@transcriptionEdit.setModel model if model?
+				@transcriptionEdit.setModel @currentTranscription
 			else
-				textLayer = @model.get('transcriptions').current.get 'textLayer'
-
-				# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
-				# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
-				textLayerNode = document.createTextNode textLayer+ ' layer'
-				li = @el.querySelector '.submenu li[data-key="layer"]'
-				li.replaceChild textLayerNode, li.firstChild
-
-				currentTranscription = @model.get('transcriptions').current
-				text =  currentTranscription.get('body')
-
 				el = @$('.container .middle .transcription')
 				@transcriptionEdit = new Views.SuperTinyEditor
-					model: @model.get('transcriptions').current
-					htmlAttribute: 'body'
-					el: el
-					controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n' ,'outdent' ,'indent', '|', 'unformat', '|', 'undo', 'redo'],
-					cssFile:'/css/main.css'
-					html: text
-					height: @preview.$el.innerHeight()
-					width: el.width() - 10
+					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
+					cssFile:		'/css/main.css'
+					el:				el
+					height:			@preview.$el.innerHeight()
+					html:			@currentTranscription.get 'body'
+					htmlAttribute:	'body'
+					model:			@model.get('transcriptions').current
+					width:			el.width() - 10
 			
 			@toggleEditPane 'transcription'
 
@@ -143,24 +123,32 @@ define (require) ->
 			else
 				console.error 'No annotation given as argument!' unless model?
 				
+				el = @$('.container .middle')
 				@annotationEdit = new Views.SuperTinyEditor
-					model: model
-					htmlAttribute: 'body'
-					el: @el.querySelector('.container .middle .annotation')
-					controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n' ,'outdent' ,'indent', '|', 'unformat', '|', 'undo', 'redo'],
-					cssFile: '/css/main.css'
-					html: model.get 'body'
-					wrap: true
+					cssFile:		'/css/main.css'
+					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
+					el:				@el.querySelector('.container .middle .annotation')
+					height:			@preview.$el.innerHeight()
+					html: 			model.get 'body'
+					htmlAttribute:	'body'
+					model: 			model
+					width: 			el.width() - 10
+					wrap: 			true
 				
 			@toggleEditPane 'annotation'
 				
 		renderPreview: ->
 			if @preview?
-				@preview.render()
+				@preview.setModel @currentTranscription
 			else
 				@preview = new Views.Preview
-					model: @model
+					model: @currentTranscription
 					el: @$('.container .right')
+
+		renderSubsubmenu: ->
+			@subviews.textlayersEdit = new Views.EditTextlayers
+				collection: @model.get 'transcriptions'
+				el: @$('.subsubmenu .textlayers')
 			
 		# ### Events
 		events: ->
@@ -170,6 +158,10 @@ define (require) ->
 			'click .menu li[data-key="transcription"]': 'changeTextlayer'
 			'click .menu li[data-key="save"]': 'save'
 			'click .menu li[data-key="metadata"]': 'metadata'
+			'click .menu li[data-key="edittextlayers"]': 'edittextlayers'
+
+		edittextlayers: ->
+			@$('.subsubmenu').toggleClass 'active'
 
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
@@ -186,26 +178,35 @@ define (require) ->
 
 		changeTextlayer: (ev) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
-
-			model = @model.get('transcriptions').get transcriptionID
+			newTranscription = @model.get('transcriptions').get transcriptionID
 
 			# We don't want to navigateToTextlayer if the model hasn't changed.
 			# Transcriptions.setCurrent has a check for setting the same model, so this is redundant, but reads better,
 			# otherwise we would have to navigateToTextlayer and setCurrent after that.
-			if model isnt @model.get('transcriptions').current
-				@model.get('transcriptions').setCurrent model
+			if newTranscription isnt @currentTranscription
+				# Set @currentTranscription to newTranscription
+				@model.get('transcriptions').setCurrent newTranscription
 
-				@navigateToTextLayer model
+				@navigateToTextLayer()
+				@changeTextlayerInMenu()
 
 			@toggleEditPane 'transcription'
 
-		navigateToTextLayer: (model) ->
+		navigateToTextLayer: ->
 			# Cut of '/transcriptions/*' if it exists
 			index = Backbone.history.fragment.indexOf '/transcriptions/'
 			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
 
 			# Navigate to the new fragement
-			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(model.get('textLayer')), replace: true
+			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
+
+		changeTextlayerInMenu: ->
+			# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
+			# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
+			textLayer = @currentTranscription.get 'textLayer'
+			textLayerNode = document.createTextNode textLayer+ ' layer'
+			li = @el.querySelector '.submenu li[data-key="layer"]'
+			li.replaceChild textLayerNode, li.firstChild
 
 		save: (ev) ->
 			if @annotationEdit? and @annotationEdit.$el.is(':visible')
@@ -243,3 +244,25 @@ define (require) ->
 			# @$('.submenu [data-key="save"]').html 'Save '+viewName
 			view.$el.siblings().hide()
 			view.$el.show()
+
+		addListeners: ->
+			@listenTo @preview, 'editAnnotation', @renderAnnotation
+			@listenTo @preview, 'addAnnotation', @renderAnnotation
+			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
+			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
+			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
+			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
+			@listenTo @transcriptionEdit, 'change', (cmd, doc) => @currentTranscription.set 'body', doc
+
+			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
+				@currentFacsimile = current
+				@renderFacsimile()
+			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
+				@currentTranscription = current
+				@renderTranscription()
+
+			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
+				@renderFacsimile()
+				@preview.setHeight()
+				@transcriptionEdit.setIframeHeight @preview.$el.innerHeight()
+				@annotationEdit.setIframeHeight @preview.$el.innerHeight() if @annotationEdit?

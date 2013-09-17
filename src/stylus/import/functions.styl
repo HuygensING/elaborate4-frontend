@@ -23,3 +23,22 @@ select_none()
 	-moz-user-select none
 	-ms-user-select none
 	user-select none
+
+button()
+	vertical_gradient(#565656, #444)
+	border 0
+	box-shadow 1px 1px 1px #666
+	color lighten(spotcolor, 30%)
+	border-radius 6px
+	line-height 24px
+	margin -1px 6px 0 0
+	cursor pointer
+	font-size 0.9rem
+
+	&:active
+		vertical_gradient(#444, #565656)
+		box-shadow -1px -1px 1px #333
+		color spotcolor
+
+	&.inactive
+		color #969696

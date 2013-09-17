@@ -2,6 +2,9 @@ define (require) ->
 
 	config = require 'config'
 
+	ajax = require 'managers2/ajax'
+	token = require 'managers2/token'
+
 	Models = 
 		Base: require 'models/base'
 
@@ -19,10 +22,9 @@ define (require) ->
 		initialize: ->
 			super
 
-			# Start listening to annotations after the annotations are fetched from the server
-			@listenToOnce @get('annotations'), 'sync', =>
-				@listenTo @get('annotations'), 'add', @addAnnotation
-				@listenTo @get('annotations'), 'remove', @removeAnnotation
+			@listenToAnnotations()
+
+			@on 'change:body', => @save()
 
 			# TODO: PUT transcription does not yet work!
 			# Save transcription to the server, everytime the body attr changes
@@ -50,6 +52,13 @@ define (require) ->
 
 			attrs
 
+		listenToAnnotations: ->
+			if @get('annotations')?
+				# Start listening to annotations after the annotations are fetched from the server
+				@listenToOnce @get('annotations'), 'sync', =>
+					@listenTo @get('annotations'), 'add', @addAnnotation
+					@listenTo @get('annotations'), 'remove', @removeAnnotation
+
 		addAnnotation: (model) ->
 			$body = $ "<div>#{@get('body')}</div>"
 
@@ -74,3 +83,35 @@ define (require) ->
 
 			# .html() does not include the <div> tags so we can set it immediately
 			@set 'body', $body.html()
+
+		sync: (method, model, options) ->
+			
+			if method is 'create'
+				ajax.token = token.get()
+				jqXHR = ajax.post
+					url: @url()
+					dataType: 'text'
+					data: JSON.stringify 
+						textLayer: model.get 'textLayer'
+						body: model.get 'body'
+
+				jqXHR.done (data, textStatus, jqXHR) =>
+					if jqXHR.status is 201
+						url = jqXHR.getResponseHeader('Location')
+
+						xhr = ajax.get url: url
+						xhr.done (data, textStatus, jqXHR) =>
+							options.success data
+
+				jqXHR.fail (response) => console.log 'fail', response
+
+			else if method is 'update'
+				ajax.token = token.get()
+				jqXHR = ajax.put
+					url: @url()
+					data: JSON.stringify body: model.get 'body'
+				jqXHR.done (response) => console.log 'done', response
+				jqXHR.fail (response) => console.log 'fail', response
+
+			else
+				super

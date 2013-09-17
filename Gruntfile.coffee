@@ -134,7 +134,7 @@ module.exports = (grunt) ->
 				]
 			compile:
 				options:
-					pretty: true
+					pretty: false
 
 
 		replace:
@@ -295,7 +295,7 @@ module.exports = (grunt) ->
 		'replace:html' # Copy and replace index.html
 		'cssmin:dist'
 		'requirejs:compile' # Run r.js
-		'shell:rsync' # Rsync to test server
+		# 'shell:rsync' # Rsync to test server
 	]
 
 	grunt.registerTask 's', 'server'

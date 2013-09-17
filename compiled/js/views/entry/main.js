@@ -18,7 +18,8 @@
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview'),
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
-      AnnotationMetadata: require('views/entry/metadata.annotation')
+      AnnotationMetadata: require('views/entry/metadata.annotation'),
+      EditTextlayers: require('views/entry/textlayers.edit')
     };
     Templates = {
       Entry: require('text!html/entry/main.html')
@@ -37,9 +38,11 @@
         var async,
           _this = this;
         Entry.__super__.initialize.apply(this, arguments);
+        this.subviews = {};
         async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
         this.listenToOnce(async, 'ready', function() {
-          return _this.render();
+          _this.render();
+          return _this.addListeners();
         });
         return Models.state.getCurrentProject(function(project) {
           _this.project = project;
@@ -55,7 +58,6 @@
                     }
                   });
                   _this.currentTranscription = collection.setCurrent(model);
-                  _this.navigateToTextLayer(_this.currentTranscription);
                   return async.called('transcriptions');
                 }
               });
@@ -77,46 +79,21 @@
               return async.called('annotationtypes');
             }
           });
-          project.fetchEntrymetadatafields(function() {
+          return project.fetchEntrymetadatafields(function() {
             return async.called('entrymetadatafields');
-          });
-          return window.addEventListener('resize', function(ev) {
-            return Fn.timeoutWithReset(600, function() {
-              _this.renderFacsimile();
-              _this.preview.setHeight();
-              return _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
-            });
           });
         });
       };
 
       Entry.prototype.render = function() {
-        var rtpl,
-          _this = this;
-        rtpl = _.template(Templates.Entry, this.model.attributes);
+        var rtpl;
+        rtpl = _.template(Templates.Entry, this.model.toJSON());
         this.$el.html(rtpl);
+        this.navigateToTextLayer();
+        this.changeTextlayerInMenu();
         this.renderFacsimile();
         this.renderTranscription();
-        this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
-        this.listenTo(this.preview, 'scrolled', function(percentages) {
-          return _this.transcriptionEdit.setScrollPercentage(percentages);
-        });
-        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
-          return Fn.setScrollPercentage(_this.preview.el, percentages);
-        });
-        this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
-          return _this.currentTranscription.set('body', doc);
-        });
-        this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
-          _this.currentFacsimile = current;
-          return _this.renderFacsimile();
-        });
-        return this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
-          _this.currentTranscription = current;
-          return _this.renderTranscription(current);
-        });
+        return this.renderSubsubmenu();
       };
 
       Entry.prototype.renderFacsimile = function() {
@@ -125,32 +102,26 @@
           url = this.model.get('facsimiles').current.get('zoomableUrl');
           this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
           return this.$('.left iframe').height(document.documentElement.clientHeight - 89);
+        } else {
+          return this.el.querySelector('li[data-key="facsimiles"]').style.display = 'none';
         }
       };
 
-      Entry.prototype.renderTranscription = function(model) {
-        var currentTranscription, el, li, text, textLayer, textLayerNode;
+      Entry.prototype.renderTranscription = function() {
+        var el;
         this.renderPreview();
         if (this.transcriptionEdit != null) {
-          if (model != null) {
-            this.transcriptionEdit.setModel(model);
-          }
+          this.transcriptionEdit.setModel(this.currentTranscription);
         } else {
-          textLayer = this.model.get('transcriptions').current.get('textLayer');
-          textLayerNode = document.createTextNode(textLayer + ' layer');
-          li = this.el.querySelector('.submenu li[data-key="layer"]');
-          li.replaceChild(textLayerNode, li.firstChild);
-          currentTranscription = this.model.get('transcriptions').current;
-          text = currentTranscription.get('body');
           el = this.$('.container .middle .transcription');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            model: this.model.get('transcriptions').current,
-            htmlAttribute: 'body',
-            el: el,
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'outdent', 'indent', '|', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
-            html: text,
+            el: el,
             height: this.preview.$el.innerHeight(),
+            html: this.currentTranscription.get('body'),
+            htmlAttribute: 'body',
+            model: this.model.get('transcriptions').current,
             width: el.width() - 10
           });
         }
@@ -158,6 +129,7 @@
       };
 
       Entry.prototype.renderAnnotation = function(model) {
+        var el;
         if (this.annotationEdit != null) {
           if (model != null) {
             this.annotationEdit.setModel(model);
@@ -166,13 +138,16 @@
           if (model == null) {
             console.error('No annotation given as argument!');
           }
+          el = this.$('.container .middle');
           this.annotationEdit = new Views.SuperTinyEditor({
-            model: model,
-            htmlAttribute: 'body',
-            el: this.el.querySelector('.container .middle .annotation'),
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'outdent', 'indent', '|', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            el: this.el.querySelector('.container .middle .annotation'),
+            height: this.preview.$el.innerHeight(),
             html: model.get('body'),
+            htmlAttribute: 'body',
+            model: model,
+            width: el.width() - 10,
             wrap: true
           });
         }
@@ -181,13 +156,20 @@
 
       Entry.prototype.renderPreview = function() {
         if (this.preview != null) {
-          return this.preview.render();
+          return this.preview.setModel(this.currentTranscription);
         } else {
           return this.preview = new Views.Preview({
-            model: this.model,
+            model: this.currentTranscription,
             el: this.$('.container .right')
           });
         }
+      };
+
+      Entry.prototype.renderSubsubmenu = function() {
+        return this.subviews.textlayersEdit = new Views.EditTextlayers({
+          collection: this.model.get('transcriptions'),
+          el: this.$('.subsubmenu .textlayers')
+        });
       };
 
       Entry.prototype.events = function() {
@@ -197,8 +179,13 @@
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTextlayer',
           'click .menu li[data-key="save"]': 'save',
-          'click .menu li[data-key="metadata"]': 'metadata'
+          'click .menu li[data-key="metadata"]': 'metadata',
+          'click .menu li[data-key="edittextlayers"]': 'edittextlayers'
         };
+      };
+
+      Entry.prototype.edittextlayers = function() {
+        return this.$('.subsubmenu').toggleClass('active');
       };
 
       Entry.prototype.previousEntry = function() {
@@ -219,25 +206,34 @@
       };
 
       Entry.prototype.changeTextlayer = function(ev) {
-        var model, transcriptionID;
+        var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
-        model = this.model.get('transcriptions').get(transcriptionID);
-        if (model !== this.model.get('transcriptions').current) {
-          this.model.get('transcriptions').setCurrent(model);
-          this.navigateToTextLayer(model);
+        newTranscription = this.model.get('transcriptions').get(transcriptionID);
+        if (newTranscription !== this.currentTranscription) {
+          this.model.get('transcriptions').setCurrent(newTranscription);
+          this.navigateToTextLayer();
+          this.changeTextlayerInMenu();
         }
         return this.toggleEditPane('transcription');
       };
 
-      Entry.prototype.navigateToTextLayer = function(model) {
+      Entry.prototype.navigateToTextLayer = function() {
         var index;
         index = Backbone.history.fragment.indexOf('/transcriptions/');
         if (index !== -1) {
           Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
         }
-        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(model.get('textLayer')), {
+        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
           replace: true
         });
+      };
+
+      Entry.prototype.changeTextlayerInMenu = function() {
+        var li, textLayer, textLayerNode;
+        textLayer = this.currentTranscription.get('textLayer');
+        textLayerNode = document.createTextNode(textLayer + ' layer');
+        li = this.el.querySelector('.submenu li[data-key="layer"]');
+        return li.replaceChild(textLayerNode, li.firstChild);
       };
 
       Entry.prototype.save = function(ev) {
@@ -282,6 +278,40 @@
         }
         view.$el.siblings().hide();
         return view.$el.show();
+      };
+
+      Entry.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
+        this.listenTo(this.preview, 'scrolled', function(percentages) {
+          return _this.transcriptionEdit.setScrollPercentage(percentages);
+        });
+        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
+          return Fn.setScrollPercentage(_this.preview.el, percentages);
+        });
+        this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
+          return _this.currentTranscription.set('body', doc);
+        });
+        this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
+          _this.currentFacsimile = current;
+          return _this.renderFacsimile();
+        });
+        this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
+          _this.currentTranscription = current;
+          return _this.renderTranscription();
+        });
+        return window.addEventListener('resize', function(ev) {
+          return Fn.timeoutWithReset(600, function() {
+            _this.renderFacsimile();
+            _this.preview.setHeight();
+            _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            if (_this.annotationEdit != null) {
+              return _this.annotationEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            }
+          });
+        });
       };
 
       return Entry;
