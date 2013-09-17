@@ -4,7 +4,7 @@
 
   define(function(require) {
     var EntryPreview, Fn, Tpl, Views, _ref;
-    Fn = require('helpers/general');
+    Fn = require('helpers2/general');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/tooltip.add.annotation'),
@@ -25,32 +25,31 @@
         this.currentTranscription = this.model.get('transcriptions').current;
         this.listenTo(this.currentTranscription, 'current:change', this.render);
         this.listenTo(this.currentTranscription, 'change:body', this.render);
-        return this.render();
+        this.render();
+        this.renderTooltips();
+        this.setHeight();
+        return this.onHover();
       };
 
       EntryPreview.prototype.render = function() {
-        var rtpl,
-          _this = this;
+        var rtpl;
         rtpl = _.template(Tpl, this.currentTranscription.attributes);
         this.$el.html(rtpl);
-        if (this.addAnnotationTooltip != null) {
-          this.stopListening(this.addAnnotationTooltip);
-          this.addAnnotationTooltip.remove();
-        }
+        return this;
+      };
+
+      EntryPreview.prototype.renderTooltips = function() {
+        var _this = this;
         this.addAnnotationTooltip = new Views.AddAnnotationTooltip({
           container: this.el
         });
-        if (this.editAnnotationTooltip != null) {
-          this.stopListening(this.editAnnotationTooltip);
-          this.editAnnotationTooltip.remove();
-        }
         this.editAnnotationTooltip = new Views.EditAnnotationTooltip({
           container: this.el
         });
         this.listenTo(this.editAnnotationTooltip, 'edit', function(model) {
           return _this.trigger('editAnnotation', model);
         });
-        this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
+        return this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
           if (model != null) {
             return _this.currentTranscription.get('annotations').remove(model);
           } else {
@@ -58,8 +57,6 @@
             return _this.trigger('newAnnotationRemoved');
           }
         });
-        this.onHover();
-        return this;
       };
 
       EntryPreview.prototype.events = function() {
@@ -74,13 +71,12 @@
       EntryPreview.prototype.onScroll = function(ev) {
         var _this = this;
         return Fn.timeoutWithReset(200, function() {
-          return _this.trigger('scrolled', Fn.getScrollPercentage(ev.currentTarget, 'horizontal'));
+          return _this.trigger('scrolled', Fn.getScrollPercentage(ev.currentTarget));
         });
       };
 
       EntryPreview.prototype.supClicked = function(ev) {
         var annotation, id;
-        console.log('clicked');
         id = ev.currentTarget.getAttribute('data-id') >> 0;
         annotation = this.model.get('transcriptions').current.get('annotations').findWhere({
           annotationNo: id
@@ -92,7 +88,7 @@
       };
 
       EntryPreview.prototype.onMousedown = function(ev) {
-        if (ev.target === this.el) {
+        if (ev.target === this.el.querySelector('.preview')) {
           this.stopListening(this.addAnnotationTooltip);
           return this.addAnnotationTooltip.hide();
         }
@@ -108,9 +104,9 @@
         }
         range = sel.getRangeAt(0);
         isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') || range.endContainer.parentNode.hasAttribute('data-marker');
-        console.log(range.collapsed, isInsideMarker, this.$('[data-id="newannotation"]').length > 0);
+        /* console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0*/
+
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
-          console.log(this.addAnnotationTooltip);
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
             _this.addNewAnnotationTags(range);
             return _this.trigger('addAnnotation', model);
@@ -154,6 +150,10 @@
           return _this.highlighter.off();
         };
         return this.$('sup[data-marker]').hover(supEnter, supLeave);
+      };
+
+      EntryPreview.prototype.setHeight = function() {
+        return this.$el.height(document.documentElement.clientHeight - 89 - 78 - 10);
       };
 
       return EntryPreview;

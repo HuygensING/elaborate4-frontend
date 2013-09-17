@@ -1,1 +1,50 @@
-<div class="submenu"><div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="previous" class="arrowleft">Previous entry</li><li data-key="next" class="arrowright">Next entry</li><li data-key="print">Print</li><li data-key="facsimiles" class="arrowdown">Facsimiles<ul class="vertical menu"><% facsimiles.each(function(facs) { %><li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get('name') %></li><% }); %></ul></li></ul></div><div class="cell span2"><ul class="horizontal menu"><li data-key="save">Save</li><li data-key="layer" class="arrowdown">Layer<ul class="vertical menu"><% transcriptions.each(function(trans) { %><li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get('textLayer') %></li><% }); %></ul></li><li data-key="metadata">Metadata</li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="preview">Preview full screen</li></ul></div></div></div><div class="row span7 container"><div class="cell span3"><div class="left"><% if (facsimiles.length) { %><iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" height="800px" frameborder="0"></iframe><% } %></div></div><div class="cell span2"><div class="middle"><div class="transcription"></div><div class="annotation"></div><div class="annotationmetadata"></div></div></div><div class="cell span2"><div class="right"></div></div></div>
+
+<div class="submenu">
+  <div class="row span7">
+    <div class="cell span3 left">
+      <ul class="horizontal menu">
+        <li data-key="previous" class="arrowleft">Previous entry</li>
+        <li data-key="next" class="arrowright">Next entry</li>
+        <li data-key="print">Print</li>
+        <li data-key="facsimiles" class="arrowdown">Facsimiles
+          <ul class="vertical menu"><% facsimiles.each(function(facs) { %>
+            <li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get('name') %></li><% }); %>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="cell span2">
+      <ul class="horizontal menu">
+        <li data-key="save">Save</li>
+        <li data-key="layer" class="arrowdown">Layer
+          <ul class="vertical menu"><% transcriptions.each(function(trans) { %>
+            <li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get('textLayer') %></li><% }); %>
+          </ul>
+        </li>
+        <li data-key="metadata">Metadata</li>
+      </ul>
+    </div>
+    <div class="cell span2 alignright">
+      <ul class="horizontal menu">
+        <li data-key="preview">Preview full screen</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="row span7 container">
+  <div class="cell span3">
+    <div class="left"><% if (facsimiles.length) { %>
+      <iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %>
+    </div>
+  </div>
+  <div class="cell span2">
+    <div class="middle">
+      <div class="transcription"></div>
+      <div class="annotation"></div>
+      <div class="annotationmetadata"></div>
+    </div>
+  </div>
+  <div class="cell span2">
+    <div class="right"></div>
+  </div>
+</div>

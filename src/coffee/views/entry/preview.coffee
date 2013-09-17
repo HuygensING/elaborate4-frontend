@@ -1,6 +1,6 @@
 # Description...
 define (require) ->
-	Fn = require 'helpers/general'
+	Fn = require 'helpers2/general'
 
 	Views = 
 		Base: require 'views/base'
@@ -24,20 +24,23 @@ define (require) ->
 
 			@render()
 
+			@renderTooltips()
+
+			@setHeight()
+
+			@onHover()
+
 		# ### Render
 		render: ->
 			rtpl = _.template Tpl, @currentTranscription.attributes
 			@$el.html rtpl
 
-			if @addAnnotationTooltip?
-				@stopListening @addAnnotationTooltip
-				@addAnnotationTooltip.remove()
+			# Set the height of EntryPreview to the clientHeight - menu & submenu (89px) - margin (78px) - padding (10px)
 
+			@
+
+		renderTooltips: ->
 			@addAnnotationTooltip = new Views.AddAnnotationTooltip container: @el
-
-			if @editAnnotationTooltip?
-				@stopListening @editAnnotationTooltip
-				@editAnnotationTooltip.remove()
 
 			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el
 			@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
@@ -49,10 +52,6 @@ define (require) ->
 					@$('[data-id="newannotation"]').remove()
 					@trigger 'newAnnotationRemoved'
 
-			@onHover()
-
-			@
-
 		# ### Events
 		events: ->
 			'click sup[data-marker="end"]': 'supClicked'
@@ -60,11 +59,10 @@ define (require) ->
 			'mouseup .preview': 'onMouseup'
 			'scroll': 'onScroll'
 
-		onScroll: (ev) ->		
-			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget, 'horizontal'
+		onScroll: (ev) ->
+			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
 		supClicked: (ev) ->
-			console.log 'clicked'
 			id = ev.currentTarget.getAttribute('data-id') >> 0
 			annotation = @model.get('transcriptions').current.get('annotations').findWhere annotationNo: id
 			@editAnnotationTooltip.show
@@ -72,15 +70,12 @@ define (require) ->
 				model: annotation
 
 		onMousedown: (ev) ->
-			if ev.target is @el
+			if ev.target is @el.querySelector('.preview')
 				@stopListening @addAnnotationTooltip
 				@addAnnotationTooltip.hide()
 
 		onMouseup: (ev) ->
 			sel = document.getSelection()
-
-			# console.log sel.rangeCount is 0, ev.target isnt @el.querySelector('.preview')
-			# console.log ev.target
 
 			# If there is no range to get (for example when using the scrollbar)
 			# or
@@ -96,10 +91,9 @@ define (require) ->
 			# A selection cannot start inside a marker.
 			isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') or range.endContainer.parentNode.hasAttribute('data-marker')
 
-			console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0
+			### console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0 ###
 			# if not range.collapsed and not startIsSup and not endIsSup
 			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
-				console.log @addAnnotationTooltip
 				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
 					@addNewAnnotationTags range
 					@trigger 'addAnnotation', model
@@ -144,6 +138,8 @@ define (require) ->
 
 
 			@$('sup[data-marker]').hover supEnter, supLeave
+
+		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10 
 
 		# scrollByPercentage: (percentage, orientation='vertical') ->
 		# 	clientWidth = @el.clientWidth

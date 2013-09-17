@@ -1,7 +1,7 @@
 define (require) ->
 	Backbone = require 'backbone'
 
-	Fn = require 'helpers/general'
+	Fn = require 'helpers2/general'
 	StringFn = require 'helpers2/string'
 	require 'helpers/jquery.mixin'
 	Async = require 'managers2/async'
@@ -67,6 +67,11 @@ define (require) ->
 
 				project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
 
+				window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
+					@renderFacsimile()
+					@preview.setHeight()
+					@transcriptionEdit.setIframeHeight @preview.$el.innerHeight()
+
 		# ### Render
 		render: ->
 			rtpl = _.template Templates.Entry, @model.attributes
@@ -75,12 +80,12 @@ define (require) ->
 			@renderFacsimile()
 			@renderTranscription()
 
-			@listenTo @preview, 'addAnnotation', @renderAnnotation
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
-			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
-			@listenTo @preview, 'scrolled', (percentage) => @transcriptionEdit.setScrollPercentage percentage, 'horizontal'
+			@listenTo @preview, 'addAnnotation', @renderAnnotation
 			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
-			@listenTo @transcriptionEdit, 'scrolled', (percentage) => Fn.setScrollPercentage @preview.el, percentage, 'horizontal'
+			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
+			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
+			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
 			@listenTo @transcriptionEdit, 'change', (cmd, doc) => @currentTranscription.set 'body', doc
 
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
@@ -94,6 +99,9 @@ define (require) ->
 			if @model.get('facsimiles').length
 				url = @model.get('facsimiles').current.get('zoomableUrl')
 				@$('.left iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id='+ url
+
+				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
+				@$('.left iframe').height document.documentElement.clientHeight - 89
 
 		# * TODO: Create separate View?
 		# * TODO: Resize iframe width on window.resize
@@ -124,7 +132,7 @@ define (require) ->
 					cssFile:'/css/main.css'
 					html: text
 					height: @preview.$el.innerHeight()
-					width: el.width() - 20
+					width: el.width() - 10
 			
 			@toggleEditPane 'transcription'
 
@@ -147,9 +155,12 @@ define (require) ->
 			@toggleEditPane 'annotation'
 				
 		renderPreview: ->
-			@preview = new Views.Preview
-				model: @model
-				el: @$('.container .right')
+			if @preview?
+				@preview.render()
+			else
+				@preview = new Views.Preview
+					model: @model
+					el: @$('.container .right')
 			
 		# ### Events
 		events: ->
@@ -229,6 +240,6 @@ define (require) ->
 
 			viewName = 'am' if viewName is 'annotationmetadata'
 
-			@$('.submenu [data-key="save"]').html 'Save '+viewName
+			# @$('.submenu [data-key="save"]').html 'Save '+viewName
 			view.$el.siblings().hide()
 			view.$el.show()

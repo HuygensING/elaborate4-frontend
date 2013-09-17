@@ -5,7 +5,7 @@
   define(function(require) {
     var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, _ref;
     Backbone = require('backbone');
-    Fn = require('helpers/general');
+    Fn = require('helpers2/general');
     StringFn = require('helpers2/string');
     require('helpers/jquery.mixin');
     Async = require('managers2/async');
@@ -77,8 +77,15 @@
               return async.called('annotationtypes');
             }
           });
-          return project.fetchEntrymetadatafields(function() {
+          project.fetchEntrymetadatafields(function() {
             return async.called('entrymetadatafields');
+          });
+          return window.addEventListener('resize', function(ev) {
+            return Fn.timeoutWithReset(600, function() {
+              _this.renderFacsimile();
+              _this.preview.setHeight();
+              return _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            });
           });
         });
       };
@@ -90,14 +97,14 @@
         this.$el.html(rtpl);
         this.renderFacsimile();
         this.renderTranscription();
-        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'scrolled', function(percentage) {
-          return _this.transcriptionEdit.setScrollPercentage(percentage, 'horizontal');
-        });
+        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
         this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
-        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentage) {
-          return Fn.setScrollPercentage(_this.preview.el, percentage, 'horizontal');
+        this.listenTo(this.preview, 'scrolled', function(percentages) {
+          return _this.transcriptionEdit.setScrollPercentage(percentages);
+        });
+        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
+          return Fn.setScrollPercentage(_this.preview.el, percentages);
         });
         this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
           return _this.currentTranscription.set('body', doc);
@@ -116,7 +123,8 @@
         var url;
         if (this.model.get('facsimiles').length) {
           url = this.model.get('facsimiles').current.get('zoomableUrl');
-          return this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
+          this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
+          return this.$('.left iframe').height(document.documentElement.clientHeight - 89);
         }
       };
 
@@ -143,7 +151,7 @@
             cssFile: '/css/main.css',
             html: text,
             height: this.preview.$el.innerHeight(),
-            width: el.width() - 20
+            width: el.width() - 10
           });
         }
         return this.toggleEditPane('transcription');
@@ -172,10 +180,14 @@
       };
 
       Entry.prototype.renderPreview = function() {
-        return this.preview = new Views.Preview({
-          model: this.model,
-          el: this.$('.container .right')
-        });
+        if (this.preview != null) {
+          return this.preview.render();
+        } else {
+          return this.preview = new Views.Preview({
+            model: this.model,
+            el: this.$('.container .right')
+          });
+        }
       };
 
       Entry.prototype.events = function() {
@@ -268,7 +280,6 @@
         if (viewName === 'annotationmetadata') {
           viewName = 'am';
         }
-        this.$('.submenu [data-key="save"]').html('Save ' + viewName);
         view.$el.siblings().hide();
         return view.$el.show();
       };
