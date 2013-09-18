@@ -24,11 +24,9 @@ define (require) ->
 
 			@listenToAnnotations()
 
-			@on 'change:body', => @save()
-
-			# TODO: PUT transcription does not yet work!
-			# Save transcription to the server, everytime the body attr changes
-			# @on 'change:body', @save
+			# Can't save on every body:change, because the body is changed when the text is altered.
+			# We have cannot do it silent, because the preview has to be updated.
+			# @on 'change:body', @save, @
 
 		parse: (attrs) ->
 			# attrs.body = attrs.body.trim()
@@ -62,6 +60,7 @@ define (require) ->
 		addAnnotation: (model) ->
 			$body = $ "<div>#{@get('body')}</div>"
 
+			# Replace newannotation with the new annotationNo
 			$body.find('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
 
 			@resetAnnotationOrder $body
@@ -78,11 +77,30 @@ define (require) ->
 				@resetAnnotationOrder $body
 
 		resetAnnotationOrder: ($body) ->
+			# Find all sups in $body and update the innerHTML with the new index
 			$body.find('sup[data-marker="end"]').each (index, sup) =>
 				sup.innerHTML = index+1
 
-			# .html() does not include the <div> tags so we can set it immediately
+			# .html() does not include the <div> tags so we can set it immediately.
 			@set 'body', $body.html()
+
+			# Save the transcription to the server.
+			@save()
+
+		set: (attrs, options) ->
+			if attrs is 'body'
+				# Chrome adds <div>s to the text when we hit enter/return we have to remove them to keep the text
+				# as simple (and versatile) as possible and to keep the annotation tooltips working. FF only adds <br>s.
+				# Example input: <div>texta</div><div><br></div><div>textb</div><div>textc</div>
+				# First we replace a Chrome <div><br></div> with a <br>.
+				# Then we unwrap the texts in <div> and precede it with a <br>.
+				# Example output: <br>texta<br><br>textb<br>textc
+				# * TODO: Test in IE
+				options = options.replace /<div><br><\/div>/g, '<br>'
+				options = options.replace /<div>(.*?)<\/div>/g, (match, p1, offset, string) => '<br>'+p1
+				# options = options.replace /<span (.*?)>(.*?)<\/span>/g, (match, p1, p2, offset, string) => p2
+
+			super
 
 		sync: (method, model, options) ->
 			
@@ -101,6 +119,7 @@ define (require) ->
 
 						xhr = ajax.get url: url
 						xhr.done (data, textStatus, jqXHR) =>
+							@trigger 'sync'
 							options.success data
 
 				jqXHR.fail (response) => console.log 'fail', response
@@ -110,7 +129,7 @@ define (require) ->
 				jqXHR = ajax.put
 					url: @url()
 					data: JSON.stringify body: model.get 'body'
-				jqXHR.done (response) => console.log 'done', response
+				jqXHR.done (response) => @trigger 'sync'
 				jqXHR.fail (response) => console.log 'fail', response
 
 			else

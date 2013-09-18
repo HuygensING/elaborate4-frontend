@@ -20,6 +20,8 @@ define (require) ->
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/metadata.annotation'
 		EditTextlayers: require 'views/entry/textlayers.edit'
+		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
+		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
@@ -102,38 +104,50 @@ define (require) ->
 			
 			if @transcriptionEdit?
 				@transcriptionEdit.setModel @currentTranscription
+				@transcriptionEditMenu.setModel @currentTranscription
 			else
-				el = @$('.container .middle .transcription')
+				$el = @$('.transcription-placeholder')
 				@transcriptionEdit = new Views.SuperTinyEditor
 					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
 					cssFile:		'/css/main.css'
-					el:				el
+					el:				$el.find('.transcription-editor')
 					height:			@preview.$el.innerHeight()
 					html:			@currentTranscription.get 'body'
 					htmlAttribute:	'body'
 					model:			@model.get('transcriptions').current
-					width:			el.width() - 10
+					width:			$el.width() - 10
+
+				@transcriptionEditMenu = new Views.TranscriptionEditMenu
+					model: @currentTranscription
+				$el.append @transcriptionEditMenu.$el
+
 			
 			@toggleEditPane 'transcription'
 
 
 		renderAnnotation: (model) ->
-			if @annotationEdit?
-				@annotationEdit.setModel model if model?
+			if @annotationEdit? and model?
+				@annotationEdit.setModel model 
+				@annotationEditMenu.setModel model
 			else
 				console.error 'No annotation given as argument!' unless model?
 				
-				el = @$('.container .middle')
+				$el = @$('.annotation-placeholder')
 				@annotationEdit = new Views.SuperTinyEditor
 					cssFile:		'/css/main.css'
 					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
-					el:				@el.querySelector('.container .middle .annotation')
+					el:				$el.find('.annotation-editor')
 					height:			@preview.$el.innerHeight()
 					html: 			model.get 'body'
 					htmlAttribute:	'body'
 					model: 			model
-					width: 			el.width() - 10
+					width: 			$el.width() - 10
 					wrap: 			true
+
+				@annotationEditMenu = new Views.AnnotationEditMenu
+					model: model
+					collection: @currentTranscription.get('annotations')
+				$el.append @annotationEditMenu.$el
 				
 			@toggleEditPane 'annotation'
 				
@@ -160,7 +174,8 @@ define (require) ->
 			'click .menu li[data-key="metadata"]': 'metadata'
 			'click .menu li[data-key="edittextlayers"]': 'edittextlayers'
 
-		edittextlayers: ->
+		edittextlayers: (ev) ->
+			@$(ev.currentTarget).toggleClass 'rotateup'
 			@$('.subsubmenu').toggleClass 'active'
 
 		previousEntry: ->
@@ -208,15 +223,15 @@ define (require) ->
 			li = @el.querySelector '.submenu li[data-key="layer"]'
 			li.replaceChild textLayerNode, li.firstChild
 
-		save: (ev) ->
-			if @annotationEdit? and @annotationEdit.$el.is(':visible')
-				annotations = @model.get('transcriptions').current.get('annotations')	
+		# save: (ev) ->
+		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
+		# 		annotations = @model.get('transcriptions').current.get('annotations')	
 
-				# Create on a collection will save the model and add it to the collection.
-				# Pass wait:true to wait for the server response, because we need the ID from the server
-				annotations.create @annotationEdit.model.attributes, 
-					wait: true
-					success: => @renderTranscription()
+		# 		# Create on a collection will save the model and add it to the collection.
+		# 		# Pass wait:true to wait for the server response, because we need the ID from the server
+		# 		annotations.create @annotationEdit.model.attributes, 
+		# 			wait: true
+		# 			success: => @renderTranscription()
 
 		metadata: (ev) ->
 			if @annotationEdit? and @annotationEdit.$el.is(':visible')
@@ -241,9 +256,11 @@ define (require) ->
 
 			viewName = 'am' if viewName is 'annotationmetadata'
 
+			# console.log view.$el.parent()
+
 			# @$('.submenu [data-key="save"]').html 'Save '+viewName
-			view.$el.siblings().hide()
-			view.$el.show()
+			view.$el.parent().siblings().hide()
+			view.$el.parent().show()
 
 		addListeners: ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
@@ -257,9 +274,15 @@ define (require) ->
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
 				@renderFacsimile()
+
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
 				@renderTranscription()
+			@listenTo @model.get('transcriptions'), 'add', (transcription) => 
+				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
+				@$('.submenu .textlayers').append li
+			@listenTo @model.get('transcriptions'), 'remove', (transcription) => @$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
+
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 				@renderFacsimile()

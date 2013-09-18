@@ -61,6 +61,19 @@
           return jqXHR.fail(function(a, b, c) {
             return console.log('fail', a, b, c);
           });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify({
+              body: this.get('body'),
+              typeId: this.get('annotationType').id
+            })
+          });
+          jqXHR.done(function(response) {});
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
         } else {
           return Annotation.__super__.sync.apply(this, arguments);
         }

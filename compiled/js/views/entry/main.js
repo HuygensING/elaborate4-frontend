@@ -19,7 +19,9 @@
       Preview: require('views/entry/preview'),
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/metadata.annotation'),
-      EditTextlayers: require('views/entry/textlayers.edit')
+      EditTextlayers: require('views/entry/textlayers.edit'),
+      TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
+      AnnotationEditMenu: require('views/entry/annotation.edit.menu')
     };
     Templates = {
       Entry: require('text!html/entry/main.html')
@@ -108,48 +110,57 @@
       };
 
       Entry.prototype.renderTranscription = function() {
-        var el;
+        var $el;
         this.renderPreview();
         if (this.transcriptionEdit != null) {
           this.transcriptionEdit.setModel(this.currentTranscription);
+          this.transcriptionEditMenu.setModel(this.currentTranscription);
         } else {
-          el = this.$('.container .middle .transcription');
+          $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
             controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
-            el: el,
+            el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
             html: this.currentTranscription.get('body'),
             htmlAttribute: 'body',
             model: this.model.get('transcriptions').current,
-            width: el.width() - 10
+            width: $el.width() - 10
           });
+          this.transcriptionEditMenu = new Views.TranscriptionEditMenu({
+            model: this.currentTranscription
+          });
+          $el.append(this.transcriptionEditMenu.$el);
         }
         return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        var el;
-        if (this.annotationEdit != null) {
-          if (model != null) {
-            this.annotationEdit.setModel(model);
-          }
+        var $el;
+        if ((this.annotationEdit != null) && (model != null)) {
+          this.annotationEdit.setModel(model);
+          this.annotationEditMenu.setModel(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
           }
-          el = this.$('.container .middle');
+          $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
             cssFile: '/css/main.css',
             controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
-            el: this.el.querySelector('.container .middle .annotation'),
+            el: $el.find('.annotation-editor'),
             height: this.preview.$el.innerHeight(),
             html: model.get('body'),
             htmlAttribute: 'body',
             model: model,
-            width: el.width() - 10,
+            width: $el.width() - 10,
             wrap: true
           });
+          this.annotationEditMenu = new Views.AnnotationEditMenu({
+            model: model,
+            collection: this.currentTranscription.get('annotations')
+          });
+          $el.append(this.annotationEditMenu.$el);
         }
         return this.toggleEditPane('annotation');
       };
@@ -184,7 +195,8 @@
         };
       };
 
-      Entry.prototype.edittextlayers = function() {
+      Entry.prototype.edittextlayers = function(ev) {
+        this.$(ev.currentTarget).toggleClass('rotateup');
         return this.$('.subsubmenu').toggleClass('active');
       };
 
@@ -236,20 +248,6 @@
         return li.replaceChild(textLayerNode, li.firstChild);
       };
 
-      Entry.prototype.save = function(ev) {
-        var annotations,
-          _this = this;
-        if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
-          annotations = this.model.get('transcriptions').current.get('annotations');
-          return annotations.create(this.annotationEdit.model.attributes, {
-            wait: true,
-            success: function() {
-              return _this.renderTranscription();
-            }
-          });
-        }
-      };
-
       Entry.prototype.metadata = function(ev) {
         if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
           this.annotationMetadata = new Views.AnnotationMetadata({
@@ -276,8 +274,8 @@
         if (viewName === 'annotationmetadata') {
           viewName = 'am';
         }
-        view.$el.siblings().hide();
-        return view.$el.show();
+        view.$el.parent().siblings().hide();
+        return view.$el.parent().show();
       };
 
       Entry.prototype.addListeners = function() {
@@ -301,6 +299,14 @@
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
           return _this.renderTranscription();
+        });
+        this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
+          var li;
+          li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
+          return _this.$('.submenu .textlayers').append(li);
+        });
+        this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
+          return _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {

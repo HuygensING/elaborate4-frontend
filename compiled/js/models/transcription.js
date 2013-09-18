@@ -31,12 +31,8 @@
       };
 
       Transcription.prototype.initialize = function() {
-        var _this = this;
         Transcription.__super__.initialize.apply(this, arguments);
-        this.listenToAnnotations();
-        return this.on('change:body', function() {
-          return _this.save();
-        });
+        return this.listenToAnnotations();
       };
 
       Transcription.prototype.parse = function(attrs) {
@@ -82,7 +78,19 @@
         $body.find('sup[data-marker="end"]').each(function(index, sup) {
           return sup.innerHTML = index + 1;
         });
-        return this.set('body', $body.html());
+        this.set('body', $body.html());
+        return this.save();
+      };
+
+      Transcription.prototype.set = function(attrs, options) {
+        var _this = this;
+        if (attrs === 'body') {
+          options = options.replace(/<div><br><\/div>/g, '<br>');
+          options = options.replace(/<div>(.*?)<\/div>/g, function(match, p1, offset, string) {
+            return '<br>' + p1;
+          });
+        }
+        return Transcription.__super__.set.apply(this, arguments);
       };
 
       Transcription.prototype.sync = function(method, model, options) {
@@ -106,6 +114,7 @@
                 url: url
               });
               return xhr.done(function(data, textStatus, jqXHR) {
+                _this.trigger('sync');
                 return options.success(data);
               });
             }
@@ -122,7 +131,7 @@
             })
           });
           jqXHR.done(function(response) {
-            return console.log('done', response);
+            return _this.trigger('sync');
           });
           return jqXHR.fail(function(response) {
             return console.log('fail', response);

@@ -24,7 +24,48 @@ select_none()
 	-ms-user-select none
 	user-select none
 
-button()
+button(light=#D5D6D5, dark=#838383)
+	vertical_gradient(lighten(light, 10%), lighten(dark, 10%))
+	border 0
+	box-shadow 1px 1px 4px #858585
+	border-radius 6px
+	line-height 24px
+	margin -1px 6px 0 0
+	cursor pointer
+	font-size 0.9rem
+	color white
+	font-weight bold
+
+	&:hover
+		vertical_gradient(light, dark) 
+
+	&:active
+		vertical_gradient(lighten(dark, 20%), light) 
+		box-shadow -1px -1px 4px #858585
+		color white
+
+	&.inactive
+		color #969696
+
+	&[disabled]
+		color: lightgray;
+		background: #808080;
+		cursor: default;
+
+		&:active
+			background: #808080;
+			box-shadow @box-shadow
+
+
+ 
+okbutton()
+	button(#61E26B, #038808)
+
+cancelbutton()
+	button(#E26161, #880303)
+	
+
+elaboratebutton()
 	vertical_gradient(#565656, #444)
 	border 0
 	box-shadow 1px 1px 1px #666
@@ -42,3 +83,20 @@ button()
 
 	&.inactive
 		color #969696
+
+
+
+
+
+transition(args...)
+	-webkit-transition args
+	-moz-transition args
+	-o-transition args
+	transition args
+
+transform(args...)
+	-webkit-transform args
+	-moz-transform args
+	-ms-transform args
+	-o-transform args
+	transform args

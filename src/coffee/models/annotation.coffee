@@ -41,5 +41,16 @@ define (require) ->
 							options.success data
 
 				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+
+			else if method is 'update'
+				ajax.token = token.get()
+				jqXHR = ajax.put
+					url: @url()
+					data: JSON.stringify
+						body: @get 'body'
+						typeId: @get('annotationType').id
+				jqXHR.done (response) => 
+				jqXHR.fail (response) => console.log 'fail', response
+
 			else
 				super
