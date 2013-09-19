@@ -20,6 +20,7 @@
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/metadata.annotation'),
       EditTextlayers: require('views/entry/textlayers.edit'),
+      EditFacsimiles: require('views/entry/facsimiles.edit'),
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
       AnnotationEditMenu: require('views/entry/annotation.edit.menu')
     };
@@ -125,7 +126,7 @@
             html: this.currentTranscription.get('body'),
             htmlAttribute: 'body',
             model: this.model.get('transcriptions').current,
-            width: $el.width() - 10
+            width: $el.width() - 20
           });
           this.transcriptionEditMenu = new Views.TranscriptionEditMenu({
             model: this.currentTranscription
@@ -167,19 +168,23 @@
 
       Entry.prototype.renderPreview = function() {
         if (this.preview != null) {
-          return this.preview.setModel(this.currentTranscription);
+          return this.preview.setModel(this.model);
         } else {
           return this.preview = new Views.Preview({
-            model: this.currentTranscription,
+            model: this.model,
             el: this.$('.container .right')
           });
         }
       };
 
       Entry.prototype.renderSubsubmenu = function() {
-        return this.subviews.textlayersEdit = new Views.EditTextlayers({
+        this.subviews.textlayersEdit = new Views.EditTextlayers({
           collection: this.model.get('transcriptions'),
-          el: this.$('.subsubmenu .textlayers')
+          el: this.$('.subsubmenu .edittextlayers')
+        });
+        return this.subviews.facsimileEdit = new Views.EditFacsimiles({
+          collection: this.model.get('facsimiles'),
+          el: this.$('.subsubmenu .editfacsimiles')
         });
       };
 
@@ -191,13 +196,53 @@
           'click .menu li[data-key="transcription"]': 'changeTextlayer',
           'click .menu li[data-key="save"]': 'save',
           'click .menu li[data-key="metadata"]': 'metadata',
-          'click .menu li[data-key="edittextlayers"]': 'edittextlayers'
+          'click .menu li.subsub': 'toggleSubsubmenu'
         };
       };
 
+      Entry.prototype.toggleSubsubmenu = (function() {
+        var currentMenu;
+        currentMenu = null;
+        return function(ev) {
+          var newMenu;
+          newMenu = ev.currentTarget.getAttribute('data-key');
+          if (currentMenu === newMenu) {
+            $(ev.currentTarget).removeClass('rotateup');
+            $('.subsubmenu').removeClass('active');
+            return currentMenu = null;
+          } else {
+            if (currentMenu != null) {
+              $('.submenu li[data-key="' + currentMenu + '"]').removeClass('rotateup');
+            } else {
+              $('.subsubmenu').addClass('active');
+            }
+            $('.submenu li[data-key="' + newMenu + '"]').addClass('rotateup');
+            $('.subsubmenu').find('.' + newMenu).show().siblings().hide();
+            return currentMenu = newMenu;
+          }
+        };
+      })();
+
       Entry.prototype.edittextlayers = function(ev) {
-        this.$(ev.currentTarget).toggleClass('rotateup');
-        return this.$('.subsubmenu').toggleClass('active');
+        var subsubmenu, textlayers;
+        subsubmenu = this.$('.subsubmenu');
+        textlayers = subsubmenu.find('.textlayers');
+        this.$('li[data-key="edittextlayers"]').toggleClass('rotateup');
+        if (!subsubmenu.hasClass('active')) {
+          subsubmenu.addClass('active');
+        }
+        return textlayers.show().siblings().hide();
+      };
+
+      Entry.prototype.editfacsimiles = function(ev) {
+        var facsimiles, subsubmenu;
+        subsubmenu = this.$('.subsubmenu');
+        facsimiles = subsubmenu.find('.facsimiles');
+        this.$('li[data-key="editfacsimiles"]').toggleClass('rotateup');
+        if (!subsubmenu.hasClass('active')) {
+          subsubmenu.addClass('active');
+        }
+        return facsimiles.show().siblings().hide();
       };
 
       Entry.prototype.previousEntry = function() {
@@ -288,9 +333,6 @@
         });
         this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
           return Fn.setScrollPercentage(_this.preview.el, percentages);
-        });
-        this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
-          return _this.currentTranscription.set('body', doc);
         });
         this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
           _this.currentFacsimile = current;

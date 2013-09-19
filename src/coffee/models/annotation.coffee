@@ -23,7 +23,6 @@ define (require) ->
 			modifier: null
 
 		sync: (method, model, options) ->
-
 			if method is 'create'
 				jqXHR = ajax.post
 					url: @url()
@@ -34,9 +33,7 @@ define (require) ->
 
 				jqXHR.done (data, textStatus, jqXHR) =>
 					if jqXHR.status is 201
-						url = jqXHR.getResponseHeader('Location')
-
-						xhr = ajax.get url: url
+						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
 						xhr.done (data, textStatus, jqXHR) =>
 							options.success data
 
@@ -49,7 +46,7 @@ define (require) ->
 					data: JSON.stringify
 						body: @get 'body'
 						typeId: @get('annotationType').id
-				jqXHR.done (response) => 
+				jqXHR.done (response) => options.success response
 				jqXHR.fail (response) => console.log 'fail', response
 
 			else

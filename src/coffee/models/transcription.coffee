@@ -58,6 +58,10 @@ define (require) ->
 					@listenTo @get('annotations'), 'remove', @removeAnnotation
 
 		addAnnotation: (model) ->
+			unless model.get('annotationNo')? 
+				console.error 'No annotationNo given!', model.get('annotationNo')
+				return false
+
 			$body = $ "<div>#{@get('body')}</div>"
 
 			# Replace newannotation with the new annotationNo

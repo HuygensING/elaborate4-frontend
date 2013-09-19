@@ -1,0 +1,24 @@
+.row.span3
+	.cell.span1
+		.pad2
+			ul.facsimiles
+				| <% facsimiles.each(function(facs) { %>
+				li
+					img(src="/images/icon.bin.png", width="14px", height="14px")
+					label(data-id!="<%= facs.id %>")  <%= facs.get('textLayer') %>
+				| <% }); %>
+	.cell.span2
+		.pad2
+			form(method="post", enctype="multipart/form-data")
+				ul.form.addfacsimile
+					li
+						label Name
+						input(type="text", name="name")
+					li
+						label Zoomable URL
+						input(type="text", name="zoomableUrl")
+					li
+						input(type="file", name="filename")
+
+					li
+						button.addtextlayer Add facsimile

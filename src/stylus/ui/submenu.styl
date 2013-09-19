@@ -13,6 +13,9 @@
 	&.active
 		top mainHeaderHeight + 40px
 
+	.editfacsimiles, .edittextlayers
+		display none
+
 	ul
 		list-style none
 
@@ -38,7 +41,7 @@
 			img
 				margin-right 6px
 
-		&.textlayers
+		&.edittextlayers, &.editfacsimiles
 			white-space nowrap
 
 			li.destroy

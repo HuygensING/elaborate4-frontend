@@ -47,11 +47,10 @@
             dataType: 'text'
           });
           jqXHR.done(function(data, textStatus, jqXHR) {
-            var url, xhr;
+            var xhr;
             if (jqXHR.status === 201) {
-              url = jqXHR.getResponseHeader('Location');
               xhr = ajax.get({
-                url: url
+                url: jqXHR.getResponseHeader('Location')
               });
               return xhr.done(function(data, textStatus, jqXHR) {
                 return options.success(data);
@@ -70,7 +69,9 @@
               typeId: this.get('annotationType').id
             })
           });
-          jqXHR.done(function(response) {});
+          jqXHR.done(function(response) {
+            return options.success(response);
+          });
           return jqXHR.fail(function(response) {
             return console.log('fail', response);
           });

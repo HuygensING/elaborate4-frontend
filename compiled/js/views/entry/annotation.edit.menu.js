@@ -40,10 +40,19 @@
       };
 
       AnnotationEditMenu.prototype.save = function() {
+        var _this = this;
         if (this.model.isNew()) {
-          this.model.url = config.baseUrl + ("projects/" + this.collection.projectId + "/entries/" + this.collection.entryId + "/transcriptions/" + this.collection.transcriptionId + "/annotations");
-          this.model.save();
-          return this.collection.add(this.model);
+          this.model.urlRoot = function() {
+            return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
+          };
+          return this.model.save([], {
+            success: function() {
+              return _this.collection.add(_this.model);
+            },
+            error: function(model, xhr, options) {
+              return console.error('Saving annotation failed!', model, xhr, options);
+            }
+          });
         } else {
           return this.model.save();
         }

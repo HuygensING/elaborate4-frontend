@@ -51,7 +51,7 @@ module.exports = (grunt) ->
 				stdout: true
 				stderr: true
 			mocha: 
-				command: 'mocha-phantomjs -R dot http://localhost:8000/.test/index.html'
+				command: 'mocha-phantomjs -R dot http://localhost:4002/.test/index.html'
 			emptydist:
 				command: 'rm -rf dist/*'
 			emptycompiled:
@@ -116,6 +116,11 @@ module.exports = (grunt) ->
 				options:
 					port: 4001
 					base: 'dist'
+					middleware: connect_middleware
+			test:
+				options:
+					port: 4002
+					base: ''
 					middleware: connect_middleware
 
 		### HTML ###
@@ -306,6 +311,7 @@ module.exports = (grunt) ->
 	grunt.registerTask 'sw', [
 		'connect:compiled'
 		'connect:dist'
+		'connect:test'
 		'watch'
 	]
 

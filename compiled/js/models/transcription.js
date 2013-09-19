@@ -56,6 +56,10 @@
 
       Transcription.prototype.addAnnotation = function(model) {
         var $body;
+        if (model.get('annotationNo') == null) {
+          console.error('No annotationNo given!', model.get('annotationNo'));
+          return false;
+        }
         $body = $("<div>" + (this.get('body')) + "</div>");
         $body.find('[data-id="newannotation"]').attr('data-id', model.get('annotationNo'));
         return this.resetAnnotationOrder($body);

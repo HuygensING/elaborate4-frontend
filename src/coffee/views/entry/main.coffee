@@ -20,6 +20,7 @@ define (require) ->
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/metadata.annotation'
 		EditTextlayers: require 'views/entry/textlayers.edit'
+		EditFacsimiles: require 'views/entry/facsimiles.edit'
 		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
 		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 
@@ -115,7 +116,7 @@ define (require) ->
 					html:			@currentTranscription.get 'body'
 					htmlAttribute:	'body'
 					model:			@model.get('transcriptions').current
-					width:			$el.width() - 10
+					width:			$el.width() - 20
 
 				@transcriptionEditMenu = new Views.TranscriptionEditMenu
 					model: @currentTranscription
@@ -153,16 +154,20 @@ define (require) ->
 				
 		renderPreview: ->
 			if @preview?
-				@preview.setModel @currentTranscription
+				@preview.setModel @model
 			else
 				@preview = new Views.Preview
-					model: @currentTranscription
+					model: @model
 					el: @$('.container .right')
 
 		renderSubsubmenu: ->
 			@subviews.textlayersEdit = new Views.EditTextlayers
 				collection: @model.get 'transcriptions'
-				el: @$('.subsubmenu .textlayers')
+				el: @$('.subsubmenu .edittextlayers')
+
+			@subviews.facsimileEdit = new Views.EditFacsimiles
+				collection: @model.get 'facsimiles'
+				el: @$('.subsubmenu .editfacsimiles')
 			
 		# ### Events
 		events: ->
@@ -172,11 +177,58 @@ define (require) ->
 			'click .menu li[data-key="transcription"]': 'changeTextlayer'
 			'click .menu li[data-key="save"]': 'save'
 			'click .menu li[data-key="metadata"]': 'metadata'
-			'click .menu li[data-key="edittextlayers"]': 'edittextlayers'
+			'click .menu li.subsub': 'toggleSubsubmenu'
+
+		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
+		# The iife keeps track of the currentMenu. Precaution: @ is window in the iife!
+		toggleSubsubmenu: do ->
+			currentMenu = null
+
+			(ev) ->
+				# The newMenu's name is set as a data-key.
+				newMenu = ev.currentTarget.getAttribute 'data-key'
+
+				# If the user clicks on the currentMenu, close it.
+				if currentMenu is newMenu
+					$(ev.currentTarget).removeClass 'rotateup'
+					$('.subsubmenu').removeClass 'active'
+					currentMenu = null
+
+				# Either the subsubmenu is not visible (currentMenu=null) or the user
+				# clicked on another subsubmenu. In the last case we have to rotate the 
+				# arrow down (removeClass 'rotateup') for the currentMenu.
+				else
+					# User clicked on another subsubmenu than currentMenu
+					if currentMenu?
+						$('.submenu li[data-key="'+currentMenu+'"]').removeClass 'rotateup'
+					# Subsubmenu was closed, open it by adding 'active' class
+					else
+						$('.subsubmenu').addClass 'active'
+
+					# Rotate the newMenu's arrow
+					$('.submenu li[data-key="'+newMenu+'"]').addClass 'rotateup'
+
+					# Show the newMenu and hide all others (siblings)
+					$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
+					
+					currentMenu = newMenu
+
 
 		edittextlayers: (ev) ->
-			@$(ev.currentTarget).toggleClass 'rotateup'
-			@$('.subsubmenu').toggleClass 'active'
+			subsubmenu = @$('.subsubmenu')
+			textlayers = subsubmenu.find('.textlayers')
+
+			@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
+			subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+			textlayers.show().siblings().hide()
+
+		editfacsimiles: (ev) ->
+			subsubmenu = @$('.subsubmenu')
+			facsimiles = subsubmenu.find('.facsimiles')
+
+			@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
+			subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+			facsimiles.show().siblings().hide()
 
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
@@ -269,7 +321,9 @@ define (require) ->
 			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
 			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
-			@listenTo @transcriptionEdit, 'change', (cmd, doc) => @currentTranscription.set 'body', doc
+			# @listenTo @transcriptionEdit, 'change', (cmd, doc) => 
+			# 	console.log 'achgne!'
+			# 	@currentTranscription.set 'body', doc
 
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current

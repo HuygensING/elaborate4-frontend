@@ -435,10 +435,11 @@ button.small,.btn.small{line-height:14px}
 .entry .container .middle .transcription-placeholder .annotationeditmenu button.cancel,.entry .container .middle .annotation-placeholder .annotationeditmenu button.cancel{position:absolute;right:45px}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu,.entry .container .middle .annotation-placeholder .transcriptioneditmenu{width:50px;margin-left:-25px;}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu button,.entry .container .middle .annotation-placeholder .transcriptioneditmenu button{margin-right:0}
-.entry .container .right{line-height:1.75em;white-space:nowrap;overflow-y:auto;margin:78px 0 0 10px;padding-bottom:10px;}
+.entry .container .right{line-height:1.75em;white-space:nowrap;overflow-y:auto;margin:76px 10px 0 10px;padding-bottom:10px;}
 .entry .container .right sup[data-marker]{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:pointer;color:#ff9bfb;font-family:Courier;font-size:.75em;vertical-align:super;line-height:0;background-color:#fff}
 .entry .container .right span.hilite{vertical-align:baseline;background-color:#ffebfe}
-.supertinyeditor iframe{margin-left:10px}
+.supertinyeditor .ste-header{box-shadow:2px 0 4px #ddd}
+.supertinyeditor .ste-body{box-shadow:2px 0 4px #ddd;background-color:#f2f2f2;padding:10px 10px 0 10px}
 body.ste-iframe-body{line-height:1.75em;}
 body.ste-iframe-body sup[data-marker]{display:none}
 div.closebutton{cursor:pointer;position:absolute;padding:2px;margin:4px;background-color:#fff;border-radius:4px;opacity:0}
@@ -805,6 +806,7 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 
 .subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);-webkit-transition:top 300ms;-moz-transition:top 300ms;-o-transition:top 300ms;transition:top 300ms;z-index:48;}
 .subsubmenu.active{top:88px}
+.subsubmenu .editfacsimiles,.subsubmenu .edittextlayers{display:none}
 .subsubmenu ul{list-style:none;}
 .subsubmenu ul li{margin-bottom:6px;color:#79c8c6;}
 .subsubmenu ul li label{display:inline-block;width:40px}
@@ -813,11 +815,11 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .subsubmenu ul li button:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
 .subsubmenu ul li button.inactive{color:#969696}
 .subsubmenu ul li img{margin-right:6px}
-.subsubmenu ul.textlayers{white-space:nowrap;}
-.subsubmenu ul.textlayers li.destroy{cursor:default;}
-.subsubmenu ul.textlayers li.destroy label{cursor:pointer;color:#ccc;width:auto;border:1px solid #5c0000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em}
-.subsubmenu ul.textlayers li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
-.subsubmenu ul.textlayers img:hover{cursor:pointer}
+.subsubmenu ul.edittextlayers,.subsubmenu ul.editfacsimiles{white-space:nowrap;}
+.subsubmenu ul.edittextlayers li.destroy,.subsubmenu ul.editfacsimiles li.destroy{cursor:default;}
+.subsubmenu ul.edittextlayers li.destroy label,.subsubmenu ul.editfacsimiles li.destroy label{cursor:pointer;color:#ccc;width:auto;border:1px solid #5c0000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em}
+.subsubmenu ul.edittextlayers li.destroy:after,.subsubmenu ul.editfacsimiles li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
+.subsubmenu ul.edittextlayers img:hover,.subsubmenu ul.editfacsimiles img:hover{cursor:pointer}
 .submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}
@@ -833,7 +835,7 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .submenu .cell .vertical.menu > li:last-child{border-bottom-left-radius:6px;border-bottom-right-radius:6px;box-shadow:2px 0 4px #888}
 
 #tooltip,.tooltip{display:none;position:absolute;padding:0;z-index:1000;background:#f1e8e1;border-radius:10px;box-shadow:1px 1px 5px #969696;min-width:72px;max-width:200px;}
-#tooltip.addannotation button,.tooltip.addannotation button{border:0;background:none;padding-top:4px}
+#tooltip.addannotation button,.tooltip.addannotation button{border:0;background:none;padding-top:2px;font-weight:normal;color:#000;box-shadow:none;margin:0}
 #tooltip.newannotation,.tooltip.newannotation{min-width:36px;}
 #tooltip.newannotation .body,.tooltip.newannotation .body{display:none}
 #tooltip.newannotation .horizontal.menu,.tooltip.newannotation .horizontal.menu{border-bottom-left-radius:10px;border-bottom-right-radius:10px;padding-bottom:4px;}
@@ -1140,7 +1142,6 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .supertinyeditor iframe{min-height:46px;border:none}
 .supertinyeditor .ste-header{height:31px;border-bottom:1px solid #bbb;background:url("../images/supertinyeditor/header-bg.gif") repeat-x;padding-top:1px;}
 .supertinyeditor .ste-header select{float:left;margin-top:5px}
-.supertinyeditor .ste-body{margin-top:12px}
 .supertinyeditor .ste-font{margin-left:12px}
 .supertinyeditor .ste-size{margin:0 3px}
 .supertinyeditor .ste-style{margin-right:12px}

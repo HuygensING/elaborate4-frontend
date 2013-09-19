@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var EntryPreview, Fn, Tpl, Views, _ref;
+    var Fn, Tpl, TranscriptionPreview, Views, _ref;
     Fn = require('helpers2/general');
     Views = {
       Base: require('views/base'),
@@ -11,33 +11,33 @@
       EditAnnotationTooltip: require('views/entry/tooltip.edit.annotation')
     };
     Tpl = require('text!html/entry/preview.html');
-    return EntryPreview = (function(_super) {
-      __extends(EntryPreview, _super);
+    return TranscriptionPreview = (function(_super) {
+      __extends(TranscriptionPreview, _super);
 
-      function EntryPreview() {
-        _ref = EntryPreview.__super__.constructor.apply(this, arguments);
+      function TranscriptionPreview() {
+        _ref = TranscriptionPreview.__super__.constructor.apply(this, arguments);
         return _ref;
       }
 
-      EntryPreview.prototype.initialize = function() {
-        EntryPreview.__super__.initialize.apply(this, arguments);
+      TranscriptionPreview.prototype.initialize = function() {
+        TranscriptionPreview.__super__.initialize.apply(this, arguments);
         this.highlighter = Fn.highlighter();
-        this.listenTo(this.model, 'current:change', this.render);
-        this.listenTo(this.model, 'change:body', this.render);
+        this.currentTranscription = this.model.get('transcriptions').current;
+        this.addListeners();
         this.render();
         this.renderTooltips();
         this.setHeight();
         return this.onHover();
       };
 
-      EntryPreview.prototype.render = function() {
+      TranscriptionPreview.prototype.render = function() {
         var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
+        rtpl = _.template(Tpl, this.currentTranscription.toJSON());
         this.$el.html(rtpl);
         return this;
       };
 
-      EntryPreview.prototype.renderTooltips = function() {
+      TranscriptionPreview.prototype.renderTooltips = function() {
         var _this = this;
         this.addAnnotationTooltip = new Views.AddAnnotationTooltip({
           container: this.el
@@ -50,7 +50,7 @@
         });
         return this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
           if (model != null) {
-            return _this.model.get('annotations').remove(model);
+            return _this.currentTranscription.get('annotations').remove(model);
           } else {
             _this.$('[data-id="newannotation"]').remove();
             return _this.trigger('newAnnotationRemoved');
@@ -58,7 +58,7 @@
         });
       };
 
-      EntryPreview.prototype.events = function() {
+      TranscriptionPreview.prototype.events = function() {
         return {
           'click sup[data-marker="end"]': 'supClicked',
           'mousedown .preview': 'onMousedown',
@@ -67,17 +67,17 @@
         };
       };
 
-      EntryPreview.prototype.onScroll = function(ev) {
+      TranscriptionPreview.prototype.onScroll = function(ev) {
         var _this = this;
         return Fn.timeoutWithReset(200, function() {
           return _this.trigger('scrolled', Fn.getScrollPercentage(ev.currentTarget));
         });
       };
 
-      EntryPreview.prototype.supClicked = function(ev) {
+      TranscriptionPreview.prototype.supClicked = function(ev) {
         var annotation, id;
         id = ev.currentTarget.getAttribute('data-id') >> 0;
-        annotation = this.model.get('annotations').findWhere({
+        annotation = this.currentTranscription.get('annotations').findWhere({
           annotationNo: id
         });
         return this.editAnnotationTooltip.show({
@@ -86,14 +86,14 @@
         });
       };
 
-      EntryPreview.prototype.onMousedown = function(ev) {
+      TranscriptionPreview.prototype.onMousedown = function(ev) {
         if (ev.target === this.el.querySelector('.preview')) {
           this.stopListening(this.addAnnotationTooltip);
           return this.addAnnotationTooltip.hide();
         }
       };
 
-      EntryPreview.prototype.onMouseup = function(ev) {
+      TranscriptionPreview.prototype.onMouseup = function(ev) {
         var isInsideMarker, range, sel,
           _this = this;
         sel = document.getSelection();
@@ -117,7 +117,7 @@
         }
       };
 
-      EntryPreview.prototype.addNewAnnotationTags = function(range) {
+      TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
         span.setAttribute('data-marker', 'begin');
@@ -129,12 +129,12 @@
         sup.innerHTML = 'new';
         range.collapse(false);
         range.insertNode(sup);
-        return this.model.set('body', this.$('.preview').html(), {
+        return this.currentTranscription.set('body', this.$('.preview').html(), {
           silent: true
         });
       };
 
-      EntryPreview.prototype.onHover = function() {
+      TranscriptionPreview.prototype.onHover = function() {
         var supEnter, supLeave,
           _this = this;
         supEnter = function(ev) {
@@ -151,16 +151,23 @@
         return this.$('sup[data-marker]').hover(supEnter, supLeave);
       };
 
-      EntryPreview.prototype.setHeight = function() {
+      TranscriptionPreview.prototype.setHeight = function() {
         return this.$el.height(document.documentElement.clientHeight - 89 - 78 - 10);
       };
 
-      EntryPreview.prototype.setModel = function(currentTranscription) {
-        this.model = currentTranscription;
+      TranscriptionPreview.prototype.setModel = function(entry) {
+        this.model = entry;
+        this.currentTranscription = this.model.get('transcriptions').current;
+        this.addListeners();
         return this.render();
       };
 
-      return EntryPreview;
+      TranscriptionPreview.prototype.addListeners = function() {
+        this.listenTo(this.currentTranscription, 'current:change', this.render);
+        return this.listenTo(this.currentTranscription, 'change:body', this.render);
+      };
+
+      return TranscriptionPreview;
 
     })(Views.Base);
   });

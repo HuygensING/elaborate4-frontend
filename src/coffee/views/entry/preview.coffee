@@ -9,8 +9,8 @@ define (require) ->
 
 	Tpl = require 'text!html/entry/preview.html'
 
-	# ## EntryPreview
-	class EntryPreview extends Views.Base
+	# ## TranscriptionPreview
+	class TranscriptionPreview extends Views.Base
 
 		# ### Initialize
 		initialize: ->
@@ -18,9 +18,10 @@ define (require) ->
 
 			@highlighter = Fn.highlighter()
 
-			# @model is the currentTranscription
-			@listenTo @model, 'current:change', @render
-			@listenTo @model, 'change:body', @render
+			# @model is the entry
+			@currentTranscription = @model.get('transcriptions').current
+			
+			@addListeners()
 
 			@render()
 
@@ -32,7 +33,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Tpl, @model.toJSON()
+			rtpl = _.template Tpl, @currentTranscription.toJSON()
 			@$el.html rtpl
 
 			# Set the height of EntryPreview to the clientHeight - menu & submenu (89px) - margin (78px) - padding (10px)
@@ -47,7 +48,7 @@ define (require) ->
 			@listenTo @editAnnotationTooltip, 'delete', (model) =>
 				if model?
 					# Remove the annotation from the collection, the transcription model wil take care of the rest
-					@model.get('annotations').remove model
+					@currentTranscription.get('annotations').remove model
 				else
 					@$('[data-id="newannotation"]').remove()
 					@trigger 'newAnnotationRemoved'
@@ -64,7 +65,7 @@ define (require) ->
 
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id') >> 0
-			annotation = @model.get('annotations').findWhere annotationNo: id
+			annotation = @currentTranscription.get('annotations').findWhere annotationNo: id
 			@editAnnotationTooltip.show
 				$el: $(ev.currentTarget)
 				model: annotation
@@ -119,12 +120,12 @@ define (require) ->
 			range.collapse false
 			range.insertNode sup
 
-			@model.set 'body', @$('.preview').html(), silent: true
+			@currentTranscription.set 'body', @$('.preview').html(), silent: true
 
 		# replaceNewAnnotationID: (model) ->
 		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
 
-			# @model.set 'body', @$el.html()
+			# @currentTranscription.set 'body', @$el.html()
 
 		onHover: ->
 			supEnter = (ev) =>
@@ -141,9 +142,16 @@ define (require) ->
 
 		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10
 
-		setModel: (currentTranscription) ->
-			@model = currentTranscription
+		setModel: (entry) ->
+			@model = entry
+			@currentTranscription = @model.get('transcriptions').current
+			@addListeners()
 			@render()
+
+		addListeners: ->
+			@listenTo @currentTranscription, 'current:change', @render
+			@listenTo @currentTranscription, 'change:body', @render
+
 
 		# scrollByPercentage: (percentage, orientation='vertical') ->
 		# 	clientWidth = @el.clientWidth

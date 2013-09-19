@@ -35,10 +35,17 @@ define (require) ->
 		save: ->
 			
 			if @model.isNew()
-				# If we want to listenTo 'sync' then @collection.create does not work in this situation.
-				@model.url = config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
-				@model.save()
-				@collection.add @model
+				# We set the urlRoot (instead of the url), because the model is used outside of a collection.
+				# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
+				# a new model is created when using create. Thus, we have to save the model first and then add
+				# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
+				# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
+				# see @model.sync for more info.
+				@model.urlRoot = => config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
+				@model.save [],
+					success: => @collection.add @model
+					error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
+					
 			else
 				@model.save()
 
