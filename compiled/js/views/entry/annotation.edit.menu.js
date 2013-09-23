@@ -39,6 +39,9 @@
           'click button.ok': 'save',
           'click button.cancel': function() {
             return _this.trigger('cancel', _this.model);
+          },
+          'click button.metadata': function() {
+            return _this.trigger('metadata', _this.model);
           }
         };
       };

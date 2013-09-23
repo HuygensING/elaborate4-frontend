@@ -16,11 +16,11 @@ define (require) ->
 		Base: require 'views/base'
 		SubMenu: require 'views/ui/entry.submenu'
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
-		Preview: require 'views/entry/preview'
+		Preview: require 'views/entry/preview/main'
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/metadata.annotation'
-		EditTextlayers: require 'views/entry/textlayers.edit'
-		EditFacsimiles: require 'views/entry/facsimiles.edit'
+		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
+		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
 		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
 		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 
@@ -152,6 +152,12 @@ define (require) ->
 					model: model
 					collection: @currentTranscription.get('annotations')
 				@listenTo @annotationEditMenu, 'cancel', (model) => @preview.removeNewAnnotationTags()
+				@listenTo @annotationEditMenu, 'metadata', (model) =>
+					@annotationMetadata = new Views.AnnotationMetadata
+						model: model
+						collection: @project.get 'annotationtypes'
+						el: @el.querySelector('.container .middle .annotationmetadata')
+					@toggleEditPane 'annotationmetadata'
 				$el.append @annotationEditMenu.$el
 				
 			@toggleEditPane 'annotation'
@@ -180,7 +186,7 @@ define (require) ->
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTextlayer'
 			'click .menu li[data-key="save"]': 'save'
-			'click .menu li[data-key="metadata"]': 'metadata'
+			# 'click .menu li[data-key="metadata"]': 'metadata'
 			'click .menu li.subsub': 'toggleSubsubmenu'
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
@@ -290,13 +296,13 @@ define (require) ->
 		# 			wait: true
 		# 			success: => @renderTranscription()
 
-		metadata: (ev) ->
-			if @annotationEdit? and @annotationEdit.$el.is(':visible')
-				@annotationMetadata = new Views.AnnotationMetadata
-					model: @annotationEdit.model
-					collection: @project.get 'annotationtypes'
-					el: @el.querySelector('.container .middle .annotationmetadata')
-				@toggleEditPane 'annotationmetadata'
+		# metadata: (ev) ->
+		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
+		# 		@annotationMetadata = new Views.AnnotationMetadata
+		# 			model: @annotationEdit.model
+		# 			collection: @project.get 'annotationtypes'
+		# 			el: @el.querySelector('.container .middle .annotationmetadata')
+		# 		@toggleEditPane 'annotationmetadata'
 
 
 		# menuItemClicked: (ev) ->
@@ -310,12 +316,6 @@ define (require) ->
 				when 'transcription' then @transcriptionEdit
 				when 'annotation' then @annotationEdit
 				when 'annotationmetadata' then @annotationMetadata
-
-			viewName = 'am' if viewName is 'annotationmetadata'
-
-			# console.log view.$el.parent()
-
-			# @$('.submenu [data-key="save"]').html 'Save '+viewName
 			view.$el.parent().siblings().hide()
 			view.$el.parent().show()
 

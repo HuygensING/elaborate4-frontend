@@ -4,8 +4,8 @@ define (require) ->
 
 	Views = 
 		Base: require 'views/base'
-		AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
-		EditAnnotationTooltip: require 'views/entry/tooltip.edit.annotation'
+		AddAnnotationTooltip: require 'views/entry/preview/annotation.add.tooltip'
+		EditAnnotationTooltip: require 'views/entry/preview/annotation.edit.tooltip'
 
 	Tpl = require 'text!html/entry/preview.html'
 

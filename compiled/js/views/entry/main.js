@@ -16,11 +16,11 @@
     Views = {
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
-      Preview: require('views/entry/preview'),
+      Preview: require('views/entry/preview/main'),
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/metadata.annotation'),
-      EditTextlayers: require('views/entry/textlayers.edit'),
-      EditFacsimiles: require('views/entry/facsimiles.edit'),
+      EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
+      EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
       AnnotationEditMenu: require('views/entry/annotation.edit.menu')
     };
@@ -165,6 +165,14 @@
           this.listenTo(this.annotationEditMenu, 'cancel', function(model) {
             return _this.preview.removeNewAnnotationTags();
           });
+          this.listenTo(this.annotationEditMenu, 'metadata', function(model) {
+            _this.annotationMetadata = new Views.AnnotationMetadata({
+              model: model,
+              collection: _this.project.get('annotationtypes'),
+              el: _this.el.querySelector('.container .middle .annotationmetadata')
+            });
+            return _this.toggleEditPane('annotationmetadata');
+          });
           $el.append(this.annotationEditMenu.$el);
         }
         return this.toggleEditPane('annotation');
@@ -199,7 +207,6 @@
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTextlayer',
           'click .menu li[data-key="save"]': 'save',
-          'click .menu li[data-key="metadata"]': 'metadata',
           'click .menu li.subsub': 'toggleSubsubmenu'
         };
       };
@@ -275,17 +282,6 @@
         return li.replaceChild(textLayerNode, li.firstChild);
       };
 
-      Entry.prototype.metadata = function(ev) {
-        if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
-          this.annotationMetadata = new Views.AnnotationMetadata({
-            model: this.annotationEdit.model,
-            collection: this.project.get('annotationtypes'),
-            el: this.el.querySelector('.container .middle .annotationmetadata')
-          });
-          return this.toggleEditPane('annotationmetadata');
-        }
-      };
-
       Entry.prototype.toggleEditPane = function(viewName) {
         var view;
         view = (function() {
@@ -298,9 +294,6 @@
               return this.annotationMetadata;
           }
         }).call(this);
-        if (viewName === 'annotationmetadata') {
-          viewName = 'am';
-        }
         view.$el.parent().siblings().hide();
         return view.$el.parent().show();
       };
