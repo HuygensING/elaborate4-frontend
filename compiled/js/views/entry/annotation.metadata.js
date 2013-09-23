@@ -8,7 +8,7 @@
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/metadata.annotation.html');
+    Tpl = require('text!html/entry/annotation.metadata.html');
     return AnnotationMetadata = (function(_super) {
       __extends(AnnotationMetadata, _super);
 
@@ -24,6 +24,7 @@
 
       AnnotationMetadata.prototype.render = function() {
         var rtpl;
+        console.log(this.model, this.collection);
         rtpl = _.template(Tpl, {
           model: this.model,
           collection: this.collection

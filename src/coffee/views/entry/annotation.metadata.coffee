@@ -5,7 +5,7 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/metadata.annotation.html'
+	Tpl = require 'text!html/entry/annotation.metadata.html'
 
 	# ## AnnotationMetadata
 	class AnnotationMetadata extends Views.Base
@@ -18,6 +18,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
+			console.log @model, @collection
 			rtpl = _.template Tpl, 
 				model: @model
 				collection: @collection

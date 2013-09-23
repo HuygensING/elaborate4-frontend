@@ -88,7 +88,8 @@
         'projects/:name/settings': 'projectSettings',
         'projects/:name/history': 'projectHistory',
         'projects/:name/entries/:id': 'entry',
-        'projects/:name/entries/:id/transcriptions/:name': 'entry'
+        'projects/:name/entries/:id/transcriptions/:name': 'entry',
+        'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
       };
 
       MainRouter.prototype.home = function() {
@@ -111,10 +112,11 @@
         return viewManager.show(Views.ProjectHistory);
       };
 
-      MainRouter.prototype.entry = function(projectName, entryID, transcriptionName) {
+      MainRouter.prototype.entry = function(projectName, entryID, transcriptionName, annotationID) {
         return viewManager.show(Views.Entry, {
           entryId: entryID,
-          transcriptionName: transcriptionName
+          transcriptionName: transcriptionName,
+          annotationID: annotationID
         });
       };
 

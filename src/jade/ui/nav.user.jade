@@ -1,8 +1,8 @@
 ul.horizontal.menu
-	li.username <%= user.title %>
+	li.username.arrowdown <%= user.title %>
 		ul.vertical.menu
 			li.logout Logout
-	li.projects My projects
+	li.projects.arrowdown My projects
 		ul.vertical.menu
 			| <% state.projects.each(function(project) { %>
 			li.project(data-id!="<%= project.id %>") <%= project.get('title') %>

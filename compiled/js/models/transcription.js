@@ -30,26 +30,27 @@
         };
       };
 
-      Transcription.prototype.initialize = function() {
-        Transcription.__super__.initialize.apply(this, arguments);
-        return this.listenToAnnotations();
-      };
-
-      Transcription.prototype.parse = function(attrs) {
-        attrs.annotations = new Collections.Annotations([], {
-          transcriptionId: attrs.id,
-          entryId: this.collection.entryId,
-          projectId: this.collection.projectId
-        });
-        return attrs;
-      };
-
-      Transcription.prototype.listenToAnnotations = function() {
-        var _this = this;
+      Transcription.prototype.getAnnotations = function(cb) {
+        var annotations,
+          _this = this;
+        if (cb == null) {
+          cb = function() {};
+        }
         if (this.get('annotations') != null) {
-          return this.listenToOnce(this.get('annotations'), 'sync', function() {
-            _this.listenTo(_this.get('annotations'), 'add', _this.addAnnotation);
-            return _this.listenTo(_this.get('annotations'), 'remove', _this.removeAnnotation);
+          return cb(this.get('annotations'));
+        } else {
+          annotations = new Collections.Annotations([], {
+            transcriptionId: this.id,
+            entryId: this.collection.entryId,
+            projectId: this.collection.projectId
+          });
+          return annotations.fetch({
+            success: function(collection) {
+              _this.set('annotations', collection);
+              _this.listenTo(collection, 'add', _this.addAnnotation);
+              _this.listenTo(collection, 'remove', _this.removeAnnotation);
+              return cb(collection);
+            }
           });
         }
       };

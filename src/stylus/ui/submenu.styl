@@ -19,12 +19,22 @@
 
 		.horizontal.menu > li
 			elaboratebutton()
+			position relative
 
 			&.alignright
 				position absolute
 				right 0
 				top 50%
 				margin-top -0.5 * @line-height
+
+			&[data-key="previous"]
+				arrowleft(spotcolor)
+
+			&[data-key="next"]
+				arrowright(spotcolor)
+
+			&[data-key="facsimiles"], &[data-key="editfacsimiles"], &[data-key="edittextlayers"], &[data-key="layer"]
+				arrowdown(spotcolor)
 
 		.vertical.menu 
 			border-bottom-left-radius 6px
@@ -36,6 +46,8 @@
 				box-shadow 2px 0px 4px #888
 				overflow hidden
 				text-overflow ellipsis
+				font-weight normal
+				color lighten(spotcolor, 50%)
 
 				&.spacer
 					background none
@@ -43,7 +55,7 @@
 					box-shadow none
 
 				&:hover
-					color lighten(spotcolor, 50%)
+					color spotcolor
 
 				&:last-child
 					border-bottom-left-radius 6px

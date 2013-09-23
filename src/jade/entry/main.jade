@@ -2,10 +2,10 @@
 	.row.span7
 		.cell.span3.left
 			ul.horizontal.menu
-				li.arrowleft(data-key="previous") Previous entry
-				li.arrowright(data-key="next") Next entry
+				li(data-key="previous") Previous entry
+				li(data-key="next") Next entry
 				li.arrowdown.subsub(data-key="editfacsimiles") Edit facsimiles
-				li.arrowdown.alignright(data-key="facsimiles") Facsimiles
+				li.alignright(data-key="facsimiles") Facsimiles
 					ul.vertical.menu.facsimiles
 						li.spacer &nbsp;
 						| <% facsimiles.each(function(facs) { %>
@@ -14,7 +14,7 @@
 		.cell.span2.alignright
 			ul.horizontal.menu
 				//- li(data-key="save") MoveSave
-				li.arrowdown.subsub(data-key="edittextlayers") Edit layers
+				li.subsub(data-key="edittextlayers") Edit layers
 				li.arrowdown(data-key="layer") Layer
 					ul.vertical.menu.textlayers
 						li.spacer &nbsp;

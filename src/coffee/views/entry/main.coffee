@@ -18,7 +18,7 @@ define (require) ->
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview/main'
 		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
-		AnnotationMetadata: require 'views/entry/metadata.annotation'
+		AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
 		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
@@ -40,9 +40,8 @@ define (require) ->
 
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
 			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']
-			@listenToOnce async, 'ready', => 
-				@render()
-				@addListeners()
+			@listenToOnce async, 'ready', => @render()
+				
 
 			Models.state.getCurrentProject (project) => 
 				@project = project # TMP
@@ -81,15 +80,22 @@ define (require) ->
 			@$el.html rtpl
 
 			# Set the url to reflect the current transcription
-			@navigateToTextLayer()
+			@navigateToTranscription() unless @options.transcriptionName?
 
 			# Set the name of the transcription to the submenu
-			@changeTextlayerInMenu()
+			@setTranscriptionNameToMenu()
 
 			@renderFacsimile()
+			
 			@renderTranscription()
 
 			@renderSubsubmenu()
+
+			@addListeners()
+
+			@currentTranscription.getAnnotations (annotations) =>
+				@renderAnnotation annotations.get @options.annotationID if @options.annotationID?
+					
 
 		renderFacsimile: ->
 			if @model.get('facsimiles').length
@@ -130,6 +136,8 @@ define (require) ->
 
 
 		renderAnnotation: (model) ->
+			@navigateToAnnotation model.id
+
 			if @annotationEdit? and model?
 				@annotationEdit.setModel model 
 				@annotationEditMenu.setModel model
@@ -184,7 +192,7 @@ define (require) ->
 			'click .menu li[data-key="previous"]': 'previousEntry'
 			'click .menu li[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
-			'click .menu li[data-key="transcription"]': 'changeTextlayer'
+			'click .menu li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li[data-key="save"]': 'save'
 			# 'click .menu li[data-key="metadata"]': 'metadata'
 			'click .menu li.subsub': 'toggleSubsubmenu'
@@ -254,31 +262,39 @@ define (require) ->
 			model = @model.get('facsimiles').get facsimileID
 			@model.get('facsimiles').setCurrent model if model?
 
-		changeTextlayer: (ev) ->
+		changeTranscription: (ev) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
 			newTranscription = @model.get('transcriptions').get transcriptionID
 
-			# We don't want to navigateToTextlayer if the model hasn't changed.
+			# We don't want to navigateToTranscription if the model hasn't changed.
 			# Transcriptions.setCurrent has a check for setting the same model, so this is redundant, but reads better,
-			# otherwise we would have to navigateToTextlayer and setCurrent after that.
+			# otherwise we would have to navigateToTranscription and setCurrent after that.
 			if newTranscription isnt @currentTranscription
 				# Set @currentTranscription to newTranscription
 				@model.get('transcriptions').setCurrent newTranscription
 
-				@navigateToTextLayer()
-				@changeTextlayerInMenu()
+				@navigateToTranscription()
+				@setTranscriptionNameToMenu()
 
 			@toggleEditPane 'transcription'
 
-		navigateToTextLayer: ->
+		navigateToTranscription: ->
 			# Cut of '/transcriptions/*' if it exists
 			index = Backbone.history.fragment.indexOf '/transcriptions/'
 			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
 
 			# Navigate to the new fragement
 			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
+		
+		navigateToAnnotation: (id) ->
+			# Cut of '/annotations/*' if it exists
+			index = Backbone.history.fragment.indexOf '/annotations/'
+			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
 
-		changeTextlayerInMenu: ->
+			# Navigate to the new fragement
+			Backbone.history.navigate Backbone.history.fragment + '/annotations/' + id, replace: true
+
+		setTranscriptionNameToMenu: ->
 			# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
 			# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
 			textLayer = @currentTranscription.get 'textLayer'
@@ -340,6 +356,9 @@ define (require) ->
 
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
+				# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
+				# the user is not fast enough to click an annotation
+				@currentTranscription.getAnnotations()
 				@renderTranscription()
 			@listenTo @model.get('transcriptions'), 'add', (transcription) => 
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")

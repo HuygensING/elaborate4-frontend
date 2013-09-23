@@ -26,5 +26,4 @@ define (require) ->
 
 				@trigger 'current:change', @current
 
-
 			@current

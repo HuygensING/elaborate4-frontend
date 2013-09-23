@@ -66,6 +66,7 @@ define (require) ->
 			'projects/:name/history': 'projectHistory'
 			'projects/:name/entries/:id': 'entry'
 			'projects/:name/entries/:id/transcriptions/:name': 'entry'
+			'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
 
 		home: ->
 			viewManager.show Views.Home
@@ -82,7 +83,8 @@ define (require) ->
 		projectHistory: (name) ->
 			viewManager.show Views.ProjectHistory
 
-		entry: (projectName, entryID, transcriptionName) ->
+		entry: (projectName, entryID, transcriptionName, annotationID) ->
 			viewManager.show Views.Entry, 
 				entryId: entryID
 				transcriptionName: transcriptionName
+				annotationID: annotationID

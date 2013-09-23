@@ -18,7 +18,7 @@
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
-      AnnotationMetadata: require('views/entry/metadata.annotation'),
+      AnnotationMetadata: require('views/entry/annotation.metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
@@ -44,8 +44,7 @@
         this.subviews = {};
         async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
         this.listenToOnce(async, 'ready', function() {
-          _this.render();
-          return _this.addListeners();
+          return _this.render();
         });
         return Models.state.getCurrentProject(function(project) {
           _this.project = project;
@@ -89,14 +88,23 @@
       };
 
       Entry.prototype.render = function() {
-        var rtpl;
+        var rtpl,
+          _this = this;
         rtpl = _.template(Templates.Entry, this.model.toJSON());
         this.$el.html(rtpl);
-        this.navigateToTextLayer();
-        this.changeTextlayerInMenu();
+        if (this.options.transcriptionName == null) {
+          this.navigateToTranscription();
+        }
+        this.setTranscriptionNameToMenu();
         this.renderFacsimile();
         this.renderTranscription();
-        return this.renderSubsubmenu();
+        this.renderSubsubmenu();
+        this.addListeners();
+        return this.currentTranscription.getAnnotations(function(annotations) {
+          if (_this.options.annotationID != null) {
+            return _this.renderAnnotation(annotations.get(_this.options.annotationID));
+          }
+        });
       };
 
       Entry.prototype.renderFacsimile = function() {
@@ -139,6 +147,7 @@
       Entry.prototype.renderAnnotation = function(model) {
         var $el,
           _this = this;
+        this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
           this.annotationEditMenu.setModel(model);
@@ -205,7 +214,7 @@
           'click .menu li[data-key="previous"]': 'previousEntry',
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
-          'click .menu li[data-key="transcription"]': 'changeTextlayer',
+          'click .menu li[data-key="transcription"]': 'changeTranscription',
           'click .menu li[data-key="save"]': 'save',
           'click .menu li.subsub': 'toggleSubsubmenu'
         };
@@ -251,19 +260,19 @@
         }
       };
 
-      Entry.prototype.changeTextlayer = function(ev) {
+      Entry.prototype.changeTranscription = function(ev) {
         var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
         newTranscription = this.model.get('transcriptions').get(transcriptionID);
         if (newTranscription !== this.currentTranscription) {
           this.model.get('transcriptions').setCurrent(newTranscription);
-          this.navigateToTextLayer();
-          this.changeTextlayerInMenu();
+          this.navigateToTranscription();
+          this.setTranscriptionNameToMenu();
         }
         return this.toggleEditPane('transcription');
       };
 
-      Entry.prototype.navigateToTextLayer = function() {
+      Entry.prototype.navigateToTranscription = function() {
         var index;
         index = Backbone.history.fragment.indexOf('/transcriptions/');
         if (index !== -1) {
@@ -274,7 +283,18 @@
         });
       };
 
-      Entry.prototype.changeTextlayerInMenu = function() {
+      Entry.prototype.navigateToAnnotation = function(id) {
+        var index;
+        index = Backbone.history.fragment.indexOf('/annotations/');
+        if (index !== -1) {
+          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
+        }
+        return Backbone.history.navigate(Backbone.history.fragment + '/annotations/' + id, {
+          replace: true
+        });
+      };
+
+      Entry.prototype.setTranscriptionNameToMenu = function() {
         var li, textLayer, textLayerNode;
         textLayer = this.currentTranscription.get('textLayer');
         textLayerNode = document.createTextNode(textLayer + ' layer');
@@ -323,6 +343,7 @@
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
+          _this.currentTranscription.getAnnotations();
           return _this.renderTranscription();
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {

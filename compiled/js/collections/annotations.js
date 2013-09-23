@@ -20,8 +20,7 @@
       Annotations.prototype.model = Models.Annotation;
 
       Annotations.prototype.initialize = function(models, options) {
-        this.projectId = options.projectId, this.entryId = options.entryId, this.transcriptionId = options.transcriptionId;
-        return this.fetch();
+        return this.projectId = options.projectId, this.entryId = options.entryId, this.transcriptionId = options.transcriptionId, options;
       };
 
       Annotations.prototype.url = function() {

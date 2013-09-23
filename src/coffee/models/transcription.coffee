@@ -19,43 +19,58 @@ define (require) ->
 			title: ''
 			body: ''
 
-		initialize: ->
-			super
+		# initialize: ->
+		# 	super
 
-			@listenToAnnotations()
+			# @listenToAnnotations()
 
 			# Can't save on every body:change, because the body is changed when the text is altered and thus will trigger too many saves.
 			# We cannot do it silent, because the preview has to be updated.
 			# @on 'change:body', @save, @
 
-		parse: (attrs) ->
-			# attrs.body = attrs.body.trim()
-
-			# Remove potential opening and closing <body> tags
-			# attrs.body = attrs.body.substr(6) if attrs.body.substr(0, 6) is '<body>'
-			# attrs.body = attrs.body.slice(0, -7) if attrs.body.substr(-7) is '</body>'
-
-			# Replace <ab />s (annotation begin) and <ae />s (annotation end) with <span />s and <sup />s
-			# i = 1
-			# attrs.body = attrs.body.replace /<ab id="(.*?)"\/>/g, (match, p1, offset, string) => '<span data-marker="begin" data-id="'+p1+'"></span>'
-			# attrs.body = attrs.body.replace /<ae id="(.*?)"\/>/g, (match, p1, offset, string) => '<sup data-marker="end" data-id="'+p1+'">'+(i++)+'</sup> '
-
-			# Replace newlines with <br>s
-			# attrs.body = attrs.body.replace /\n/g, '<br>'
-
-			attrs.annotations = new Collections.Annotations [], 
-				transcriptionId: attrs.id
-				entryId: @collection.entryId
-				projectId: @collection.projectId
-
-			attrs
-
-		listenToAnnotations: ->
+		getAnnotations: (cb=->) ->
 			if @get('annotations')?
-				# Start listening to annotations after the annotations are fetched from the server
-				@listenToOnce @get('annotations'), 'sync', =>
-					@listenTo @get('annotations'), 'add', @addAnnotation
-					@listenTo @get('annotations'), 'remove', @removeAnnotation
+				cb @get 'annotations'
+			else
+				annotations = new Collections.Annotations [], 
+					transcriptionId: @id
+					entryId: @collection.entryId
+					projectId: @collection.projectId
+
+				annotations.fetch
+					success: (collection) =>
+						@set 'annotations', collection
+
+						@listenTo collection, 'add', @addAnnotation
+						@listenTo collection, 'remove', @removeAnnotation
+
+						cb collection
+				
+
+
+		# parse: (attrs) ->
+		# 	# attrs.body = attrs.body.trim()
+
+		# 	# Remove potential opening and closing <body> tags
+		# 	# attrs.body = attrs.body.substr(6) if attrs.body.substr(0, 6) is '<body>'
+		# 	# attrs.body = attrs.body.slice(0, -7) if attrs.body.substr(-7) is '</body>'
+
+		# 	# Replace <ab />s (annotation begin) and <ae />s (annotation end) with <span />s and <sup />s
+		# 	# i = 1
+		# 	# attrs.body = attrs.body.replace /<ab id="(.*?)"\/>/g, (match, p1, offset, string) => '<span data-marker="begin" data-id="'+p1+'"></span>'
+		# 	# attrs.body = attrs.body.replace /<ae id="(.*?)"\/>/g, (match, p1, offset, string) => '<sup data-marker="end" data-id="'+p1+'">'+(i++)+'</sup> '
+
+		# 	# Replace newlines with <br>s
+		# 	# attrs.body = attrs.body.replace /\n/g, '<br>'
+
+		# 	attrs
+
+		# listenToAnnotations: ->
+		# 	if @get('annotations')?
+		# 		# Start listening to annotations after the annotations are fetched from the server
+		# 		@listenToOnce @get('annotations'), 'sync', =>
+		# 			@listenTo @get('annotations'), 'add', @addAnnotation
+		# 			@listenTo @get('annotations'), 'remove', @removeAnnotation
 
 		addAnnotation: (model) ->
 			unless model.get('annotationNo')? 
