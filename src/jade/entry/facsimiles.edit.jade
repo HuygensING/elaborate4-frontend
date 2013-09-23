@@ -5,20 +5,16 @@
 				| <% facsimiles.each(function(facs) { %>
 				li
 					img(src="/images/icon.bin.png", width="14px", height="14px")
-					label(data-id!="<%= facs.id %>")  <%= facs.get('textLayer') %>
+					label(data-id!="<%= facs.id %>")  <%= facs.get('name') %>
 				| <% }); %>
 	.cell.span2
 		.pad2
-			form(method="post", enctype="multipart/form-data")
-				ul.form.addfacsimile
-					li
-						label Name
-						input(type="text", name="name")
-					li
-						label Zoomable URL
-						input(type="text", name="zoomableUrl")
-					li
+			ul.form.addfacsimile
+				li
+					label Name
+					input(type="text", name="name")
+				li
+					form.addfile(enctype="multipart/form-data")
 						input(type="file", name="filename")
-
-					li
-						button.addtextlayer Add facsimile
+				li
+					button.addfacsimile Add facsimile

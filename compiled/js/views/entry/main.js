@@ -137,7 +137,8 @@
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        var $el;
+        var $el,
+          _this = this;
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
           this.annotationEditMenu.setModel(model);
@@ -160,6 +161,9 @@
           this.annotationEditMenu = new Views.AnnotationEditMenu({
             model: model,
             collection: this.currentTranscription.get('annotations')
+          });
+          this.listenTo(this.annotationEditMenu, 'cancel', function(model) {
+            return _this.preview.removeNewAnnotationTags();
           });
           $el.append(this.annotationEditMenu.$el);
         }
@@ -222,28 +226,6 @@
           }
         };
       })();
-
-      Entry.prototype.edittextlayers = function(ev) {
-        var subsubmenu, textlayers;
-        subsubmenu = this.$('.subsubmenu');
-        textlayers = subsubmenu.find('.textlayers');
-        this.$('li[data-key="edittextlayers"]').toggleClass('rotateup');
-        if (!subsubmenu.hasClass('active')) {
-          subsubmenu.addClass('active');
-        }
-        return textlayers.show().siblings().hide();
-      };
-
-      Entry.prototype.editfacsimiles = function(ev) {
-        var facsimiles, subsubmenu;
-        subsubmenu = this.$('.subsubmenu');
-        facsimiles = subsubmenu.find('.facsimiles');
-        this.$('li[data-key="editfacsimiles"]').toggleClass('rotateup');
-        if (!subsubmenu.hasClass('active')) {
-          subsubmenu.addClass('active');
-        }
-        return facsimiles.show().siblings().hide();
-      };
 
       Entry.prototype.previousEntry = function() {
         return this.publish('navigate:entry', this.model.collection.previous().id);
@@ -337,6 +319,14 @@
         this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
           _this.currentFacsimile = current;
           return _this.renderFacsimile();
+        });
+        this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
+          var li;
+          li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
+          return _this.$('.submenu .facsimiles').append(li);
+        });
+        this.listenTo(this.model.get('facsimiles'), 'remove', function(facsimile) {
+          return _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;

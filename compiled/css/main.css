@@ -436,6 +436,9 @@ button.small,.btn.small{line-height:14px}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu,.entry .container .middle .annotation-placeholder .transcriptioneditmenu{width:50px;margin-left:-25px;}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu button,.entry .container .middle .annotation-placeholder .transcriptioneditmenu button{margin-right:0}
 .entry .container .right{line-height:1.75em;white-space:nowrap;overflow-y:auto;margin:76px 10px 0 10px;padding-bottom:10px;}
+.entry .container .right .preview{position:relative;}
+.entry .container .right .preview .linenumbers{position:absolute;text-align:right;list-style:none;top:0;color:#bbb;font-size:.9em}
+.entry .container .right .preview .body{padding-left:24px}
 .entry .container .right sup[data-marker]{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:pointer;color:#ff9bfb;font-family:Courier;font-size:.75em;vertical-align:super;line-height:0;background-color:#fff}
 .entry .container .right span.hilite{vertical-align:baseline;background-color:#ffebfe}
 .supertinyeditor .ste-header{box-shadow:2px 0 4px #ddd}
@@ -804,22 +807,6 @@ div p:first-child{margin-top:0}
 .projectsettings div[data-tab] form input{display:inline-block;width:94%;padding:2%;border:1px solid #ddd}
 input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,170,168,0.5);outline:0}
 
-.subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);-webkit-transition:top 300ms;-moz-transition:top 300ms;-o-transition:top 300ms;transition:top 300ms;z-index:48;}
-.subsubmenu.active{top:88px}
-.subsubmenu .editfacsimiles,.subsubmenu .edittextlayers{display:none}
-.subsubmenu ul{list-style:none;}
-.subsubmenu ul li{margin-bottom:6px;color:#79c8c6;}
-.subsubmenu ul li label{display:inline-block;width:40px}
-.subsubmenu ul li input,.subsubmenu ul li textarea{width:200px;border:1px solid #666;padding:0 0 0 2px;margin:0}
-.subsubmenu ul li button{background:#565656;background:-moz-linear-gradient(top,#565656 0%,#444 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#565656),color-stop(100%,#444));background:-webkit-linear-gradient(top,#565656 0%,#444 100%);background:-o-linear-gradient(top,#565656 0%,#444 100%);background:-ms-linear-gradient(top,#565656 0%,#444 100%);background:linear-gradient(to bottom,#565656 0%,#444 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');border:0;box-shadow:1px 1px 1px #666;color:#79c8c6;border-radius:6px;line-height:24px;margin:-1px 6px 0 0;cursor:pointer;font-size:.9rem;margin-left:40px}
-.subsubmenu ul li button:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
-.subsubmenu ul li button.inactive{color:#969696}
-.subsubmenu ul li img{margin-right:6px}
-.subsubmenu ul.edittextlayers,.subsubmenu ul.editfacsimiles{white-space:nowrap;}
-.subsubmenu ul.edittextlayers li.destroy,.subsubmenu ul.editfacsimiles li.destroy{cursor:default;}
-.subsubmenu ul.edittextlayers li.destroy label,.subsubmenu ul.editfacsimiles li.destroy label{cursor:pointer;color:#ccc;width:auto;border:1px solid #5c0000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em}
-.subsubmenu ul.edittextlayers li.destroy:after,.subsubmenu ul.editfacsimiles li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
-.subsubmenu ul.edittextlayers img:hover,.subsubmenu ul.editfacsimiles img:hover{cursor:pointer}
 .submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}
@@ -833,6 +820,25 @@ input:focus{border:1px solid rgba(70,170,168,0.4);box-shadow:0 0 12px rgba(70,17
 .submenu .cell .vertical.menu > li.spacer{background:none;height:8px;box-shadow:none}
 .submenu .cell .vertical.menu > li:hover{color:#9fd8d6}
 .submenu .cell .vertical.menu > li:last-child{border-bottom-left-radius:6px;border-bottom-right-radius:6px;box-shadow:2px 0 4px #888}
+
+.subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);-webkit-transition:top 300ms;-moz-transition:top 300ms;-o-transition:top 300ms;transition:top 300ms;z-index:48;}
+.subsubmenu.active{top:88px}
+.subsubmenu .editfacsimiles,.subsubmenu .edittextlayers{display:none;}
+.subsubmenu .editfacsimiles form.addfile,.subsubmenu .edittextlayers form.addfile{display:none}
+.subsubmenu .editfacsimiles ul,.subsubmenu .edittextlayers ul{list-style:none;}
+.subsubmenu .editfacsimiles ul.textlayers,.subsubmenu .edittextlayers ul.textlayers,.subsubmenu .editfacsimiles ul.facsimiles,.subsubmenu .edittextlayers ul.facsimiles{white-space:nowrap;}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy,.subsubmenu .edittextlayers ul.textlayers li.destroy,.subsubmenu .editfacsimiles ul.facsimiles li.destroy,.subsubmenu .edittextlayers ul.facsimiles li.destroy{cursor:default;}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy label,.subsubmenu .edittextlayers ul.textlayers li.destroy label,.subsubmenu .editfacsimiles ul.facsimiles li.destroy label,.subsubmenu .edittextlayers ul.facsimiles li.destroy label{cursor:pointer;color:#ccc;width:auto;border:1px solid #5c0000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy:after,.subsubmenu .edittextlayers ul.textlayers li.destroy:after,.subsubmenu .editfacsimiles ul.facsimiles li.destroy:after,.subsubmenu .edittextlayers ul.facsimiles li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
+.subsubmenu .editfacsimiles ul.textlayers img:hover,.subsubmenu .edittextlayers ul.textlayers img:hover,.subsubmenu .editfacsimiles ul.facsimiles img:hover,.subsubmenu .edittextlayers ul.facsimiles img:hover{cursor:pointer}
+.subsubmenu .editfacsimiles ul li,.subsubmenu .edittextlayers ul li{margin-bottom:6px;color:#79c8c6;}
+.subsubmenu .editfacsimiles ul li label,.subsubmenu .edittextlayers ul li label{display:inline-block;width:40px}
+.subsubmenu .editfacsimiles ul li input,.subsubmenu .edittextlayers ul li input,.subsubmenu .editfacsimiles ul li textarea,.subsubmenu .edittextlayers ul li textarea{width:200px;border:1px solid #666;padding:0 0 0 2px;margin:0}
+.subsubmenu .editfacsimiles ul li button,.subsubmenu .edittextlayers ul li button{background:#565656;background:-moz-linear-gradient(top,#565656 0%,#444 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#565656),color-stop(100%,#444));background:-webkit-linear-gradient(top,#565656 0%,#444 100%);background:-o-linear-gradient(top,#565656 0%,#444 100%);background:-ms-linear-gradient(top,#565656 0%,#444 100%);background:linear-gradient(to bottom,#565656 0%,#444 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');border:0;box-shadow:1px 1px 1px #666;color:#79c8c6;border-radius:6px;line-height:24px;margin:-1px 6px 0 0;cursor:pointer;font-size:.9rem;}
+.subsubmenu .editfacsimiles ul li button:active,.subsubmenu .edittextlayers ul li button:active{background:#444;background:-moz-linear-gradient(top,#444 0%,#565656 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#444),color-stop(100%,#565656));background:-webkit-linear-gradient(top,#444 0%,#565656 100%);background:-o-linear-gradient(top,#444 0%,#565656 100%);background:-ms-linear-gradient(top,#444 0%,#565656 100%);background:linear-gradient(to bottom,#444 0%,#565656 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #333;color:#46aaa8}
+.subsubmenu .editfacsimiles ul li button.inactive,.subsubmenu .edittextlayers ul li button.inactive{color:#969696}
+.subsubmenu .editfacsimiles ul li button,.subsubmenu .edittextlayers ul li button,.subsubmenu .editfacsimiles ul li input[type="file"],.subsubmenu .edittextlayers ul li input[type="file"]{margin-left:40px}
+.subsubmenu .editfacsimiles ul li img,.subsubmenu .edittextlayers ul li img{margin-right:6px}
 
 #tooltip,.tooltip{display:none;position:absolute;padding:0;z-index:1000;background:#f1e8e1;border-radius:10px;box-shadow:1px 1px 5px #969696;min-width:72px;max-width:200px;}
 #tooltip.addannotation button,.tooltip.addannotation button{border:0;background:none;padding-top:2px;font-weight:normal;color:#000;box-shadow:none;margin:0}

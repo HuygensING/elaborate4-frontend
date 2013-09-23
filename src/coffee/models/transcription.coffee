@@ -24,8 +24,8 @@ define (require) ->
 
 			@listenToAnnotations()
 
-			# Can't save on every body:change, because the body is changed when the text is altered.
-			# We have cannot do it silent, because the preview has to be updated.
+			# Can't save on every body:change, because the body is changed when the text is altered and thus will trigger too many saves.
+			# We cannot do it silent, because the preview has to be updated.
 			# @on 'change:body', @save, @
 
 		parse: (attrs) ->

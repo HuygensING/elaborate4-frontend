@@ -34,8 +34,9 @@ define (require) ->
 		# ### Render
 		render: ->
 			data = @currentTranscription.toJSON()
-			data.lineCount = @currentTranscription.get('body').match(/<br>/g).length
-			
+			brs = @currentTranscription.get('body').match(/<br>/g) ? []
+			data.lineCount = brs.length
+
 			rtpl = _.template Tpl, data
 			@$el.html rtpl
 
@@ -51,8 +52,7 @@ define (require) ->
 					# Remove the annotation from the collection, the transcription model wil take care of the rest
 					@currentTranscription.get('annotations').remove model
 				else
-					@$('[data-id="newannotation"]').remove()
-					@trigger 'newAnnotationRemoved'
+					@removeNewAnnotationTags()
 
 		# ### Events
 		events: ->
@@ -72,7 +72,7 @@ define (require) ->
 				model: annotation
 
 		onMousedown: (ev) ->
-			if ev.target is @el.querySelector('.preview')
+			if ev.target is @el.querySelector('.preview .body')
 				@stopListening @addAnnotationTooltip
 				@addAnnotationTooltip.hide()
 
@@ -81,8 +81,8 @@ define (require) ->
 
 			# If there is no range to get (for example when using the scrollbar)
 			# or
-			# If the mouseup was not directly on this view (for example, when clicking the tooltip), don't execute function
-			if sel.rangeCount is 0 or ev.target isnt @el.querySelector('.preview')
+			# When the user clicked a sup
+			if sel.rangeCount is 0 or ev.target.tagName is 'SUP'
 				# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
 				@addAnnotationTooltip.hide()
 				return false
@@ -121,7 +121,12 @@ define (require) ->
 			range.collapse false
 			range.insertNode sup
 
-			@currentTranscription.set 'body', @$('.preview').html(), silent: true
+			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
+
+		removeNewAnnotationTags: ->
+			@$('[data-id="newannotation"]').remove()
+			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
+			@trigger 'newAnnotationRemoved'
 
 		# replaceNewAnnotationID: (model) ->
 		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'

@@ -34,8 +34,12 @@
       };
 
       AnnotationEditMenu.prototype.events = function() {
+        var _this = this;
         return {
-          'click button.ok': 'save'
+          'click button.ok': 'save',
+          'click button.cancel': function() {
+            return _this.trigger('cancel', _this.model);
+          }
         };
       };
 

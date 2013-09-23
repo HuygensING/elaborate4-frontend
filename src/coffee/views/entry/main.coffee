@@ -80,7 +80,10 @@ define (require) ->
 			rtpl = _.template Templates.Entry, @model.toJSON()
 			@$el.html rtpl
 
+			# Set the url to reflect the current transcription
 			@navigateToTextLayer()
+
+			# Set the name of the transcription to the submenu
 			@changeTextlayerInMenu()
 
 			@renderFacsimile()
@@ -90,7 +93,7 @@ define (require) ->
 
 		renderFacsimile: ->
 			if @model.get('facsimiles').length
-				url = @model.get('facsimiles').current.get('zoomableUrl')
+				url = @model.get('facsimiles').current.get 'zoomableUrl'
 				@$('.left iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id='+ url
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
@@ -148,6 +151,7 @@ define (require) ->
 				@annotationEditMenu = new Views.AnnotationEditMenu
 					model: model
 					collection: @currentTranscription.get('annotations')
+				@listenTo @annotationEditMenu, 'cancel', (model) => @preview.removeNewAnnotationTags()
 				$el.append @annotationEditMenu.$el
 				
 			@toggleEditPane 'annotation'
@@ -180,7 +184,7 @@ define (require) ->
 			'click .menu li.subsub': 'toggleSubsubmenu'
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
-		# The iife keeps track of the currentMenu. Precaution: @ is window in the iife!
+		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
 		toggleSubsubmenu: do ->
 			currentMenu = null
 
@@ -210,29 +214,30 @@ define (require) ->
 
 					# Show the newMenu and hide all others (siblings)
 					$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
-					
+
 					currentMenu = newMenu
 
 
-		edittextlayers: (ev) ->
-			subsubmenu = @$('.subsubmenu')
-			textlayers = subsubmenu.find('.textlayers')
+		# edittextlayers: (ev) ->
+		# 	subsubmenu = @$('.subsubmenu')
+		# 	textlayers = subsubmenu.find('.textlayers')
 
-			@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
-			subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-			textlayers.show().siblings().hide()
+		# 	@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
+		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+		# 	textlayers.show().siblings().hide()
 
-		editfacsimiles: (ev) ->
-			subsubmenu = @$('.subsubmenu')
-			facsimiles = subsubmenu.find('.facsimiles')
+		# editfacsimiles: (ev) ->
+		# 	subsubmenu = @$('.subsubmenu')
+		# 	facsimiles = subsubmenu.find('.facsimiles')
 
-			@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
-			subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-			facsimiles.show().siblings().hide()
+		# 	@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
+		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+		# 	facsimiles.show().siblings().hide()
 
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
 			@publish 'navigate:entry', @model.collection.previous().id
+
 
 		nextEntry: ->
 			@publish 'navigate:entry', @model.collection.next().id
@@ -328,6 +333,10 @@ define (require) ->
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
 				@renderFacsimile()
+			@listenTo @model.get('facsimiles'), 'add', (facsimile) =>
+				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
+				@$('.submenu .facsimiles').append li
+			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => @$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
 
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current

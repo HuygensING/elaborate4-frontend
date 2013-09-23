@@ -31,8 +31,11 @@
       };
 
       TranscriptionPreview.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.currentTranscription.toJSON());
+        var brs, data, rtpl, _ref1;
+        data = this.currentTranscription.toJSON();
+        brs = (_ref1 = this.currentTranscription.get('body').match(/<br>/g)) != null ? _ref1 : [];
+        data.lineCount = brs.length;
+        rtpl = _.template(Tpl, data);
         this.$el.html(rtpl);
         return this;
       };
@@ -52,8 +55,7 @@
           if (model != null) {
             return _this.currentTranscription.get('annotations').remove(model);
           } else {
-            _this.$('[data-id="newannotation"]').remove();
-            return _this.trigger('newAnnotationRemoved');
+            return _this.removeNewAnnotationTags();
           }
         });
       };
@@ -87,7 +89,7 @@
       };
 
       TranscriptionPreview.prototype.onMousedown = function(ev) {
-        if (ev.target === this.el.querySelector('.preview')) {
+        if (ev.target === this.el.querySelector('.preview .body')) {
           this.stopListening(this.addAnnotationTooltip);
           return this.addAnnotationTooltip.hide();
         }
@@ -97,7 +99,7 @@
         var isInsideMarker, range, sel,
           _this = this;
         sel = document.getSelection();
-        if (sel.rangeCount === 0 || ev.target !== this.el.querySelector('.preview')) {
+        if (sel.rangeCount === 0 || ev.target.tagName === 'SUP') {
           this.addAnnotationTooltip.hide();
           return false;
         }
@@ -129,9 +131,17 @@
         sup.innerHTML = 'new';
         range.collapse(false);
         range.insertNode(sup);
-        return this.currentTranscription.set('body', this.$('.preview').html(), {
+        return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
+      };
+
+      TranscriptionPreview.prototype.removeNewAnnotationTags = function() {
+        this.$('[data-id="newannotation"]').remove();
+        this.currentTranscription.set('body', this.$('.preview .body').html(), {
+          silent: true
+        });
+        return this.trigger('newAnnotationRemoved');
       };
 
       TranscriptionPreview.prototype.onHover = function() {

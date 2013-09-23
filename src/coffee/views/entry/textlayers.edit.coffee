@@ -48,7 +48,7 @@ define (require) ->
 				data = 
 					textLayer: name
 					body: text
-				@collection.create data, wait:true
+				@collection.create data, wait: true
 
 		# selectChanged: (ev) ->
 		# 	annotationTypeID = ev.currentTarget.options[ev.currentTarget.selectedIndex].getAttribute 'data-id'

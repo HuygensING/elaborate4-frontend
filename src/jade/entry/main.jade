@@ -6,7 +6,7 @@
 				li.arrowright(data-key="next") Next entry
 				li.arrowdown.subsub(data-key="editfacsimiles") Edit facsimiles
 				li.arrowdown.alignright(data-key="facsimiles") Facsimiles
-					ul.vertical.menu
+					ul.vertical.menu.facsimiles
 						li.spacer &nbsp;
 						| <% facsimiles.each(function(facs) { %>
 						li(data-key="facsimile", data-value!="<%= facs.id %>") <%= facs.get('name') %>

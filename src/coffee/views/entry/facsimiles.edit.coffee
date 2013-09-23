@@ -2,6 +2,9 @@
 define (require) ->
 	Fn = require 'helpers2/general'
 
+	ajax = require 'managers2/ajax'
+	token = require 'managers2/token'
+
 	Views = 
 		Base: require 'views/base'
 
@@ -27,18 +30,68 @@ define (require) ->
 			@
 
 		# ### Events
-		# events: ->
-		# 	'click button.addtextlayer': 'addtextlayer'
-		# 	'click ul.textlayers li img': 'removetextlayer'
-		# 	'click ul.textlayers li.destroy label': 'destroytextlayer'
+		events: ->
+			# 'click button.addtextlayer': 'addtextlayer'
+			'click ul.facsimiles li img': 'removefacsimile'
+			'click ul.facsimiles li.destroy label': 'destroyfacsimile'
+			'keyup input[name="name"]': 'keyupName'
+			'click button.addfacsimile': 'addfacsimile'
 
-		# removetextlayer: (ev) ->
-		# 	parentLi = $(ev.currentTarget).parent()
-		# 	parentLi.toggleClass 'destroy'
+		keyupName: (ev) -> @el.querySelector('form.addfile').style.display = if ev.currentTarget.value.length > 0 then 'block' else 'none'
 
-		# destroytextlayer: (ev) ->
-		# 	transcriptionID = ev.currentTarget.getAttribute 'data-id'
-		# 	@collection.remove @collection.get transcriptionID
+		# For ajax settings, see: http://stackoverflow.com/questions/166221/how-can-i-upload-files-asynchronously-with-jquery
+		addfacsimile: (ev) ->
+			ev.stopPropagation()
+			ev.preventDefault()
+
+			form = @el.querySelector 'form.addfile'
+			formData = new FormData form
+
+			jqXHR = ajax.post
+				url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload'
+				data: formData
+				cache: false
+				contentType: false
+				processData: false
+			jqXHR.done (response) =>
+				data =
+					name: @el.querySelector('input[name="name"]').value
+					filename: response[1].originalName
+					zoomableUrl: response[1].jp2url
+
+				@collection.create data, wait: true
+				
+			# oReq = new XMLHttpRequest()
+			# oReq.open "POST", "http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload", true
+			# oReq.send formData
+
+			# $.ajax
+			# 	url: "http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload"
+			# 	type: "POST"
+			# 	data: formData
+			# 	processData: false
+			# 	contentType: false
+
+			# form = @el.querySelector 'form.addfile'
+			# formData = new FormData form
+			# formData.append('somefiled', 'igjs')
+			# console.log form, formData
+			# # return false
+			# $.ajax
+			# 	url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload'
+			# 	type: 'POST'
+			# 	data: formData
+			# 	cache: false
+			# 	contentType: false
+			# 	processData: false
+
+		removefacsimile: (ev) ->
+			parentLi = $(ev.currentTarget).parent()
+			parentLi.toggleClass 'destroy'
+
+		destroyfacsimile: (ev) ->
+			transcriptionID = ev.currentTarget.getAttribute 'data-id'
+			@collection.remove @collection.get transcriptionID
 
 		# addtextlayer: ->
 		# 	name = @el.querySelector('input[name="name"]').value

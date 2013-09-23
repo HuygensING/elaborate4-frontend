@@ -20,8 +20,12 @@
       Facsimiles.prototype.model = Models.Facsimile;
 
       Facsimiles.prototype.initialize = function(models, options) {
+        var _this = this;
         this.projectId = options.projectId;
-        return this.entryId = options.entryId;
+        this.entryId = options.entryId;
+        return this.on('remove', function(model) {
+          return model.destroy();
+        });
       };
 
       Facsimiles.prototype.url = function() {

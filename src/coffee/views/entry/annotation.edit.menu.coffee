@@ -31,6 +31,7 @@ define (require) ->
 		# ### Events
 		events: ->
 			'click button.ok': 'save'
+			'click button.cancel': => @trigger 'cancel', @model
 
 		save: ->
 			

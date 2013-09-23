@@ -1,0 +1,76 @@
+.subsubmenu
+	position fixed
+	left 0
+	right 0
+	top -200px
+	// height 120px
+	background-color #666
+	box-shadow 0 30px 60px rgba(17, 17, 17, 0.8)
+	transition top 300ms
+	z-index 48
+	// top mainHeaderHeight + 40px /* tmp */
+
+	&.active
+		top mainHeaderHeight + 40px
+
+	.editfacsimiles, .edittextlayers
+		display none
+
+		form.addfile
+			display none
+
+		ul
+			list-style none
+
+			&.textlayers, &.facsimiles
+				white-space nowrap
+
+				li.destroy
+					cursor default
+
+					label
+						cursor pointer
+						color #CCC
+						width auto
+						border 1px solid #5C0000
+						padding 1px 4px 2px 4px
+						font-weight bold
+						border-radius 6px
+						text-shadow 1px 1px 1px #000
+						box-shadow 1px 1px 4px #333
+						background-color #910000
+						font-size 0.9em
+
+					&:after
+						position absolute
+						margin 2px 0 0 8px
+						color #AAA
+						content 'Click name to remove, bin to cancel.'
+						font-weight normal
+
+				img:hover
+					cursor pointer
+
+			li
+				margin-bottom 6px
+				color lighten(spotcolor, 30%)
+
+				label
+					display inline-block
+					width 40px
+					
+
+				input, textarea
+					width 200px
+					border 1px solid #666
+					padding 0 0 0 2px
+					margin 0
+
+				button
+					elaboratebutton()
+
+				button, input[type="file"]
+					margin-left 40px
+
+				img
+					margin-right 6px
