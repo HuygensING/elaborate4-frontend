@@ -1,1 +1,8 @@
-.preview <%= body %>
+.preview 
+	.body <%= body %>
+	ul.linenumbers
+		| <% var lineNumber = 1 %>
+		| <% while(lineNumber <= lineCount) { %>
+		li <%= lineNumber %>
+		| <% lineNumber++ %>
+		| <% } %>

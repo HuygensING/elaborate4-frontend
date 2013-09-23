@@ -33,10 +33,11 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Tpl, @currentTranscription.toJSON()
+			data = @currentTranscription.toJSON()
+			data.lineCount = @currentTranscription.get('body').match(/<br>/g).length
+			
+			rtpl = _.template Tpl, data
 			@$el.html rtpl
-
-			# Set the height of EntryPreview to the clientHeight - menu & submenu (89px) - margin (78px) - padding (10px)
 
 			@
 
