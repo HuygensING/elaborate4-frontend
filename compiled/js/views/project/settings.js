@@ -171,8 +171,11 @@
             Model: Models.User,
             tpl: Templates.AddUser
           });
-          _this.listenTo(form, 'change', function(a, b, c) {
-            return console.log(a, b, c);
+          _this.listenTo(form, 'save:success', function(model, response, options) {
+            return combolist.addSelected(model);
+          });
+          _this.listenTo(form, 'save:error', function(a, b, c) {
+            return console.log('erro', a, b, c);
           });
           return _this.$('div[data-tab="users"] .adduser').append(form.el);
         });

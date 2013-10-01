@@ -38,7 +38,7 @@
         this.listenTo(this.model, 'change', function(model, options) {
           _this.project.get('entries').set(model.get('results'));
           _this.updateHeader();
-          return _this.renderEntries();
+          return _this.renderResult();
         });
         return Models.state.getCurrentProject(function(project) {
           /* console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once*/
@@ -59,6 +59,7 @@
           searchPath: 'projects/' + this.project.id + '/search',
           token: token.get(),
           textSearchOptions: {
+            textLayers: this.project.get('textLayers'),
             searchInAnnotations: true,
             searchInTranscriptions: true
           },
@@ -66,18 +67,26 @@
             resultRows: 12
           }
         });
-        this.listenTo(this.facetedSearch, 'results:change', function(response) {
+        this.listenTo(this.facetedSearch, 'results:change', function(response, queryOptions) {
+          _this.model.queryOptions = queryOptions;
           return _this.model.set(response);
         });
         return this;
       };
 
-      ProjectSearch.prototype.renderEntries = function() {
+      ProjectSearch.prototype.renderResult = function() {
         var rtpl;
         rtpl = _.template(Templates.Results, {
-          entries: this.project.get('entries')
+          model: this.model
         });
         this.$('ul.entries').html(rtpl);
+        if ((this.model.queryOptions.term != null) && this.model.queryOptions.term !== '') {
+          document.getElementById('cb_showkeywords').checked = true;
+          this.$('.keywords').show();
+        } else {
+          document.getElementById('cb_showkeywords').checked = false;
+          this.$('.keywords').hide();
+        }
         return this;
       };
 
@@ -90,6 +99,15 @@
         },
         'click li[data-key="deselectall"]': function() {
           return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
+        },
+        'change #cb_showkeywords': 'toggleKeywords'
+      };
+
+      ProjectSearch.prototype.toggleKeywords = function(ev) {
+        if (ev.currentTarget.checked) {
+          return this.$('.keywords').show();
+        } else {
+          return this.$('.keywords').hide();
         }
       };
 

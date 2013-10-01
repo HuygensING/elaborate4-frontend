@@ -1,5 +1,3 @@
-<% entries.each(function(entry) { %>
-<li id="entry<%=entry.id %>" class="entry"> 
-  <input type="checkbox"/>
-  <label data-id="<%=entry.id%>"><%= entry.get('name') %></label>
-</li><% }); %>
+<% _.each(model.get('results'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>
+<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>
+<% }); %></ul></div></li><% }); %>

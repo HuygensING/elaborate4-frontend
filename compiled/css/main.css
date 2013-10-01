@@ -452,7 +452,7 @@ form ul li{margin-bottom:8px;}
 form ul li label{display:inline-block;width:100px;}
 form ul li label.small{width:40px}
 form ul li label.large{width:160px}
-form ul li input{border:1px solid #bbb;padding-left:4px}
+form ul li input{border:1px solid #ccc;padding-left:4px}
 form ul li input[type="submit"]{margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px}
 
 header{white-space:nowrap;z-index:100;}
@@ -798,15 +798,18 @@ div p:first-child{margin-top:0}
 .projectsearch .resultview > ul li{margin-bottom:12px;}
 .projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px}
 .projectsearch .resultview > ul li label{font-size:1.1rem;cursor:pointer}
+.projectsearch .resultview > ul li .keywords{color:#bbb;display:none;}
+.projectsearch .resultview > ul li .keywords ul{list-style:none;margin-top:4px;}
+.projectsearch .resultview > ul li .keywords ul li{margin:0;margin-left:18px;}
+.projectsearch .resultview > ul li .keywords ul li em{color:#d480fa}
 
 .projectsettings .tab.menu{font-size:0;}
-.projectsettings .tab.menu li{color:#4d4d4d;padding:8px 30px 6px 30px;margin:0;border:1px solid #ddd;border-left:0;}
+.projectsettings .tab.menu li{color:#4d4d4d;padding:8px 30px 6px 30px;margin:0;border:1px solid #ddd;border-left:0;border-bottom:0;background-color:#eee;}
 .projectsettings .tab.menu li:first-child{border-left:1px solid #ddd;border-top-left-radius:8px}
 .projectsettings .tab.menu li:last-child{border-top-right-radius:8px}
 .projectsettings .tab.menu li:hover{background-color:#e7e7e7}
-.projectsettings .tab.menu li.active{color:#000;background-color:#ddd}
-.projectsettings hr{padding:0;margin:0;border:1px solid #fff;box-shadow:0 -1px 0 #ddd}
-.projectsettings div[data-tab]{display:none;}
+.projectsettings .tab.menu li.active{color:#000;background-color:#fff;box-shadow:0 1px 0 #fff}
+.projectsettings div[data-tab]{display:none;padding:0 10px 60px 10px;box-shadow:1px 1px 3px #ddd;border:1px solid #ddd;border-radius:12px;border-top-left-radius:0;}
 .projectsettings div[data-tab].active{display:block}
 .projectsettings div[data-tab] h4{margin-top:3px;margin-right:10px;display:inline-block}
 .projectsettings div[data-tab] .adduser input[type="submit"]{margin-left:0}

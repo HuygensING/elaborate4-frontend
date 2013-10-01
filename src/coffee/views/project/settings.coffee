@@ -151,7 +151,10 @@ define (require) ->
 				form = new Views.Form
 					Model: Models.User
 					tpl: Templates.AddUser
-				@listenTo form, 'change', (a, b, c) => console.log a, b, c
+				# @listenTo form, 'change', (a, b, c) => console.log 'cahnge', a, b, c
+				@listenTo form, 'save:success', (model, response, options) =>
+					combolist.addSelected model
+				@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
 
 				@$('div[data-tab="users"] .adduser').append form.el
 

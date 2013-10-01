@@ -1,5 +1,12 @@
-| <% entries.each(function(entry) { %>
+| <% _.each(model.get('results'), function(entry) { %>
 li.entry(id!="entry<%=entry.id %>") 
 	input(type="checkbox")
-	label(data-id!="<%=entry.id%>") <%= entry.get('name') %>
+	label(data-id!="<%=entry.id%>") <%= entry.name %>
+	.keywords
+		ul
+			| <% _.each(entry._kwic, function(kwic) { %>
+			| <% _.each(kwic, function(row) { %>
+			li <%= row %>
+			| <% }); %>
+			| <% }); %>
 | <% }); %>

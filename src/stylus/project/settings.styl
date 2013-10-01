@@ -6,9 +6,10 @@
 			color lighten(black, 30%)
 			padding 8px 30px 6px 30px
 			margin 0
-			border 1px solid #DDDDDD
+			border 1px solid #DDD
 			border-left 0
-			// border-bottom 0
+			border-bottom 0
+			background-color #EEE
 
 			&:first-child
 				border-left 1px solid #DDDDDD
@@ -22,16 +23,16 @@
 
 			&.active
 				color black
-				background-color #DDDDDD
-
-	hr
-		padding 0
-		margin 0
-		border 1px solid white
-		box-shadow 0 -1px 0 #DDDDDD
+				background-color #FFF
+				box-shadow 0px 1px 0px #FFF // To blur the top border of the div[data-tab]
 
 	div[data-tab]
 		display none
+		padding 0 10px 60px 10px
+		box-shadow 1px 1px 3px #DDD
+		border 1px solid #DDD
+		border-radius 12px
+		border-top-left-radius 0px
 
 		&.active
 			display block
