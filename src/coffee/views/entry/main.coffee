@@ -279,7 +279,7 @@ define (require) ->
 			@toggleEditPane 'transcription'
 
 		navigateToTranscription: ->
-			# Cut of '/transcriptions/*' if it exists
+			# Cut off '/transcriptions/*' if it exists
 			index = Backbone.history.fragment.indexOf '/transcriptions/'
 			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
 
@@ -287,7 +287,7 @@ define (require) ->
 			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
 		
 		navigateToAnnotation: (id) ->
-			# Cut of '/annotations/*' if it exists
+			# Cut off '/annotations/*' if it exists
 			index = Backbone.history.fragment.indexOf '/annotations/'
 			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
 

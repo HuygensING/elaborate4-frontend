@@ -24,7 +24,7 @@
 
       AnnotationMetadata.prototype.render = function() {
         var rtpl;
-        console.log(this.model, this.collection);
+        console.log(this.model, this.collection.toJSON());
         rtpl = _.template(Tpl, {
           model: this.model,
           collection: this.collection

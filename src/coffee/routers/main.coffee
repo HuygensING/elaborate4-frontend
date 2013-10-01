@@ -62,6 +62,7 @@ define (require) ->
 			'': 'projectSearch'
 			'login': 'login'
 			'projects/:name': 'projectSearch'
+			'projects/:name/settings/:tab': 'projectSettings'
 			'projects/:name/settings': 'projectSettings'
 			'projects/:name/history': 'projectHistory'
 			'projects/:name/entries/:id': 'entry'
@@ -77,8 +78,9 @@ define (require) ->
 		projectSearch: (name) ->
 			viewManager.show Views.ProjectMain
 
-		projectSettings: (name) ->
-			viewManager.show Views.ProjectSettings
+		projectSettings: (name, tab) ->
+			viewManager.show Views.ProjectSettings,
+				tabName: tab
 
 		projectHistory: (name) ->
 			viewManager.show Views.ProjectHistory

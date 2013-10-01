@@ -1,6 +1,18 @@
-h3 Metadata annotations
+h3 Annotation types
+
+form
+	ul
+		li
+			label Name
+			input(type="text", name="annotationname")
+		li
+			label Description
+			input(type="text", name="annotationdescription")
+		li
+			input(type="submit", value="Add annotation type", name="addannotationtype")
+
 
 ul
-	| <% annotations.each(function(annotation) { %>
-	li(data-id!="<%= annotation.id %>") <%= annotation.get('description') %>
+	| <% annotationTypes.each(function(annotationType) { %>
+	li(data-id!="<%= annotationType.id %>") <%= annotationType.get('description') %>
 	| <% }); %>

@@ -1,0 +1,19 @@
+form
+	ul(data-model-id!="<%= model.cid %>")
+		li
+			//- label Username
+			input(type="text", name="username", placeholder="Username")
+		li
+			//- label E-mail
+			input(type="text", name="email", placeholder="E-mail")
+		li
+			//- label First name
+			input(type="text", name="firstname", placeholder="First name")
+		li
+			//- label Last name
+			input(type="text", name="lastname", placeholder="Last name")
+		li
+			//- label Password
+			input(type="password", name="password", placeholder="Password")
+		li
+			input(type="submit", name="adduser")

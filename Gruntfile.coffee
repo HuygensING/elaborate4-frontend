@@ -85,6 +85,9 @@ module.exports = (grunt) ->
 			,
 				src: '~/Projects/views'
 				dest: 'compiled/lib/views2'
+			,
+				src: '~/Projects/hilib'
+				dest: 'compiled/lib/hilib'
 			# ,
 			,
 				src: 'compiled/lib/views/compiled/supertinyeditor/images'
@@ -171,7 +174,7 @@ module.exports = (grunt) ->
 					'compiled/css/project.css'
 					'compiled/lib/faceted-search/dev/css/main.css'
 					# 'compiled/lib/supertinyeditor/main.css'
-					'compiled/lib/views2/compiled/supertinyeditor/supertinyeditor.css'
+					'compiled/lib/hilib/compiled/**/*.css'
 				]
 				dest:
 					'compiled/css/main.css'
@@ -231,6 +234,7 @@ module.exports = (grunt) ->
 						'helpers2': '../lib/helpers2/dev'
 						'html': '../html'
 						'viewshtml': '../lib/views2/compiled'
+						'hilib': '../lib/hilib/compiled'
 					wrap: true
 					# wrap:
 					# 	startFile: 'wrap.start.js'
@@ -255,7 +259,7 @@ module.exports = (grunt) ->
 			html: 
 				files: ['compiled/lib/views2/**/*.html']
 			css:
-				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/views2/**/*.css']
+				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/hilib/**/*.css']
 				tasks: ['concat:css']
 			js:
 				files: ['compiled/lib/views2/**/*.js']
@@ -366,10 +370,10 @@ module.exports = (grunt) ->
 
 			if type is 'coffee'
 				testDestPath = srcPath.replace 'src/coffee', 'test'
-				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'js').substr(3);
+				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'js').substr 3
 
 			if type is 'jade'
-				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'html').substr(3);
+				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'html').substr 3
 
 			if type? and action is 'changed' or action is 'added'
 				data = {}

@@ -3467,6 +3467,12 @@ define('domready',[],function () {
         return Base.__super__.sync.call(this, method, model, options);
       };
 
+      Base.prototype.removeById = function(id) {
+        var model;
+        model = this.get(id);
+        return this.remove(model);
+      };
+
       return Base;
 
     })(Backbone.Collection);
@@ -4108,6 +4114,86 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
+  define('managers2/ajax',['require','jquery'],function(require) {
+    var $;
+    $ = require('jquery');
+    $.support.cors = true;
+    return {
+      token: null,
+      get: function(args) {
+        return this.fire('get', args);
+      },
+      post: function(args) {
+        return this.fire('post', args);
+      },
+      put: function(args) {
+        return this.fire('put', args);
+      },
+      fire: function(type, args) {
+        var ajaxArgs,
+          _this = this;
+        ajaxArgs = {
+          type: type,
+          dataType: 'json',
+          contentType: 'application/json; charset=utf-8',
+          processData: false,
+          crossDomain: true
+        };
+        if (this.token != null) {
+          ajaxArgs.beforeSend = function(xhr) {
+            return xhr.setRequestHeader('Authorization', "SimpleAuth " + _this.token);
+          };
+        }
+        return $.ajax($.extend(ajaxArgs, args));
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  define('managers2/token',['require','backbone','underscore','managers/pubsub'],function(require) {
+    var Backbone, Pubsub, Token, _;
+    Backbone = require('backbone');
+    _ = require('underscore');
+    Pubsub = require('managers/pubsub');
+    Token = (function() {
+      Token.prototype.token = null;
+
+      function Token() {
+        _.extend(this, Backbone.Events);
+        _.extend(this, Pubsub);
+      }
+
+      Token.prototype.set = function(token) {
+        this.token = token;
+        return sessionStorage.setItem('huygens_token', token);
+      };
+
+      Token.prototype.get = function() {
+        if (this.token == null) {
+          this.token = sessionStorage.getItem('huygens_token');
+        }
+        if (this.token == null) {
+          this.publish('unauthorized');
+          return false;
+        }
+        return this.token;
+      };
+
+      Token.prototype.clear = function() {
+        return sessionStorage.removeItem('huygens_token');
+      };
+
+      return Token;
+
+    })();
+    return new Token();
+  });
+
+}).call(this);
+
+(function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -4116,7 +4202,6 @@ define('domready',[],function () {
     ajax = require('managers/ajax');
     token = require('managers/token');
     ajax.token = token.get();
-    console.log(token.get());
     config = require('config');
     Models = {
       Base: require('models/base')
@@ -4157,11 +4242,10 @@ define('domready',[],function () {
             dataType: 'text'
           });
           jqXHR.done(function(data, textStatus, jqXHR) {
-            var url, xhr;
+            var xhr;
             if (jqXHR.status === 201) {
-              url = jqXHR.getResponseHeader('Location');
               xhr = ajax.get({
-                url: url
+                url: jqXHR.getResponseHeader('Location')
               });
               return xhr.done(function(data, textStatus, jqXHR) {
                 return options.success(data);
@@ -4170,6 +4254,21 @@ define('domready',[],function () {
           });
           return jqXHR.fail(function(a, b, c) {
             return console.log('fail', a, b, c);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify({
+              body: this.get('body'),
+              typeId: this.get('annotationType').id
+            })
+          });
+          jqXHR.done(function(response) {
+            return options.success(response);
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
           });
         } else {
           return Annotation.__super__.sync.apply(this, arguments);
@@ -4205,8 +4304,7 @@ define('domready',[],function () {
       Annotations.prototype.model = Models.Annotation;
 
       Annotations.prototype.initialize = function(models, options) {
-        this.projectId = options.projectId, this.entryId = options.entryId, this.transcriptionId = options.transcriptionId;
-        return this.fetch();
+        return this.projectId = options.projectId, this.entryId = options.entryId, this.transcriptionId = options.transcriptionId, options;
       };
 
       Annotations.prototype.url = function() {
@@ -4224,9 +4322,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/transcription',['require','config','models/base','collections/annotations'],function(require) {
-    var Collections, Models, Transcription, config, _ref;
+  define('models/transcription',['require','config','managers2/ajax','managers2/token','models/base','collections/annotations'],function(require) {
+    var Collections, Models, Transcription, ajax, config, token, _ref;
     config = require('config');
+    ajax = require('managers2/ajax');
+    token = require('managers2/token');
     Models = {
       Base: require('models/base')
     };
@@ -4250,26 +4350,37 @@ define('domready',[],function () {
         };
       };
 
-      Transcription.prototype.initialize = function() {
-        var _this = this;
-        Transcription.__super__.initialize.apply(this, arguments);
-        return this.listenToOnce(this.get('annotations'), 'sync', function() {
-          _this.listenTo(_this.get('annotations'), 'add', _this.addAnnotation);
-          return _this.listenTo(_this.get('annotations'), 'remove', _this.removeAnnotation);
-        });
-      };
-
-      Transcription.prototype.parse = function(attrs) {
-        attrs.annotations = new Collections.Annotations([], {
-          transcriptionId: attrs.id,
-          entryId: this.collection.entryId,
-          projectId: this.collection.projectId
-        });
-        return attrs;
+      Transcription.prototype.getAnnotations = function(cb) {
+        var annotations,
+          _this = this;
+        if (cb == null) {
+          cb = function() {};
+        }
+        if (this.get('annotations') != null) {
+          return cb(this.get('annotations'));
+        } else {
+          annotations = new Collections.Annotations([], {
+            transcriptionId: this.id,
+            entryId: this.collection.entryId,
+            projectId: this.collection.projectId
+          });
+          return annotations.fetch({
+            success: function(collection) {
+              _this.set('annotations', collection);
+              _this.listenTo(collection, 'add', _this.addAnnotation);
+              _this.listenTo(collection, 'remove', _this.removeAnnotation);
+              return cb(collection);
+            }
+          });
+        }
       };
 
       Transcription.prototype.addAnnotation = function(model) {
         var $body;
+        if (model.get('annotationNo') == null) {
+          console.error('No annotationNo given!', model.get('annotationNo'));
+          return false;
+        }
         $body = $("<div>" + (this.get('body')) + "</div>");
         $body.find('[data-id="newannotation"]').attr('data-id', model.get('annotationNo'));
         return this.resetAnnotationOrder($body);
@@ -4292,7 +4403,67 @@ define('domready',[],function () {
         $body.find('sup[data-marker="end"]').each(function(index, sup) {
           return sup.innerHTML = index + 1;
         });
-        return this.set('body', $body.html());
+        this.set('body', $body.html());
+        return this.save();
+      };
+
+      Transcription.prototype.set = function(attrs, options) {
+        var _this = this;
+        if (attrs === 'body') {
+          options = options.replace(/<div><br><\/div>/g, '<br>');
+          options = options.replace(/<div>(.*?)<\/div>/g, function(match, p1, offset, string) {
+            return '<br>' + p1;
+          });
+        }
+        return Transcription.__super__.set.apply(this, arguments);
+      };
+
+      Transcription.prototype.sync = function(method, model, options) {
+        var jqXHR,
+          _this = this;
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.post({
+            url: this.url(),
+            dataType: 'text',
+            data: JSON.stringify({
+              textLayer: model.get('textLayer'),
+              body: model.get('body')
+            })
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var url, xhr;
+            if (jqXHR.status === 201) {
+              url = jqXHR.getResponseHeader('Location');
+              xhr = ajax.get({
+                url: url
+              });
+              return xhr.done(function(data, textStatus, jqXHR) {
+                _this.trigger('sync');
+                return options.success(data);
+              });
+            }
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify({
+              body: model.get('body')
+            })
+          });
+          jqXHR.done(function(response) {
+            return _this.trigger('sync');
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else {
+          return Transcription.__super__.sync.apply(this, arguments);
+        }
       };
 
       return Transcription;
@@ -4324,8 +4495,12 @@ define('domready',[],function () {
       Transcriptions.prototype.model = Models.Transcription;
 
       Transcriptions.prototype.initialize = function(models, options) {
+        var _this = this;
         this.projectId = options.projectId;
-        return this.entryId = options.entryId;
+        this.entryId = options.entryId;
+        return this.on('remove', function(model) {
+          return model.destroy();
+        });
       };
 
       Transcriptions.prototype.url = function() {
@@ -4355,8 +4530,10 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/facsimile',['require','config','models/base'],function(require) {
-    var Facsimile, Models, config, _ref;
+  define('models/facsimile',['require','managers/ajax','managers/token','config','models/base'],function(require) {
+    var Facsimile, Models, ajax, config, token, _ref;
+    ajax = require('managers/ajax');
+    token = require('managers/token');
     config = require('config');
     Models = {
       Base: require('models/base')
@@ -4368,6 +4545,49 @@ define('domready',[],function () {
         _ref = Facsimile.__super__.constructor.apply(this, arguments);
         return _ref;
       }
+
+      Facsimile.prototype.defaults = function() {
+        return {
+          name: '',
+          filename: '',
+          zoomableUrl: ''
+        };
+      };
+
+      Facsimile.prototype.sync = function(method, model, options) {
+        var jqXHR,
+          _this = this;
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.post({
+            url: this.url(),
+            dataType: 'text',
+            data: JSON.stringify({
+              name: model.get('name'),
+              filename: model.get('filename'),
+              zoomableUrl: model.get('zoomableUrl')
+            })
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var url, xhr;
+            if (jqXHR.status === 201) {
+              url = jqXHR.getResponseHeader('Location');
+              xhr = ajax.get({
+                url: url
+              });
+              return xhr.done(function(data, textStatus, jqXHR) {
+                _this.trigger('sync');
+                return options.success(data);
+              });
+            }
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else {
+          return Facsimile.__super__.sync.apply(this, arguments);
+        }
+      };
 
       return Facsimile;
 
@@ -4398,8 +4618,12 @@ define('domready',[],function () {
       Facsimiles.prototype.model = Models.Facsimile;
 
       Facsimiles.prototype.initialize = function(models, options) {
+        var _this = this;
         this.projectId = options.projectId;
-        return this.entryId = options.entryId;
+        this.entryId = options.entryId;
+        return this.on('remove', function(model) {
+          return model.destroy();
+        });
       };
 
       Facsimiles.prototype.url = function() {
@@ -5621,7 +5845,7 @@ define('text!html/login.html',[],function () { return '\n<div class="cell span2"
 
 }).call(this);
 
-(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone","text"],t):e.facetedsearch=t()})(this,function(e,t,n,r){var i,s,o;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,r,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;r=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,i,s){var o,l,h,p,v,g=[],w;s=s||t;if(typeof i=="function"){n=!n.length&&i.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=r(n[v],s),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")o=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(s,!0),y(l),{}),g[v]=a[l]}}h=i.apply(a[t],g);if(t)if(o&&o.exports!==e&&o.exports!==a[t])a[t]=o.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=i)},i=s=n=function(i,s,o,a,f){return typeof i=="string"?u[i]?u[i](s):b(r(i,s).f):(i.splice||(l=i,s.splice?(i=s,s=o,o=null):i=e),s=s||function(){},typeof o=="function"&&(o=a,a=f),a?t(e,i,s,o):setTimeout(function(){t(e,i,s,o)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},o=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},o.amd={jQuery:!0}}(),o("../lib/almond/almond",function(){}),function(){o("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){o("helpers/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){o("managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),o("text!html/facet.html",[],function(){return'\n<div class="placeholder pad4">\n  <header>\n    <h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small>\n    <div class="options"></div>\n  </header>\n  <div class="body"></div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};o("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){return console.log(e)},i}(o.Base)})}.call(this),o("text!html/facet/boolean.body.html",[],function(){return'\n<div class="options">\n  <ul><% _.each(options, function(option) { %>\n    <li class="option">\n      <div class="row span6">\n        <div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>">\n          <label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label>\n        </div>\n        <div class="cell span1 alignright">\n          <div class="count"><%= option.count %></div>\n        </div>\n      </div>\n    </li><% }); %>\n  </ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/boolean",["require","helpers/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),o("text!html/facet/date.html",[],function(){return'\n<header>\n  <h3 data-name="<%= name %>"><%= title %></h3>\n</header>\n<div class="body">\n  <label>From:</label>\n  <select><% _.each(options, function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n  <label>To:</label>\n  <select><% _.each(options.reverse(), function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/date",["require","helpers/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){o("helpers/general",["require","jquery"],function(e){var t;return t=e("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var n;return n=Array.isArray(e)?[]:{},t.extend(!0,n,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}()}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){o("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),o("text!html/facet/list.html",[],function(){return""}),o("text!html/facet/list.options.html",[],function(){return'\n<ul>\n  <% _.each(options, function(option) { %>\n  <% var randomId = generateID(); %>\n  <% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n  <% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n  <% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %>\n  <li class="option">\n    <div data-count="<%= option.get(\'count\') %>" class="row span6">\n      <div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>>\n        <label for="<%= randomId %>"><%= labelText %></label>\n      </div>\n      <div class="cell span1 alignright">\n        <div class="count"><%= count %></div>\n      </div>\n    </div>\n  </li><% }); %>\n</ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/list.options",["require","helpers/general","views/base","models/list","text!html/facet/list.html","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("helpers/general"),u={Base:e("views/base")},s={List:e("models/list")},o={List:e("text!html/facet/list.html"),Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),o("text!html/facet/list.menu.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span2">\n    <input type="text" name="listsearch" class="listsearch"/>\n  </div>\n  <div class="cell span1"><small class="optioncount"></small></div>\n  <div class="cell span1 alignright">\n    <nav>\n      <ul>\n        <li class="all">All </li>\n        <li class="none">None</li>\n      </ul>\n    </nav>\n  </div>\n</div>'}),o("text!html/facet/list.body.html",[],function(){return'\n<div class="options">\n  <ul></ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/list",["require","helpers/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("helpers/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){o("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){o("managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/main",["require","config","managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),o("text!html/facet/search.menu.html",[],function(){return'\n<div class="row span1 align middle">\n  <div class="cell span1 casesensitive">\n    <input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/>\n    <label for="cb_casesensitive">Match case</label>\n  </div>\n</div><% console.log(searchOptions); %>\n<% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Search in</h4>\n    <ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>>\n        <label for="cb_searchin_annotations">Annotations</label>\n      </li><% } %>\n      <% if (\'searchInTranscriptions\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>>\n        <label for="cb_searchin_transcriptions">Transcriptions</label>\n      </li><% } %>\n    </ul>\n  </div>\n</div><% } %>\n<% if (\'textLayers\' in searchOptions) { %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Text layers</h4>\n    <ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %>\n      <li class="textlayer">\n        <input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/>\n        <label for="cb_textlayer_<%= tl %>"><%= tl %></label>\n      </li><% }); %>\n    </ul>\n  </div>\n</div><% } %>'}),o("text!html/facet/search.body.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span3">\n    <div class="padr4">\n      <input id="search" type="text" name="search"/>\n    </div>\n  </div>\n  <div class="cell span1">\n    <button class="search">Search</button>\n  </div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};o("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),o("text!html/faceted-search.html",[],function(){return'\n<div class="faceted-search">\n  <form>\n    <div class="search-placeholder"></div>\n    <div class="facets">\n      <div style="display: none; text-align: center; margin-top: 20px" class="loader">\n        <h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/>\n      </div>\n    </div>\n  </form>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e){return r.trigger("results:change",e)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i}(u.Base)})}.call(this),o("jquery",function(){return e}),o("underscore",function(){return t}),o("backbone",function(){return n}),o("text",function(){return r}),s("main")});
+(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone","text"],t):e.facetedsearch=t()})(this,function(e,t,n,r){var i,s,o;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,r,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;r=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,i,s){var o,l,h,p,v,g=[],w;s=s||t;if(typeof i=="function"){n=!n.length&&i.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=r(n[v],s),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")o=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(s,!0),y(l),{}),g[v]=a[l]}}h=i.apply(a[t],g);if(t)if(o&&o.exports!==e&&o.exports!==a[t])a[t]=o.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=i)},i=s=n=function(i,s,o,a,f){return typeof i=="string"?u[i]?u[i](s):b(r(i,s).f):(i.splice||(l=i,s.splice?(i=s,s=o,o=null):i=e),s=s||function(){},typeof o=="function"&&(o=a,a=f),a?t(e,i,s,o):setTimeout(function(){t(e,i,s,o)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},o=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},o.amd={jQuery:!0}}(),o("../lib/almond/almond",function(){}),function(){o("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){o("helpers/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){o("managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),o("text!html/facet.html",[],function(){return'\n<div class="placeholder pad4">\n  <header>\n    <h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small>\n    <div class="options"></div>\n  </header>\n  <div class="body"></div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};o("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),o("text!html/facet/boolean.body.html",[],function(){return'\n<div class="options">\n  <ul><% _.each(options, function(option) { %>\n    <li class="option">\n      <div class="row span6">\n        <div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>">\n          <label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label>\n        </div>\n        <div class="cell span1 alignright">\n          <div class="count"><%= option.count %></div>\n        </div>\n      </div>\n    </li><% }); %>\n  </ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/boolean",["require","helpers/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),o("text!html/facet/date.html",[],function(){return'\n<header>\n  <h3 data-name="<%= name %>"><%= title %></h3>\n</header>\n<div class="body">\n  <label>From:</label>\n  <select><% _.each(options, function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n  <label>To:</label>\n  <select><% _.each(options.reverse(), function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/date",["require","helpers/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){o("helpers/general",["require","jquery"],function(e){var t;return t=e("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var n;return n=Array.isArray(e)?[]:{},t.extend(!0,n,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}()}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){o("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),o("text!html/facet/list.html",[],function(){return""}),o("text!html/facet/list.options.html",[],function(){return'\n<ul>\n  <% _.each(options, function(option) { %>\n  <% var randomId = generateID(); %>\n  <% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n  <% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n  <% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %>\n  <li class="option">\n    <div data-count="<%= option.get(\'count\') %>" class="row span6">\n      <div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>>\n        <label for="<%= randomId %>"><%= labelText %></label>\n      </div>\n      <div class="cell span1 alignright">\n        <div class="count"><%= count %></div>\n      </div>\n    </div>\n  </li><% }); %>\n</ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/list.options",["require","helpers/general","views/base","models/list","text!html/facet/list.html","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("helpers/general"),u={Base:e("views/base")},s={List:e("models/list")},o={List:e("text!html/facet/list.html"),Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),o("text!html/facet/list.menu.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span2">\n    <input type="text" name="listsearch" class="listsearch"/>\n  </div>\n  <div class="cell span1"><small class="optioncount"></small></div>\n  <div class="cell span1 alignright">\n    <nav>\n      <ul>\n        <li class="all">All </li>\n        <li class="none">None</li>\n      </ul>\n    </nav>\n  </div>\n</div>'}),o("text!html/facet/list.body.html",[],function(){return'\n<div class="options">\n  <ul></ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("views/facets/list",["require","helpers/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("helpers/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){o("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){o("managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/main",["require","config","managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),o("text!html/facet/search.menu.html",[],function(){return'\n<div class="row span1 align middle">\n  <div class="cell span1 casesensitive">\n    <input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/>\n    <label for="cb_casesensitive">Match case</label>\n  </div>\n</div><% console.log(searchOptions); %>\n<% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Search in</h4>\n    <ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>>\n        <label for="cb_searchin_annotations">Annotations</label>\n      </li><% } %>\n      <% if (\'searchInTranscriptions\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>>\n        <label for="cb_searchin_transcriptions">Transcriptions</label>\n      </li><% } %>\n    </ul>\n  </div>\n</div><% } %>\n<% if (\'textLayers\' in searchOptions) { %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Text layers</h4>\n    <ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %>\n      <li class="textlayer">\n        <input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/>\n        <label for="cb_textlayer_<%= tl %>"><%= tl %></label>\n      </li><% }); %>\n    </ul>\n  </div>\n</div><% } %>'}),o("text!html/facet/search.body.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span3">\n    <div class="padr4">\n      <input id="search" type="text" name="search"/>\n    </div>\n  </div>\n  <div class="cell span1">\n    <button class="search">Search</button>\n  </div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};o("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),o("text!html/faceted-search.html",[],function(){return'\n<div class="faceted-search">\n  <form>\n    <div class="search-placeholder"></div>\n    <div class="facets">\n      <div style="display: none; text-align: center; margin-top: 20px" class="loader">\n        <h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/>\n      </div>\n    </div>\n  </form>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};o("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e){return r.trigger("results:change",e)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i}(u.Base)})}.call(this),o("jquery",function(){return e}),o("underscore",function(){return t}),o("backbone",function(){return n}),o("text",function(){return r}),s("main")});
 define('text!html/project/search.html',[],function () { return '\n<div class="row span3">\n  <div class="cell span1 faceted-search-placeholder"></div>\n  <div class="cell span2">\n    <div class="padl4 resultview">\n      <header>\n        <div class="row span2">\n          <div class="cell span1"> \n            <h3 class="numfound"></h3>\n          </div>\n          <div class="cell span1 alignright">\n            <nav>\n              <ul>\n                <li> \n                  <input id="cb_showkeywords" type="checkbox"/>\n                  <label for="cb_showkeywords">Display keywords</label>\n                </li>\n                <li data-key="selectall">Select all</li>\n                <li data-key="deselectall">Deselect all</li>\n              </ul>\n            </nav>\n          </div>\n        </div>\n        <div class="row span2">\n          <div class="cell span1"> \n            <ul class="horizontal menu pagination">\n              <li class="prev inactive">&lt;</li>\n              <li class="currentpage text"></li>\n              <li class="text">of</li>\n              <li class="pagecount text"></li>\n              <li class="next">&gt;</li>\n            </ul>\n          </div>\n          <div class="cell span1 alignright"></div>\n        </div>\n      </header>\n      <ul class="entries"></ul>\n    </div>\n  </div>\n</div>';});
 
 define('text!html/project/search.results.html',[],function () { return '<% entries.each(function(entry) { %>\n<li id="entry<%=entry.id %>" class="entry"> \n  <input type="checkbox"/>\n  <label data-id="<%=entry.id%>"><%= entry.get(\'name\') %></label>\n</li><% }); %>';});
@@ -5669,7 +5893,8 @@ define('text!html/project/search.results.html',[],function () { return '<% entri
           return _this.renderEntries();
         });
         return Models.state.getCurrentProject(function(project) {
-          console.log('callback called');
+          /* console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once*/
+
           _this.project = project;
           return _this.render();
         });
@@ -5686,15 +5911,14 @@ define('text!html/project/search.results.html',[],function () { return '<% entri
           searchPath: 'projects/' + this.project.id + '/search',
           token: token.get(),
           textSearchOptions: {
-            searchInAnnotations: false,
-            searchInTranscriptions: false
+            searchInAnnotations: true,
+            searchInTranscriptions: true
           },
           queryOptions: {
             resultRows: 12
           }
         });
         this.listenTo(this.facetedSearch, 'results:change', function(response) {
-          console.log(response);
           return _this.model.set(response);
         });
         return this;
@@ -5770,7 +5994,7 @@ define('text!html/project/search.results.html',[],function () { return '<% entri
 }).call(this);
 
 (function() {
-  define('managers2/async',['require','underscore'],function(require) {
+  define('hilib/managers/async',['require','underscore'],function(require) {
     var Async, _;
     _ = require('underscore');
     return Async = (function() {
@@ -5810,6 +6034,51 @@ define('text!html/project/search.results.html',[],function () { return '<% entri
       };
 
       return Async;
+
+    })();
+  });
+
+}).call(this);
+
+(function() {
+  define('entry.metadata',['require','config','managers/token','managers/ajax','models/state'],function(require) {
+    var EntryMetadata, Models, ajax, config, token;
+    config = require('config');
+    token = require('managers/token');
+    ajax = require('managers/ajax');
+    Models = {
+      state: require('models/state')
+    };
+    return EntryMetadata = (function() {
+      var url;
+
+      url = null;
+
+      function EntryMetadata(projectID) {
+        url = "" + config.baseUrl + "projects/" + projectID + "/entrymetadatafields";
+      }
+
+      EntryMetadata.prototype.fetch = function(cb) {
+        var jqXHR;
+        ajax.token = token.get();
+        jqXHR = ajax.get({
+          url: url
+        });
+        return jqXHR.done(function(data) {
+          return cb(data);
+        });
+      };
+
+      EntryMetadata.prototype.save = function(newValues) {
+        var jqXHR;
+        ajax.token = token.get();
+        return jqXHR = ajax.put({
+          url: url,
+          data: newValues
+        });
+      };
+
+      return EntryMetadata;
 
     })();
   });
@@ -5879,6 +6148,951 @@ define('text!html/ui/settings.submenu.html',[],function () { return '<div class=
       return SettingsSubMenu;
 
     })(BaseView);
+  });
+
+}).call(this);
+
+define('text!viewshtml/form/editablelist/main.html',[],function () { return '<input data-view-id="<%= viewId %>"/><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>"><%= model.id %></li><% }); %></ul>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('hilib/views/form/editablelist/main',['require','collections/base','views/base','text!viewshtml/form/editablelist/main.html'],function(require) {
+    var Collections, EditableList, Tpl, Views, _ref;
+    Collections = {
+      Base: require('collections/base')
+    };
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!viewshtml/form/editablelist/main.html');
+    return EditableList = (function(_super) {
+      __extends(EditableList, _super);
+
+      function EditableList() {
+        _ref = EditableList.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditableList.prototype.className = 'editablelist';
+
+      EditableList.prototype.initialize = function() {
+        var value;
+        EditableList.__super__.initialize.apply(this, arguments);
+        value = _.map(this.options.value, function(val) {
+          return {
+            id: val
+          };
+        });
+        this.selected = new Collections.Base(value);
+        this.listenTo(this.selected, 'add', this.render);
+        this.listenTo(this.selected, 'remove', this.render);
+        return this.render();
+      };
+
+      EditableList.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, {
+          viewId: this.cid,
+          selected: this.selected
+        });
+        this.$el.html(rtpl);
+        this.triggerChange();
+        this.$('input').focus();
+        return this;
+      };
+
+      EditableList.prototype.events = function() {
+        var evs;
+        evs = {
+          'click li': 'removeLi'
+        };
+        evs['keyup input[data-view-id="' + this.cid + '"]'] = 'onKeyup';
+        return evs;
+      };
+
+      EditableList.prototype.removeLi = function(ev) {
+        return this.selected.removeById(ev.currentTarget.getAttribute('data-id'));
+      };
+
+      EditableList.prototype.onKeyup = function(ev) {
+        if (ev.keyCode === 13 && ev.currentTarget.value.length > 0) {
+          return this.selected.add({
+            id: ev.currentTarget.value
+          });
+        }
+      };
+
+      EditableList.prototype.triggerChange = function() {
+        return this.trigger('change', this.selected.pluck('id'));
+      };
+
+      return EditableList;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!hilib/views/form/combolist/main.html',[],function () { return '<div class="input"><input type="text" data-view-id="<%= viewId %>"/><div class="caret"></div></div><% if (editable) { %><button class="edit">Edit</button><% } %><ul class="list"></ul><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>" class="selected"><%= model.get(\'title\') %></li><% }); %></ul>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty;
+
+  define('hilib/functions/general',['require','jquery'],function(require) {
+    var $;
+    $ = require('jquery');
+    return {
+      /*
+      	Generates an ID that starts with a letter
+      	
+      	Example: "aBc12D34"
+      
+      	param Number length of the id
+      	return String
+      */
+
+      generateID: function(length) {
+        var chars, text;
+        length = (length != null) && length > 0 ? length - 1 : 7;
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        text = chars.charAt(Math.floor(Math.random() * 52));
+        while (length--) {
+          text += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return text;
+      },
+      /*
+      	Deepcopies arrays and object literals
+      	
+      	return Array or object
+      */
+
+      deepCopy: function(object) {
+        var newEmpty;
+        newEmpty = Array.isArray(object) ? [] : {};
+        return $.extend(true, newEmpty, object);
+      },
+      /*
+      	Starts a timer which resets when it is called again.
+      	
+      	Example: with a scroll event, when a user stops scrolling, the timer ends.
+      	Without the reset, the timer would fire dozens of times.
+      	Can also be handy to avoid double clicks.
+      
+      	Example usage:
+      	div.addEventListener 'scroll', (ev) ->
+      		Fn.timeoutWithReset 200, -> console.log('finished!')
+      	
+      	return Function
+      */
+
+      timeoutWithReset: (function() {
+        var timer;
+        timer = 0;
+        return function(ms, cb) {
+          clearTimeout(timer);
+          return timer = setTimeout(cb, ms);
+        };
+      })(),
+      /*
+      	Highlight text between two nodes. 
+      
+      	Creates a span.hilite between two given nodes, surrounding the contents of the nodes
+      
+      	Example usage:
+      	hl = Fn.highlighter
+      		className: 'highlight' # optional
+      		tagName: 'div' # optional
+      
+      	supEnter = (ev) -> hl.on
+      		startNode: el.querySelector(#someid) # required
+      		endNode: ev.currentTarget # required
+      	supLeave = -> hl.off()
+      	$(sup).hover supEnter, supLeave
+      */
+
+      highlighter: function(args) {
+        var className, el, tagName;
+        if (args == null) {
+          args = {};
+        }
+        className = args.className, tagName = args.tagName;
+        if (className == null) {
+          className = 'hilite';
+        }
+        if (tagName == null) {
+          tagName = 'span';
+        }
+        el = null;
+        return {
+          on: function(args) {
+            var endNode, range, startNode;
+            startNode = args.startNode, endNode = args.endNode;
+            range = document.createRange();
+            range.setStartAfter(startNode);
+            range.setEndBefore(endNode);
+            el = document.createElement(tagName);
+            el.className = className;
+            el.appendChild(range.extractContents());
+            return range.insertNode(el);
+          },
+          off: function() {
+            return $(el).replaceWith(function() {
+              return $(this).contents();
+            });
+          }
+        };
+      },
+      /*
+      	Native alternative to jQuery's $.offset()
+      
+      	http://www.quirksmode.org/js/findpos.html
+      */
+
+      position: function(el, parent) {
+        var left, top;
+        left = 0;
+        top = 0;
+        while (el !== parent) {
+          left += el.offsetLeft;
+          top += el.offsetTop;
+          el = el.offsetParent;
+        }
+        return {
+          left: left,
+          top: top
+        };
+      },
+      boundingBox: function(el) {
+        var box;
+        box = $(el).offset();
+        box.width = el.clientWidth;
+        box.height = el.clientHeight;
+        box.right = box.left + box.width;
+        box.bottom = box.top + box.height;
+        return box;
+      },
+      /*
+      	Is child el a descendant of parent el?
+      
+      	http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
+      */
+
+      isDescendant: function(parent, child) {
+        var node;
+        node = child.parentNode;
+        while (node != null) {
+          if (node === parent) {
+            return true;
+          }
+          node = node.parentNode;
+        }
+        return false;
+      },
+      /*
+      	Removes an item from an array
+      */
+
+      removeFromArray: function(arr, item) {
+        var index;
+        index = arr.indexOf(item);
+        return arr.splice(index, 1);
+      },
+      /* Escape a regular expression*/
+
+      escapeRegExp: function(str) {
+        return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      },
+      /*
+      	Flattens an object
+      
+      	songs:
+      		mary:
+      			had:
+      				little: 'lamb'
+      
+      	becomes
+      
+      	songs:
+      		mary.had.little: 'lamb'
+      
+      	Taken from: http://thedersen.com/projects/backbone-validation
+      */
+
+      flattenObject: function(obj, into, prefix) {
+        var k, v;
+        if (into == null) {
+          into = {};
+        }
+        if (prefix == null) {
+          prefix = '';
+        }
+        for (k in obj) {
+          if (!__hasProp.call(obj, k)) continue;
+          v = obj[k];
+          if (_.isObject(v) && !_.isArray(v) && !_.isFunction(v)) {
+            this.flattenObject(v, into, prefix + k + '.');
+          } else {
+            into[prefix + k] = v;
+          }
+        }
+        return into;
+      },
+      compareJSON: function(current, changed) {
+        var attr, changes, value;
+        changes = {};
+        for (attr in current) {
+          if (!__hasProp.call(current, attr)) continue;
+          value = current[attr];
+          if (!changed.hasOwnProperty(attr)) {
+            changes[attr] = 'removed';
+          }
+        }
+        for (attr in changed) {
+          if (!__hasProp.call(changed, attr)) continue;
+          value = changed[attr];
+          if (current.hasOwnProperty(attr)) {
+            if (_.isArray(value) || this.isObjectLiteral(value)) {
+              if (!_.isEqual(current[attr], changed[attr])) {
+                changes[attr] = changed[attr];
+              }
+            } else {
+              if (current[attr] !== changed[attr]) {
+                changes[attr] = changed[attr];
+              }
+            }
+          } else {
+            changes[attr] = 'added';
+          }
+        }
+        return changes;
+      },
+      isObjectLiteral: function(obj) {
+        var ObjProto;
+        if ((obj == null) || typeof obj !== "object") {
+          return false;
+        }
+        ObjProto = obj;
+        while (Object.getPrototypeOf(ObjProto = Object.getPrototypeOf(ObjProto)) !== null) {
+          0;
+        }
+        return Object.getPrototypeOf(obj) === ObjProto;
+      },
+      getScrollPercentage: function(el) {
+        var scrolledLeft, scrolledTop, totalLeft, totalTop;
+        scrolledTop = el.scrollTop;
+        totalTop = el.scrollHeight - el.clientHeight;
+        scrolledLeft = el.scrollLeft;
+        totalLeft = el.scrollWidth - el.clientWidth;
+        return {
+          top: Math.floor((scrolledTop / totalTop) * 100),
+          left: Math.floor((scrolledLeft / totalLeft) * 100)
+        };
+      },
+      setScrollPercentage: function(el, percentages) {
+        var clientHeight, clientWidth, scrollHeight, scrollWidth;
+        clientWidth = el.clientWidth;
+        scrollWidth = el.scrollWidth;
+        clientHeight = el.clientHeight;
+        scrollHeight = el.scrollHeight;
+        el.scrollTop = (scrollHeight - clientHeight) * percentages.top / 100;
+        return el.scrollLeft = (scrollWidth - clientWidth) * percentages.left / 100;
+      },
+      checkCheckboxes: function(selector, checked, baseEl) {
+        var cb, checkboxes, _i, _len, _results;
+        if (checked == null) {
+          checked = true;
+        }
+        if (baseEl == null) {
+          baseEl = document;
+        }
+        checkboxes = baseEl.querySelectorAll(selector);
+        _results = [];
+        for (_i = 0, _len = checkboxes.length; _i < _len; _i++) {
+          cb = checkboxes[_i];
+          _results.push(cb.checked = checked);
+        }
+        return _results;
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  define('hilib/mixins/dropdown/options',['require'],function(require) {
+    return {
+      dropdownOptionsInitialize: function() {
+        return this.resetCurrentOption();
+      },
+      resetCurrentOption: function() {
+        return this.currentOption = null;
+      },
+      setCurrentOption: function(model) {
+        this.currentOption = model;
+        return this.trigger('currentOption:change', this.currentOption);
+      },
+      prev: function() {
+        var previousIndex;
+        previousIndex = this.indexOf(this.currentOption) - 1;
+        if (previousIndex < 0) {
+          previousIndex = this.length - 1;
+        }
+        return this.setCurrentOption(this.at(previousIndex));
+      },
+      next: function() {
+        var nextIndex;
+        nextIndex = this.indexOf(this.currentOption) + 1;
+        if (nextIndex > (this.length - 1)) {
+          nextIndex = 0;
+        }
+        return this.setCurrentOption(this.at(nextIndex));
+      }
+    };
+  });
+
+}).call(this);
+
+define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collection.each(function(model) { %><li data-id="<%= model.id %>" class="list <% if (selected===model) { %>active<% } %>"><%= model.get(\'title\') %></li><% }); %>';});
+
+(function() {
+  define('hilib/mixins/dropdown/main',['require','backbone','hilib/functions/general','hilib/mixins/dropdown/options','text!hilib/mixins/dropdown/main.html'],function(require) {
+    var Backbone, Fn, Templates, optionMixin;
+    Backbone = require('backbone');
+    Fn = require('hilib/functions/general');
+    optionMixin = require('hilib/mixins/dropdown/options');
+    Templates = {
+      Options: require('text!hilib/mixins/dropdown/main.html')
+    };
+    return {
+      dropdownInitialize: function() {
+        var models, _base, _base1, _base2, _ref, _ref1,
+          _this = this;
+        if ((_base = this.options).config == null) {
+          _base.config = {};
+        }
+        this.data = (_ref = this.options.config.data) != null ? _ref : {};
+        this.settings = (_ref1 = this.options.config.settings) != null ? _ref1 : {};
+        if ((_base1 = this.settings).mutable == null) {
+          _base1.mutable = false;
+        }
+        if ((_base2 = this.settings).editable == null) {
+          _base2.editable = false;
+        }
+        this.selected = null;
+        if (this.data instanceof Backbone.Collection) {
+          this.collection = this.data;
+        } else if (_.isArray(this.data) && _.isString(this.data[0])) {
+          models = this.strArray2optionArray(this.data);
+          this.collection = new Backbone.Collection(models);
+        } else {
+          console.error('No valid data passed to dropdown');
+        }
+        this.filtered_options = this.collection.clone();
+        _.extend(this.filtered_options, optionMixin);
+        if (this.settings.mutable) {
+          this.listenTo(this.collection, 'add', function(model, collection, options) {
+            _this.selected = model;
+            _this.triggerChange();
+            return _this.filtered_options.add(model);
+          });
+          this.listenTo(this.filtered_options, 'add', this.renderOptions);
+        }
+        this.listenTo(this.filtered_options, 'reset', this.renderOptions);
+        this.listenTo(this.filtered_options, 'currentOption:change', function(model) {
+          return _this.$('li[data-id="' + model.id + '"]').addClass('active');
+        });
+        return this.on('change', function() {
+          return _this.resetOptions();
+        });
+      },
+      dropdownRender: function(tpl) {
+        var rtpl,
+          _this = this;
+        if (this.preDropdownRender != null) {
+          this.preDropdownRender();
+        }
+        rtpl = _.template(tpl, {
+          viewId: this.cid,
+          selected: this.selected,
+          mutable: this.settings.mutable,
+          editable: this.settings.editable
+        });
+        this.$el.html(rtpl);
+        this.$optionlist = this.$('ul.list');
+        this.renderOptions();
+        this.$('input').focus();
+        $('body').click(function(ev) {
+          if (!(_this.el === ev.target || Fn.isDescendant(_this.el, ev.target))) {
+            return _this.hideOptionlist();
+          }
+        });
+        if (this.settings.inputClass != null) {
+          this.$('input').addClass(this.settings.inputClass);
+        }
+        if (this.postDropdownRender != null) {
+          this.postDropdownRender();
+        }
+        return this;
+      },
+      renderOptions: function() {
+        var rtpl;
+        rtpl = _.template(Templates.Options, {
+          collection: this.filtered_options,
+          selected: this.selected
+        });
+        return this.$optionlist.html(rtpl);
+      },
+      dropdownEvents: function() {
+        var evs;
+        evs = {
+          'click .caret': 'toggleList',
+          'click li.list': 'selectItem'
+        };
+        evs['keyup input[data-view-id="' + this.cid + '"]'] = 'onKeyup';
+        evs['keydown input[data-view-id="' + this.cid + '"]'] = 'onKeydown';
+        return evs;
+      },
+      toggleList: function(ev) {
+        this.$optionlist.toggle();
+        return this.$('input').focus();
+      },
+      onKeydown: function(ev) {
+        if (ev.keyCode === 38 && this.$optionlist.is(':visible')) {
+          return ev.preventDefault();
+        }
+      },
+      onKeyup: function(ev) {
+        this.$('.active').removeClass('active');
+        if (ev.keyCode === 38) {
+          this.$optionlist.show();
+          return this.filtered_options.prev();
+        } else if (ev.keyCode === 40) {
+          this.$optionlist.show();
+          return this.filtered_options.next();
+        } else if (ev.keyCode === 13) {
+          return this.selectItem(ev);
+        } else {
+          return this.filter(ev.currentTarget.value);
+        }
+      },
+      destroy: function() {
+        $('body').off('click');
+        return this.remove();
+      },
+      resetOptions: function() {
+        this.filtered_options.reset(this.collection.models);
+        this.filtered_options.resetCurrentOption();
+        return this.hideOptionlist();
+      },
+      hideOptionlist: function() {
+        return this.$optionlist.hide();
+      },
+      filter: function(value) {
+        var models, re, reset;
+        reset = false;
+        if (value.length > 1) {
+          value = Fn.escapeRegExp(value);
+          re = new RegExp(value, 'i');
+          models = this.collection.filter(function(model) {
+            return re.test(model.get('title'));
+          });
+          if (models.length) {
+            this.filtered_options.reset(models);
+            this.$optionlist.show();
+            reset = true;
+          }
+        }
+        if (!reset) {
+          this.resetOptions();
+        }
+        if (this.postDropdownFilter != null) {
+          return this.postDropdownFilter(models);
+        }
+      },
+      strArray2optionArray: function(strArray) {
+        return _.map(strArray, function(item) {
+          return {
+            id: item,
+            title: item
+          };
+        });
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('hilib/views/form/combolist/main',['require','collections/base','views/base','text!hilib/views/form/combolist/main.html','hilib/mixins/dropdown/main'],function(require) {
+    var Collections, ComboList, Tpl, Views, dropdown, _ref;
+    Collections = {
+      Base: require('collections/base')
+    };
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!hilib/views/form/combolist/main.html');
+    dropdown = require('hilib/mixins/dropdown/main');
+    return ComboList = (function(_super) {
+      __extends(ComboList, _super);
+
+      function ComboList() {
+        _ref = ComboList.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      ComboList.prototype.className = 'combolist';
+
+      ComboList.prototype.initialize = function() {
+        var models,
+          _this = this;
+        ComboList.__super__.initialize.apply(this, arguments);
+        _.extend(this, dropdown);
+        this.dropdownInitialize();
+        if (this.options.value instanceof Backbone.Collection) {
+          this.selected = this.options.value;
+        } else if (_.isArray(this.options.value)) {
+          models = this.strArray2optionArray(this.options.value);
+          this.selected = new Collections.Base(models);
+        } else {
+          console.error('No valid value passed to combolist');
+        }
+        this.listenTo(this.selected, 'add', function() {
+          _this.dropdownRender(Tpl);
+          return _this.triggerChange();
+        });
+        this.listenTo(this.selected, 'remove', function() {
+          _this.dropdownRender(Tpl);
+          return _this.triggerChange();
+        });
+        return this.dropdownRender(Tpl);
+      };
+
+      ComboList.prototype.events = function() {
+        return _.extend(this.dropdownEvents(), {
+          'click li.selected': 'removeSelected'
+        });
+      };
+
+      ComboList.prototype.removeSelected = function(ev) {
+        return this.selected.removeById(ev.currentTarget.getAttribute('data-id'));
+      };
+
+      ComboList.prototype.selectItem = function(ev) {
+        var model;
+        if ((ev.keyCode != null) && ev.keyCode === 13) {
+          if (this.filtered_options.currentOption != null) {
+            model = this.filtered_options.currentOption;
+          }
+        } else {
+          model = this.collection.get(ev.currentTarget.getAttribute('data-id'));
+        }
+        if (model != null) {
+          return this.selected.add(model);
+        }
+      };
+
+      ComboList.prototype.triggerChange = function() {
+        return this.trigger('change', this.selected.pluck('id'));
+      };
+
+      ComboList.prototype.strArray2optionArray = function(strArray) {
+        return _.map(strArray, function(item) {
+          return {
+            id: item,
+            title: item
+          };
+        });
+      };
+
+      return ComboList;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty;
+
+  define('hilib/managers/validation',['require','helpers2/general'],function(require) {
+    var Fn;
+    Fn = require('helpers2/general');
+    return {
+      validator: function(args) {
+        var invalid, listenToObject, valid, validate,
+          _this = this;
+        valid = args.valid, invalid = args.invalid;
+        validate = function(attrs, options) {
+          var attr, flatAttrs, invalids, settings, _ref;
+          invalids = [];
+          flatAttrs = Fn.flattenObject(attrs);
+          _ref = this.validation;
+          for (attr in _ref) {
+            if (!__hasProp.call(_ref, attr)) continue;
+            settings = _ref[attr];
+            if (!settings.required && flatAttrs[attr].length !== 0) {
+              if ((settings.pattern != null) && settings.pattern === 'number') {
+                if (!/^\d+$/.test(flatAttrs[attr])) {
+                  invalids.push({
+                    attr: attr,
+                    msg: 'Please enter a valid number.'
+                  });
+                }
+              }
+            }
+          }
+          if (invalids.length) {
+            return invalids;
+          } else {
+
+          }
+        };
+        if (this.model != null) {
+          listenToObject = this.model;
+          this.model.validate = validate;
+        } else if (this.collection != null) {
+          listenToObject = this.collection;
+          this.collection.each(function(model) {
+            return model.validate = validate;
+          });
+          this.listenTo(this.collection, 'add', function(model, collection, options) {
+            return model.validate = validate;
+          });
+        } else {
+          console.error("Validator mixin: no model or collection attached to view!");
+          return;
+        }
+        this.invalidAttrs = {};
+        this.listenTo(listenToObject, 'invalid', function(model, errors, options) {
+          return _.each(errors, function(error) {
+            if (!_.size(_this.invalidAttrs)) {
+              _this.trigger('validator:invalidated');
+            }
+            _this.invalidAttrs[error.attr] = error;
+            return invalid(model, error.attr, error.msg);
+          });
+        });
+        if (valid != null) {
+          return this.listenTo(listenToObject, 'change', function(model, options) {
+            var attr, flatChangedAttrs, _results;
+            flatChangedAttrs = Fn.flattenObject(model.changedAttributes());
+            _results = [];
+            for (attr in flatChangedAttrs) {
+              if (!__hasProp.call(flatChangedAttrs, attr)) continue;
+              if (_this.invalidAttrs.hasOwnProperty(attr)) {
+                valid(model, attr);
+                delete _this.invalidAttrs[attr];
+                if (!_.size(_this.invalidAttrs)) {
+                  _results.push(_this.trigger('validator:validated'));
+                } else {
+                  _results.push(void 0);
+                }
+              } else {
+                _results.push(void 0);
+              }
+            }
+            return _results;
+          });
+        }
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('hilib/views/form/main',['require','hilib/functions/general','views/base','hilib/managers/validation'],function(require) {
+    var Fn, Form, Views, validation, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Base: require('views/base')
+    };
+    validation = require('hilib/managers/validation');
+    return Form = (function(_super) {
+      __extends(Form, _super);
+
+      function Form() {
+        this.renderSubform = __bind(this.renderSubform, this);
+        this.addSubform = __bind(this.addSubform, this);
+        _ref = Form.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      Form.prototype.className = function() {
+        return 'form';
+      };
+
+      Form.prototype.initialize = function() {
+        Form.__super__.initialize.apply(this, arguments);
+        if (this.subformConfig == null) {
+          this.subformConfig = this.options.subformConfig;
+        }
+        if (this.subformConfig == null) {
+          this.subformConfig = {};
+        }
+        if (this.Model == null) {
+          this.Model = this.options.Model;
+        }
+        if (this.Model == null) {
+          this.Model = Backbone.Model;
+        }
+        if (this.tpl == null) {
+          this.tpl = this.options.tpl;
+        }
+        if (this.tpl == null) {
+          throw 'Unknow template!';
+        }
+        this.on('createModels:finished', this.render, this);
+        this.createModels();
+        this.addValidation();
+        return this.addListeners();
+      };
+
+      Form.prototype.events = function() {
+        var evs;
+        console.log(this.model.cid);
+        evs = {};
+        evs['change [data-model-id="' + this.model.cid + '"] textarea'] = 'inputChanged';
+        evs['change [data-model-id="' + this.model.cid + '"] input'] = 'inputChanged';
+        evs['change [data-model-id="' + this.model.cid + '"] select'] = 'inputChanged';
+        evs['keydown [data-model-id="' + this.model.cid + '"] textarea'] = 'textareaKeyup';
+        return evs;
+      };
+
+      Form.prototype.inputChanged = function(ev) {
+        var model, value;
+        ev.stopPropagation();
+        this.$(ev.currentTarget).removeClass('invalid').attr('title', '');
+        model = this.model != null ? this.model : this.getModel(ev);
+        value = ev.currentTarget.type === 'checkbox' ? ev.currentTarget.checked : ev.currentTarget.value;
+        return model.set(ev.currentTarget.name, value, {
+          validate: true
+        });
+      };
+
+      Form.prototype.textareaKeyup = function(ev) {
+        ev.currentTarget.style.height = '32px';
+        return ev.currentTarget.style.height = ev.currentTarget.scrollHeight + 6 + 'px';
+      };
+
+      Form.prototype.preRender = function() {};
+
+      Form.prototype.render = function() {
+        var View, attr, rtpl, _ref1,
+          _this = this;
+        this.preRender();
+        if (this.data == null) {
+          this.data = {};
+        }
+        this.data.viewId = this.cid;
+        if (this.model != null) {
+          this.data.model = this.model;
+        } else if (this.collection != null) {
+          this.data.collection = this.collection;
+        }
+        rtpl = _.template(this.tpl, this.data);
+        this.$el.html(rtpl);
+        if (this.subforms == null) {
+          this.subforms = {};
+        }
+        _ref1 = this.subforms;
+        for (attr in _ref1) {
+          if (!__hasProp.call(_ref1, attr)) continue;
+          View = _ref1[attr];
+          this.addSubform(attr, View);
+        }
+        this.$('textarea').each(function(index, textarea) {
+          return textarea.style.height = textarea.scrollHeight + 6 > 32 ? textarea.scrollHeight + 6 + 'px' : '32px';
+        });
+        this.postRender();
+        return this;
+      };
+
+      Form.prototype.postRender = function() {};
+
+      Form.prototype.createModels = function() {
+        var _base,
+          _this = this;
+        if ((_base = this.options).value == null) {
+          _base.value = {};
+        }
+        if (this.model == null) {
+          this.model = new this.Model(this.options.value);
+        }
+        if (this.model.isNew()) {
+          return this.trigger('createModels:finished');
+        } else {
+          return this.model.fetch({
+            success: function() {
+              return _this.trigger('createModels:finished');
+            }
+          });
+        }
+      };
+
+      Form.prototype.addValidation = function() {
+        var _this = this;
+        _.extend(this, validation);
+        return this.validator({
+          invalid: function(model, attr, msg) {
+            return _this.$("[data-cid='" + model.cid + "'] [name='" + attr + "']").addClass('invalid').attr('title', msg);
+          }
+        });
+        /* @on 'validator:validated', => $('button.save').prop('disabled', false).removeAttr('title')*/
+
+        /* @on 'validator:invalidated', => $('button.save').prop('disabled', true).attr 'title', 'The form cannot be saved due to invalid values.'*/
+
+      };
+
+      Form.prototype.addListeners = function() {
+        var _this = this;
+        return this.listenTo(this.model, 'change', function() {
+          return _this.triggerChange();
+        });
+      };
+
+      Form.prototype.triggerChange = function() {
+        var object;
+        object = this.model != null ? this.model : this.collection;
+        return this.trigger('change', object.toJSON(), object);
+      };
+
+      Form.prototype.addSubform = function(attr, View) {
+        return this.renderSubform(attr, View, this.model);
+      };
+
+      Form.prototype.renderSubform = function(attr, View, model) {
+        var htmlSafeAttr, value, view,
+          _this = this;
+        value = attr.indexOf('.') > -1 ? Fn.flattenObject(model.attributes)[attr] : model.get(attr);
+        if (value == null) {
+          console.error('Subform value is undefined!', this.model);
+        }
+        view = new View({
+          value: value,
+          config: this.subformConfig[attr]
+        });
+        htmlSafeAttr = attr.split('.').join('_');
+        this.$("[data-cid='" + model.cid + "'] ." + htmlSafeAttr + "-placeholder").html(view.el);
+        return this.listenTo(view, 'change', function(data) {
+          return model.set(attr, data);
+        });
+      };
+
+      return Form;
+
+    })(Views.Base);
   });
 
 }).call(this);
@@ -5974,75 +7188,36 @@ define('text!html/ui/settings.submenu.html',[],function () { return '<div class=
 }).call(this);
 
 (function() {
-  define('collections/project/metadata_entries',['require','config','managers/token','models/state'],function(require) {
-    var Models, ProjectMetadataEntries, config, token;
-    config = require('config');
-    token = require('managers/token');
-    Models = {
-      state: require('models/state')
-    };
-    return ProjectMetadataEntries = (function() {
-      function ProjectMetadataEntries() {}
-
-      ProjectMetadataEntries.prototype.fetch = function(cb) {
-        var _this = this;
-        return Models.state.getCurrentProjectId(function(id) {
-          var jqXHR;
-          jqXHR = $.ajax({
-            url: "" + config.baseUrl + "projects/" + id + "/entrymetadatafields",
-            type: 'get',
-            dataType: 'json',
-            beforeSend: function(xhr) {
-              return xhr.setRequestHeader('Authorization', "SimpleAuth " + (token.get()));
-            }
-          });
-          return jqXHR.done(function(data) {
-            return cb(data);
-          });
-        });
-      };
-
-      return ProjectMetadataEntries;
-
-    })();
-  });
-
-}).call(this);
-
-(function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/project/metadata_annotations',['require','config','models/state','collections/base'],function(require) {
-    var Collections, Models, ProjectMetadataAnnotations, config, _ref;
-    config = require('config');
+  define('models/user',['require','models/base'],function(require) {
+    var Models, User, _ref;
     Models = {
-      state: require('models/state')
+      Base: require('models/base')
     };
-    Collections = {
-      Base: require('collections/base')
-    };
-    return ProjectMetadataAnnotations = (function(_super) {
-      __extends(ProjectMetadataAnnotations, _super);
+    return User = (function(_super) {
+      __extends(User, _super);
 
-      function ProjectMetadataAnnotations() {
-        _ref = ProjectMetadataAnnotations.__super__.constructor.apply(this, arguments);
+      function User() {
+        _ref = User.__super__.constructor.apply(this, arguments);
         return _ref;
       }
 
-      ProjectMetadataAnnotations.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/annotationtypes";
+      User.prototype.defaults = function() {
+        return {
+          username: '',
+          email: '',
+          firstName: '',
+          lastName: '',
+          role: 'User',
+          password: ''
+        };
       };
 
-      ProjectMetadataAnnotations.prototype.initialize = function() {
-        return ProjectMetadataAnnotations.__super__.initialize.apply(this, arguments);
-      };
+      return User;
 
-      return ProjectMetadataAnnotations;
-
-    })(Collections.Base);
+    })(Models.Base);
   });
 
 }).call(this);
@@ -6110,41 +7285,42 @@ define('text!html/ui/settings.submenu.html',[],function () { return '<div class=
 
 }).call(this);
 
-define('text!html/project/settings.html',[],function () { return '\n<div class="padl5 padr5">\n  <h2>Settings</h2>\n  <ul class="horizontal tab menu">\n    <li data-tab="project" class="active">Project</li>\n    <li data-tab="metadata-entries">Metadata entries</li>\n    <li data-tab="metadata-annotations">Metadata annotations</li>\n    <li data-tab="users">Users</li>\n  </ul>\n  <hr/>\n  <div data-tab="project" class="active">\n    <h3>Project</h3>\n    <div class="row span2">\n      <div class="cell span1">\n        <form>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="type">Type</label>\n            </div>\n            <div class="cell span3">\n              <input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/>\n            </div>\n          </div>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="title">Project title</label>\n            </div>\n            <div class="cell span3">\n              <input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/>\n            </div>\n          </div>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="leader">Project leader</label>\n            </div>\n            <div class="cell span3">\n              <input id="leader" type="text" name="leader" value="<%= settings[\'Project leader\'] %>" data-attr="Project leader"/>\n            </div>\n          </div>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="start">Start date</label>\n            </div>\n            <div class="cell span3">\n              <input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/>\n            </div>\n          </div>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="release">Release date</label>\n            </div>\n            <div class="cell span3">\n              <input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/>\n            </div>\n          </div>\n          <div class="row span4">\n            <div class="cell span1">\n              <label for="version">Version</label>\n            </div>\n            <div class="cell span3">\n              <input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/>\n            </div>\n          </div>\n        </form>\n      </div>\n      <div class="cell span1">\n        <h4>Statistics </h4><img src="/images/loader.gif" class="loader"/>\n        <pre class="statistics"></pre>\n      </div>\n    </div>\n  </div>\n  <div data-tab="metadata-entries"></div>\n  <div data-tab="metadata-annotations"></div>\n  <div data-tab="users"></div>\n</div>';});
+define('text!html/project/settings.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><hr/><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><input id="leader" type="text" name="leader" value="<%= settings[\'Project leader\'] %>" data-attr="Project leader"/></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="save" value="Save settings"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Entry metadata</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span2"><div class="cell span1 userlist"><h3>Add/remove existing user(s)</h3></div><div class="cell span1 adduser"><h3>Add new user</h3></div></div></div></div>';});
 
-define('text!html/project/metadata_entries.html',[],function () { return '<h3>Metadata entries</h3><ul><% _.each(entries, function(entry) { %><li><%= entry %></li><% }); %></ul>';});
+define('text!html/project/metadata_annotations.html',[],function () { return '<h3>Annotation types</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
 
-define('text!html/project/metadata_annotations.html',[],function () { return '<h3>Metadata annotations</h3><ul><% annotations.each(function(annotation) { %><li data-id="<%= annotation.id %>"><%= annotation.get(\'description\') %></li><% }); %></ul>';});
-
-define('text!html/project/users.html',[],function () { return '<h3>Users</h3><ul><% allusers.each(function(user) { %><li><%= user.get(\'lastName\') %></li><% }); %></ul><ul><% projectusers.each(function(user) { %><li><%= user.get(\'lastName\') %></li><% }); %></ul>';});
+define('text!html/project/adduser.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><input type="text" name="username" placeholder="Username"/></li><li><input type="text" name="email" placeholder="E-mail"/></li><li><input type="text" name="firstname" placeholder="First name"/></li><li><input type="text" name="lastname" placeholder="Last name"/></li><li><input type="password" name="password" placeholder="Password"/></li><li><input type="submit" name="adduser"/></li></ul></form>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/settings',['require','managers2/async','views/base','views/ui/settings.submenu','models/project/statistics','models/project/settings','models/state','collections/project/metadata_entries','collections/project/metadata_annotations','collections/project/users','collections/users','text!html/project/settings.html','text!html/project/metadata_entries.html','text!html/project/metadata_annotations.html','text!html/project/users.html'],function(require) {
-    var Async, Collections, Models, ProjectSettings, Templates, Views, _ref;
-    Async = require('managers2/async');
+  define('views/project/settings',['require','hilib/managers/async','entry.metadata','views/base','views/ui/settings.submenu','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','models/project/statistics','models/project/settings','models/state','models/user','collections/project/annotation.types','collections/project/users','collections/users','text!html/project/settings.html','text!html/project/metadata_annotations.html','text!html/project/adduser.html'],function(require) {
+    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, _ref;
+    Async = require('hilib/managers/async');
+    EntryMetadata = require('entry.metadata');
     Views = {
       Base: require('views/base'),
-      SubMenu: require('views/ui/settings.submenu')
+      SubMenu: require('views/ui/settings.submenu'),
+      EditableList: require('hilib/views/form/editablelist/main'),
+      ComboList: require('hilib/views/form/combolist/main'),
+      Form: require('hilib/views/form/main')
     };
     Models = {
       Statistics: require('models/project/statistics'),
       Settings: require('models/project/settings'),
-      state: require('models/state')
+      state: require('models/state'),
+      User: require('models/user')
     };
     Collections = {
-      Entries: require('collections/project/metadata_entries'),
-      Annotations: require('collections/project/metadata_annotations'),
+      AnnotationTypes: require('collections/project/annotation.types'),
       ProjectUsers: require('collections/project/users'),
       AllUsers: require('collections/users')
     };
     Templates = {
       Settings: require('text!html/project/settings.html'),
-      Entries: require('text!html/project/metadata_entries.html'),
-      Annotations: require('text!html/project/metadata_annotations.html'),
-      Users: require('text!html/project/users.html')
+      AnnotationTypes: require('text!html/project/metadata_annotations.html'),
+      AddUser: require('text!html/project/adduser.html')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);
@@ -6156,29 +7332,14 @@ define('text!html/project/users.html',[],function () { return '<h3>Users</h3><ul
 
       ProjectSettings.prototype.className = 'projectsettings';
 
-      ProjectSettings.prototype.events = {
-        'click li[data-tab]': 'showTab',
-        'change div[data-tab] input': function(ev) {
-          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
-        }
-      };
-
-      ProjectSettings.prototype.showTab = function(ev) {
-        var $ct, tabName;
-        $ct = $(ev.currentTarget);
-        tabName = $ct.attr('data-tab');
-        this.$(".active[data-tab]").removeClass('active');
-        return this.$("[data-tab='" + tabName + "']").addClass('active');
-      };
-
       ProjectSettings.prototype.initialize = function() {
         var _this = this;
         ProjectSettings.__super__.initialize.apply(this, arguments);
         this.model = new Models.Settings();
         return Models.state.getCurrentProject(function(project) {
-          _this.project = project;
+          _this.model.projectID = project.id;
           return _this.model.fetch({
-            success: function(model) {
+            success: function() {
               return _this.render();
             },
             error: function() {
@@ -6197,6 +7358,9 @@ define('text!html/project/users.html',[],function () { return '<h3>Users</h3><ul
         this.renderSubMenu();
         this.loadTabData();
         this.loadStatistics();
+        if (this.options.tabName) {
+          this.showTab(this.options.tabName);
+        }
         return this;
       };
 
@@ -6216,25 +7380,54 @@ define('text!html/project/users.html',[],function () { return '<h3>Users</h3><ul
         });
       };
 
+      ProjectSettings.prototype.events = {
+        'click input[name="addannotationtype"]': 'addAnnotationType',
+        'click li[data-tab]': 'showTab',
+        'change div[data-tab] input': function(ev) {
+          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
+        }
+      };
+
+      ProjectSettings.prototype.showTab = function(ev) {
+        var $ct, index, tabName;
+        if (_.isString(ev)) {
+          tabName = ev;
+        } else {
+          $ct = $(ev.currentTarget);
+          tabName = $ct.attr('data-tab');
+        }
+        index = Backbone.history.fragment.indexOf('/settings');
+        Backbone.history.navigate(Backbone.history.fragment.substr(0, index) + '/settings/' + tabName);
+        this.$(".active[data-tab]").removeClass('active');
+        return this.$("[data-tab='" + tabName + "']").addClass('active');
+      };
+
+      ProjectSettings.prototype.addAnnotationType = function(ev) {
+        return ev.preventDefault();
+      };
+
       ProjectSettings.prototype.loadTabData = function() {
         var async,
           _this = this;
-        this.entries = new Collections.Entries();
-        this.entries.fetch(function(data) {
-          var rtpl;
-          console.log(data);
-          rtpl = _.template(Templates.Entries, {
-            entries: data
+        this.entryMetadata = new EntryMetadata(this.model.projectID);
+        this.entryMetadata.fetch(function(data) {
+          var list;
+          list = new Views.EditableList({
+            value: data
           });
-          return _this.$('div[data-tab="metadata-entries"]').html(rtpl);
+          _this.listenTo(list, 'change', function(values) {
+            return _this.entryMetadata.save(values);
+          });
+          return _this.$('div[data-tab="metadata-entries"]').append(list.el);
         });
-        this.annotations = new Collections.Annotations();
-        this.annotations.fetch({
+        this.annotationTypes = new Collections.AnnotationTypes([], {
+          projectId: this.model.projectID
+        });
+        this.annotationTypes.fetch({
           success: function(collection, value, options) {
             var rtpl;
-            console.log(value);
-            rtpl = _.template(Templates.Annotations, {
-              annotations: collection
+            rtpl = _.template(Templates.AnnotationTypes, {
+              annotationTypes: collection
             });
             return _this.$('div[data-tab="metadata-annotations"]').html(rtpl);
           },
@@ -6256,9 +7449,25 @@ define('text!html/project/users.html',[],function () { return '<h3>Users</h3><ul
           error: function() {}
         });
         return async.on('ready', function(data) {
-          var rtpl;
-          rtpl = _.template(Templates.Users, data);
-          return _this.$('div[data-tab="users"]').html(rtpl);
+          var combolist, form;
+          combolist = new Views.ComboList({
+            value: data.projectusers,
+            config: {
+              data: data.allusers
+            }
+          });
+          _this.listenTo(combolist, 'change', function(userIDs) {
+            return console.log(userIDs);
+          });
+          _this.$('div[data-tab="users"] .userlist').append(combolist.el);
+          form = new Views.Form({
+            Model: Models.User,
+            tpl: Templates.AddUser
+          });
+          _this.listenTo(form, 'change', function(a, b, c) {
+            return console.log(a, b, c);
+          });
+          return _this.$('div[data-tab="users"] .adduser').append(form.el);
         });
       };
 
@@ -6520,6 +7729,53 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
 
 }).call(this);
 
+(function() {
+  define('managers2/async',['require','underscore'],function(require) {
+    var Async, _;
+    _ = require('underscore');
+    return Async = (function() {
+      function Async(names) {
+        if (names == null) {
+          names = [];
+        }
+        _.extend(this, Backbone.Events);
+        this.callbacksCalled = {};
+        this.register(names);
+      }
+
+      Async.prototype.register = function(names) {
+        var name, _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = names.length; _i < _len; _i++) {
+          name = names[_i];
+          _results.push(this.callbacksCalled[name] = false);
+        }
+        return _results;
+      };
+
+      Async.prototype.called = function(name, data) {
+        if (data == null) {
+          data = true;
+        }
+        this.callbacksCalled[name] = data;
+        if (_.every(this.callbacksCalled, function(called) {
+          return called !== false;
+        })) {
+          return this.ready();
+        }
+      };
+
+      Async.prototype.ready = function() {
+        return this.trigger('ready', this.callbacksCalled);
+      };
+
+      return Async;
+
+    })();
+  });
+
+}).call(this);
+
 define('text!html/ui/entry.submenu.html',[],function () { return '';});
 
 (function() {
@@ -6579,7 +7835,7 @@ define('text!html/entry/tooltip.add.annotation.html',[],function () { return '<b
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/tooltip.add.annotation',['require','helpers/general','views/base','models/annotation','text!html/entry/tooltip.add.annotation.html'],function(require) {
+  define('views/entry/preview/annotation.add.tooltip',['require','helpers/general','views/base','models/annotation','text!html/entry/tooltip.add.annotation.html'],function(require) {
     var AddAnnotationTooltip, Annotation, BaseView, Fn, Templates, _ref;
     Fn = require('helpers/general');
     BaseView = require('views/base');
@@ -6673,7 +7929,7 @@ define('text!html/ui/tooltip.html',[],function () { return '<ul class="horizonta
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/tooltip.edit.annotation',['require','helpers/general','views/base','text!html/ui/tooltip.html'],function(require) {
+  define('views/entry/preview/annotation.edit.tooltip',['require','helpers/general','views/base','text!html/ui/tooltip.html'],function(require) {
     var BaseView, Fn, Templates, Tooltip, _ref;
     Fn = require('helpers/general');
     BaseView = require('views/base');
@@ -6783,49 +8039,51 @@ define('text!html/ui/tooltip.html',[],function () { return '<ul class="horizonta
 
 }).call(this);
 
-define('text!html/entry/preview.html',[],function () { return '\n<div class="preview"><%= body %></div>';});
+define('text!html/entry/preview.html',[],function () { return '<div class="preview"> <div class="body"><%= body %></div><ul class="linenumbers"><% var lineNumber = 1 %>\n<% while(lineNumber <= lineCount) { %><li><%= lineNumber %></li><% lineNumber++ %>\n<% } %></ul></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/preview',['require','helpers2/general','views/base','views/entry/tooltip.add.annotation','views/entry/tooltip.edit.annotation','text!html/entry/preview.html'],function(require) {
-    var EntryPreview, Fn, Tpl, Views, _ref;
+  define('views/entry/preview/main',['require','helpers2/general','views/base','views/entry/preview/annotation.add.tooltip','views/entry/preview/annotation.edit.tooltip','text!html/entry/preview.html'],function(require) {
+    var Fn, Tpl, TranscriptionPreview, Views, _ref;
     Fn = require('helpers2/general');
     Views = {
       Base: require('views/base'),
-      AddAnnotationTooltip: require('views/entry/tooltip.add.annotation'),
-      EditAnnotationTooltip: require('views/entry/tooltip.edit.annotation')
+      AddAnnotationTooltip: require('views/entry/preview/annotation.add.tooltip'),
+      EditAnnotationTooltip: require('views/entry/preview/annotation.edit.tooltip')
     };
     Tpl = require('text!html/entry/preview.html');
-    return EntryPreview = (function(_super) {
-      __extends(EntryPreview, _super);
+    return TranscriptionPreview = (function(_super) {
+      __extends(TranscriptionPreview, _super);
 
-      function EntryPreview() {
-        _ref = EntryPreview.__super__.constructor.apply(this, arguments);
+      function TranscriptionPreview() {
+        _ref = TranscriptionPreview.__super__.constructor.apply(this, arguments);
         return _ref;
       }
 
-      EntryPreview.prototype.initialize = function() {
-        EntryPreview.__super__.initialize.apply(this, arguments);
+      TranscriptionPreview.prototype.initialize = function() {
+        TranscriptionPreview.__super__.initialize.apply(this, arguments);
         this.highlighter = Fn.highlighter();
         this.currentTranscription = this.model.get('transcriptions').current;
-        this.listenTo(this.currentTranscription, 'current:change', this.render);
-        this.listenTo(this.currentTranscription, 'change:body', this.render);
+        this.addListeners();
         this.render();
         this.renderTooltips();
         this.setHeight();
         return this.onHover();
       };
 
-      EntryPreview.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.currentTranscription.attributes);
+      TranscriptionPreview.prototype.render = function() {
+        var brs, data, rtpl, _ref1;
+        data = this.currentTranscription.toJSON();
+        brs = (_ref1 = this.currentTranscription.get('body').match(/<br>/g)) != null ? _ref1 : [];
+        data.lineCount = brs.length;
+        rtpl = _.template(Tpl, data);
         this.$el.html(rtpl);
         return this;
       };
 
-      EntryPreview.prototype.renderTooltips = function() {
+      TranscriptionPreview.prototype.renderTooltips = function() {
         var _this = this;
         this.addAnnotationTooltip = new Views.AddAnnotationTooltip({
           container: this.el
@@ -6840,13 +8098,12 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
           if (model != null) {
             return _this.currentTranscription.get('annotations').remove(model);
           } else {
-            _this.$('[data-id="newannotation"]').remove();
-            return _this.trigger('newAnnotationRemoved');
+            return _this.removeNewAnnotationTags();
           }
         });
       };
 
-      EntryPreview.prototype.events = function() {
+      TranscriptionPreview.prototype.events = function() {
         return {
           'click sup[data-marker="end"]': 'supClicked',
           'mousedown .preview': 'onMousedown',
@@ -6855,17 +8112,17 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
         };
       };
 
-      EntryPreview.prototype.onScroll = function(ev) {
+      TranscriptionPreview.prototype.onScroll = function(ev) {
         var _this = this;
         return Fn.timeoutWithReset(200, function() {
           return _this.trigger('scrolled', Fn.getScrollPercentage(ev.currentTarget));
         });
       };
 
-      EntryPreview.prototype.supClicked = function(ev) {
+      TranscriptionPreview.prototype.supClicked = function(ev) {
         var annotation, id;
         id = ev.currentTarget.getAttribute('data-id') >> 0;
-        annotation = this.model.get('transcriptions').current.get('annotations').findWhere({
+        annotation = this.currentTranscription.get('annotations').findWhere({
           annotationNo: id
         });
         return this.editAnnotationTooltip.show({
@@ -6874,18 +8131,18 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
         });
       };
 
-      EntryPreview.prototype.onMousedown = function(ev) {
-        if (ev.target === this.el.querySelector('.preview')) {
+      TranscriptionPreview.prototype.onMousedown = function(ev) {
+        if (ev.target === this.el.querySelector('.preview .body')) {
           this.stopListening(this.addAnnotationTooltip);
           return this.addAnnotationTooltip.hide();
         }
       };
 
-      EntryPreview.prototype.onMouseup = function(ev) {
+      TranscriptionPreview.prototype.onMouseup = function(ev) {
         var isInsideMarker, range, sel,
           _this = this;
         sel = document.getSelection();
-        if (sel.rangeCount === 0 || ev.target !== this.el.querySelector('.preview')) {
+        if (sel.rangeCount === 0 || ev.target.tagName === 'SUP') {
           this.addAnnotationTooltip.hide();
           return false;
         }
@@ -6905,7 +8162,7 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
         }
       };
 
-      EntryPreview.prototype.addNewAnnotationTags = function(range) {
+      TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
         span.setAttribute('data-marker', 'begin');
@@ -6917,12 +8174,20 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
         sup.innerHTML = 'new';
         range.collapse(false);
         range.insertNode(sup);
-        return this.currentTranscription.set('body', this.$('.preview').html(), {
+        return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
       };
 
-      EntryPreview.prototype.onHover = function() {
+      TranscriptionPreview.prototype.removeNewAnnotationTags = function() {
+        this.$('[data-id="newannotation"]').remove();
+        this.currentTranscription.set('body', this.$('.preview .body').html(), {
+          silent: true
+        });
+        return this.trigger('newAnnotationRemoved');
+      };
+
+      TranscriptionPreview.prototype.onHover = function() {
         var supEnter, supLeave,
           _this = this;
         supEnter = function(ev) {
@@ -6939,11 +8204,23 @@ define('text!html/entry/preview.html',[],function () { return '\n<div class="pre
         return this.$('sup[data-marker]').hover(supEnter, supLeave);
       };
 
-      EntryPreview.prototype.setHeight = function() {
+      TranscriptionPreview.prototype.setHeight = function() {
         return this.$el.height(document.documentElement.clientHeight - 89 - 78 - 10);
       };
 
-      return EntryPreview;
+      TranscriptionPreview.prototype.setModel = function(entry) {
+        this.model = entry;
+        this.currentTranscription = this.model.get('transcriptions').current;
+        this.addListeners();
+        return this.render();
+      };
+
+      TranscriptionPreview.prototype.addListeners = function() {
+        this.listenTo(this.currentTranscription, 'current:change', this.render);
+        return this.listenTo(this.currentTranscription, 'change:body', this.render);
+      };
+
+      return TranscriptionPreview;
 
     })(Views.Base);
   });
@@ -7190,19 +8467,19 @@ define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { re
 
 }).call(this);
 
-define('text!html/entry/metadata.annotation.html',[],function () { return '<label>Type</label><select name="type"><% collection.each(function(item) { %>\n<% var selected = (item.id === model.get(\'annotationType\').id) ? \' selected\' : \'\'; %>\n<option data-id!="<%= item.id %>"<%= selected %>><%= item.get(\'description\') %> (<%= item.get(\'name\') %>)</option>\n<% }); %></select>';});
+define('text!html/entry/annotation.metadata.html',[],function () { return '<ul class="form"><li><label>Type</label><select name="type"><% collection.each(function(item) { %>\n<% var selected = (item.id === model.get(\'annotationType\').id) ? \' selected\' : \'\'; %>\n<option data-id!="<%= item.id %>"<%= selected %>><%= item.get(\'description\') %> (<%= item.get(\'name\') %>)</option>\n<% }); %></select></li></ul>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/metadata.annotation',['require','helpers/general','views/base','text!html/entry/metadata.annotation.html'],function(require) {
+  define('views/entry/annotation.metadata',['require','helpers/general','views/base','text!html/entry/annotation.metadata.html'],function(require) {
     var AnnotationMetadata, Fn, Tpl, Views, _ref;
     Fn = require('helpers/general');
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/metadata.annotation.html');
+    Tpl = require('text!html/entry/annotation.metadata.html');
     return AnnotationMetadata = (function(_super) {
       __extends(AnnotationMetadata, _super);
 
@@ -7218,6 +8495,7 @@ define('text!html/entry/metadata.annotation.html',[],function () { return '<labe
 
       AnnotationMetadata.prototype.render = function() {
         var rtpl;
+        console.log(this.model, this.collection.toJSON());
         rtpl = _.template(Tpl, {
           model: this.model,
           collection: this.collection
@@ -7246,13 +8524,349 @@ define('text!html/entry/metadata.annotation.html',[],function () { return '<labe
 
 }).call(this);
 
-define('text!html/entry/main.html',[],function () { return '\n<div class="submenu">\n  <div class="row span7">\n    <div class="cell span3 left">\n      <ul class="horizontal menu">\n        <li data-key="previous" class="arrowleft">Previous entry</li>\n        <li data-key="next" class="arrowright">Next entry</li>\n        <li data-key="print">Print</li>\n        <li data-key="facsimiles" class="arrowdown">Facsimiles\n          <ul class="vertical menu"><% facsimiles.each(function(facs) { %>\n            <li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get(\'name\') %></li><% }); %>\n          </ul>\n        </li>\n      </ul>\n    </div>\n    <div class="cell span2">\n      <ul class="horizontal menu">\n        <li data-key="save">Save</li>\n        <li data-key="layer" class="arrowdown">Layer\n          <ul class="vertical menu"><% transcriptions.each(function(trans) { %>\n            <li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get(\'textLayer\') %></li><% }); %>\n          </ul>\n        </li>\n        <li data-key="metadata">Metadata</li>\n      </ul>\n    </div>\n    <div class="cell span2 alignright">\n      <ul class="horizontal menu">\n        <li data-key="preview">Preview full screen</li>\n      </ul>\n    </div>\n  </div>\n</div>\n<div class="row span7 container">\n  <div class="cell span3">\n    <div class="left"><% if (facsimiles.length) { %>\n      <iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %>\n    </div>\n  </div>\n  <div class="cell span2">\n    <div class="middle">\n      <div class="transcription"></div>\n      <div class="annotation"></div>\n      <div class="annotationmetadata"></div>\n    </div>\n  </div>\n  <div class="cell span2">\n    <div class="right"></div>\n  </div>\n</div>';});
+define('text!html/entry/textlayers.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><ul class="textlayers"><% transcriptions.each(function(trans) { %><li><img src="/images/icon.bin.png" width="14px" height="14px"/><label data-id="<%= trans.id %>"> <%= trans.get(\'textLayer\') %></label></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><ul class="form addtextlayer"><li><label>Name</label><input type="text" name="name"/></li><li><label>Text</label><textarea name="text"></textarea></li><li><button class="addtextlayer">Add textlayer</button></li></ul></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','helpers2/general','helpers2/string','helpers/jquery.mixin','managers2/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview','views2/supertinyeditor/supertinyeditor','views/entry/metadata.annotation','text!html/entry/main.html'],function(require) {
+  define('views/entry/subsubmenu/textlayers.edit',['require','helpers2/general','views/base','text!html/entry/textlayers.edit.html'],function(require) {
+    var EditTextlayers, Fn, Tpl, Views, _ref;
+    Fn = require('helpers2/general');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/textlayers.edit.html');
+    return EditTextlayers = (function(_super) {
+      __extends(EditTextlayers, _super);
+
+      function EditTextlayers() {
+        _ref = EditTextlayers.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditTextlayers.prototype.initialize = function() {
+        EditTextlayers.__super__.initialize.apply(this, arguments);
+        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'remove', this.render);
+        return this.render();
+      };
+
+      EditTextlayers.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, {
+          transcriptions: this.collection
+        });
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      EditTextlayers.prototype.events = function() {
+        return {
+          'click button.addtextlayer': 'addtextlayer',
+          'click ul.textlayers li img': 'removetextlayer',
+          'click ul.textlayers li.destroy label': 'destroytextlayer'
+        };
+      };
+
+      EditTextlayers.prototype.removetextlayer = function(ev) {
+        var parentLi;
+        parentLi = $(ev.currentTarget).parent();
+        return parentLi.toggleClass('destroy');
+      };
+
+      EditTextlayers.prototype.destroytextlayer = function(ev) {
+        var transcriptionID;
+        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        return this.collection.remove(this.collection.get(transcriptionID));
+      };
+
+      EditTextlayers.prototype.addtextlayer = function() {
+        var data, name, text;
+        name = this.el.querySelector('input[name="name"]').value;
+        text = this.el.querySelector('textarea[name="text"]').value;
+        if (name !== '') {
+          data = {
+            textLayer: name,
+            body: text
+          };
+          return this.collection.create(data, {
+            wait: true
+          });
+        }
+      };
+
+      return EditTextlayers;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/facsimiles.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><ul class="facsimiles"><% facsimiles.each(function(facs) { %><li><img src="/images/icon.bin.png" width="14px" height="14px"/><label data-id="<%= facs.id %>"> <%= facs.get(\'name\') %></label></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><ul class="form addfacsimile"><li><label>Name</label><input type="text" name="name"/></li><li><form enctype="multipart/form-data" class="addfile"><input type="file" name="filename"/></form></li><li><button class="addfacsimile">Add facsimile</button></li></ul></div></div></div>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/subsubmenu/facsimiles.edit',['require','helpers2/general','managers2/ajax','managers2/token','views/base','text!html/entry/facsimiles.edit.html'],function(require) {
+    var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
+    Fn = require('helpers2/general');
+    ajax = require('managers2/ajax');
+    token = require('managers2/token');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/facsimiles.edit.html');
+    return EditFacsimiles = (function(_super) {
+      __extends(EditFacsimiles, _super);
+
+      function EditFacsimiles() {
+        _ref = EditFacsimiles.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditFacsimiles.prototype.initialize = function() {
+        EditFacsimiles.__super__.initialize.apply(this, arguments);
+        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'remove', this.render);
+        return this.render();
+      };
+
+      EditFacsimiles.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, {
+          facsimiles: this.collection
+        });
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      EditFacsimiles.prototype.events = function() {
+        return {
+          'click ul.facsimiles li img': 'removefacsimile',
+          'click ul.facsimiles li.destroy label': 'destroyfacsimile',
+          'keyup input[name="name"]': 'keyupName',
+          'click button.addfacsimile': 'addfacsimile'
+        };
+      };
+
+      EditFacsimiles.prototype.keyupName = function(ev) {
+        return this.el.querySelector('form.addfile').style.display = ev.currentTarget.value.length > 0 ? 'block' : 'none';
+      };
+
+      EditFacsimiles.prototype.addfacsimile = function(ev) {
+        var form, formData, jqXHR,
+          _this = this;
+        ev.stopPropagation();
+        ev.preventDefault();
+        form = this.el.querySelector('form.addfile');
+        formData = new FormData(form);
+        jqXHR = ajax.post({
+          url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload',
+          data: formData,
+          cache: false,
+          contentType: false,
+          processData: false
+        });
+        return jqXHR.done(function(response) {
+          var data;
+          data = {
+            name: _this.el.querySelector('input[name="name"]').value,
+            filename: response[1].originalName,
+            zoomableUrl: response[1].jp2url
+          };
+          return _this.collection.create(data, {
+            wait: true
+          });
+        });
+      };
+
+      EditFacsimiles.prototype.removefacsimile = function(ev) {
+        var parentLi;
+        parentLi = $(ev.currentTarget).parent();
+        return parentLi.toggleClass('destroy');
+      };
+
+      EditFacsimiles.prototype.destroyfacsimile = function(ev) {
+        var transcriptionID;
+        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        return this.collection.remove(this.collection.get(transcriptionID));
+      };
+
+      return EditFacsimiles;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/transcription.edit.menu.html',[],function () { return '<button disabled="disabled" class="ok small">Save</button>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/transcription.edit.menu',['require','helpers/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
+    var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
+    Fn = require('helpers/general');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/transcription.edit.menu.html');
+    return TranscriptionEditMenu = (function(_super) {
+      __extends(TranscriptionEditMenu, _super);
+
+      function TranscriptionEditMenu() {
+        _ref = TranscriptionEditMenu.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      TranscriptionEditMenu.prototype.className = 'transcriptioneditmenu';
+
+      TranscriptionEditMenu.prototype.initialize = function() {
+        TranscriptionEditMenu.__super__.initialize.apply(this, arguments);
+        this.addListeners();
+        return this.render();
+      };
+
+      TranscriptionEditMenu.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      TranscriptionEditMenu.prototype.events = function() {
+        return {
+          'click button.ok': 'save'
+        };
+      };
+
+      TranscriptionEditMenu.prototype.save = function() {
+        return this.model.save();
+      };
+
+      TranscriptionEditMenu.prototype.setModel = function(transcription) {
+        this.model = transcription;
+        return this.addListeners();
+      };
+
+      TranscriptionEditMenu.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.model, 'sync', function() {
+          return _this.el.querySelector('button.ok').disabled = true;
+        });
+        return this.listenTo(this.model, 'change:body', function() {
+          return _this.el.querySelector('button.ok').disabled = false;
+        });
+      };
+
+      return TranscriptionEditMenu;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/annotation.edit.menu.html',[],function () { return '<button class="metadata small">Metadata</button><button class="cancel small">Cancel</button><button disabled="disabled" class="ok small">Save</button>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/annotation.edit.menu',['require','helpers/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
+    var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
+    Fn = require('helpers/general');
+    config = require('config');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/annotation.edit.menu.html');
+    return AnnotationEditMenu = (function(_super) {
+      __extends(AnnotationEditMenu, _super);
+
+      function AnnotationEditMenu() {
+        _ref = AnnotationEditMenu.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      AnnotationEditMenu.prototype.className = 'annotationeditmenu';
+
+      AnnotationEditMenu.prototype.initialize = function() {
+        AnnotationEditMenu.__super__.initialize.apply(this, arguments);
+        this.addListeners();
+        return this.render();
+      };
+
+      AnnotationEditMenu.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      AnnotationEditMenu.prototype.events = function() {
+        var _this = this;
+        return {
+          'click button.ok': 'save',
+          'click button.cancel': function() {
+            return _this.trigger('cancel', _this.model);
+          },
+          'click button.metadata': function() {
+            return _this.trigger('metadata', _this.model);
+          }
+        };
+      };
+
+      AnnotationEditMenu.prototype.save = function() {
+        var _this = this;
+        if (this.model.isNew()) {
+          this.model.urlRoot = function() {
+            return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
+          };
+          return this.model.save([], {
+            success: function() {
+              return _this.collection.add(_this.model);
+            },
+            error: function(model, xhr, options) {
+              return console.error('Saving annotation failed!', model, xhr, options);
+            }
+          });
+        } else {
+          return this.model.save();
+        }
+      };
+
+      AnnotationEditMenu.prototype.setModel = function(annotation) {
+        this.model = annotation;
+        return this.addListeners();
+      };
+
+      AnnotationEditMenu.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.model, 'sync', function(model, resp, options) {
+          return _this.el.querySelector('button.ok').disabled = true;
+        });
+        return this.listenTo(this.model, 'change:body', function() {
+          return _this.el.querySelector('button.ok').disabled = false;
+        });
+      };
+
+      return AnnotationEditMenu;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/main.html',[],function () { return '<div class="submenu"><div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="previous">Previous entry</li><li data-key="next">Next entry</li><li data-key="editfacsimiles" class="arrowdown subsub">Edit facsimiles</li><li data-key="facsimiles" class="alignright">Facsimiles<ul class="vertical menu facsimiles"><li class="spacer">&nbsp;</li><% facsimiles.each(function(facs) { %><li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get(\'name\') %></li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="edittextlayers" class="subsub">Edit layers</li><li data-key="layer" class="arrowdown">Layer<ul class="vertical menu textlayers"><li class="spacer">&nbsp;</li><% transcriptions.each(function(trans) { %><li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get(\'textLayer\') %> layer</li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="print">Print</li><li data-key="preview">Preview full screen</li></ul></div></div></div><div class="subsubmenu"><div class="edittextlayers"></div><div class="editfacsimiles"></div></div><div class="row span7 container"><div class="cell span3"><div class="left"><% if (facsimiles.length) { %><iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %></div></div><div class="cell span2"><div class="middle"><div class="transcription-placeholder"><div class="transcription-editor"></div></div><div class="annotation-placeholder"><div class="annotation-editor"></div></div><div class="annotationmetadata-placeholder"><div class="annotationmetadata"></div></div></div></div><div class="cell span2"><div class="right"></div></div></div>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/main',['require','backbone','helpers2/general','helpers2/string','helpers/jquery.mixin','managers2/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','views2/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','text!html/entry/main.html'],function(require) {
     var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, _ref;
     Backbone = require('backbone');
     Fn = require('helpers2/general');
@@ -7266,9 +8880,13 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
     Views = {
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
-      Preview: require('views/entry/preview'),
+      Preview: require('views/entry/preview/main'),
       SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
-      AnnotationMetadata: require('views/entry/metadata.annotation')
+      AnnotationMetadata: require('views/entry/annotation.metadata'),
+      EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
+      EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
+      TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
+      AnnotationEditMenu: require('views/entry/annotation.edit.menu')
     };
     Templates = {
       Entry: require('text!html/entry/main.html')
@@ -7287,6 +8905,7 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
         var async,
           _this = this;
         Entry.__super__.initialize.apply(this, arguments);
+        this.subviews = {};
         async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
         this.listenToOnce(async, 'ready', function() {
           return _this.render();
@@ -7305,7 +8924,6 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
                     }
                   });
                   _this.currentTranscription = collection.setCurrent(model);
-                  _this.navigateToTextLayer(_this.currentTranscription);
                   return async.called('transcriptions');
                 }
               });
@@ -7327,15 +8945,8 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
               return async.called('annotationtypes');
             }
           });
-          project.fetchEntrymetadatafields(function() {
+          return project.fetchEntrymetadatafields(function() {
             return async.called('entrymetadatafields');
-          });
-          return window.addEventListener('resize', function(ev) {
-            return Fn.timeoutWithReset(600, function() {
-              _this.renderFacsimile();
-              _this.preview.setHeight();
-              return _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
-            });
           });
         });
       };
@@ -7343,29 +8954,20 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
       Entry.prototype.render = function() {
         var rtpl,
           _this = this;
-        rtpl = _.template(Templates.Entry, this.model.attributes);
+        rtpl = _.template(Templates.Entry, this.model.toJSON());
         this.$el.html(rtpl);
+        if (this.options.transcriptionName == null) {
+          this.navigateToTranscription();
+        }
+        this.setTranscriptionNameToMenu();
         this.renderFacsimile();
         this.renderTranscription();
-        this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
-        this.listenTo(this.preview, 'scrolled', function(percentages) {
-          return _this.transcriptionEdit.setScrollPercentage(percentages);
-        });
-        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
-          return Fn.setScrollPercentage(_this.preview.el, percentages);
-        });
-        this.listenTo(this.transcriptionEdit, 'change', function(cmd, doc) {
-          return _this.currentTranscription.set('body', doc);
-        });
-        this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
-          _this.currentFacsimile = current;
-          return _this.renderFacsimile();
-        });
-        return this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
-          _this.currentTranscription = current;
-          return _this.renderTranscription(current);
+        this.renderSubsubmenu();
+        this.addListeners();
+        return this.currentTranscription.getAnnotations(function(annotations) {
+          if (_this.options.annotationID != null) {
+            return _this.renderAnnotation(annotations.get(_this.options.annotationID));
+          }
         });
       };
 
@@ -7375,63 +8977,83 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
           url = this.model.get('facsimiles').current.get('zoomableUrl');
           this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
           return this.$('.left iframe').height(document.documentElement.clientHeight - 89);
+        } else {
+          return this.el.querySelector('li[data-key="facsimiles"]').style.display = 'none';
         }
       };
 
-      Entry.prototype.renderTranscription = function(model) {
-        var currentTranscription, el, li, text, textLayer, textLayerNode;
+      Entry.prototype.renderTranscription = function() {
+        var $el;
         this.renderPreview();
         if (this.transcriptionEdit != null) {
-          if (model != null) {
-            this.transcriptionEdit.setModel(model);
-          }
+          this.transcriptionEdit.setModel(this.currentTranscription);
+          this.transcriptionEditMenu.setModel(this.currentTranscription);
         } else {
-          textLayer = this.model.get('transcriptions').current.get('textLayer');
-          textLayerNode = document.createTextNode(textLayer + ' layer');
-          li = this.el.querySelector('.submenu li[data-key="layer"]');
-          li.replaceChild(textLayerNode, li.firstChild);
-          currentTranscription = this.model.get('transcriptions').current;
-          text = currentTranscription.get('body');
-          el = this.$('.container .middle .transcription');
+          $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            model: this.model.get('transcriptions').current,
-            htmlAttribute: 'body',
-            el: el,
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'outdent', 'indent', '|', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
-            html: text,
+            el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
-            width: el.width() - 10
+            html: this.currentTranscription.get('body'),
+            htmlAttribute: 'body',
+            model: this.model.get('transcriptions').current,
+            width: $el.width() - 20
           });
+          this.transcriptionEditMenu = new Views.TranscriptionEditMenu({
+            model: this.currentTranscription
+          });
+          $el.append(this.transcriptionEditMenu.$el);
         }
         return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        if (this.annotationEdit != null) {
-          if (model != null) {
-            this.annotationEdit.setModel(model);
-          }
+        var $el,
+          _this = this;
+        this.navigateToAnnotation(model.id);
+        if ((this.annotationEdit != null) && (model != null)) {
+          this.annotationEdit.setModel(model);
+          this.annotationEditMenu.setModel(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
           }
+          $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
-            model: model,
-            htmlAttribute: 'body',
-            el: this.el.querySelector('.container .middle .annotation'),
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'outdent', 'indent', '|', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            el: $el.find('.annotation-editor'),
+            height: this.preview.$el.innerHeight(),
             html: model.get('body'),
+            htmlAttribute: 'body',
+            model: model,
+            width: $el.width() - 10,
             wrap: true
           });
+          this.annotationEditMenu = new Views.AnnotationEditMenu({
+            model: model,
+            collection: this.currentTranscription.get('annotations')
+          });
+          this.listenTo(this.annotationEditMenu, 'cancel', function(model) {
+            return _this.preview.removeNewAnnotationTags();
+          });
+          this.listenTo(this.annotationEditMenu, 'metadata', function(model) {
+            _this.annotationMetadata = new Views.AnnotationMetadata({
+              model: model,
+              collection: _this.project.get('annotationtypes'),
+              el: _this.el.querySelector('.container .middle .annotationmetadata')
+            });
+            return _this.toggleEditPane('annotationmetadata');
+          });
+          $el.append(this.annotationEditMenu.$el);
         }
         return this.toggleEditPane('annotation');
       };
 
       Entry.prototype.renderPreview = function() {
         if (this.preview != null) {
-          return this.preview.render();
+          return this.preview.setModel(this.model);
         } else {
           return this.preview = new Views.Preview({
             model: this.model,
@@ -7440,16 +9062,50 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
         }
       };
 
+      Entry.prototype.renderSubsubmenu = function() {
+        this.subviews.textlayersEdit = new Views.EditTextlayers({
+          collection: this.model.get('transcriptions'),
+          el: this.$('.subsubmenu .edittextlayers')
+        });
+        return this.subviews.facsimileEdit = new Views.EditFacsimiles({
+          collection: this.model.get('facsimiles'),
+          el: this.$('.subsubmenu .editfacsimiles')
+        });
+      };
+
       Entry.prototype.events = function() {
         return {
           'click .menu li[data-key="previous"]': 'previousEntry',
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
-          'click .menu li[data-key="transcription"]': 'changeTextlayer',
+          'click .menu li[data-key="transcription"]': 'changeTranscription',
           'click .menu li[data-key="save"]': 'save',
-          'click .menu li[data-key="metadata"]': 'metadata'
+          'click .menu li.subsub': 'toggleSubsubmenu'
         };
       };
+
+      Entry.prototype.toggleSubsubmenu = (function() {
+        var currentMenu;
+        currentMenu = null;
+        return function(ev) {
+          var newMenu;
+          newMenu = ev.currentTarget.getAttribute('data-key');
+          if (currentMenu === newMenu) {
+            $(ev.currentTarget).removeClass('rotateup');
+            $('.subsubmenu').removeClass('active');
+            return currentMenu = null;
+          } else {
+            if (currentMenu != null) {
+              $('.submenu li[data-key="' + currentMenu + '"]').removeClass('rotateup');
+            } else {
+              $('.subsubmenu').addClass('active');
+            }
+            $('.submenu li[data-key="' + newMenu + '"]').addClass('rotateup');
+            $('.subsubmenu').find('.' + newMenu).show().siblings().hide();
+            return currentMenu = newMenu;
+          }
+        };
+      })();
 
       Entry.prototype.previousEntry = function() {
         return this.publish('navigate:entry', this.model.collection.previous().id);
@@ -7468,51 +9124,46 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
         }
       };
 
-      Entry.prototype.changeTextlayer = function(ev) {
-        var model, transcriptionID;
+      Entry.prototype.changeTranscription = function(ev) {
+        var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
-        model = this.model.get('transcriptions').get(transcriptionID);
-        if (model !== this.model.get('transcriptions').current) {
-          this.model.get('transcriptions').setCurrent(model);
-          this.navigateToTextLayer(model);
+        newTranscription = this.model.get('transcriptions').get(transcriptionID);
+        if (newTranscription !== this.currentTranscription) {
+          this.model.get('transcriptions').setCurrent(newTranscription);
+          this.navigateToTranscription();
+          this.setTranscriptionNameToMenu();
         }
         return this.toggleEditPane('transcription');
       };
 
-      Entry.prototype.navigateToTextLayer = function(model) {
+      Entry.prototype.navigateToTranscription = function() {
         var index;
         index = Backbone.history.fragment.indexOf('/transcriptions/');
         if (index !== -1) {
           Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
         }
-        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(model.get('textLayer')), {
+        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
           replace: true
         });
       };
 
-      Entry.prototype.save = function(ev) {
-        var annotations,
-          _this = this;
-        if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
-          annotations = this.model.get('transcriptions').current.get('annotations');
-          return annotations.create(this.annotationEdit.model.attributes, {
-            wait: true,
-            success: function() {
-              return _this.renderTranscription();
-            }
-          });
+      Entry.prototype.navigateToAnnotation = function(id) {
+        var index;
+        index = Backbone.history.fragment.indexOf('/annotations/');
+        if (index !== -1) {
+          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
         }
+        return Backbone.history.navigate(Backbone.history.fragment + '/annotations/' + id, {
+          replace: true
+        });
       };
 
-      Entry.prototype.metadata = function(ev) {
-        if ((this.annotationEdit != null) && this.annotationEdit.$el.is(':visible')) {
-          this.annotationMetadata = new Views.AnnotationMetadata({
-            model: this.annotationEdit.model,
-            collection: this.project.get('annotationtypes'),
-            el: this.el.querySelector('.container .middle .annotationmetadata')
-          });
-          return this.toggleEditPane('annotationmetadata');
-        }
+      Entry.prototype.setTranscriptionNameToMenu = function() {
+        var li, textLayer, textLayerNode;
+        textLayer = this.currentTranscription.get('textLayer');
+        textLayerNode = document.createTextNode(textLayer + ' layer');
+        li = this.el.querySelector('.submenu li[data-key="layer"]');
+        return li.replaceChild(textLayerNode, li.firstChild);
       };
 
       Entry.prototype.toggleEditPane = function(viewName) {
@@ -7527,11 +9178,56 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
               return this.annotationMetadata;
           }
         }).call(this);
-        if (viewName === 'annotationmetadata') {
-          viewName = 'am';
-        }
-        view.$el.siblings().hide();
-        return view.$el.show();
+        view.$el.parent().siblings().hide();
+        return view.$el.parent().show();
+      };
+
+      Entry.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
+        this.listenTo(this.preview, 'scrolled', function(percentages) {
+          return _this.transcriptionEdit.setScrollPercentage(percentages);
+        });
+        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
+          return Fn.setScrollPercentage(_this.preview.el, percentages);
+        });
+        this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
+          _this.currentFacsimile = current;
+          return _this.renderFacsimile();
+        });
+        this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
+          var li;
+          li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
+          return _this.$('.submenu .facsimiles').append(li);
+        });
+        this.listenTo(this.model.get('facsimiles'), 'remove', function(facsimile) {
+          return _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
+        });
+        this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
+          _this.currentTranscription = current;
+          _this.currentTranscription.getAnnotations();
+          return _this.renderTranscription();
+        });
+        this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
+          var li;
+          li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
+          return _this.$('.submenu .textlayers').append(li);
+        });
+        this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
+          return _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+        });
+        return window.addEventListener('resize', function(ev) {
+          return Fn.timeoutWithReset(600, function() {
+            _this.renderFacsimile();
+            _this.preview.setHeight();
+            _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            if (_this.annotationEdit != null) {
+              return _this.annotationEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            }
+          });
+        });
       };
 
       return Entry;
@@ -7628,10 +9324,12 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
         '': 'projectSearch',
         'login': 'login',
         'projects/:name': 'projectSearch',
+        'projects/:name/settings/:tab': 'projectSettings',
         'projects/:name/settings': 'projectSettings',
         'projects/:name/history': 'projectHistory',
         'projects/:name/entries/:id': 'entry',
-        'projects/:name/entries/:id/transcriptions/:name': 'entry'
+        'projects/:name/entries/:id/transcriptions/:name': 'entry',
+        'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
       };
 
       MainRouter.prototype.home = function() {
@@ -7646,18 +9344,21 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
         return viewManager.show(Views.ProjectMain);
       };
 
-      MainRouter.prototype.projectSettings = function(name) {
-        return viewManager.show(Views.ProjectSettings);
+      MainRouter.prototype.projectSettings = function(name, tab) {
+        return viewManager.show(Views.ProjectSettings, {
+          tabName: tab
+        });
       };
 
       MainRouter.prototype.projectHistory = function(name) {
         return viewManager.show(Views.ProjectHistory);
       };
 
-      MainRouter.prototype.entry = function(projectName, entryID, transcriptionName) {
+      MainRouter.prototype.entry = function(projectName, entryID, transcriptionName, annotationID) {
         return viewManager.show(Views.Entry, {
           entryId: entryID,
-          transcriptionName: transcriptionName
+          transcriptionName: transcriptionName,
+          annotationID: annotationID
         });
       };
 
@@ -7668,7 +9369,7 @@ define('text!html/entry/main.html',[],function () { return '\n<div class="submen
 
 }).call(this);
 
-define('text!html/ui/nav.project.html',[],function () { return '<ul class="horizontal menu"><li class="thisproject">This project<ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li><li>Help</li></ul>';});
+define('text!html/ui/nav.project.html',[],function () { return '<ul class="horizontal menu"><li class="thisproject arrowdown">This project<ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li><li>Help</li></ul>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
@@ -7719,7 +9420,7 @@ define('text!html/ui/nav.project.html',[],function () { return '<ul class="horiz
 
 }).call(this);
 
-define('text!html/ui/nav.user.html',[],function () { return '<ul class="horizontal menu"><li class="username"><%= user.title %><ul class="vertical menu"><li class="logout">Logout</li></ul></li><li class="projects">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li></ul>';});
+define('text!html/ui/nav.user.html',[],function () { return '<ul class="horizontal menu"><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="logout">Logout</li></ul></li><li class="projects arrowdown">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li></ul>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
@@ -7991,7 +9692,8 @@ define('text!html/debug.html',[],function () { return '<ul><li class="current-us
       'helpers2': '../lib/helpers2/dev',
       'views2': '../lib/views2/compiled',
       'html': '../html',
-      'viewshtml': '../lib/views2/compiled'
+      'viewshtml': '../lib/views2/compiled',
+      'hilib': '../lib/hilib/compiled'
     },
     shim: {
       'underscore': {

@@ -29,6 +29,12 @@
         return Base.__super__.sync.call(this, method, model, options);
       };
 
+      Base.prototype.removeById = function(id) {
+        var model;
+        model = this.get(id);
+        return this.remove(model);
+      };
+
       return Base;
 
     })(Backbone.Collection);

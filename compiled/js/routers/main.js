@@ -85,6 +85,7 @@
         '': 'projectSearch',
         'login': 'login',
         'projects/:name': 'projectSearch',
+        'projects/:name/settings/:tab': 'projectSettings',
         'projects/:name/settings': 'projectSettings',
         'projects/:name/history': 'projectHistory',
         'projects/:name/entries/:id': 'entry',
@@ -104,8 +105,10 @@
         return viewManager.show(Views.ProjectMain);
       };
 
-      MainRouter.prototype.projectSettings = function(name) {
-        return viewManager.show(Views.ProjectSettings);
+      MainRouter.prototype.projectSettings = function(name, tab) {
+        return viewManager.show(Views.ProjectSettings, {
+          tabName: tab
+        });
       };
 
       MainRouter.prototype.projectHistory = function(name) {

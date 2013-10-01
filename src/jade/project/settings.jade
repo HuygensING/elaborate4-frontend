@@ -3,8 +3,8 @@
 
 	ul.horizontal.tab.menu
 		li.active(data-tab="project") Project
-		li(data-tab="metadata-entries") Metadata entries
-		li(data-tab="metadata-annotations") Metadata annotations
+		li(data-tab="metadata-entries") Entry metadata
+		li(data-tab="metadata-annotations") Annotation types
 		li(data-tab="users") Users
 
 	hr
@@ -15,43 +15,40 @@
 		.row.span2
 			.cell.span1
 				form
-					.row.span4
-						.cell.span1
+					ul
+						li
 							label(for="type") Type
-						.cell.span3
 							input#type(type="text", name="type", value!="<%= settings.Type %>", data-attr="Type")
-					.row.span4
-						.cell.span1
+						li
 							label(for="title") Project title
-						.cell.span3
 							input#title(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")
-					.row.span4
-						.cell.span1
+						li
 							label(for="leader") Project leader
-						.cell.span3
 							input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
-					.row.span4
-						.cell.span1
+						li
 							label(for="start") Start date
-						.cell.span3
 							input#start(type="text", name="start", value!="<%= settings['Start date'] %>", data-attr="Start date")
-					.row.span4
-						.cell.span1
+						li
 							label(for="release") Release date
-						.cell.span3
 							input#release(type="text", name="release", value!="<%= settings['Release date'] %>", data-attr="Release date")
-					.row.span4
-						.cell.span1
+						li
 							label(for="version") Version
-						.cell.span3
 							input#version(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
+						li
+							input(type="submit", name="save", value="Save settings")
 			.cell.span1
 				h4 Statistics 
 				img.loader(src="/images/loader.gif")
 				pre.statistics
 
 	div(data-tab="metadata-entries")
+		h3 Entry metadata
 		
 	div(data-tab="metadata-annotations")
 		
 	div(data-tab="users")
+		.row.span2
+			.cell.span1.userlist
+				h3 Add/remove existing user(s)
+			.cell.span1.adduser
+				h3 Add new user

@@ -59,8 +59,8 @@
           searchPath: 'projects/' + this.project.id + '/search',
           token: token.get(),
           textSearchOptions: {
-            searchInAnnotations: false,
-            searchInTranscriptions: false
+            searchInAnnotations: true,
+            searchInTranscriptions: true
           },
           queryOptions: {
             resultRows: 12

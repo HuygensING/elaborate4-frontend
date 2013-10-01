@@ -53,8 +53,8 @@ define (require) ->
 				token: token.get()
 				textSearchOptions:
 					# textLayers: @project.get 'textLayers'
-					searchInAnnotations: false
-					searchInTranscriptions: false
+					searchInAnnotations: true
+					searchInTranscriptions: true
 				queryOptions:
 					resultRows: 12
 			@listenTo @facetedSearch, 'results:change', (response) => @model.set response

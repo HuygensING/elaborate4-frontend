@@ -1,3 +1,7 @@
+# ADD METADATA TO ANNOTATOINS!!!!
+
+
+
 # Description...
 define (require) ->
 	Fn = require 'helpers/general'
@@ -18,7 +22,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			console.log @model, @collection
+			console.log @model, @collection.toJSON()
 			rtpl = _.template Tpl, 
 				model: @model
 				collection: @collection

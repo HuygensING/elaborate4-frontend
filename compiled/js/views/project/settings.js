@@ -3,28 +3,31 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Collections, Models, ProjectSettings, Templates, Views, _ref;
-    Async = require('managers2/async');
+    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, _ref;
+    Async = require('hilib/managers/async');
+    EntryMetadata = require('entry.metadata');
     Views = {
       Base: require('views/base'),
-      SubMenu: require('views/ui/settings.submenu')
+      SubMenu: require('views/ui/settings.submenu'),
+      EditableList: require('hilib/views/form/editablelist/main'),
+      ComboList: require('hilib/views/form/combolist/main'),
+      Form: require('hilib/views/form/main')
     };
     Models = {
       Statistics: require('models/project/statistics'),
       Settings: require('models/project/settings'),
-      state: require('models/state')
+      state: require('models/state'),
+      User: require('models/user')
     };
     Collections = {
-      Entries: require('collections/project/metadata_entries'),
-      Annotations: require('collections/project/metadata_annotations'),
+      AnnotationTypes: require('collections/project/annotation.types'),
       ProjectUsers: require('collections/project/users'),
       AllUsers: require('collections/users')
     };
     Templates = {
       Settings: require('text!html/project/settings.html'),
-      Entries: require('text!html/project/metadata_entries.html'),
-      Annotations: require('text!html/project/metadata_annotations.html'),
-      Users: require('text!html/project/users.html')
+      AnnotationTypes: require('text!html/project/metadata_annotations.html'),
+      AddUser: require('text!html/project/adduser.html')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);
@@ -36,29 +39,14 @@
 
       ProjectSettings.prototype.className = 'projectsettings';
 
-      ProjectSettings.prototype.events = {
-        'click li[data-tab]': 'showTab',
-        'change div[data-tab] input': function(ev) {
-          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
-        }
-      };
-
-      ProjectSettings.prototype.showTab = function(ev) {
-        var $ct, tabName;
-        $ct = $(ev.currentTarget);
-        tabName = $ct.attr('data-tab');
-        this.$(".active[data-tab]").removeClass('active');
-        return this.$("[data-tab='" + tabName + "']").addClass('active');
-      };
-
       ProjectSettings.prototype.initialize = function() {
         var _this = this;
         ProjectSettings.__super__.initialize.apply(this, arguments);
         this.model = new Models.Settings();
         return Models.state.getCurrentProject(function(project) {
-          _this.project = project;
+          _this.model.projectID = project.id;
           return _this.model.fetch({
-            success: function(model) {
+            success: function() {
               return _this.render();
             },
             error: function() {
@@ -77,6 +65,9 @@
         this.renderSubMenu();
         this.loadTabData();
         this.loadStatistics();
+        if (this.options.tabName) {
+          this.showTab(this.options.tabName);
+        }
         return this;
       };
 
@@ -96,25 +87,54 @@
         });
       };
 
+      ProjectSettings.prototype.events = {
+        'click input[name="addannotationtype"]': 'addAnnotationType',
+        'click li[data-tab]': 'showTab',
+        'change div[data-tab] input': function(ev) {
+          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
+        }
+      };
+
+      ProjectSettings.prototype.showTab = function(ev) {
+        var $ct, index, tabName;
+        if (_.isString(ev)) {
+          tabName = ev;
+        } else {
+          $ct = $(ev.currentTarget);
+          tabName = $ct.attr('data-tab');
+        }
+        index = Backbone.history.fragment.indexOf('/settings');
+        Backbone.history.navigate(Backbone.history.fragment.substr(0, index) + '/settings/' + tabName);
+        this.$(".active[data-tab]").removeClass('active');
+        return this.$("[data-tab='" + tabName + "']").addClass('active');
+      };
+
+      ProjectSettings.prototype.addAnnotationType = function(ev) {
+        return ev.preventDefault();
+      };
+
       ProjectSettings.prototype.loadTabData = function() {
         var async,
           _this = this;
-        this.entries = new Collections.Entries();
-        this.entries.fetch(function(data) {
-          var rtpl;
-          console.log(data);
-          rtpl = _.template(Templates.Entries, {
-            entries: data
+        this.entryMetadata = new EntryMetadata(this.model.projectID);
+        this.entryMetadata.fetch(function(data) {
+          var list;
+          list = new Views.EditableList({
+            value: data
           });
-          return _this.$('div[data-tab="metadata-entries"]').html(rtpl);
+          _this.listenTo(list, 'change', function(values) {
+            return _this.entryMetadata.save(values);
+          });
+          return _this.$('div[data-tab="metadata-entries"]').append(list.el);
         });
-        this.annotations = new Collections.Annotations();
-        this.annotations.fetch({
+        this.annotationTypes = new Collections.AnnotationTypes([], {
+          projectId: this.model.projectID
+        });
+        this.annotationTypes.fetch({
           success: function(collection, value, options) {
             var rtpl;
-            console.log(value);
-            rtpl = _.template(Templates.Annotations, {
-              annotations: collection
+            rtpl = _.template(Templates.AnnotationTypes, {
+              annotationTypes: collection
             });
             return _this.$('div[data-tab="metadata-annotations"]').html(rtpl);
           },
@@ -136,9 +156,25 @@
           error: function() {}
         });
         return async.on('ready', function(data) {
-          var rtpl;
-          rtpl = _.template(Templates.Users, data);
-          return _this.$('div[data-tab="users"]').html(rtpl);
+          var combolist, form;
+          combolist = new Views.ComboList({
+            value: data.projectusers,
+            config: {
+              data: data.allusers
+            }
+          });
+          _this.listenTo(combolist, 'change', function(userIDs) {
+            return console.log(userIDs);
+          });
+          _this.$('div[data-tab="users"] .userlist').append(combolist.el);
+          form = new Views.Form({
+            Model: Models.User,
+            tpl: Templates.AddUser
+          });
+          _this.listenTo(form, 'change', function(a, b, c) {
+            return console.log(a, b, c);
+          });
+          return _this.$('div[data-tab="users"] .adduser').append(form.el);
         });
       };
 

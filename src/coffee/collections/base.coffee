@@ -16,3 +16,7 @@ define (require) ->
 				xhr.setRequestHeader 'Authorization', "SimpleAuth #{token.get()}"
 
 			super method, model, options
+
+		removeById: (id) ->
+			model = @get id
+			@remove model

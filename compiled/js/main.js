@@ -13,7 +13,8 @@
       'helpers2': '../lib/helpers2/dev',
       'views2': '../lib/views2/compiled',
       'html': '../html',
-      'viewshtml': '../lib/views2/compiled'
+      'viewshtml': '../lib/views2/compiled',
+      'hilib': '../lib/hilib/compiled'
     },
     shim: {
       'underscore': {
