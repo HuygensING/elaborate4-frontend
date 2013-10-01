@@ -17,7 +17,7 @@
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
-      SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/annotation.metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
@@ -119,15 +119,15 @@
       };
 
       Entry.prototype.renderTranscription = function() {
-        var $el;
+        var $el,
+          _this = this;
         this.renderPreview();
         if (this.transcriptionEdit != null) {
           this.transcriptionEdit.setModel(this.currentTranscription);
-          this.transcriptionEditMenu.setModel(this.currentTranscription);
         } else {
           $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save'],
             cssFile: '/css/main.css',
             el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
@@ -136,10 +136,9 @@
             model: this.model.get('transcriptions').current,
             width: $el.width() - 20
           });
-          this.transcriptionEditMenu = new Views.TranscriptionEditMenu({
-            model: this.currentTranscription
+          this.listenTo(this.transcriptionEdit, 'save', function() {
+            return _this.currentTranscription.save();
           });
-          $el.append(this.transcriptionEditMenu.$el);
         }
         return this.toggleEditPane('transcription');
       };
@@ -150,7 +149,6 @@
         this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
-          this.annotationEditMenu.setModel(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
@@ -158,7 +156,7 @@
           $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
             cssFile: '/css/main.css',
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata'],
             el: $el.find('.annotation-editor'),
             height: this.preview.$el.innerHeight(),
             html: model.get('body'),
@@ -167,14 +165,27 @@
             width: $el.width() - 10,
             wrap: true
           });
-          this.annotationEditMenu = new Views.AnnotationEditMenu({
-            model: model,
-            collection: this.currentTranscription.get('annotations')
+          this.listenTo(this.annotationEdit, 'save', function() {
+            if (model.isNew()) {
+              model.urlRoot = function() {
+                return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
+              };
+              return model.save([], {
+                success: function() {
+                  return _this.currentTranscription.get('annotations').add(model);
+                },
+                error: function(model, xhr, options) {
+                  return console.error('Saving annotation failed!', model, xhr, options);
+                }
+              });
+            } else {
+              return model.save();
+            }
           });
-          this.listenTo(this.annotationEditMenu, 'cancel', function(model) {
+          this.listenTo(this.annotationEdit, 'cancel', function() {
             return _this.preview.removeNewAnnotationTags();
           });
-          this.listenTo(this.annotationEditMenu, 'metadata', function(model) {
+          this.listenTo(this.annotationEdit, 'metadata', function() {
             _this.annotationMetadata = new Views.AnnotationMetadata({
               model: model,
               collection: _this.project.get('annotationtypes'),
@@ -182,7 +193,6 @@
             });
             return _this.toggleEditPane('annotationmetadata');
           });
-          $el.append(this.annotationEditMenu.$el);
         }
         return this.toggleEditPane('annotation');
       };

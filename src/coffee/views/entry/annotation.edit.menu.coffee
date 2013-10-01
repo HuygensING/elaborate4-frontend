@@ -47,7 +47,6 @@ define (require) ->
 				@model.save [],
 					success: => @collection.add @model
 					error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
-					
 			else
 				@model.save()
 

@@ -17,7 +17,7 @@ define (require) ->
 		SubMenu: require 'views/ui/entry.submenu'
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview/main'
-		SuperTinyEditor: require 'views2/supertinyeditor/supertinyeditor'
+		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
@@ -114,11 +114,11 @@ define (require) ->
 			
 			if @transcriptionEdit?
 				@transcriptionEdit.setModel @currentTranscription
-				@transcriptionEditMenu.setModel @currentTranscription
+				# @transcriptionEditMenu.setModel @currentTranscription
 			else
 				$el = @$('.transcription-placeholder')
 				@transcriptionEdit = new Views.SuperTinyEditor
-					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
+					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save']
 					cssFile:		'/css/main.css'
 					el:				$el.find('.transcription-editor')
 					height:			@preview.$el.innerHeight()
@@ -126,11 +126,7 @@ define (require) ->
 					htmlAttribute:	'body'
 					model:			@model.get('transcriptions').current
 					width:			$el.width() - 20
-
-				@transcriptionEditMenu = new Views.TranscriptionEditMenu
-					model: @currentTranscription
-				$el.append @transcriptionEditMenu.$el
-
+				@listenTo @transcriptionEdit, 'save', => @currentTranscription.save()
 			
 			@toggleEditPane 'transcription'
 
@@ -140,14 +136,14 @@ define (require) ->
 
 			if @annotationEdit? and model?
 				@annotationEdit.setModel model 
-				@annotationEditMenu.setModel model
+				# @annotationEditMenu.setModel model
 			else
 				console.error 'No annotation given as argument!' unless model?
 				
 				$el = @$('.annotation-placeholder')
 				@annotationEdit = new Views.SuperTinyEditor
 					cssFile:		'/css/main.css'
-					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo']
+					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata']
 					el:				$el.find('.annotation-editor')
 					height:			@preview.$el.innerHeight()
 					html: 			model.get 'body'
@@ -156,17 +152,29 @@ define (require) ->
 					width: 			$el.width() - 10
 					wrap: 			true
 
-				@annotationEditMenu = new Views.AnnotationEditMenu
-					model: model
-					collection: @currentTranscription.get('annotations')
-				@listenTo @annotationEditMenu, 'cancel', (model) => @preview.removeNewAnnotationTags()
-				@listenTo @annotationEditMenu, 'metadata', (model) =>
+				# * TODO: Clean up!
+				@listenTo @annotationEdit, 'save', =>
+					if model.isNew()
+						# We set the urlRoot (instead of the url), because the model is used outside of a collection.
+						# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
+						# a new model is created when using create. Thus, we have to save the model first and then add
+						# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
+						# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
+						# see @model.sync for more info.
+						model.urlRoot = => config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
+						model.save [],
+							success: => @currentTranscription.get('annotations').add model
+							error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
+					else
+						model.save()
+				@listenTo @annotationEdit, 'cancel', =>
+					@preview.removeNewAnnotationTags()
+				@listenTo @annotationEdit, 'metadata', =>
 					@annotationMetadata = new Views.AnnotationMetadata
 						model: model
 						collection: @project.get 'annotationtypes'
 						el: @el.querySelector('.container .middle .annotationmetadata')
 					@toggleEditPane 'annotationmetadata'
-				$el.append @annotationEditMenu.$el
 				
 			@toggleEditPane 'annotation'
 				
