@@ -2,8 +2,8 @@
 # and the save puts the entire array to save it.
 define (require) ->
 	config = require 'config'
-	token = require 'managers/token'
-	ajax = require 'managers/ajax'
+	token = require 'hilib/managers/token'
+	ajax = require 'hilib/managers/ajax'
 
 	Models = 
 		state: require 'models/state'

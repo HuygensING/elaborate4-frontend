@@ -1,11 +1,11 @@
 define (require) ->
 	Backbone = require 'backbone'
-	viewManager = require 'managers/view'
-	history = require 'managers/history'
+	viewManager = require 'hilib/managers/view'
+	history = require 'hilib/managers/history'
 
-	Pubsub = require 'managers/pubsub'
+	Pubsub = require 'hilib/managers/pubsub'
 	currentUser = require 'models/currentUser'
-	Fn = require 'helpers/general'
+	Fn = require 'hilib/functions/general'
 
 	Models =
 		state: require 'models/state'
@@ -25,10 +25,10 @@ define (require) ->
 			@on 'route', -> history.update()
 
 			@subscribe 'authorized', =>
-				if history.last() is '/login'
-					@publish 'navigate:project'
-				else
+				if history.last()?
 					@navigate history.last(), trigger: true
+				else
+					@publish 'navigate:project'
 
 			@subscribe 'unauthorized', =>
 				sessionStorage.clear()

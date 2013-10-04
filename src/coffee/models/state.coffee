@@ -2,7 +2,7 @@ define (require) ->
 
 	# Backbone = require 'backbone'
 
-	history = require 'managers/history'
+	history = require 'hilib/managers/history'
 
 	Models = 
 		Base: require 'models/base'

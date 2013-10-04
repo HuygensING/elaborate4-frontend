@@ -68,12 +68,12 @@
 					position absolute
 					text-align right
 					list-style none
-					top 0
+					top 6px
 					color #BBB
 					font-size 0.9em
 
 				.body
-					padding-left 24px
+					padding 6px 0 0 24px
 
 			line-height 1.75em
 			// padding 0 10px
@@ -87,7 +87,7 @@
 				select_none()
 				color #FFF
 				font-size 0.75em
-				padding 1px 2px
+				padding 0px 1px
 				cursor pointer
 				border-radius 2px
 				box-shadow 1px 1px 2px #888
@@ -103,6 +103,21 @@
 .supertinyeditor
 	.ste-header
 		box-shadow: 2px 0px 4px #DDD
+
+		&.annotationtext
+			padding 0 6px
+			overflow hidden
+			white-space nowrap
+			text-overflow ellipsis
+			line-height 31px /* Same as .ste-header to vertically center text */
+			font-size 1.1em
+
+			&:before
+				content: '"'
+
+			&:after
+				content: '"'
+
 	.ste-body
 		box-shadow: 2px 0px 4px #DDD
 		background-color #F2F2F2
@@ -111,6 +126,7 @@
 	// 	margin-left 10px
 
 body.ste-iframe-body
+	padding-top 6px
 	line-height 1.75em
 
 	sup[data-marker]

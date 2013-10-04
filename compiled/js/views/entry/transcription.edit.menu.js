@@ -4,7 +4,7 @@
 
   define(function(require) {
     var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };

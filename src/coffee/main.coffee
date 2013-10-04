@@ -1,20 +1,14 @@
 require.config 
 	paths:
-		'faceted-search': '../lib/faceted-search/stage/js/main'
 		'jquery': '../lib/jquery/jquery'
+		'long-press': '../lib/long-press/jquery.longpress'
 		'underscore': '../lib/underscore-amd/underscore'
 		'backbone': '../lib/backbone-amd/backbone'
 		'domready': '../lib/requirejs-domready/domReady'
-		# 'supertinyeditor': '../lib/supertinyeditor/main'
 		'text': '../lib/requirejs-text/text'
-		'managers': '../lib/managers/dev'
-		'managers2': '../lib/managers2/dev'
-		'helpers': '../lib/helpers/dev'
-		'helpers2': '../lib/helpers2/dev'
-		'views2': '../lib/views2/compiled'
-		'html': '../html'
-		'viewshtml': '../lib/views2/compiled'
+		'faceted-search': '../lib/faceted-search/stage/js/main'
 		'hilib': '../lib/hilib/compiled'
+		'html': '../html'
 
 	shim:
 		'underscore':
@@ -24,6 +18,8 @@ require.config
 			exports: 'Backbone'
 		'faceted-search':
 			deps: ['backbone', 'text']
+		'long-press':
+			deps: ['jquery']
 
 require ['domready', 'app', 'underscore'], (domready, app, _) ->
 	domready -> app.init()

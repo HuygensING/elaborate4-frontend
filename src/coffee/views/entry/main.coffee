@@ -1,10 +1,12 @@
 define (require) ->
 	Backbone = require 'backbone'
 
-	Fn = require 'helpers2/general'
-	StringFn = require 'helpers2/string'
-	require 'helpers/jquery.mixin'
-	Async = require 'managers2/async'
+	config = require 'config'
+
+	Fn = require 'hilib/functions/general'
+	StringFn = require 'hilib/functions/string'
+	require 'hilib/functions/jquery.mixin'
+	Async = require 'hilib/managers/async'
 	# console.log require 'supertinyeditor'
 	# SuperTinyEditor = require 'supertinyeditor'
 
@@ -130,40 +132,68 @@ define (require) ->
 			
 			@toggleEditPane 'transcription'
 
+		setAnnotationText: (model) ->
+			annotationNo = model.get('annotationNo') ? 'newannotation'
+
+			span = @preview.el.querySelector 'span[data-id="'+annotationNo+'"]'
+			nextNode = span.nextSibling
+			text = nextNode.textContent
+
+			while nextNode?
+				# console.log nextNode.nodeType is 1
+				
+				if nextNode.nodeType is 1 and span.getAttribute('data-id') is nextNode.getAttribute('data-id')
+					break
+				
+				nextNode = nextNode.nextSibling
+
+				if nextNode.nodeType is 1 and nextNode.tagName is 'SUP' and nextNode.hasAttribute('data-id')
+					continue
+
+				text += nextNode.textContent
+
+			@annotationEdit.$('.ste-header').last().addClass('annotationtext').html text
 
 		renderAnnotation: (model) ->
 			@navigateToAnnotation model.id
 
 			if @annotationEdit? and model?
 				@annotationEdit.setModel model 
-				# @annotationEditMenu.setModel model
+				@setAnnotationText model
 			else
 				console.error 'No annotation given as argument!' unless model?
 				
 				$el = @$('.annotation-placeholder')
+
 				@annotationEdit = new Views.SuperTinyEditor
 					cssFile:		'/css/main.css'
-					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata']
+					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n']
 					el:				$el.find('.annotation-editor')
-					height:			@preview.$el.innerHeight()
+					height:			@preview.$el.innerHeight() - 31
 					html: 			model.get 'body'
 					htmlAttribute:	'body'
 					model: 			model
-					width: 			$el.width() - 10
+					width: 			@preview.$el.width() - 4
 					wrap: 			true
+
+				@setAnnotationText model
+
+				@annotationEdit.setFocus()
+				
 
 				# * TODO: Clean up!
 				@listenTo @annotationEdit, 'save', =>
 					if model.isNew()
+						annotations = @currentTranscription.get('annotations')
 						# We set the urlRoot (instead of the url), because the model is used outside of a collection.
 						# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
 						# a new model is created when using create. Thus, we have to save the model first and then add
 						# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
 						# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
 						# see @model.sync for more info.
-						model.urlRoot = => config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
+						model.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
 						model.save [],
-							success: => @currentTranscription.get('annotations').add model
+							success: => annotations.add model
 							error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
 					else
 						model.save()

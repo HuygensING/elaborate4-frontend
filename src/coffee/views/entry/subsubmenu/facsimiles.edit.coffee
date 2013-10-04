@@ -1,9 +1,9 @@
 # Description...
 define (require) ->
-	Fn = require 'helpers2/general'
+	Fn = require 'hilib/functions/general'
 
-	ajax = require 'managers2/ajax'
-	token = require 'managers2/token'
+	ajax = require 'hilib/managers/ajax'
+	token = require 'hilib/managers/token'
 
 	Views = 
 		Base: require 'views/base'

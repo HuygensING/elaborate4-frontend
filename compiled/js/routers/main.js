@@ -5,11 +5,11 @@
   define(function(require) {
     var Backbone, Fn, MainRouter, Models, Pubsub, Views, currentUser, history, viewManager, _ref;
     Backbone = require('backbone');
-    viewManager = require('managers/view');
-    history = require('managers/history');
-    Pubsub = require('managers/pubsub');
+    viewManager = require('hilib/managers/view');
+    history = require('hilib/managers/history');
+    Pubsub = require('hilib/managers/pubsub');
     currentUser = require('models/currentUser');
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     Models = {
       state: require('models/state')
     };
@@ -35,12 +35,12 @@
           return history.update();
         });
         this.subscribe('authorized', function() {
-          if (history.last() === '/login') {
-            return _this.publish('navigate:project');
-          } else {
+          if (history.last() != null) {
             return _this.navigate(history.last(), {
               trigger: true
             });
+          } else {
+            return _this.publish('navigate:project');
           }
         });
         this.subscribe('unauthorized', function() {

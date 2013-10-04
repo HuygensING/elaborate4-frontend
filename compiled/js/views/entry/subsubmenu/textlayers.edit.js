@@ -4,7 +4,7 @@
 
   define(function(require) {
     var EditTextlayers, Fn, Tpl, Views, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };

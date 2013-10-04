@@ -4,8 +4,8 @@
 
   define(function(require) {
     var Annotation, Models, ajax, config, token, _ref;
-    ajax = require('managers/ajax');
-    token = require('managers/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     ajax.token = token.get();
     config = require('config');
     Models = {

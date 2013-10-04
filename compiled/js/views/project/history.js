@@ -5,7 +5,7 @@
   define(function(require) {
     var BaseView, Collections, Models, ProjectHistory, Templates, ajax, _ref;
     BaseView = require('views/base');
-    ajax = require('managers/ajax');
+    ajax = require('hilib/managers/ajax');
     Models = {
       state: require('models/state')
     };

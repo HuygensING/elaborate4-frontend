@@ -1,6 +1,6 @@
 # Description...
 define (require) ->
-	Fn = require 'helpers2/general'
+	Fn = require 'hilib/functions/general'
 
 	Views = 
 		Base: require 'views/base'

@@ -6,6 +6,19 @@ fn_spin()
 	animation: fn_spin 2s 3 linear;
 	-webkit-animation-name: fn_spin
 
+transition(args...)
+	-webkit-transition args
+	-moz-transition args
+	-o-transition args
+	transition args
+
+transform(args...)
+	-webkit-transform args
+	-moz-transform args
+	-ms-transform args
+	-o-transform args
+	transform args
+
 vertical_gradient(topColor, bottomColor)
 	background topColor
 	background -moz-linear-gradient(top, topColor 0%, bottomColor 100%)
@@ -55,8 +68,6 @@ button(light=#D5D6D5, dark=#838383)
 		&:active
 			background: #808080;
 			box-shadow @box-shadow
-
-
  
 okbutton()
 	button(#61E26B, #038808)
@@ -137,17 +148,3 @@ arrow()
 		border-style solid
 		border-width 5px
 
-
-
-transition(args...)
-	-webkit-transition args
-	-moz-transition args
-	-o-transition args
-	transition args
-
-transform(args...)
-	-webkit-transform args
-	-moz-transform args
-	-ms-transform args
-	-o-transform args
-	transform args

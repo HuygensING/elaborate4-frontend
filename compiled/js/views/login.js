@@ -25,7 +25,7 @@
 
       Login.prototype.submit = function(ev) {
         ev.preventDefault();
-        return currentUser.login();
+        return currentUser.login(this.$('#username').val(), this.$('#password').val());
       };
 
       Login.prototype.initialize = function() {

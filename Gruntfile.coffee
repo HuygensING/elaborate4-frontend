@@ -76,21 +76,21 @@ module.exports = (grunt) ->
 			# ,
 			# 	src: '~/Projects/supertinyeditor'
 			# 	dest: 'compiled/lib/supertinyeditor'
-			,
-				src: '~/Projects/helpers'
-				dest: 'compiled/lib/helpers2'
-			,
-				src: '~/Projects/managers'
-				dest: 'compiled/lib/managers2'
-			,
-				src: '~/Projects/views'
-				dest: 'compiled/lib/views2'
+			# ,
+			# 	src: '~/Projects/helpers'
+			# 	dest: 'compiled/lib/helpers2'
+			# ,
+			# 	src: '~/Projects/managers'
+			# 	dest: 'compiled/lib/managers2'
+			# ,
+			# 	src: '~/Projects/views'
+			# 	dest: 'compiled/lib/views2'
 			,
 				src: '~/Projects/hilib'
 				dest: 'compiled/lib/hilib'
 			# ,
 			,
-				src: 'compiled/lib/views/compiled/supertinyeditor/images'
+				src: 'compiled/lib/hilib/images/views/supertinyeditor'
 				dest: 'images/supertinyeditor'
 			# ,
 			# 	src: '~/Projects/helpers'
@@ -175,6 +175,7 @@ module.exports = (grunt) ->
 					'compiled/lib/faceted-search/dev/css/main.css'
 					# 'compiled/lib/supertinyeditor/main.css'
 					'compiled/lib/hilib/compiled/**/*.css'
+					# '!compiled/lib/hilib/compiled/lib/**/*.css'
 				]
 				dest:
 					'compiled/css/main.css'
@@ -257,12 +258,12 @@ module.exports = (grunt) ->
 				files: ['src/stylus/**/*.styl']
 				tasks: ['stylus:compile', 'concat:css']
 			html: 
-				files: ['compiled/lib/views2/**/*.html']
+				files: ['compiled/lib/hilib/compiled/htmltouch']
 			css:
-				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/hilib/**/*.css']
+				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/hilib/compiled/csstouch']
 				tasks: ['concat:css']
 			js:
-				files: ['compiled/lib/views2/**/*.js']
+				files: ['compiled/lib/hilib/compiled/jstouch']
 
 	#############
 	### TASKS ###

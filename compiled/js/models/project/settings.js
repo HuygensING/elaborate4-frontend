@@ -5,8 +5,8 @@
   define(function(require) {
     var Models, ProjectSettings, ajax, config, token, _ref;
     config = require('config');
-    token = require('managers/token');
-    ajax = require('managers/ajax');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
     Models = {
       Base: require('models/base'),
       state: require('models/state')

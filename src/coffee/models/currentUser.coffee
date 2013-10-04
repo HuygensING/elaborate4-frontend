@@ -1,6 +1,6 @@
 define (require) ->
 	config = require 'config'
-	token = require 'managers/token'
+	token = require 'hilib/managers/token'
 
 	Models =
 		Base: require 'models/base'
@@ -31,7 +31,10 @@ define (require) ->
 				@fetchUserAttrs => 
 					@publish 'authorized'
 
-		login: ->
+		login: (username, password) ->
+			@set 'username', username
+			@password = password
+
 			@fetchUserAttrs =>
 				sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
 				@publish 'authorized'
@@ -54,10 +57,12 @@ define (require) ->
 					type: 'post'
 					url: config.baseUrl + 'sessions/login'
 					data: 
-						username: $('#username').val()
-						password: $('#password').val()					
+						username: @get 'username'
+						password: @password
 
 				jqXHR.done (data) =>
+					@password = null
+					
 					token.set data.token
 					@set data.user
 

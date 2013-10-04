@@ -5,8 +5,8 @@
   define(function(require) {
     var Backbone, Base, Pubsub, token, _ref;
     Backbone = require('backbone');
-    token = require('managers/token');
-    Pubsub = require('managers/pubsub');
+    token = require('hilib/managers/token');
+    Pubsub = require('hilib/managers/pubsub');
     return Base = (function(_super) {
       __extends(Base, _super);
 

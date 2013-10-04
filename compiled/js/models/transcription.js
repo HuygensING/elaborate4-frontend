@@ -5,8 +5,8 @@
   define(function(require) {
     var Collections, Models, Transcription, ajax, config, token, _ref;
     config = require('config');
-    ajax = require('managers2/ajax');
-    token = require('managers2/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Models = {
       Base: require('models/base')
     };

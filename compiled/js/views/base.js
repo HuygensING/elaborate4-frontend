@@ -5,8 +5,8 @@
   define(function(require) {
     var Backbone, BaseView, Pubsub, viewManager, _ref;
     Backbone = require('backbone');
-    Pubsub = require('managers/pubsub');
-    viewManager = require('managers/view');
+    Pubsub = require('hilib/managers/pubsub');
+    viewManager = require('hilib/managers/view');
     return BaseView = (function(_super) {
       __extends(BaseView, _super);
 

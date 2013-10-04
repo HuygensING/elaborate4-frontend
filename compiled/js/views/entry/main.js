@@ -3,12 +3,13 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, _ref;
+    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
-    Fn = require('helpers2/general');
-    StringFn = require('helpers2/string');
-    require('helpers/jquery.mixin');
-    Async = require('managers2/async');
+    config = require('config');
+    Fn = require('hilib/functions/general');
+    StringFn = require('hilib/functions/string');
+    require('hilib/functions/jquery.mixin');
+    Async = require('hilib/managers/async');
     Models = {
       state: require('models/state'),
       Entry: require('models/entry')
@@ -143,12 +144,32 @@
         return this.toggleEditPane('transcription');
       };
 
+      Entry.prototype.setAnnotationText = function(model) {
+        var annotationNo, nextNode, span, text, _ref1;
+        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
+        span = this.preview.el.querySelector('span[data-id="' + annotationNo + '"]');
+        nextNode = span.nextSibling;
+        text = nextNode.textContent;
+        while (nextNode != null) {
+          if (nextNode.nodeType === 1 && span.getAttribute('data-id') === nextNode.getAttribute('data-id')) {
+            break;
+          }
+          nextNode = nextNode.nextSibling;
+          if (nextNode.nodeType === 1 && nextNode.tagName === 'SUP' && nextNode.hasAttribute('data-id')) {
+            continue;
+          }
+          text += nextNode.textContent;
+        }
+        return this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(text);
+      };
+
       Entry.prototype.renderAnnotation = function(model) {
         var $el,
           _this = this;
         this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
+          this.setAnnotationText(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
@@ -156,23 +177,27 @@
           $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
             cssFile: '/css/main.css',
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n'],
             el: $el.find('.annotation-editor'),
-            height: this.preview.$el.innerHeight(),
+            height: this.preview.$el.innerHeight() - 31,
             html: model.get('body'),
             htmlAttribute: 'body',
             model: model,
-            width: $el.width() - 10,
+            width: this.preview.$el.width() - 4,
             wrap: true
           });
+          this.setAnnotationText(model);
+          this.annotationEdit.setFocus();
           this.listenTo(this.annotationEdit, 'save', function() {
+            var annotations;
             if (model.isNew()) {
+              annotations = _this.currentTranscription.get('annotations');
               model.urlRoot = function() {
-                return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
+                return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
               };
               return model.save([], {
                 success: function() {
-                  return _this.currentTranscription.get('annotations').add(model);
+                  return annotations.add(model);
                 },
                 error: function(model, xhr, options) {
                   return console.error('Saving annotation failed!', model, xhr, options);

@@ -4,9 +4,9 @@
 
   define(function(require) {
     var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
-    Fn = require('helpers2/general');
-    ajax = require('managers2/ajax');
-    token = require('managers2/token');
+    Fn = require('hilib/functions/general');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Views = {
       Base: require('views/base')
     };

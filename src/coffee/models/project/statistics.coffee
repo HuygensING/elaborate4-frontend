@@ -1,6 +1,6 @@
 define (require) ->
 	config = require 'config'
-	token = require 'managers/token'
+	token = require 'hilib/managers/token'
 
 	Models =
 		state: require 'models/state'

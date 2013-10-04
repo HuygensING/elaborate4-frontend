@@ -5,7 +5,7 @@
   define(function(require) {
     var Collections, CurrentUser, Models, config, token, _ref;
     config = require('config');
-    token = require('managers/token');
+    token = require('hilib/managers/token');
     Models = {
       Base: require('models/base')
     };
@@ -50,8 +50,10 @@
         }
       };
 
-      CurrentUser.prototype.login = function() {
+      CurrentUser.prototype.login = function(username, password) {
         var _this = this;
+        this.set('username', username);
+        this.password = password;
         return this.fetchUserAttrs(function() {
           sessionStorage.setItem('huygens_user', JSON.stringify(_this.attributes));
           return _this.publish('authorized');
@@ -83,11 +85,12 @@
             type: 'post',
             url: config.baseUrl + 'sessions/login',
             data: {
-              username: $('#username').val(),
-              password: $('#password').val()
+              username: this.get('username'),
+              password: this.password
             }
           });
           jqXHR.done(function(data) {
+            _this.password = null;
             token.set(data.token);
             _this.set(data.user);
             return cb();

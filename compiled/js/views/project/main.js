@@ -4,9 +4,9 @@
 
   define(function(require) {
     var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     config = require('config');
-    token = require('managers/token');
+    token = require('hilib/managers/token');
     Models = {
       Search: require('models/project/search'),
       state: require('models/state')

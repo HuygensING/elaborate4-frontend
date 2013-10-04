@@ -1,7 +1,7 @@
 define (require) ->
 
-	ajax = require 'managers/ajax'
-	token = require 'managers/token'
+	ajax = require 'hilib/managers/ajax'
+	token = require 'hilib/managers/token'
 
 	config = require 'config'
 

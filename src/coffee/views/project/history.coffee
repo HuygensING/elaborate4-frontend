@@ -1,7 +1,7 @@
 define (require) ->
 	BaseView = require 'views/base'
 
-	ajax = require 'managers/ajax'
+	ajax = require 'hilib/managers/ajax'
 
 	Models =
 		state: require 'models/state'

@@ -2,8 +2,8 @@
   define(function(require) {
     var EntryMetadata, Models, ajax, config, token;
     config = require('config');
-    token = require('managers/token');
-    ajax = require('managers/ajax');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
     Models = {
       state: require('models/state')
     };

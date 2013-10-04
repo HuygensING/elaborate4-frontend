@@ -16,7 +16,7 @@ define (require) ->
 		submit: (ev) ->
 			ev.preventDefault()
 
-			currentUser.login()
+			currentUser.login @$('#username').val(), @$('#password').val()
 
 			# @publish 'navigate:project'
 

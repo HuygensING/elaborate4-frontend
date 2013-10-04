@@ -4,7 +4,7 @@
 
   define(function(require) {
     var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     config = require('config');
     Views = {
       Base: require('views/base')

@@ -1,6 +1,6 @@
 # Description...
 define (require) ->
-	Fn = require 'helpers2/general'
+	Fn = require 'hilib/functions/general'
 
 	Views = 
 		Base: require 'views/base'
@@ -136,9 +136,13 @@ define (require) ->
 		onHover: ->
 			supEnter = (ev) =>
 				id = ev.currentTarget.getAttribute('data-id')
+				
+				unless startNode = @el.querySelector "span[data-id='#{id}']"
+					console.error 'No span found'
+					return false
 
 				@highlighter.on
-					startNode: @el.querySelector "span[data-id='#{id}']"
+					startNode: startNode
 					endNode: ev.currentTarget
 					
 			supLeave = (ev) => @highlighter.off()

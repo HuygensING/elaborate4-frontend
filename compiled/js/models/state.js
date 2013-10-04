@@ -4,7 +4,7 @@
 
   define(function(require) {
     var Collections, Models, State, history, _ref;
-    history = require('managers/history');
+    history = require('hilib/managers/history');
     Models = {
       Base: require('models/base')
     };

@@ -4,7 +4,7 @@
 
   define(function(require) {
     var BaseView, Fn, Templates, Tooltip, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     BaseView = require('views/base');
     Templates = {
       Tooltip: require('text!html/ui/tooltip.html')
