@@ -1202,7 +1202,7 @@ div p:first-child{margin-top:0}
 	-moz-box-shadow:    0 0 18px rgba(255, 255, 255, 0.75);
 	box-shadow:         0 0 18px rgba(255, 255, 255, 0.75);
 }
-ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:0;list-style:none;padding:0;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;}
+ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:0;list-style:none;padding:0;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;white-space:normal;}
 ul.longpress.active{height:auto;padding:6px}
 ul.longpress li{display:inline-block;padding:2px 6px;background-color:#000;color:#fff;border-radius:6px;font-weight:bold;font-size:1.5em;margin:3px;border:2px solid #000;}
 ul.longpress li:hover{border:2px solid #fff;box-shadow:0 0 12px #fff;cursor:pointer}

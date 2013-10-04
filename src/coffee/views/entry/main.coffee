@@ -307,7 +307,7 @@ define (require) ->
 			# We don't want to navigateToTranscription if the model hasn't changed.
 			# Transcriptions.setCurrent has a check for setting the same model, so this is redundant, but reads better,
 			# otherwise we would have to navigateToTranscription and setCurrent after that.
-			if newTranscription isnt @currentTranscription
+			if newTranscription isnt @currentTranscription or @currentViewInEditPane isnt @transcriptionEdit
 				# Set @currentTranscription to newTranscription
 				@model.get('transcriptions').setCurrent newTranscription
 
@@ -370,6 +370,7 @@ define (require) ->
 				when 'transcription' then @transcriptionEdit
 				when 'annotation' then @annotationEdit
 				when 'annotationmetadata' then @annotationMetadata
+			@currentViewInEditPane = view
 			view.$el.parent().siblings().hide()
 			view.$el.parent().show()
 

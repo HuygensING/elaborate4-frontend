@@ -542,7 +542,7 @@ define('domready',[],function () {
     return domReady;
 });
 
-//     Underscore.js 1.5.1
+//     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
@@ -552,7 +552,7 @@ define('domready',[],function () {
   // Baseline setup
   // --------------
 
-  // Establish the root object, `window` in the browser, or `global` on the server.
+  // Establish the root object, `window` in the browser, or `exports` on the server.
   var root = this;
 
   // Save the previous value of the `_` variable.
@@ -609,7 +609,7 @@ define('domready',[],function () {
   }
 
   // Current version.
-  _.VERSION = '1.5.1';
+  _.VERSION = '1.5.2';
 
   // Collection Functions
   // --------------------
@@ -622,14 +622,13 @@ define('domready',[],function () {
     if (nativeForEach && obj.forEach === nativeForEach) {
       obj.forEach(iterator, context);
     } else if (obj.length === +obj.length) {
-      for (var i = 0, l = obj.length; i < l; i++) {
+      for (var i = 0, length = obj.length; i < length; i++) {
         if (iterator.call(context, obj[i], i, obj) === breaker) return;
       }
     } else {
-      for (var key in obj) {
-        if (_.has(obj, key)) {
-          if (iterator.call(context, obj[key], key, obj) === breaker) return;
-        }
+      var keys = _.keys(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
       }
     }
   };
@@ -828,7 +827,8 @@ define('domready',[],function () {
     return result.value;
   };
 
-  // Shuffle an array.
+  // Shuffle an array, using the modern version of the 
+  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
   _.shuffle = function(obj) {
     var rand;
     var index = 0;
@@ -841,6 +841,16 @@ define('domready',[],function () {
     return shuffled;
   };
 
+  // Sample **n** random values from an array.
+  // If **n** is not specified, returns a single random element from the array.
+  // The internal `guard` argument allows it to work with `map`.
+  _.sample = function(obj, n, guard) {
+    if (arguments.length < 2 || guard) {
+      return obj[_.random(obj.length - 1)];
+    }
+    return _.shuffle(obj).slice(0, Math.max(0, n));
+  };
+
   // An internal function to generate lookup iterators.
   var lookupIterator = function(value) {
     return _.isFunction(value) ? value : function(obj){ return obj[value]; };
@@ -851,9 +861,9 @@ define('domready',[],function () {
     var iterator = lookupIterator(value);
     return _.pluck(_.map(obj, function(value, index, list) {
       return {
-        value : value,
-        index : index,
-        criteria : iterator.call(context, value, index, list)
+        value: value,
+        index: index,
+        criteria: iterator.call(context, value, index, list)
       };
     }).sort(function(left, right) {
       var a = left.criteria;
@@ -862,38 +872,41 @@ define('domready',[],function () {
         if (a > b || a === void 0) return 1;
         if (a < b || b === void 0) return -1;
       }
-      return left.index < right.index ? -1 : 1;
+      return left.index - right.index;
     }), 'value');
   };
 
   // An internal function used for aggregate "group by" operations.
-  var group = function(obj, value, context, behavior) {
-    var result = {};
-    var iterator = lookupIterator(value == null ? _.identity : value);
-    each(obj, function(value, index) {
-      var key = iterator.call(context, value, index, obj);
-      behavior(result, key, value);
-    });
-    return result;
+  var group = function(behavior) {
+    return function(obj, value, context) {
+      var result = {};
+      var iterator = value == null ? _.identity : lookupIterator(value);
+      each(obj, function(value, index) {
+        var key = iterator.call(context, value, index, obj);
+        behavior(result, key, value);
+      });
+      return result;
+    };
   };
 
   // Groups the object's values by a criterion. Pass either a string attribute
   // to group by, or a function that returns the criterion.
-  _.groupBy = function(obj, value, context) {
-    return group(obj, value, context, function(result, key, value) {
-      (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
-    });
-  };
+  _.groupBy = group(function(result, key, value) {
+    (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
+  });
+
+  // Indexes the object's values by a criterion, similar to `groupBy`, but for
+  // when you know that your index values will be unique.
+  _.indexBy = group(function(result, key, value) {
+    result[key] = value;
+  });
 
   // Counts instances of an object that group by a certain criterion. Pass
   // either a string attribute to count by, or a function that returns the
   // criterion.
-  _.countBy = function(obj, value, context) {
-    return group(obj, value, context, function(result, key) {
-      if (!_.has(result, key)) result[key] = 0;
-      result[key]++;
-    });
-  };
+  _.countBy = group(function(result, key) {
+    _.has(result, key) ? result[key]++ : result[key] = 1;
+  });
 
   // Use a comparator function to figure out the smallest index at which
   // an object should be inserted so as to maintain order. Uses binary search.
@@ -930,7 +943,7 @@ define('domready',[],function () {
   // allows it to work with `_.map`.
   _.first = _.head = _.take = function(array, n, guard) {
     if (array == null) return void 0;
-    return (n != null) && !guard ? slice.call(array, 0, n) : array[0];
+    return (n == null) || guard ? array[0] : slice.call(array, 0, n);
   };
 
   // Returns everything but the last entry of the array. Especially useful on
@@ -945,10 +958,10 @@ define('domready',[],function () {
   // values in the array. The **guard** check allows it to work with `_.map`.
   _.last = function(array, n, guard) {
     if (array == null) return void 0;
-    if ((n != null) && !guard) {
-      return slice.call(array, Math.max(array.length - n, 0));
-    } else {
+    if ((n == null) || guard) {
       return array[array.length - 1];
+    } else {
+      return slice.call(array, Math.max(array.length - n, 0));
     }
   };
 
@@ -980,7 +993,7 @@ define('domready',[],function () {
     return output;
   };
 
-  // Return a completely flattened version of an array.
+  // Flatten out an array, either recursively (by default), or just one level.
   _.flatten = function(array, shallow) {
     return flatten(array, shallow, []);
   };
@@ -1052,7 +1065,7 @@ define('domready',[],function () {
   _.object = function(list, values) {
     if (list == null) return {};
     var result = {};
-    for (var i = 0, l = list.length; i < l; i++) {
+    for (var i = 0, length = list.length; i < length; i++) {
       if (values) {
         result[list[i]] = values[i];
       } else {
@@ -1070,17 +1083,17 @@ define('domready',[],function () {
   // for **isSorted** to use binary search.
   _.indexOf = function(array, item, isSorted) {
     if (array == null) return -1;
-    var i = 0, l = array.length;
+    var i = 0, length = array.length;
     if (isSorted) {
       if (typeof isSorted == 'number') {
-        i = (isSorted < 0 ? Math.max(0, l + isSorted) : isSorted);
+        i = (isSorted < 0 ? Math.max(0, length + isSorted) : isSorted);
       } else {
         i = _.sortedIndex(array, item);
         return array[i] === item ? i : -1;
       }
     }
     if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
-    for (; i < l; i++) if (array[i] === item) return i;
+    for (; i < length; i++) if (array[i] === item) return i;
     return -1;
   };
 
@@ -1106,11 +1119,11 @@ define('domready',[],function () {
     }
     step = arguments[2] || 1;
 
-    var len = Math.max(Math.ceil((stop - start) / step), 0);
+    var length = Math.max(Math.ceil((stop - start) / step), 0);
     var idx = 0;
-    var range = new Array(len);
+    var range = new Array(length);
 
-    while(idx < len) {
+    while(idx < length) {
       range[idx++] = start;
       start += step;
     }
@@ -1222,17 +1235,24 @@ define('domready',[],function () {
   // N milliseconds. If `immediate` is passed, trigger the function on the
   // leading edge, instead of the trailing.
   _.debounce = function(func, wait, immediate) {
-    var result;
-    var timeout = null;
+    var timeout, args, context, timestamp, result;
     return function() {
-      var context = this, args = arguments;
+      context = this;
+      args = arguments;
+      timestamp = new Date();
       var later = function() {
-        timeout = null;
-        if (!immediate) result = func.apply(context, args);
+        var last = (new Date()) - timestamp;
+        if (last < wait) {
+          timeout = setTimeout(later, wait - last);
+        } else {
+          timeout = null;
+          if (!immediate) result = func.apply(context, args);
+        }
       };
       var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
       if (callNow) result = func.apply(context, args);
       return result;
     };
@@ -1298,22 +1318,33 @@ define('domready',[],function () {
 
   // Retrieve the values of an object's properties.
   _.values = function(obj) {
-    var values = [];
-    for (var key in obj) if (_.has(obj, key)) values.push(obj[key]);
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var values = new Array(length);
+    for (var i = 0; i < length; i++) {
+      values[i] = obj[keys[i]];
+    }
     return values;
   };
 
   // Convert an object into a list of `[key, value]` pairs.
   _.pairs = function(obj) {
-    var pairs = [];
-    for (var key in obj) if (_.has(obj, key)) pairs.push([key, obj[key]]);
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var pairs = new Array(length);
+    for (var i = 0; i < length; i++) {
+      pairs[i] = [keys[i], obj[keys[i]]];
+    }
     return pairs;
   };
 
   // Invert the keys and values of an object. The values must be serializable.
   _.invert = function(obj) {
     var result = {};
-    for (var key in obj) if (_.has(obj, key)) result[obj[key]] = key;
+    var keys = _.keys(obj);
+    for (var i = 0, length = keys.length; i < length; i++) {
+      result[obj[keys[i]]] = keys[i];
+    }
     return result;
   };
 
@@ -1597,8 +1628,7 @@ define('domready',[],function () {
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
-      "'": '&#x27;',
-      '/': '&#x2F;'
+      "'": '&#x27;'
     }
   };
   entityMap.unescape = _.invert(entityMap.escape);
@@ -1629,7 +1659,7 @@ define('domready',[],function () {
 
   // Add your own custom functions to the Underscore object.
   _.mixin = function(obj) {
-    each(_.functions(obj), function(name){
+    each(_.functions(obj), function(name) {
       var func = _[name] = obj[name];
       _.prototype[name] = function() {
         var args = [this._wrapped];
@@ -3379,7 +3409,7 @@ define('domready',[],function () {
 
 
 (function() {
-  define('managers/pubsub',['require','backbone'],function(require) {
+  define('hilib/managers/pubsub',['require','backbone'],function(require) {
     var Backbone;
     Backbone = require('backbone');
     return {
@@ -3395,11 +3425,11 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
-  define('managers/token',['require','backbone','underscore','managers/pubsub'],function(require) {
+  define('hilib/managers/token',['require','backbone','underscore','hilib/managers/pubsub'],function(require) {
     var Backbone, Pubsub, Token, _;
     Backbone = require('backbone');
     _ = require('underscore');
-    Pubsub = require('managers/pubsub');
+    Pubsub = require('hilib/managers/pubsub');
     Token = (function() {
       Token.prototype.token = null;
 
@@ -3440,11 +3470,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/base',['require','backbone','managers/token','managers/pubsub'],function(require) {
+  define('collections/base',['require','backbone','hilib/managers/token','hilib/managers/pubsub'],function(require) {
     var Backbone, Base, Pubsub, token, _ref;
     Backbone = require('backbone');
-    token = require('managers/token');
-    Pubsub = require('managers/pubsub');
+    token = require('hilib/managers/token');
+    Pubsub = require('hilib/managers/pubsub');
     return Base = (function(_super) {
       __extends(Base, _super);
 
@@ -3511,7 +3541,7 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
-  define('managers/view',['require','backbone','collections/view'],function(require) {
+  define('hilib/managers/view',['require','backbone','collections/view'],function(require) {
     var Backbone, Collections, ViewManager;
     Backbone = require('backbone');
     Collections = {
@@ -3579,17 +3609,17 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
-  define('managers/history',['require','backbone','underscore'],function(require) {
-    var Backbone, History, _;
-    Backbone = require('backbone');
-    _ = require('underscore');
+  define('hilib/managers/history',['require'],function(require) {
+    var History;
     History = (function() {
       function History() {}
 
       History.prototype.history = [];
 
       History.prototype.update = function() {
-        this.history.push(window.location.pathname);
+        if (window.location.pathname !== '/login') {
+          this.history.push(window.location.pathname);
+        }
         return sessionStorage.setItem('history', JSON.stringify(this.history));
       };
 
@@ -3622,11 +3652,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/base',['require','backbone','managers/token','managers/pubsub'],function(require) {
+  define('models/base',['require','backbone','hilib/managers/token','hilib/managers/pubsub'],function(require) {
     var Backbone, Base, Pubsub, token, _ref;
     Backbone = require('backbone');
-    token = require('managers/token');
-    Pubsub = require('managers/pubsub');
+    token = require('hilib/managers/token');
+    Pubsub = require('hilib/managers/pubsub');
     return Base = (function(_super) {
       __extends(Base, _super);
 
@@ -3658,10 +3688,10 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/currentUser',['require','config','managers/token','models/base','collections/base'],function(require) {
+  define('models/currentUser',['require','config','hilib/managers/token','models/base','collections/base'],function(require) {
     var Collections, CurrentUser, Models, config, token, _ref;
     config = require('config');
-    token = require('managers/token');
+    token = require('hilib/managers/token');
     Models = {
       Base: require('models/base')
     };
@@ -3706,8 +3736,10 @@ define('domready',[],function () {
         }
       };
 
-      CurrentUser.prototype.login = function() {
+      CurrentUser.prototype.login = function(username, password) {
         var _this = this;
+        this.set('username', username);
+        this.password = password;
         return this.fetchUserAttrs(function() {
           sessionStorage.setItem('huygens_user', JSON.stringify(_this.attributes));
           return _this.publish('authorized');
@@ -3739,11 +3771,12 @@ define('domready',[],function () {
             type: 'post',
             url: config.baseUrl + 'sessions/login',
             data: {
-              username: $('#username').val(),
-              password: $('#password').val()
+              username: this.get('username'),
+              password: this.password
             }
           });
           jqXHR.done(function(data) {
+            _this.password = null;
             token.set(data.token);
             _this.set(data.user);
             return cb();
@@ -3765,7 +3798,7 @@ define('domready',[],function () {
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define('helpers/general',['require','jquery'],function(require) {
+  define('hilib/functions/general',['require','jquery'],function(require) {
     var $;
     $ = require('jquery');
     return {
@@ -4005,36 +4038,51 @@ define('domready',[],function () {
         }
         return Object.getPrototypeOf(obj) === ObjProto;
       },
-      getScrollPercentage: function(el, orientation) {
-        var scrolled, total;
-        if (orientation == null) {
-          orientation = 'vertical';
-        }
-        if (orientation === 'vertical') {
-          scrolled = el.scrollTop;
-          total = el.scrollHeight - el.clientHeight;
-        } else {
-          scrolled = el.scrollLeft;
-          total = el.scrollWidth - el.clientWidth;
-        }
-        return Math.floor((scrolled / total) * 100);
+      getScrollPercentage: function(el) {
+        var scrolledLeft, scrolledTop, totalLeft, totalTop;
+        scrolledTop = el.scrollTop;
+        totalTop = el.scrollHeight - el.clientHeight;
+        scrolledLeft = el.scrollLeft;
+        totalLeft = el.scrollWidth - el.clientWidth;
+        return {
+          top: Math.floor((scrolledTop / totalTop) * 100),
+          left: Math.floor((scrolledLeft / totalLeft) * 100)
+        };
       },
-      setScrollPercentage: function(el, percentage, orientation) {
-        var clientHeight, clientWidth, left, scrollHeight, scrollWidth, top;
-        if (orientation == null) {
-          orientation = 'vertical';
-        }
+      setScrollPercentage: function(el, percentages) {
+        var clientHeight, clientWidth, scrollHeight, scrollWidth;
         clientWidth = el.clientWidth;
         scrollWidth = el.scrollWidth;
         clientHeight = el.clientHeight;
         scrollHeight = el.scrollHeight;
-        top = 0;
-        left = 0;
-        if (orientation === 'vertical') {
-          return el.scrollTop = (scrollHeight - clientHeight) * percentage / 100;
-        } else {
-          return el.scrollLeft = (scrollWidth - clientWidth) * percentage / 100;
+        el.scrollTop = (scrollHeight - clientHeight) * percentages.top / 100;
+        return el.scrollLeft = (scrollWidth - clientWidth) * percentages.left / 100;
+      },
+      checkCheckboxes: function(selector, checked, baseEl) {
+        var cb, checkboxes, _i, _len, _results;
+        if (checked == null) {
+          checked = true;
         }
+        if (baseEl == null) {
+          baseEl = document;
+        }
+        checkboxes = baseEl.querySelectorAll(selector);
+        _results = [];
+        for (_i = 0, _len = checkboxes.length; _i < _len; _i++) {
+          cb = checkboxes[_i];
+          _results.push(cb.checked = checked);
+        }
+        return _results;
+      },
+      setCursorToEnd: function(el) {
+        var range, sel;
+        range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse();
+        sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        return el.focus();
       }
     };
   });
@@ -4042,7 +4090,7 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
-  define('managers/ajax',['require','jquery'],function(require) {
+  define('hilib/managers/ajax',['require','jquery'],function(require) {
     var $;
     $ = require('jquery');
     $.support.cors = true;
@@ -4114,93 +4162,13 @@ define('domready',[],function () {
 }).call(this);
 
 (function() {
-  define('managers2/ajax',['require','jquery'],function(require) {
-    var $;
-    $ = require('jquery');
-    $.support.cors = true;
-    return {
-      token: null,
-      get: function(args) {
-        return this.fire('get', args);
-      },
-      post: function(args) {
-        return this.fire('post', args);
-      },
-      put: function(args) {
-        return this.fire('put', args);
-      },
-      fire: function(type, args) {
-        var ajaxArgs,
-          _this = this;
-        ajaxArgs = {
-          type: type,
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8',
-          processData: false,
-          crossDomain: true
-        };
-        if (this.token != null) {
-          ajaxArgs.beforeSend = function(xhr) {
-            return xhr.setRequestHeader('Authorization', "SimpleAuth " + _this.token);
-          };
-        }
-        return $.ajax($.extend(ajaxArgs, args));
-      }
-    };
-  });
-
-}).call(this);
-
-(function() {
-  define('managers2/token',['require','backbone','underscore','managers/pubsub'],function(require) {
-    var Backbone, Pubsub, Token, _;
-    Backbone = require('backbone');
-    _ = require('underscore');
-    Pubsub = require('managers/pubsub');
-    Token = (function() {
-      Token.prototype.token = null;
-
-      function Token() {
-        _.extend(this, Backbone.Events);
-        _.extend(this, Pubsub);
-      }
-
-      Token.prototype.set = function(token) {
-        this.token = token;
-        return sessionStorage.setItem('huygens_token', token);
-      };
-
-      Token.prototype.get = function() {
-        if (this.token == null) {
-          this.token = sessionStorage.getItem('huygens_token');
-        }
-        if (this.token == null) {
-          this.publish('unauthorized');
-          return false;
-        }
-        return this.token;
-      };
-
-      Token.prototype.clear = function() {
-        return sessionStorage.removeItem('huygens_token');
-      };
-
-      return Token;
-
-    })();
-    return new Token();
-  });
-
-}).call(this);
-
-(function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/annotation',['require','managers/ajax','managers/token','config','models/base'],function(require) {
+  define('models/annotation',['require','hilib/managers/ajax','hilib/managers/token','config','models/base'],function(require) {
     var Annotation, Models, ajax, config, token, _ref;
-    ajax = require('managers/ajax');
-    token = require('managers/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     ajax.token = token.get();
     config = require('config');
     Models = {
@@ -4322,11 +4290,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/transcription',['require','config','managers2/ajax','managers2/token','models/base','collections/annotations'],function(require) {
+  define('models/transcription',['require','config','hilib/managers/ajax','hilib/managers/token','models/base','collections/annotations'],function(require) {
     var Collections, Models, Transcription, ajax, config, token, _ref;
     config = require('config');
-    ajax = require('managers2/ajax');
-    token = require('managers2/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Models = {
       Base: require('models/base')
     };
@@ -4530,10 +4498,10 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/facsimile',['require','managers/ajax','managers/token','config','models/base'],function(require) {
+  define('models/facsimile',['require','hilib/managers/ajax','hilib/managers/token','config','models/base'],function(require) {
     var Facsimile, Models, ajax, config, token, _ref;
-    ajax = require('managers/ajax');
-    token = require('managers/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     config = require('config');
     Models = {
       Base: require('models/base')
@@ -4839,10 +4807,10 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project',['require','managers/ajax','managers/token','config','models/base','collections/entries','collections/project/annotation.types'],function(require) {
+  define('models/project',['require','hilib/managers/ajax','hilib/managers/token','config','models/base','collections/entries','collections/project/annotation.types'],function(require) {
     var Collections, Models, Project, ajax, config, token, _ref;
-    ajax = require('managers/ajax');
-    token = require('managers/token');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     config = require('config');
     Models = {
       Base: require('models/base')
@@ -4947,9 +4915,9 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/state',['require','managers/history','models/base','collections/projects'],function(require) {
+  define('models/state',['require','hilib/managers/history','models/base','collections/projects'],function(require) {
     var Collections, Models, State, history, _ref;
-    history = require('managers/history');
+    history = require('hilib/managers/history');
     Models = {
       Base: require('models/base')
     };
@@ -5061,11 +5029,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/base',['require','backbone','managers/pubsub','managers/view'],function(require) {
+  define('views/base',['require','backbone','hilib/managers/pubsub','hilib/managers/view'],function(require) {
     var Backbone, BaseView, Pubsub, viewManager, _ref;
     Backbone = require('backbone');
-    Pubsub = require('managers/pubsub');
-    viewManager = require('managers/view');
+    Pubsub = require('hilib/managers/pubsub');
+    viewManager = require('hilib/managers/view');
     return BaseView = (function(_super) {
       __extends(BaseView, _super);
 
@@ -5486,7 +5454,7 @@ define('text',['module'], function (module) {
     return text;
 });
 
-define('text!html/login.html',[],function () { return '\n<div class="cell span2">\n  <div class="padl5 padr5">\n    <p>\n      \t\n      eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. \n      Access to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/\n    </p>\n    <p>\n      eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission \n      to members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. \n      The edition will then become available online in a sober design which will be elaborated on step by step in the next few years.\n    </p>\n    <p><p>The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. \nThe new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of <a href="http://alfalab.ehumanities.nl">Alfalab</a>.</p>\n    </p>\n    <p><p>Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.\nFor more information: <a href="info-elaborate@huygens.knaw.nl">info-elaborate@huygens.knaw.nl</a></p>\n    </p>\n    <h2>eLaborate2</h2>\n    <p>\n      Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/\n      In the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.\n    </p>\n    <h2>Links</h2>\n    <p>More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)</p>\n    <p> <p>Links to digital editions prepared in eLaborate2 are listed at <a href="http://www.e-laborate.nl/en/">http://www.e-laborate.nl/en/</a></p>\n    </p>\n    <p> <p>Information about tools for digital text analysis can be found in Alfalab&#39;s Textlab. <a href="http://alfalab.ehumanities.nl/textlab">http://alfalab.ehumanities.nl/textlab</a></p>\n    </p>\n    <p> <p>Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at <a href="http://www.textualscholarship.nl/">http://www.textualscholarship.nl/</a></p>\n    </p>\n    <p> <p>More about Huygens ING at <a href="http://www.huygens.knaw.nl/">http://www.huygens.knaw.nl/</a></p>\n    </p>\n  </div>\n</div>\n<div class="cell span1 alignright">\n  <div class="padl5 padr5">\n    <form class="login">\n      <label>Username</label>\n      <input id="username" type="text" name="username" value="root"/><br/>\n      <label>Password</label>\n      <input id="password" type="password" name="password" value="toor"/><br/>\n      <input id="submit" type="submit" value="Login"/>\n    </form>\n  </div>\n</div>';});
+define('text!html/login.html',[],function () { return '<div class="cell span2"><div class="padl5 padr5"><p>\t\neLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. \nAccess to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/</p><p>eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission \nto members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. \nThe edition will then become available online in a sober design which will be elaborated on step by step in the next few years.</p><p><p>The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. \nThe new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of <a href="http://alfalab.ehumanities.nl">Alfalab</a>.</p></p><p><p>Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.\nFor more information: <a href="info-elaborate@huygens.knaw.nl">info-elaborate@huygens.knaw.nl</a></p></p><h2>eLaborate2</h2><p>Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/\nIn the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.</p><h2>Links</h2><p>More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)</p><p> <p>Links to digital editions prepared in eLaborate2 are listed at <a href="http://www.e-laborate.nl/en/">http://www.e-laborate.nl/en/</a></p></p><p> <p>Information about tools for digital text analysis can be found in Alfalab&#39;s Textlab. <a href="http://alfalab.ehumanities.nl/textlab">http://alfalab.ehumanities.nl/textlab</a></p></p><p> <p>Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at <a href="http://www.textualscholarship.nl/">http://www.textualscholarship.nl/</a></p></p><p> <p>More about Huygens ING at <a href="http://www.huygens.knaw.nl/">http://www.huygens.knaw.nl/</a></p></p></div></div><div class="cell span1 alignright"><div class="padl5 padr5"><form class="login"><label>Username</label><input id="username" type="text" name="username" value="root"/><br/><label>Password</label><input id="password" type="password" name="password" value="toor"/><br/><input id="submit" type="submit" value="Login"/></form></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
@@ -5515,7 +5483,7 @@ define('text!html/login.html',[],function () { return '\n<div class="cell span2"
 
       Login.prototype.submit = function(ev) {
         ev.preventDefault();
-        return currentUser.login();
+        return currentUser.login(this.$('#username').val(), this.$('#password').val());
       };
 
       Login.prototype.initialize = function() {
@@ -5533,290 +5501,6 @@ define('text!html/login.html',[],function () { return '\n<div class="cell span2"
       return Login;
 
     })(BaseView);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty;
-
-  define('helpers2/general',['require','jquery'],function(require) {
-    var $;
-    $ = require('jquery');
-    return {
-      /*
-      	Generates an ID that starts with a letter
-      	
-      	Example: "aBc12D34"
-      
-      	param Number length of the id
-      	return String
-      */
-
-      generateID: function(length) {
-        var chars, text;
-        length = (length != null) && length > 0 ? length - 1 : 7;
-        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        text = chars.charAt(Math.floor(Math.random() * 52));
-        while (length--) {
-          text += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return text;
-      },
-      /*
-      	Deepcopies arrays and object literals
-      	
-      	return Array or object
-      */
-
-      deepCopy: function(object) {
-        var newEmpty;
-        newEmpty = Array.isArray(object) ? [] : {};
-        return $.extend(true, newEmpty, object);
-      },
-      /*
-      	Starts a timer which resets when it is called again.
-      	
-      	Example: with a scroll event, when a user stops scrolling, the timer ends.
-      	Without the reset, the timer would fire dozens of times.
-      	Can also be handy to avoid double clicks.
-      
-      	Example usage:
-      	div.addEventListener 'scroll', (ev) ->
-      		Fn.timeoutWithReset 200, -> console.log('finished!')
-      	
-      	return Function
-      */
-
-      timeoutWithReset: (function() {
-        var timer;
-        timer = 0;
-        return function(ms, cb) {
-          clearTimeout(timer);
-          return timer = setTimeout(cb, ms);
-        };
-      })(),
-      /*
-      	Highlight text between two nodes. 
-      
-      	Creates a span.hilite between two given nodes, surrounding the contents of the nodes
-      
-      	Example usage:
-      	hl = Fn.highlighter
-      		className: 'highlight' # optional
-      		tagName: 'div' # optional
-      
-      	supEnter = (ev) -> hl.on
-      		startNode: el.querySelector(#someid) # required
-      		endNode: ev.currentTarget # required
-      	supLeave = -> hl.off()
-      	$(sup).hover supEnter, supLeave
-      */
-
-      highlighter: function(args) {
-        var className, el, tagName;
-        if (args == null) {
-          args = {};
-        }
-        className = args.className, tagName = args.tagName;
-        if (className == null) {
-          className = 'hilite';
-        }
-        if (tagName == null) {
-          tagName = 'span';
-        }
-        el = null;
-        return {
-          on: function(args) {
-            var endNode, range, startNode;
-            startNode = args.startNode, endNode = args.endNode;
-            range = document.createRange();
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            el = document.createElement(tagName);
-            el.className = className;
-            el.appendChild(range.extractContents());
-            return range.insertNode(el);
-          },
-          off: function() {
-            return $(el).replaceWith(function() {
-              return $(this).contents();
-            });
-          }
-        };
-      },
-      /*
-      	Native alternative to jQuery's $.offset()
-      
-      	http://www.quirksmode.org/js/findpos.html
-      */
-
-      position: function(el, parent) {
-        var left, top;
-        left = 0;
-        top = 0;
-        while (el !== parent) {
-          left += el.offsetLeft;
-          top += el.offsetTop;
-          el = el.offsetParent;
-        }
-        return {
-          left: left,
-          top: top
-        };
-      },
-      boundingBox: function(el) {
-        var box;
-        box = $(el).offset();
-        box.width = el.clientWidth;
-        box.height = el.clientHeight;
-        box.right = box.left + box.width;
-        box.bottom = box.top + box.height;
-        return box;
-      },
-      /*
-      	Is child el a descendant of parent el?
-      
-      	http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
-      */
-
-      isDescendant: function(parent, child) {
-        var node;
-        node = child.parentNode;
-        while (node != null) {
-          if (node === parent) {
-            return true;
-          }
-          node = node.parentNode;
-        }
-        return false;
-      },
-      /*
-      	Removes an item from an array
-      */
-
-      removeFromArray: function(arr, item) {
-        var index;
-        index = arr.indexOf(item);
-        return arr.splice(index, 1);
-      },
-      /* Escape a regular expression*/
-
-      escapeRegExp: function(str) {
-        return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      },
-      /*
-      	Flattens an object
-      
-      	songs:
-      		mary:
-      			had:
-      				little: 'lamb'
-      
-      	becomes
-      
-      	songs:
-      		mary.had.little: 'lamb'
-      
-      	Taken from: http://thedersen.com/projects/backbone-validation
-      */
-
-      flattenObject: function(obj, into, prefix) {
-        var k, v;
-        if (into == null) {
-          into = {};
-        }
-        if (prefix == null) {
-          prefix = '';
-        }
-        for (k in obj) {
-          if (!__hasProp.call(obj, k)) continue;
-          v = obj[k];
-          if (_.isObject(v) && !_.isArray(v) && !_.isFunction(v)) {
-            this.flattenObject(v, into, prefix + k + '.');
-          } else {
-            into[prefix + k] = v;
-          }
-        }
-        return into;
-      },
-      compareJSON: function(current, changed) {
-        var attr, changes, value;
-        changes = {};
-        for (attr in current) {
-          if (!__hasProp.call(current, attr)) continue;
-          value = current[attr];
-          if (!changed.hasOwnProperty(attr)) {
-            changes[attr] = 'removed';
-          }
-        }
-        for (attr in changed) {
-          if (!__hasProp.call(changed, attr)) continue;
-          value = changed[attr];
-          if (current.hasOwnProperty(attr)) {
-            if (_.isArray(value) || this.isObjectLiteral(value)) {
-              if (!_.isEqual(current[attr], changed[attr])) {
-                changes[attr] = changed[attr];
-              }
-            } else {
-              if (current[attr] !== changed[attr]) {
-                changes[attr] = changed[attr];
-              }
-            }
-          } else {
-            changes[attr] = 'added';
-          }
-        }
-        return changes;
-      },
-      isObjectLiteral: function(obj) {
-        var ObjProto;
-        if ((obj == null) || typeof obj !== "object") {
-          return false;
-        }
-        ObjProto = obj;
-        while (Object.getPrototypeOf(ObjProto = Object.getPrototypeOf(ObjProto)) !== null) {
-          0;
-        }
-        return Object.getPrototypeOf(obj) === ObjProto;
-      },
-      getScrollPercentage: function(el) {
-        var scrolledLeft, scrolledTop, totalLeft, totalTop;
-        scrolledTop = el.scrollTop;
-        totalTop = el.scrollHeight - el.clientHeight;
-        scrolledLeft = el.scrollLeft;
-        totalLeft = el.scrollWidth - el.clientWidth;
-        return {
-          top: Math.floor((scrolledTop / totalTop) * 100),
-          left: Math.floor((scrolledLeft / totalLeft) * 100)
-        };
-      },
-      setScrollPercentage: function(el, percentages) {
-        var clientHeight, clientWidth, scrollHeight, scrollWidth;
-        clientWidth = el.clientWidth;
-        scrollWidth = el.scrollWidth;
-        clientHeight = el.clientHeight;
-        scrollHeight = el.scrollHeight;
-        el.scrollTop = (scrollHeight - clientHeight) * percentages.top / 100;
-        return el.scrollLeft = (scrollWidth - clientWidth) * percentages.left / 100;
-      },
-      checkCheckboxes: function(selector, checked, baseEl) {
-        var cb, checkboxes, _i, _len, _results;
-        if (checked == null) {
-          checked = true;
-        }
-        if (baseEl == null) {
-          baseEl = document;
-        }
-        checkboxes = baseEl.querySelectorAll(selector);
-        _results = [];
-        for (_i = 0, _len = checkboxes.length; _i < _len; _i++) {
-          cb = checkboxes[_i];
-          _results.push(cb.checked = checked);
-        }
-        return _results;
-      }
-    };
   });
 
 }).call(this);
@@ -5845,8 +5529,8 @@ define('text!html/login.html',[],function () { return '\n<div class="cell span2"
 
 }).call(this);
 
-(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("helpers/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.9",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'\n<div class="placeholder pad4">\n  <header>\n    <h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small>\n    <div class="options"></div>\n  </header>\n  <div class="body"></div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'\n<div class="options">\n  <ul><% _.each(options, function(option) { %>\n    <li class="option">\n      <div class="row span6">\n        <div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>">\n          <label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label>\n        </div>\n        <div class="cell span1 alignright">\n          <div class="count"><%= option.count %></div>\n        </div>\n      </div>\n    </li><% }); %>\n  </ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","helpers/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'\n<header>\n  <h3 data-name="<%= name %>"><%= title %></h3>\n</header>\n<div class="body">\n  <label>From:</label>\n  <select><% _.each(options, function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n  <label>To:</label>\n  <select><% _.each(options.reverse(), function(option) { %>\n    <option><%= option %></option><% }); %>\n  </select>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","helpers/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("helpers/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){s("helpers/general",["require","jquery"],function(e){var t;return t=e("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var n;return n=Array.isArray(e)?[]:{},t.extend(!0,n,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}()}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.html",[],function(){return""}),s("text!html/facet/list.options.html",[],function(){return'\n<ul>\n  <% _.each(options, function(option) { %>\n  <% var randomId = generateID(); %>\n  <% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n  <% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n  <% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %>\n  <li class="option">\n    <div data-count="<%= option.get(\'count\') %>" class="row span6">\n      <div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>>\n        <label for="<%= randomId %>"><%= labelText %></label>\n      </div>\n      <div class="cell span1 alignright">\n        <div class="count"><%= count %></div>\n      </div>\n    </div>\n  </li><% }); %>\n</ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","helpers/general","views/base","models/list","text!html/facet/list.html","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("helpers/general"),u={Base:e("views/base")},s={List:e("models/list")},o={List:e("text!html/facet/list.html"),Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span2">\n    <input type="text" name="listsearch" class="listsearch"/>\n  </div>\n  <div class="cell span1"><small class="optioncount"></small></div>\n  <div class="cell span1 alignright">\n    <nav>\n      <ul>\n        <li class="all">All </li>\n        <li class="none">None</li>\n      </ul>\n    </nav>\n  </div>\n</div>'}),s("text!html/facet/list.body.html",[],function(){return'\n<div class="options">\n  <ul></ul>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","helpers/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("helpers/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'\n<div class="row span1 align middle">\n  <div class="cell span1 casesensitive">\n    <input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/>\n    <label for="cb_casesensitive">Match case</label>\n  </div>\n</div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Search in</h4>\n    <ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>>\n        <label for="cb_searchin_annotations">Annotations</label>\n      </li><% } %>\n      <% if (\'searchInTranscriptions\' in searchOptions) { %>\n      <li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>>\n        <label for="cb_searchin_transcriptions">Transcriptions</label>\n      </li><% } %>\n    </ul>\n  </div>\n</div><% } %>\n<% if (\'textLayers\' in searchOptions) { %>\n<div class="row span1">\n  <div class="cell span1">\n    <h4>Text layers</h4>\n    <ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %>\n      <li class="textlayer">\n        <input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/>\n        <label for="cb_textlayer_<%= tl %>"><%= tl %></label>\n      </li><% }); %>\n    </ul>\n  </div>\n</div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'\n<div class="row span4 align middle">\n  <div class="cell span3">\n    <div class="padr4">\n      <input id="search" type="text" name="search"/>\n    </div>\n  </div>\n  <div class="cell span1">\n    <button class="search">Search</button>\n  </div>\n</div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'\n<div class="faceted-search">\n  <form>\n    <div class="search-placeholder"></div>\n    <div class="facets">\n      <div style="display: none; text-align: center; margin-top: 20px" class="loader">\n        <h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/>\n      </div>\n    </div>\n  </form>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i}(u.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
-define('text!html/project/search.html',[],function () { return '\n<div class="row span3">\n  <div class="cell span1 faceted-search-placeholder"></div>\n  <div class="cell span2">\n    <div class="padl4 resultview">\n      <header>\n        <div class="row span2">\n          <div class="cell span1"> \n            <h3 class="numfound"></h3>\n          </div>\n          <div class="cell span1 alignright">\n            <nav>\n              <ul>\n                <li> \n                  <input id="cb_showkeywords" type="checkbox"/>\n                  <label for="cb_showkeywords">Display keywords</label>\n                </li>\n                <li data-key="selectall">Select all</li>\n                <li data-key="deselectall">Deselect all</li>\n              </ul>\n            </nav>\n          </div>\n        </div>\n        <div class="row span2">\n          <div class="cell span1"> \n            <ul class="horizontal menu pagination">\n              <li class="prev inactive">&lt;</li>\n              <li class="currentpage text"></li>\n              <li class="text">of</li>\n              <li class="pagecount text"></li>\n              <li class="next">&gt;</li>\n            </ul>\n          </div>\n          <div class="cell span1 alignright"></div>\n        </div>\n      </header>\n      <ul class="entries"></ul>\n    </div>\n  </div>\n</div>';});
+(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.10",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;if(u.indexOf("empty:")===0){r();return}!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'<div class="placeholder pad4"><header><h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'<div class="options"><ul><% _.each(options, function(option) { %><li class="option"><div class="row span6"><div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>"><label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label></div><div class="cell span1 alignright"><div class="count"><%= option.count %></div></div></div></li><% }); %></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'<header><h3 data-name="<%= name %>"><%= title %></h3></header><div class="body"><label>From:</label><select><% _.each(options, function(option) { %><option><%= option %></option><% }); %></select><label>To:</label><select><% _.each(options.reverse(), function(option) { %><option><%= option %></option><% }); %></select></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(n){var r;return r=n("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},r.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}(),highlighter:function(e){var t,n,i;return e==null&&(e={}),t=e.className,i=e.tagName,t==null&&(t="hilite"),i==null&&(i="span"),n=null,{on:function(e){var r,s,o;return o=e.startNode,r=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(r),n=document.createElement(i),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return r(n).replaceWith(function(){return r(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=r(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(n,r,i){var s,o;r==null&&(r={}),i==null&&(i="");for(s in n){if(!e.call(n,s))continue;o=n[s],t.isObject(o)&&!t.isArray(o)&&!t.isFunction(o)?this.flattenObject(o,r,i+s+"."):r[i+s]=o}return r},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e){var t,n;return t=document.createRange(),t.selectNodeContents(e),t.collapse(),n=window.getSelection(),n.removeAllRanges(),n.addRange(t),e.focus()}}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.options.html",[],function(){return'<ul><% _.each(options, function(option) { %>\n<% var randomId = generateID(); %>\n<% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n<% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n<% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %><li class="option"><div data-count="<%= option.get(\'count\') %>" class="row span6"><div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>><label for="<%= randomId %>"><%= labelText %></label></div><div class="cell span1 alignright"><div class="count"><%= count %></div></div></div></li><% }); %></ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),u={Base:e("views/base")},s={List:e("models/list")},o={Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'}),s("text!html/facet/list.body.html",[],function(){return'<div class="options"><ul></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),t.support.cors=!0,{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","hilib/managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("hilib/managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %><div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>><label for="cb_searchin_annotations">Annotations</label></li><% } %>\n<% if (\'searchInTranscriptions\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>><label for="cb_searchin_transcriptions">Transcriptions</label></li><% } %></ul></div></div><% } %>\n<% if (\'textLayers\' in searchOptions) { %><div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %><li class="textlayer"><input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/><label for="cb_textlayer_<%= tl %>"><%= tl %></label></li><% }); %></ul></div></div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'<div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div style="display: none; text-align: center; margin-top: 20px" class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i}(u.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
+define('text!html/project/search.html',[],function () { return '<div class="row span3"><div class="cell span1 faceted-search-placeholder"></div><div class="cell span2"><div class="padl4 resultview"><header><div class="row span2"><div class="cell span1"> <h3 class="numfound"></h3></div><div class="cell span1 alignright"><nav><ul><li> <input id="cb_showkeywords" type="checkbox"/><label for="cb_showkeywords">Display keywords</label></li><li data-key="selectall">Select all</li><li data-key="deselectall">Deselect all</li></ul></nav></div></div><div class="row span2"><div class="cell span1"> <ul class="horizontal menu pagination"><li class="prev inactive">&lt;</li><li class="currentpage text"></li><li class="text">of</li><li class="pagecount text"></li><li class="next">&gt;</li></ul></div><div class="cell span1 alignright"></div></div></header><ul class="entries"></ul></div></div></div>';});
 
 define('text!html/project/search.results.html',[],function () { return '<% _.each(model.get(\'results\'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>\n<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>\n<% }); %></ul></div></li><% }); %>';});
 
@@ -5854,11 +5538,11 @@ define('text!html/project/search.results.html',[],function () { return '<% _.eac
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/main',['require','helpers2/general','config','managers/token','models/project/search','models/state','views/base','faceted-search','text!html/project/search.html','text!html/project/search.results.html'],function(require) {
+  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/project/search','models/state','views/base','faceted-search','text!html/project/search.html','text!html/project/search.results.html'],function(require) {
     var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     config = require('config');
-    token = require('managers/token');
+    token = require('hilib/managers/token');
     Models = {
       Search: require('models/project/search'),
       state: require('models/state')
@@ -6059,11 +5743,11 @@ define('text!html/project/search.results.html',[],function () { return '<% _.eac
 }).call(this);
 
 (function() {
-  define('entry.metadata',['require','config','managers/token','managers/ajax','models/state'],function(require) {
+  define('entry.metadata',['require','config','hilib/managers/token','hilib/managers/ajax','models/state'],function(require) {
     var EntryMetadata, Models, ajax, config, token;
     config = require('config');
-    token = require('managers/token');
-    ajax = require('managers/ajax');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
     Models = {
       state: require('models/state')
     };
@@ -6170,13 +5854,13 @@ define('text!html/ui/settings.submenu.html',[],function () { return '<div class=
 
 }).call(this);
 
-define('text!viewshtml/form/editablelist/main.html',[],function () { return '<input data-view-id="<%= viewId %>"/><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>"><%= model.id %></li><% }); %></ul>';});
+define('text!hilib/views/form/editablelist/main.html',[],function () { return '<input data-view-id="<%= viewId %>"/><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>"><%= model.id %></li><% }); %></ul>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('hilib/views/form/editablelist/main',['require','collections/base','views/base','text!viewshtml/form/editablelist/main.html'],function(require) {
+  define('hilib/views/form/editablelist/main',['require','collections/base','views/base','text!hilib/views/form/editablelist/main.html'],function(require) {
     var Collections, EditableList, Tpl, Views, _ref;
     Collections = {
       Base: require('collections/base')
@@ -6184,7 +5868,7 @@ define('text!viewshtml/form/editablelist/main.html',[],function () { return '<in
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!viewshtml/form/editablelist/main.html');
+    Tpl = require('text!hilib/views/form/editablelist/main.html');
     return EditableList = (function(_super) {
       __extends(EditableList, _super);
 
@@ -6254,290 +5938,6 @@ define('text!viewshtml/form/editablelist/main.html',[],function () { return '<in
 }).call(this);
 
 define('text!hilib/views/form/combolist/main.html',[],function () { return '<div class="input"><input type="text" data-view-id="<%= viewId %>"/><div class="caret"></div></div><% if (editable) { %><button class="edit">Edit</button><% } %><ul class="list"></ul><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>" class="selected"><%= model.get(\'title\') %></li><% }); %></ul>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty;
-
-  define('hilib/functions/general',['require','jquery'],function(require) {
-    var $;
-    $ = require('jquery');
-    return {
-      /*
-      	Generates an ID that starts with a letter
-      	
-      	Example: "aBc12D34"
-      
-      	param Number length of the id
-      	return String
-      */
-
-      generateID: function(length) {
-        var chars, text;
-        length = (length != null) && length > 0 ? length - 1 : 7;
-        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        text = chars.charAt(Math.floor(Math.random() * 52));
-        while (length--) {
-          text += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return text;
-      },
-      /*
-      	Deepcopies arrays and object literals
-      	
-      	return Array or object
-      */
-
-      deepCopy: function(object) {
-        var newEmpty;
-        newEmpty = Array.isArray(object) ? [] : {};
-        return $.extend(true, newEmpty, object);
-      },
-      /*
-      	Starts a timer which resets when it is called again.
-      	
-      	Example: with a scroll event, when a user stops scrolling, the timer ends.
-      	Without the reset, the timer would fire dozens of times.
-      	Can also be handy to avoid double clicks.
-      
-      	Example usage:
-      	div.addEventListener 'scroll', (ev) ->
-      		Fn.timeoutWithReset 200, -> console.log('finished!')
-      	
-      	return Function
-      */
-
-      timeoutWithReset: (function() {
-        var timer;
-        timer = 0;
-        return function(ms, cb) {
-          clearTimeout(timer);
-          return timer = setTimeout(cb, ms);
-        };
-      })(),
-      /*
-      	Highlight text between two nodes. 
-      
-      	Creates a span.hilite between two given nodes, surrounding the contents of the nodes
-      
-      	Example usage:
-      	hl = Fn.highlighter
-      		className: 'highlight' # optional
-      		tagName: 'div' # optional
-      
-      	supEnter = (ev) -> hl.on
-      		startNode: el.querySelector(#someid) # required
-      		endNode: ev.currentTarget # required
-      	supLeave = -> hl.off()
-      	$(sup).hover supEnter, supLeave
-      */
-
-      highlighter: function(args) {
-        var className, el, tagName;
-        if (args == null) {
-          args = {};
-        }
-        className = args.className, tagName = args.tagName;
-        if (className == null) {
-          className = 'hilite';
-        }
-        if (tagName == null) {
-          tagName = 'span';
-        }
-        el = null;
-        return {
-          on: function(args) {
-            var endNode, range, startNode;
-            startNode = args.startNode, endNode = args.endNode;
-            range = document.createRange();
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            el = document.createElement(tagName);
-            el.className = className;
-            el.appendChild(range.extractContents());
-            return range.insertNode(el);
-          },
-          off: function() {
-            return $(el).replaceWith(function() {
-              return $(this).contents();
-            });
-          }
-        };
-      },
-      /*
-      	Native alternative to jQuery's $.offset()
-      
-      	http://www.quirksmode.org/js/findpos.html
-      */
-
-      position: function(el, parent) {
-        var left, top;
-        left = 0;
-        top = 0;
-        while (el !== parent) {
-          left += el.offsetLeft;
-          top += el.offsetTop;
-          el = el.offsetParent;
-        }
-        return {
-          left: left,
-          top: top
-        };
-      },
-      boundingBox: function(el) {
-        var box;
-        box = $(el).offset();
-        box.width = el.clientWidth;
-        box.height = el.clientHeight;
-        box.right = box.left + box.width;
-        box.bottom = box.top + box.height;
-        return box;
-      },
-      /*
-      	Is child el a descendant of parent el?
-      
-      	http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
-      */
-
-      isDescendant: function(parent, child) {
-        var node;
-        node = child.parentNode;
-        while (node != null) {
-          if (node === parent) {
-            return true;
-          }
-          node = node.parentNode;
-        }
-        return false;
-      },
-      /*
-      	Removes an item from an array
-      */
-
-      removeFromArray: function(arr, item) {
-        var index;
-        index = arr.indexOf(item);
-        return arr.splice(index, 1);
-      },
-      /* Escape a regular expression*/
-
-      escapeRegExp: function(str) {
-        return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      },
-      /*
-      	Flattens an object
-      
-      	songs:
-      		mary:
-      			had:
-      				little: 'lamb'
-      
-      	becomes
-      
-      	songs:
-      		mary.had.little: 'lamb'
-      
-      	Taken from: http://thedersen.com/projects/backbone-validation
-      */
-
-      flattenObject: function(obj, into, prefix) {
-        var k, v;
-        if (into == null) {
-          into = {};
-        }
-        if (prefix == null) {
-          prefix = '';
-        }
-        for (k in obj) {
-          if (!__hasProp.call(obj, k)) continue;
-          v = obj[k];
-          if (_.isObject(v) && !_.isArray(v) && !_.isFunction(v)) {
-            this.flattenObject(v, into, prefix + k + '.');
-          } else {
-            into[prefix + k] = v;
-          }
-        }
-        return into;
-      },
-      compareJSON: function(current, changed) {
-        var attr, changes, value;
-        changes = {};
-        for (attr in current) {
-          if (!__hasProp.call(current, attr)) continue;
-          value = current[attr];
-          if (!changed.hasOwnProperty(attr)) {
-            changes[attr] = 'removed';
-          }
-        }
-        for (attr in changed) {
-          if (!__hasProp.call(changed, attr)) continue;
-          value = changed[attr];
-          if (current.hasOwnProperty(attr)) {
-            if (_.isArray(value) || this.isObjectLiteral(value)) {
-              if (!_.isEqual(current[attr], changed[attr])) {
-                changes[attr] = changed[attr];
-              }
-            } else {
-              if (current[attr] !== changed[attr]) {
-                changes[attr] = changed[attr];
-              }
-            }
-          } else {
-            changes[attr] = 'added';
-          }
-        }
-        return changes;
-      },
-      isObjectLiteral: function(obj) {
-        var ObjProto;
-        if ((obj == null) || typeof obj !== "object") {
-          return false;
-        }
-        ObjProto = obj;
-        while (Object.getPrototypeOf(ObjProto = Object.getPrototypeOf(ObjProto)) !== null) {
-          0;
-        }
-        return Object.getPrototypeOf(obj) === ObjProto;
-      },
-      getScrollPercentage: function(el) {
-        var scrolledLeft, scrolledTop, totalLeft, totalTop;
-        scrolledTop = el.scrollTop;
-        totalTop = el.scrollHeight - el.clientHeight;
-        scrolledLeft = el.scrollLeft;
-        totalLeft = el.scrollWidth - el.clientWidth;
-        return {
-          top: Math.floor((scrolledTop / totalTop) * 100),
-          left: Math.floor((scrolledLeft / totalLeft) * 100)
-        };
-      },
-      setScrollPercentage: function(el, percentages) {
-        var clientHeight, clientWidth, scrollHeight, scrollWidth;
-        clientWidth = el.clientWidth;
-        scrollWidth = el.scrollWidth;
-        clientHeight = el.clientHeight;
-        scrollHeight = el.scrollHeight;
-        el.scrollTop = (scrollHeight - clientHeight) * percentages.top / 100;
-        return el.scrollLeft = (scrollWidth - clientWidth) * percentages.left / 100;
-      },
-      checkCheckboxes: function(selector, checked, baseEl) {
-        var cb, checkboxes, _i, _len, _results;
-        if (checked == null) {
-          checked = true;
-        }
-        if (baseEl == null) {
-          baseEl = document;
-        }
-        checkboxes = baseEl.querySelectorAll(selector);
-        _results = [];
-        for (_i = 0, _len = checkboxes.length; _i < _len; _i++) {
-          cb = checkboxes[_i];
-          _results.push(cb.checked = checked);
-        }
-        return _results;
-      }
-    };
-  });
-
-}).call(this);
 
 (function() {
   define('hilib/mixins/dropdown/options',['require'],function(require) {
@@ -6844,9 +6244,9 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define('hilib/managers/validation',['require','helpers2/general'],function(require) {
+  define('hilib/managers/validation',['require','hilib/functions/general'],function(require) {
     var Fn;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     return {
       validator: function(args) {
         var invalid, listenToObject, valid, validate,
@@ -7143,10 +6543,10 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 }).call(this);
 
 (function() {
-  define('models/project/statistics',['require','config','managers/token','models/state'],function(require) {
+  define('models/project/statistics',['require','config','hilib/managers/token','models/state'],function(require) {
     var Models, ProjectStatistics, config, token;
     config = require('config');
-    token = require('managers/token');
+    token = require('hilib/managers/token');
     Models = {
       state: require('models/state')
     };
@@ -7182,11 +6582,11 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/settings',['require','config','managers/token','managers/ajax','models/base','models/state'],function(require) {
+  define('models/project/settings',['require','config','hilib/managers/token','hilib/managers/ajax','models/base','models/state'],function(require) {
     var Models, ProjectSettings, ajax, config, token, _ref;
     config = require('config');
-    token = require('managers/token');
-    ajax = require('managers/ajax');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
     Models = {
       Base: require('models/base'),
       state: require('models/state')
@@ -7228,86 +6628,6 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
       return ProjectSettings;
 
     })(Models.Base);
-  });
-
-}).call(this);
-
-(function() {
-  define('hilib/managers/ajax',['require','jquery'],function(require) {
-    var $;
-    $ = require('jquery');
-    $.support.cors = true;
-    return {
-      token: null,
-      get: function(args) {
-        return this.fire('get', args);
-      },
-      post: function(args) {
-        return this.fire('post', args);
-      },
-      put: function(args) {
-        return this.fire('put', args);
-      },
-      fire: function(type, args) {
-        var ajaxArgs,
-          _this = this;
-        ajaxArgs = {
-          type: type,
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8',
-          processData: false,
-          crossDomain: true
-        };
-        if (this.token != null) {
-          ajaxArgs.beforeSend = function(xhr) {
-            return xhr.setRequestHeader('Authorization', "SimpleAuth " + _this.token);
-          };
-        }
-        return $.ajax($.extend(ajaxArgs, args));
-      }
-    };
-  });
-
-}).call(this);
-
-(function() {
-  define('hilib/managers/token',['require','backbone','underscore','managers/pubsub'],function(require) {
-    var Backbone, Pubsub, Token, _;
-    Backbone = require('backbone');
-    _ = require('underscore');
-    Pubsub = require('managers/pubsub');
-    Token = (function() {
-      Token.prototype.token = null;
-
-      function Token() {
-        _.extend(this, Backbone.Events);
-        _.extend(this, Pubsub);
-      }
-
-      Token.prototype.set = function(token) {
-        this.token = token;
-        return sessionStorage.setItem('huygens_token', token);
-      };
-
-      Token.prototype.get = function() {
-        if (this.token == null) {
-          this.token = sessionStorage.getItem('huygens_token');
-        }
-        if (this.token == null) {
-          this.publish('unauthorized');
-          return false;
-        }
-        return this.token;
-      };
-
-      Token.prototype.clear = function() {
-        return sessionStorage.removeItem('huygens_token');
-      };
-
-      return Token;
-
-    })();
-    return new Token();
   });
 
 }).call(this);
@@ -7720,10 +7040,10 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/history',['require','views/base','managers/ajax','models/state','collections/project/history','text!html/project/history.html'],function(require) {
+  define('views/project/history',['require','views/base','hilib/managers/ajax','models/state','collections/project/history','text!html/project/history.html'],function(require) {
     var BaseView, Collections, Models, ProjectHistory, Templates, ajax, _ref;
     BaseView = require('views/base');
-    ajax = require('managers/ajax');
+    ajax = require('hilib/managers/ajax');
     Models = {
       state: require('models/state')
     };
@@ -7773,7 +7093,7 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
 }).call(this);
 
 (function() {
-  define('helpers2/string',['require','jquery'],function(require) {
+  define('hilib/functions/string',['require','jquery'],function(require) {
     var $;
     $ = require('jquery');
     return {
@@ -7826,7 +7146,7 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
 }).call(this);
 
 (function() {
-  define('helpers/jquery.mixin',['require','jquery'],function(require) {
+  define('hilib/functions/jquery.mixin',['require','jquery'],function(require) {
     var $;
     $ = require('jquery');
     return (function(jQuery) {
@@ -7907,53 +7227,6 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
 
 }).call(this);
 
-(function() {
-  define('managers2/async',['require','underscore'],function(require) {
-    var Async, _;
-    _ = require('underscore');
-    return Async = (function() {
-      function Async(names) {
-        if (names == null) {
-          names = [];
-        }
-        _.extend(this, Backbone.Events);
-        this.callbacksCalled = {};
-        this.register(names);
-      }
-
-      Async.prototype.register = function(names) {
-        var name, _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = names.length; _i < _len; _i++) {
-          name = names[_i];
-          _results.push(this.callbacksCalled[name] = false);
-        }
-        return _results;
-      };
-
-      Async.prototype.called = function(name, data) {
-        if (data == null) {
-          data = true;
-        }
-        this.callbacksCalled[name] = data;
-        if (_.every(this.callbacksCalled, function(called) {
-          return called !== false;
-        })) {
-          return this.ready();
-        }
-      };
-
-      Async.prototype.ready = function() {
-        return this.trigger('ready', this.callbacksCalled);
-      };
-
-      return Async;
-
-    })();
-  });
-
-}).call(this);
-
 define('text!html/ui/entry.submenu.html',[],function () { return '';});
 
 (function() {
@@ -8013,9 +7286,9 @@ define('text!html/entry/tooltip.add.annotation.html',[],function () { return '<b
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/preview/annotation.add.tooltip',['require','helpers/general','views/base','models/annotation','text!html/entry/tooltip.add.annotation.html'],function(require) {
+  define('views/entry/preview/annotation.add.tooltip',['require','hilib/functions/general','views/base','models/annotation','text!html/entry/tooltip.add.annotation.html'],function(require) {
     var AddAnnotationTooltip, Annotation, BaseView, Fn, Templates, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     BaseView = require('views/base');
     Annotation = require('models/annotation');
     Templates = {
@@ -8107,9 +7380,9 @@ define('text!html/ui/tooltip.html',[],function () { return '<ul class="horizonta
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/preview/annotation.edit.tooltip',['require','helpers/general','views/base','text!html/ui/tooltip.html'],function(require) {
+  define('views/entry/preview/annotation.edit.tooltip',['require','hilib/functions/general','views/base','text!html/ui/tooltip.html'],function(require) {
     var BaseView, Fn, Templates, Tooltip, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     BaseView = require('views/base');
     Templates = {
       Tooltip: require('text!html/ui/tooltip.html')
@@ -8223,9 +7496,9 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/preview/main',['require','helpers2/general','views/base','views/entry/preview/annotation.add.tooltip','views/entry/preview/annotation.edit.tooltip','text!html/entry/preview.html'],function(require) {
+  define('views/entry/preview/main',['require','hilib/functions/general','views/base','views/entry/preview/annotation.add.tooltip','views/entry/preview/annotation.edit.tooltip','text!html/entry/preview.html'],function(require) {
     var Fn, Tpl, TranscriptionPreview, Views, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/preview/annotation.add.tooltip'),
@@ -8369,10 +7642,14 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         var supEnter, supLeave,
           _this = this;
         supEnter = function(ev) {
-          var id;
+          var id, startNode;
           id = ev.currentTarget.getAttribute('data-id');
+          if (!(startNode = _this.el.querySelector("span[data-id='" + id + "']"))) {
+            console.error('No span found');
+            return false;
+          }
           return _this.highlighter.on({
-            startNode: _this.el.querySelector("span[data-id='" + id + "']"),
+            startNode: startNode,
             endNode: ev.currentTarget
           });
         };
@@ -8406,72 +7683,240 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
 }).call(this);
 
 (function() {
-  define('helpers/string',['require','jquery'],function(require) {
-    var $;
-    $ = require('jquery');
-    return {
-      ucfirst: function(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-      },
-      /*
-      	Slugify a string
-      */
+  define('hilib/modules/longpress/main',['require'],function(require) {
+    var Longpress, codes, diacritics, shiftcodes;
+    codes = {
+      65: 'a',
+      66: 'b',
+      67: 'c',
+      68: 'd',
+      69: 'e',
+      70: 'f',
+      71: 'g',
+      72: 'h',
+      73: 'i',
+      74: 'j',
+      75: 'k',
+      76: 'l',
+      77: 'm',
+      78: 'n',
+      79: 'o',
+      80: 'p',
+      81: 'q',
+      82: 'r',
+      83: 's',
+      84: 't',
+      85: 'u',
+      86: 'v',
+      87: 'w',
+      88: 'x',
+      89: 'y',
+      90: 'z',
+      187: '=',
+      189: '-',
+      190: '.',
+      222: "'"
+    };
+    shiftcodes = {
+      65: 'A',
+      66: 'B',
+      67: 'C',
+      68: 'D',
+      69: 'E',
+      70: 'F',
+      71: 'G',
+      72: 'H',
+      73: 'I',
+      74: 'J',
+      75: 'K',
+      76: 'L',
+      77: 'M',
+      78: 'N',
+      79: 'O',
+      80: 'P',
+      81: 'Q',
+      82: 'R',
+      83: 'S',
+      84: 'T',
+      85: 'U',
+      86: 'V',
+      87: 'W',
+      88: 'X',
+      89: 'Y',
+      90: 'Z',
+      49: '!',
+      52: '$',
+      53: '%',
+      187: '+',
+      188: '<',
+      190: '>',
+      191: '?',
+      222: '"'
+    };
+    diacritics = {
+      'A': 'ĀĂÀÁÂÃÄÅĄⱭ∀Æ',
+      'B': 'Ɓ',
+      'C': 'ÇĆĈĊČƆ',
+      'D': 'ÐĎĐḎƊ',
+      'E': 'ÈÉÊËĒĖĘẸĚƏÆƎƐ€',
+      'F': 'ƑƩ',
+      'G': 'ĜĞĠĢƢ',
+      'H': 'ĤĦ',
+      'I': 'ÌÍÎÏĪĮỊİIƗĲ',
+      'J': 'ĴĲ',
+      'K': 'ĶƘ',
+      'L': 'ĹĻĽŁΛ',
+      'N': 'ÑŃŅŇŊƝ₦',
+      'O': 'ÒÓÔÕÖŌØŐŒƠƟ',
+      'P': 'Ƥ¶',
+      'R': 'ŔŘɌⱤ',
+      'S': 'ßſŚŜŞṢŠÞ§',
+      'T': 'ŢŤṮƬƮ',
+      'U': 'ÙÚÛÜŪŬŮŰŲɄƯƱ',
+      'V': 'Ʋ',
+      'W': 'ŴẄΩ',
+      'Y': 'ÝŶŸƔƳ',
+      'Z': 'ŹŻŽƵƷẔ',
+      'a': 'āăàáâãäåąɑæαª',
+      'b': 'ßβɓ',
+      'c': 'çςćĉċč¢ɔ',
+      'd': 'ðďđɖḏɖɗ',
+      'e': 'èéêëēėęẹěəæεɛ€',
+      'f': 'ƒʃƭ',
+      'g': 'ĝğġģɠƣ',
+      'h': 'ĥħɦẖ',
+      'i': 'ìíîïīįịiiɨĳι',
+      'j': 'ĵɟĳ',
+      'k': 'ķƙ',
+      'l': 'ĺļľłλ',
+      'n': 'ñńņňŋɲ',
+      'o': 'òóôõöōøőœơɵ°',
+      'p': 'ƥ¶',
+      'r': 'ŕřɍɽ',
+      's': 'ßſśŝşṣšþ§',
+      't': 'ţťṯƭʈ',
+      'u': 'ùúûüūŭůűųưμυʉʊ',
+      'v': 'ʋ',
+      'w': 'ŵẅω',
+      'y': 'ýŷÿɣyƴ',
+      'z': 'źżžƶẕʒƹ',
+      '$': '£¥€₩₨₳Ƀ¤',
+      '!': '¡‼‽',
+      '?': '¿‽',
+      '%': '‰',
+      '.': '…••',
+      '-': '±‐–—',
+      '+': '±†‡',
+      '\'': '′″‴‘’‚‛',
+      '"': '“”„‟',
+      '<': '≤‹',
+      '>': '≥›',
+      '=': '≈≠≡'
+    };
+    return Longpress = (function() {
+      Longpress.prototype.timer = null;
 
-      slugify: function(str) {
-        var from, index, strlen, to;
-        from = "àáäâèéëêìíïîòóöôùúüûñç·/_:;";
-        to = "aaaaeeeeiiiioooouuuunc-----";
-        str = str.trim().toLowerCase();
-        strlen = str.length;
-        while (strlen--) {
-          index = from.indexOf(str[strlen]);
-          if (index !== -1) {
-            str = str.substr(0, strlen) + to[index] + str.substr(strlen + 1);
+      Longpress.prototype.lastKeyCode = null;
+
+      function Longpress(iframeDocument) {
+        this.iframeDocument = iframeDocument;
+        this.iframeBody = iframeDocument.querySelector('body');
+        this.iframeBody.addEventListener('keydown', this.onKeydown.bind(this));
+        this.iframeBody.addEventListener('keyup', this.onKeyup.bind(this));
+      }
+
+      Longpress.prototype.onKeydown = function(e) {
+        var pressedChar,
+          _this = this;
+        if (e.keyCode === this.lastKeyCode) {
+          e.preventDefault();
+          pressedChar = e.shiftKey ? shiftcodes[e.keyCode] : codes[e.keyCode];
+          if ((this.timer == null) && (pressedChar != null)) {
+            this.timer = setTimeout((function() {
+              var list;
+              list = _this.createList(pressedChar);
+              return _this.show(list);
+            }), 500);
           }
         }
-        return str.replace(/[^a-z0-9 -]/g, '').replace(/\s+|\-+/g, '-').replace(/^\-+|\-+$/g, '');
-      },
-      /*
-      	Strips the tags from a string
-      	
-      	Example: "This is a <b>string</b>." => "This is a string."
-      	
-      	return String
-      */
+        return this.lastKeyCode = e.keyCode;
+      };
 
-      stripTags: function(str) {
-        return $('<span />').html(str).text();
-      },
-      /*
-      	Removes non numbers from a string
-      	
-      	Example: "There are 12 monkeys." => "12"
-      	
-      	return String
-      */
+      Longpress.prototype.onKeyup = function(e) {
+        clearTimeout(this.timer);
+        this.timer = null;
+        this.lastKeyCode = null;
+        return this.hide();
+      };
 
-      onlyNumbers: function(str) {
-        return str.replace(/[^\d.]/g, '');
-      }
-    };
+      Longpress.prototype.createList = function(pressedChar) {
+        var frag, ul,
+          _this = this;
+        ul = document.createElement('ul');
+        ul.className = 'longpress';
+        frag = document.createDocumentFragment();
+        _.each(diacritics[pressedChar], function(chr) {
+          var li;
+          li = document.createElement('li');
+          li.textContent = chr;
+          $(li).mouseenter(function(e) {
+            return _this.replaceChar(e.target.textContent);
+          });
+          return frag.appendChild(li);
+        });
+        ul.appendChild(frag);
+        return ul;
+      };
+
+      Longpress.prototype.show = function(list) {
+        this.iframeBody.appendChild(list);
+        return $(list).addClass('active');
+      };
+
+      Longpress.prototype.hide = function() {
+        var list;
+        list = this.iframeBody.querySelector('.longpress');
+        if (list != null) {
+          this.iframeBody.removeChild(list);
+          return $(list).removeClass('active');
+        }
+      };
+
+      Longpress.prototype.replaceChar = function(chr) {
+        var range, sel;
+        range = this.iframeDocument.getSelection().getRangeAt(0);
+        range.setStart(range.startContainer, range.startOffset - 1);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(chr));
+        range.collapse();
+        sel = this.iframeDocument.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        return this.iframeBody.focus();
+      };
+
+      return Longpress;
+
+    })();
   });
 
 }).call(this);
 
-define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { return '<div class="supertinyeditor"><div class="ste-header"></div><div class="ste-body"><iframe></iframe></div></div>';});
+define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { return '<div class="supertinyeditor"><div class="ste-header"></div><div class="ste-body"><iframe></iframe></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views2/supertinyeditor/supertinyeditor',['require','helpers/general','helpers/string','views/base','text!viewshtml/supertinyeditor/supertinyeditor.html'],function(require) {
-    var Fn, StringFn, SuperTinyEditor, Tpl, Views, _ref;
-    Fn = require('helpers/general');
-    StringFn = require('helpers/string');
+  define('hilib/views/supertinyeditor/supertinyeditor',['require','hilib/functions/general','hilib/functions/string','hilib/modules/longpress/main','views/base','text!hilib/views/supertinyeditor/supertinyeditor.html'],function(require) {
+    var Fn, Longpress, StringFn, SuperTinyEditor, Tpl, Views, _ref;
+    Fn = require('hilib/functions/general');
+    StringFn = require('hilib/functions/string');
+    Longpress = require('hilib/modules/longpress/main');
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!viewshtml/supertinyeditor/supertinyeditor.html');
+    Tpl = require('text!hilib/views/supertinyeditor/supertinyeditor.html');
     return SuperTinyEditor = (function(_super) {
       __extends(SuperTinyEditor, _super);
 
@@ -8528,6 +7973,13 @@ define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { re
           } else if (controlName === '|') {
             div.className = 'ste-divider';
             _results.push(this.$currentHeader.append(div));
+          } else if (controlName.substr(0, 2) === 'b_') {
+            controlName = controlName.substr(2);
+            div.className = 'ste-button';
+            div.setAttribute('data-action', controlName);
+            div.setAttribute('title', StringFn.ucfirst(controlName));
+            div.innerHTML = StringFn.ucfirst(controlName);
+            _results.push(this.$currentHeader.append(div));
           } else {
             div.className = 'ste-control ' + controlName;
             div.setAttribute('title', StringFn.ucfirst(controlName));
@@ -8544,7 +7996,7 @@ define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { re
         iframe = this.el.querySelector('iframe');
         iframe.style.width = this.options.width + 'px';
         iframe.style.height = this.options.height + 'px';
-        html = "<!DOCTYPE html>					<html>					<head><meta charset='UTF-8'><link rel='stylesheet' href='" + this.options.cssFile + "'></head>					<body class='ste-iframe-body' spellcheck='false' contenteditable='true'>" + (this.options.model.get(this.options.htmlAttribute)) + "</body>					</html>";
+        html = "<!DOCTYPE html>					<html>					<head><meta charset='UTF-8'><link rel='stylesheet' href='" + this.options.cssFile + "'></head>					<body class='ste-iframe-body' spellcheck='false' contenteditable='true'>" + (this.model.get(this.options.htmlAttribute)) + "</body>					</html>";
         this.iframeDocument = iframe.contentDocument;
         this.iframeDocument.designMode = 'On';
         this.iframeDocument.open();
@@ -8554,30 +8006,34 @@ define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { re
         if (this.options.wrap) {
           this.iframeBody.style.whiteSpace = 'normal';
         }
-        this.setFocus();
+        new Longpress(this.iframeDocument);
         this.iframeDocument.addEventListener('scroll', function() {
           var target;
           if (!_this.autoScroll) {
             target = {
               scrollLeft: $(iframe).contents().scrollLeft(),
               scrollWidth: iframe.contentWindow.document.documentElement.scrollWidth,
-              clientWidth: iframe.contentWindow.document.documentElement.clientWidth
+              clientWidth: iframe.contentWindow.document.documentElement.clientWidth,
+              scrollTop: $(iframe).contents().scrollTop(),
+              scrollHeight: iframe.contentWindow.document.documentElement.scrollHeight,
+              clientHeight: iframe.contentWindow.document.documentElement.clientHeight
             };
             return Fn.timeoutWithReset(200, function() {
-              return _this.trigger('scrolled', Fn.getScrollPercentage(target, 'horizontal'));
+              return _this.trigger('scrolled', Fn.getScrollPercentage(target));
             });
           }
         });
         return this.iframeDocument.addEventListener('keyup', function(ev) {
           return Fn.timeoutWithReset(500, function() {
-            return _this.model.set(_this.options.htmlAttribute, _this.getHTML());
+            return _this.saveHTMLToModel();
           });
         });
       };
 
       SuperTinyEditor.prototype.events = function() {
         return {
-          'click .ste-control': 'controlClicked'
+          'click .ste-control': 'controlClicked',
+          'click .ste-button': 'buttonClicked'
         };
       };
 
@@ -8585,52 +8041,50 @@ define('text!viewshtml/supertinyeditor/supertinyeditor.html',[],function () { re
         var action;
         action = ev.currentTarget.getAttribute('data-action');
         this.iframeDocument.execCommand(action, false, null);
-        return this.trigger('change', action, this.iframeBody.innerHTML);
+        return this.saveHTMLToModel();
+      };
+
+      SuperTinyEditor.prototype.buttonClicked = function(ev) {
+        var action;
+        action = ev.currentTarget.getAttribute('data-action');
+        return this.trigger(action);
+      };
+
+      SuperTinyEditor.prototype.saveHTMLToModel = function() {
+        return this.model.set(this.options.htmlAttribute, this.iframeBody.innerHTML);
       };
 
       SuperTinyEditor.prototype.setModel = function(model) {
-        this.iframeBody.innerHTML = model.get(this.options.htmlAttribute);
+        this.setInnerHTML(model.get(this.options.htmlAttribute));
         this.model = model;
         return this.setFocus();
       };
 
-      SuperTinyEditor.prototype.getHTML = function() {
-        return this.iframeBody.innerHTML;
+      SuperTinyEditor.prototype.setInnerHTML = function(html) {
+        return this.iframeBody.innerHTML = html;
       };
 
       SuperTinyEditor.prototype.setIframeHeight = function(height) {
-        return iframe.style.height = height;
-      };
-
-      SuperTinyEditor.prototype.setIframeWidth = function(width) {
-        return iframe.style.width = width;
+        var iframe;
+        iframe = this.el.querySelector('iframe');
+        return iframe.style.height = height + 'px';
       };
 
       SuperTinyEditor.prototype.setFocus = function() {
-        return this.iframeBody.focus();
+        return Fn.setCursorToEnd(this.iframeBody);
       };
 
-      SuperTinyEditor.prototype.setScrollPercentage = function(percentage, orientation) {
-        var clientHeight, clientWidth, contentWindow, documentElement, left, pos, scrollHeight, scrollWidth, top,
+      SuperTinyEditor.prototype.setScrollPercentage = function(percentages) {
+        var clientHeight, clientWidth, contentWindow, documentElement, left, scrollHeight, scrollWidth, top,
           _this = this;
-        if (orientation == null) {
-          orientation = 'vertical';
-        }
         contentWindow = this.el.querySelector('iframe').contentWindow;
         documentElement = contentWindow.document.documentElement;
         clientWidth = documentElement.clientWidth;
         scrollWidth = documentElement.scrollWidth;
         clientHeight = documentElement.clientHeight;
         scrollHeight = documentElement.scrollHeight;
-        top = 0;
-        left = 0;
-        if (orientation === 'vertical') {
-          pos = (scrollHeight - clientHeight) * percentage / 100;
-          top = pos;
-        } else {
-          pos = (scrollWidth - clientWidth) * percentage / 100;
-          left = pos;
-        }
+        top = (scrollHeight - clientHeight) * percentages.top / 100;
+        left = (scrollWidth - clientWidth) * percentages.left / 100;
         this.autoScroll = true;
         contentWindow.scrollTo(left, top);
         return setTimeout((function() {
@@ -8651,9 +8105,9 @@ define('text!html/entry/annotation.metadata.html',[],function () { return '<ul c
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/annotation.metadata',['require','helpers/general','views/base','text!html/entry/annotation.metadata.html'],function(require) {
+  define('views/entry/annotation.metadata',['require','hilib/functions/general','views/base','text!html/entry/annotation.metadata.html'],function(require) {
     var AnnotationMetadata, Fn, Tpl, Views, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };
@@ -8708,9 +8162,9 @@ define('text!html/entry/textlayers.edit.html',[],function () { return '<div clas
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/subsubmenu/textlayers.edit',['require','helpers2/general','views/base','text!html/entry/textlayers.edit.html'],function(require) {
+  define('views/entry/subsubmenu/textlayers.edit',['require','hilib/functions/general','views/base','text!html/entry/textlayers.edit.html'],function(require) {
     var EditTextlayers, Fn, Tpl, Views, _ref;
-    Fn = require('helpers2/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };
@@ -8787,11 +8241,11 @@ define('text!html/entry/facsimiles.edit.html',[],function () { return '<div clas
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/subsubmenu/facsimiles.edit',['require','helpers2/general','managers2/ajax','managers2/token','views/base','text!html/entry/facsimiles.edit.html'],function(require) {
+  define('views/entry/subsubmenu/facsimiles.edit',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','views/base','text!html/entry/facsimiles.edit.html'],function(require) {
     var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
-    Fn = require('helpers2/general');
-    ajax = require('managers2/ajax');
-    token = require('managers2/token');
+    Fn = require('hilib/functions/general');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Views = {
       Base: require('views/base')
     };
@@ -8885,9 +8339,9 @@ define('text!html/entry/transcription.edit.menu.html',[],function () { return '<
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/transcription.edit.menu',['require','helpers/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
+  define('views/entry/transcription.edit.menu',['require','hilib/functions/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
     var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };
@@ -8953,9 +8407,9 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/annotation.edit.menu',['require','helpers/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
+  define('views/entry/annotation.edit.menu',['require','hilib/functions/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
     var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     config = require('config');
     Views = {
       Base: require('views/base')
@@ -9044,13 +8498,14 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','helpers2/general','helpers2/string','helpers/jquery.mixin','managers2/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','views2/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','text!html/entry/main.html'],function(require) {
-    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, _ref;
+  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','text!html/entry/main.html'],function(require) {
+    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
-    Fn = require('helpers2/general');
-    StringFn = require('helpers2/string');
-    require('helpers/jquery.mixin');
-    Async = require('managers2/async');
+    config = require('config');
+    Fn = require('hilib/functions/general');
+    StringFn = require('hilib/functions/string');
+    require('hilib/functions/jquery.mixin');
+    Async = require('hilib/managers/async');
     Models = {
       state: require('models/state'),
       Entry: require('models/entry')
@@ -9059,7 +8514,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
-      SuperTinyEditor: require('views2/supertinyeditor/supertinyeditor'),
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/annotation.metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
@@ -9161,15 +8616,15 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       };
 
       Entry.prototype.renderTranscription = function() {
-        var $el;
+        var $el,
+          _this = this;
         this.renderPreview();
         if (this.transcriptionEdit != null) {
           this.transcriptionEdit.setModel(this.currentTranscription);
-          this.transcriptionEditMenu.setModel(this.currentTranscription);
         } else {
           $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save'],
             cssFile: '/css/main.css',
             el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
@@ -9178,12 +8633,30 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             model: this.model.get('transcriptions').current,
             width: $el.width() - 20
           });
-          this.transcriptionEditMenu = new Views.TranscriptionEditMenu({
-            model: this.currentTranscription
+          this.listenTo(this.transcriptionEdit, 'save', function() {
+            return _this.currentTranscription.save();
           });
-          $el.append(this.transcriptionEditMenu.$el);
         }
         return this.toggleEditPane('transcription');
+      };
+
+      Entry.prototype.setAnnotationText = function(model) {
+        var annotationNo, nextNode, span, text, _ref1;
+        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
+        span = this.preview.el.querySelector('span[data-id="' + annotationNo + '"]');
+        nextNode = span.nextSibling;
+        text = nextNode.textContent;
+        while (nextNode != null) {
+          if (nextNode.nodeType === 1 && span.getAttribute('data-id') === nextNode.getAttribute('data-id')) {
+            break;
+          }
+          nextNode = nextNode.nextSibling;
+          if (nextNode.nodeType === 1 && nextNode.tagName === 'SUP' && nextNode.hasAttribute('data-id')) {
+            continue;
+          }
+          text += nextNode.textContent;
+        }
+        return this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(text);
       };
 
       Entry.prototype.renderAnnotation = function(model) {
@@ -9192,7 +8665,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
-          this.annotationEditMenu.setModel(model);
+          this.setAnnotationText(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
@@ -9200,23 +8673,40 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
             cssFile: '/css/main.css',
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'n', 'unformat', '|', 'undo', 'redo'],
+            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n'],
             el: $el.find('.annotation-editor'),
-            height: this.preview.$el.innerHeight(),
+            height: this.preview.$el.innerHeight() - 31,
             html: model.get('body'),
             htmlAttribute: 'body',
             model: model,
-            width: $el.width() - 10,
+            width: this.preview.$el.width() - 4,
             wrap: true
           });
-          this.annotationEditMenu = new Views.AnnotationEditMenu({
-            model: model,
-            collection: this.currentTranscription.get('annotations')
+          this.setAnnotationText(model);
+          this.annotationEdit.setFocus();
+          this.listenTo(this.annotationEdit, 'save', function() {
+            var annotations;
+            if (model.isNew()) {
+              annotations = _this.currentTranscription.get('annotations');
+              model.urlRoot = function() {
+                return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
+              };
+              return model.save([], {
+                success: function() {
+                  return annotations.add(model);
+                },
+                error: function(model, xhr, options) {
+                  return console.error('Saving annotation failed!', model, xhr, options);
+                }
+              });
+            } else {
+              return model.save();
+            }
           });
-          this.listenTo(this.annotationEditMenu, 'cancel', function(model) {
+          this.listenTo(this.annotationEdit, 'cancel', function() {
             return _this.preview.removeNewAnnotationTags();
           });
-          this.listenTo(this.annotationEditMenu, 'metadata', function(model) {
+          this.listenTo(this.annotationEdit, 'metadata', function() {
             _this.annotationMetadata = new Views.AnnotationMetadata({
               model: model,
               collection: _this.project.get('annotationtypes'),
@@ -9224,7 +8714,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             });
             return _this.toggleEditPane('annotationmetadata');
           });
-          $el.append(this.annotationEditMenu.$el);
         }
         return this.toggleEditPane('annotation');
       };
@@ -9419,14 +8908,14 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('routers/main',['require','backbone','managers/view','managers/history','managers/pubsub','models/currentUser','helpers/general','models/state','views/login','views/project/main','views/project/settings','views/project/history','views/entry/main'],function(require) {
+  define('routers/main',['require','backbone','hilib/managers/view','hilib/managers/history','hilib/managers/pubsub','models/currentUser','hilib/functions/general','models/state','views/login','views/project/main','views/project/settings','views/project/history','views/entry/main'],function(require) {
     var Backbone, Fn, MainRouter, Models, Pubsub, Views, currentUser, history, viewManager, _ref;
     Backbone = require('backbone');
-    viewManager = require('managers/view');
-    history = require('managers/history');
-    Pubsub = require('managers/pubsub');
+    viewManager = require('hilib/managers/view');
+    history = require('hilib/managers/history');
+    Pubsub = require('hilib/managers/pubsub');
     currentUser = require('models/currentUser');
-    Fn = require('helpers/general');
+    Fn = require('hilib/functions/general');
     Models = {
       state: require('models/state')
     };
@@ -9452,12 +8941,12 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           return history.update();
         });
         this.subscribe('authorized', function() {
-          if (history.last() === '/login') {
-            return _this.publish('navigate:project');
-          } else {
+          if (history.last() != null) {
             return _this.navigate(history.last(), {
               trigger: true
             });
+          } else {
+            return _this.publish('navigate:project');
           }
         });
         this.subscribe('unauthorized', function() {
@@ -9858,20 +9347,15 @@ define('text!html/debug.html',[],function () { return '<ul><li class="current-us
 (function() {
   require.config({
     paths: {
-      'faceted-search': '../lib/faceted-search/stage/js/main',
       'jquery': '../lib/jquery/jquery',
+      'long-press': '../lib/long-press/jquery.longpress',
       'underscore': '../lib/underscore-amd/underscore',
       'backbone': '../lib/backbone-amd/backbone',
       'domready': '../lib/requirejs-domready/domReady',
       'text': '../lib/requirejs-text/text',
-      'managers': '../lib/managers/dev',
-      'managers2': '../lib/managers2/dev',
-      'helpers': '../lib/helpers/dev',
-      'helpers2': '../lib/helpers2/dev',
-      'views2': '../lib/views2/compiled',
-      'html': '../html',
-      'viewshtml': '../lib/views2/compiled',
-      'hilib': '../lib/hilib/compiled'
+      'faceted-search': '../lib/faceted-search/stage/js/main',
+      'hilib': '../lib/hilib/compiled',
+      'html': '../html'
     },
     shim: {
       'underscore': {
@@ -9883,6 +9367,9 @@ define('text!html/debug.html',[],function () { return '<ul><li class="current-us
       },
       'faceted-search': {
         deps: ['backbone', 'text']
+      },
+      'long-press': {
+        deps: ['jquery']
       }
     }
   });
