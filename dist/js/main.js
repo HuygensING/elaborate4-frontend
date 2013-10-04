@@ -8795,7 +8795,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
         newTranscription = this.model.get('transcriptions').get(transcriptionID);
-        if (newTranscription !== this.currentTranscription) {
+        if (newTranscription !== this.currentTranscription || this.currentViewInEditPane !== this.transcriptionEdit) {
           this.model.get('transcriptions').setCurrent(newTranscription);
           this.navigateToTranscription();
           this.setTranscriptionNameToMenu();
@@ -8845,6 +8845,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
               return this.annotationMetadata;
           }
         }).call(this);
+        this.currentViewInEditPane = view;
         view.$el.parent().siblings().hide();
         return view.$el.parent().show();
       };
