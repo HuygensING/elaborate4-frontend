@@ -842,14 +842,16 @@ div p:first-child{margin-top:0}
 
 .subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);-webkit-transition:top 300ms;-moz-transition:top 300ms;-o-transition:top 300ms;transition:top 300ms;z-index:48;}
 .subsubmenu.active{top:88px}
+.subsubmenu h3{margin:0 0 10px 0;color:#ccc;text-shadow:1px 1px 1px #000;font-size:1em}
 .subsubmenu .editfacsimiles,.subsubmenu .edittextlayers{display:none;}
 .subsubmenu .editfacsimiles form.addfile,.subsubmenu .edittextlayers form.addfile{display:none}
 .subsubmenu .editfacsimiles ul,.subsubmenu .edittextlayers ul{list-style:none;}
 .subsubmenu .editfacsimiles ul.textlayers,.subsubmenu .edittextlayers ul.textlayers,.subsubmenu .editfacsimiles ul.facsimiles,.subsubmenu .edittextlayers ul.facsimiles{white-space:nowrap;}
-.subsubmenu .editfacsimiles ul.textlayers li.destroy,.subsubmenu .edittextlayers ul.textlayers li.destroy,.subsubmenu .editfacsimiles ul.facsimiles li.destroy,.subsubmenu .edittextlayers ul.facsimiles li.destroy{cursor:default;}
-.subsubmenu .editfacsimiles ul.textlayers li.destroy label,.subsubmenu .edittextlayers ul.textlayers li.destroy label,.subsubmenu .editfacsimiles ul.facsimiles li.destroy label,.subsubmenu .edittextlayers ul.facsimiles li.destroy label{cursor:pointer;color:#ccc;width:auto;border:1px solid #5c0000;padding:1px 4px 2px 4px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em}
-.subsubmenu .editfacsimiles ul.textlayers li.destroy:after,.subsubmenu .edittextlayers ul.textlayers li.destroy:after,.subsubmenu .editfacsimiles ul.facsimiles li.destroy:after,.subsubmenu .edittextlayers ul.facsimiles li.destroy:after{position:absolute;margin:2px 0 0 8px;color:#aaa;content:'Click name to remove, bin to cancel.';font-weight:normal}
-.subsubmenu .editfacsimiles ul.textlayers img:hover,.subsubmenu .edittextlayers ul.textlayers img:hover,.subsubmenu .editfacsimiles ul.facsimiles img:hover,.subsubmenu .edittextlayers ul.facsimiles img:hover{cursor:pointer}
+.subsubmenu .editfacsimiles ul.textlayers *,.subsubmenu .edittextlayers ul.textlayers *,.subsubmenu .editfacsimiles ul.facsimiles *,.subsubmenu .edittextlayers ul.facsimiles *{cursor:pointer}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy span.name,.subsubmenu .edittextlayers ul.textlayers li.destroy span.name,.subsubmenu .editfacsimiles ul.facsimiles li.destroy span.name,.subsubmenu .edittextlayers ul.facsimiles li.destroy span.name{color:#ccc;border:1px solid #5c0000;padding:3px 8px 6px 6px;font-weight:bold;border-radius:6px;text-shadow:1px 1px 1px #000;box-shadow:1px 1px 4px #333;background-color:#910000;font-size:.9em;}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy span.name label,.subsubmenu .edittextlayers ul.textlayers li.destroy span.name label,.subsubmenu .editfacsimiles ul.facsimiles li.destroy span.name label,.subsubmenu .edittextlayers ul.facsimiles li.destroy span.name label{width:auto}
+.subsubmenu .editfacsimiles ul.textlayers li.destroy span.orcancel,.subsubmenu .edittextlayers ul.textlayers li.destroy span.orcancel,.subsubmenu .editfacsimiles ul.facsimiles li.destroy span.orcancel,.subsubmenu .edittextlayers ul.facsimiles li.destroy span.orcancel{display:inline-block}
+.subsubmenu .editfacsimiles ul.textlayers span.orcancel,.subsubmenu .edittextlayers ul.textlayers span.orcancel,.subsubmenu .editfacsimiles ul.facsimiles span.orcancel,.subsubmenu .edittextlayers ul.facsimiles span.orcancel{margin-left:6px;display:none}
 .subsubmenu .editfacsimiles ul li,.subsubmenu .edittextlayers ul li{margin-bottom:6px;color:#79c8c6;}
 .subsubmenu .editfacsimiles ul li label,.subsubmenu .edittextlayers ul li label{display:inline-block;width:40px}
 .subsubmenu .editfacsimiles ul li input,.subsubmenu .edittextlayers ul li input,.subsubmenu .editfacsimiles ul li textarea,.subsubmenu .edittextlayers ul li textarea{width:200px;border:1px solid #666;padding:0 0 0 2px;margin:0}
@@ -1202,8 +1204,7 @@ div p:first-child{margin-top:0}
 	-moz-box-shadow:    0 0 18px rgba(255, 255, 255, 0.75);
 	box-shadow:         0 0 18px rgba(255, 255, 255, 0.75);
 }
-ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:0;list-style:none;padding:0;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;white-space:normal;}
-ul.longpress.active{height:auto;padding:6px;margin:0 10px}
+ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:auto;list-style:none;padding:6px;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;white-space:normal;margin:0 10px;}
 ul.longpress li{display:inline-block;padding:2px 6px;background-color:#000;color:#fff;border-radius:6px;font-weight:bold;font-size:1.5em;margin:3px;border:2px solid #000;}
 ul.longpress li:hover{border:2px solid #fff;box-shadow:0 0 12px #fff;cursor:pointer}
 

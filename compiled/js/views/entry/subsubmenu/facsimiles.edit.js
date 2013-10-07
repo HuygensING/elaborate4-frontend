@@ -10,7 +10,7 @@
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/facsimiles.edit.html');
+    Tpl = require('text!html/entry/subsubmenu/facsimiles.edit.html');
     return EditFacsimiles = (function(_super) {
       __extends(EditFacsimiles, _super);
 
@@ -36,9 +36,13 @@
       };
 
       EditFacsimiles.prototype.events = function() {
+        var _this = this;
         return {
-          'click ul.facsimiles li img': 'removefacsimile',
-          'click ul.facsimiles li.destroy label': 'destroyfacsimile',
+          'click ul.facsimiles li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.facsimiles li.destroy .orcancel': 'cancelRemove',
+          'click ul.facsimiles li.destroy .name': 'destroyfacsimile',
           'keyup input[name="name"]': 'keyupName',
           'click button.addfacsimile': 'addfacsimile'
         };
@@ -75,15 +79,16 @@
         });
       };
 
-      EditFacsimiles.prototype.removefacsimile = function(ev) {
+      EditFacsimiles.prototype.cancelRemove = function(ev) {
         var parentLi;
-        parentLi = $(ev.currentTarget).parent();
-        return parentLi.toggleClass('destroy');
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
       };
 
       EditFacsimiles.prototype.destroyfacsimile = function(ev) {
         var transcriptionID;
-        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
         return this.collection.remove(this.collection.get(transcriptionID));
       };
 

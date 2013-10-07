@@ -187,7 +187,6 @@
             wrap: true
           });
           this.setAnnotationText(model);
-          this.annotationEdit.setFocus();
           this.listenTo(this.annotationEdit, 'save', function() {
             var annotations;
             if (model.isNew()) {

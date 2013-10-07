@@ -8,7 +8,7 @@
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/textlayers.edit.html');
+    Tpl = require('text!html/entry/subsubmenu/textlayers.edit.html');
     return EditTextlayers = (function(_super) {
       __extends(EditTextlayers, _super);
 
@@ -34,22 +34,27 @@
       };
 
       EditTextlayers.prototype.events = function() {
+        var _this = this;
         return {
           'click button.addtextlayer': 'addtextlayer',
-          'click ul.textlayers li img': 'removetextlayer',
-          'click ul.textlayers li.destroy label': 'destroytextlayer'
+          'click ul.textlayers li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.textlayers li.destroy .orcancel': 'cancelRemove',
+          'click ul.textlayers li.destroy .name': 'destroytextlayer'
         };
       };
 
-      EditTextlayers.prototype.removetextlayer = function(ev) {
+      EditTextlayers.prototype.cancelRemove = function(ev) {
         var parentLi;
-        parentLi = $(ev.currentTarget).parent();
-        return parentLi.toggleClass('destroy');
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
       };
 
       EditTextlayers.prototype.destroytextlayer = function(ev) {
         var transcriptionID;
-        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
         return this.collection.remove(this.collection.get(transcriptionID));
       };
 

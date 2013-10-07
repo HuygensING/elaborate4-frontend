@@ -7698,18 +7698,15 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
       74: 'j',
       75: 'k',
       76: 'l',
-      77: 'm',
       78: 'n',
       79: 'o',
       80: 'p',
-      81: 'q',
       82: 'r',
       83: 's',
       84: 't',
       85: 'u',
       86: 'v',
       87: 'w',
-      88: 'x',
       89: 'y',
       90: 'z',
       187: '=',
@@ -7730,18 +7727,15 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
       74: 'J',
       75: 'K',
       76: 'L',
-      77: 'M',
       78: 'N',
       79: 'O',
       80: 'P',
-      81: 'Q',
       82: 'R',
       83: 'S',
       84: 'T',
       85: 'U',
       86: 'V',
       87: 'W',
-      88: 'X',
       89: 'Y',
       90: 'Z',
       49: '!',
@@ -7818,7 +7812,8 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
 
       Longpress.prototype.lastKeyCode = null;
 
-      function Longpress(iframeDocument) {
+      function Longpress(iframeDocument, el) {
+        this.el = el;
         this.iframeDocument = iframeDocument;
         this.iframeBody = iframeDocument.querySelector('body');
         this.iframeBody.addEventListener('keydown', this.onKeydown.bind(this));
@@ -7836,7 +7831,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
               var list;
               list = _this.createList(pressedChar);
               return _this.show(list);
-            }), 500);
+            }), 300);
           }
         }
         return this.lastKeyCode = e.keyCode;
@@ -7869,15 +7864,15 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
       };
 
       Longpress.prototype.show = function(list) {
-        this.iframeBody.appendChild(list);
+        this.el.appendChild(list);
         return $(list).addClass('active');
       };
 
       Longpress.prototype.hide = function() {
         var list;
-        list = this.iframeBody.querySelector('.longpress');
+        list = this.el.querySelector('.longpress');
         if (list != null) {
-          this.iframeBody.removeChild(list);
+          this.el.removeChild(list);
           return $(list).removeClass('active');
         }
       };
@@ -7888,7 +7883,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         range.setStart(range.startContainer, range.startOffset - 1);
         range.deleteContents();
         range.insertNode(document.createTextNode(chr));
-        range.collapse();
+        range.collapse(false);
         sel = this.iframeDocument.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
@@ -8006,7 +8001,7 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         if (this.options.wrap) {
           this.iframeBody.style.whiteSpace = 'normal';
         }
-        new Longpress(this.iframeDocument);
+        new Longpress(this.iframeDocument, this.el.querySelector('.ste-body'));
         this.iframeDocument.addEventListener('scroll', function() {
           var target;
           if (!_this.autoScroll) {

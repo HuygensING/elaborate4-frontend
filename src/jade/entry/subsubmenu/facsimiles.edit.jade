@@ -1,14 +1,18 @@
 .row.span3
 	.cell.span1
 		.pad2
+			h3 Facsimiles
 			ul.facsimiles
 				| <% facsimiles.each(function(facs) { %>
-				li
-					img(src="/images/icon.bin.png", width="14px", height="14px")
-					label(data-id!="<%= facs.id %>")  <%= facs.get('name') %>
+				li.facsimile(data-id!="<%= facs.id %>")
+					span.name
+						img(src="/images/icon.bin.png", width="14px", height="14px")
+						label <%= facs.get('name') %>
+					span.orcancel or Cancel
 				| <% }); %>
 	.cell.span2
 		.pad2
+			h3 Upload new facsimile
 			ul.form.addfacsimile
 				li
 					label Name

@@ -8,6 +8,7 @@
 				li.alignright(data-key="facsimiles") Facsimiles
 					ul.vertical.menu.facsimiles
 						li.spacer &nbsp;
+						li.subsub(data-key="editfacsimiles") Edit...
 						| <% facsimiles.each(function(facs) { %>
 						li(data-key="facsimile", data-value!="<%= facs.id %>") <%= facs.get('name') %>
 						| <% }); %>
@@ -18,14 +19,16 @@
 				li.arrowdown(data-key="layer") Layer
 					ul.vertical.menu.textlayers
 						li.spacer &nbsp;
+						li.subsub(data-key="edittextlayers") Edit...
 						| <% transcriptions.each(function(trans) { %>
 						li(data-key="transcription", data-value!="<%= trans.id %>") <%= trans.get('textLayer') %> layer
 						| <% }); %>
 				//- li(data-key="metadata") Metadata
 		.cell.span2.alignright
 			ul.horizontal.menu
+				li(data-key="metadata") Metadata
 				li(data-key="print") Print
-				li(data-key="preview") Preview full screen
+				li(data-key="preview") Preview
 
 .subsubmenu
 	.edittextlayers

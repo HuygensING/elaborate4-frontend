@@ -5,7 +5,7 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/textlayers.edit.html'
+	Tpl = require 'text!html/entry/subsubmenu/textlayers.edit.html'
 
 	# ## AnnotationMetadata
 	class EditTextlayers extends Views.Base
@@ -29,15 +29,17 @@ define (require) ->
 		# ### Events
 		events: ->
 			'click button.addtextlayer': 'addtextlayer'
-			'click ul.textlayers li img': 'removetextlayer'
-			'click ul.textlayers li.destroy label': 'destroytextlayer'
+			'click ul.textlayers li': (ev) => $(ev.currentTarget).addClass 'destroy'
+			'click ul.textlayers li.destroy .orcancel': 'cancelRemove'
+			'click ul.textlayers li.destroy .name': 'destroytextlayer'
 
-		removetextlayer: (ev) ->
-			parentLi = $(ev.currentTarget).parent()
-			parentLi.toggleClass 'destroy'
+		cancelRemove: (ev) ->
+			ev.stopPropagation()
+			parentLi = $(ev.currentTarget).parents('li')
+			parentLi.removeClass 'destroy'
 
 		destroytextlayer: (ev) ->
-			transcriptionID = ev.currentTarget.getAttribute 'data-id'
+			transcriptionID = $(ev.currentTarget).parents('li').attr 'data-id'
 			@collection.remove @collection.get transcriptionID
 
 		addtextlayer: ->

@@ -8,7 +8,7 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/facsimiles.edit.html'
+	Tpl = require 'text!html/entry/subsubmenu/facsimiles.edit.html'
 
 	# ## EditFacsimiles
 	class EditFacsimiles extends Views.Base
@@ -32,8 +32,9 @@ define (require) ->
 		# ### Events
 		events: ->
 			# 'click button.addtextlayer': 'addtextlayer'
-			'click ul.facsimiles li img': 'removefacsimile'
-			'click ul.facsimiles li.destroy label': 'destroyfacsimile'
+			'click ul.facsimiles li': (ev) => $(ev.currentTarget).addClass 'destroy'
+			'click ul.facsimiles li.destroy .orcancel': 'cancelRemove'
+			'click ul.facsimiles li.destroy .name': 'destroyfacsimile'
 			'keyup input[name="name"]': 'keyupName'
 			'click button.addfacsimile': 'addfacsimile'
 
@@ -85,12 +86,13 @@ define (require) ->
 			# 	contentType: false
 			# 	processData: false
 
-		removefacsimile: (ev) ->
-			parentLi = $(ev.currentTarget).parent()
-			parentLi.toggleClass 'destroy'
+		cancelRemove: (ev) ->
+			ev.stopPropagation()
+			parentLi = $(ev.currentTarget).parents('li')
+			parentLi.removeClass 'destroy'
 
 		destroyfacsimile: (ev) ->
-			transcriptionID = ev.currentTarget.getAttribute 'data-id'
+			transcriptionID = $(ev.currentTarget).parents('li').attr 'data-id'
 			@collection.remove @collection.get transcriptionID
 
 		# addtextlayer: ->

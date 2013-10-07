@@ -132,6 +132,7 @@ define (require) ->
 			
 			@toggleEditPane 'transcription'
 
+		# move to supertinyeditor or separate view
 		setAnnotationText: (model) ->
 			annotationNo = model.get('annotationNo') ? 'newannotation'
 
@@ -177,8 +178,6 @@ define (require) ->
 					wrap: 			true
 
 				@setAnnotationText model
-
-				@annotationEdit.setFocus()
 				
 
 				# * TODO: Clean up!
