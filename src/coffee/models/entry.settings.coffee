@@ -12,3 +12,8 @@ define (require) ->
 			@entryId = options.entryId
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/settings"
+
+		sync: (method, model, options) ->
+			method = 'update' if method is 'create'
+
+			super

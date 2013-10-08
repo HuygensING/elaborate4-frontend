@@ -339,6 +339,7 @@
         return modal.on('submit', function() {
           var jqXHR;
           _this.model.updateFromClone(entryMetadata.model);
+          _this.model.get('settings').save();
           jqXHR = _this.model.save();
           return jqXHR.done(function() {
             return modal.messageAndFade('success', 'Metadata saved!');

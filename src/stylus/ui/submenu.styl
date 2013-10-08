@@ -29,9 +29,22 @@
 
 			&[data-key="previous"]
 				arrowleft(spotcolor)
+				padding-right 0
+
+				&:after
+					margin-left -6px
+
+			&[data-key="current"]
+				background none
+				box-shadow none
+				color #CCC
 
 			&[data-key="next"]
 				arrowright(spotcolor)
+				padding-right 10px
+
+				&:after
+					margin-left -3px
 
 			&[data-key="facsimiles"], &[data-key="editfacsimiles"], &[data-key="edittextlayers"], &[data-key="layer"]
 				arrowdown(spotcolor)

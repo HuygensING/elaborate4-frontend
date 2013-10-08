@@ -25,6 +25,13 @@
         return config.baseUrl + ("projects/" + this.projectId + "/entries/" + this.entryId + "/settings");
       };
 
+      EntrySettings.prototype.sync = function(method, model, options) {
+        if (method === 'create') {
+          method = 'update';
+        }
+        return EntrySettings.__super__.sync.apply(this, arguments);
+      };
+
       return EntrySettings;
 
     })(Models.Base);

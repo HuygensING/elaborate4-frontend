@@ -357,7 +357,7 @@ define (require) ->
 				@model.updateFromClone entryMetadata.model
 
 				# TODO Save the settings
-				# @model.get('settings').save()
+				@model.get('settings').save()
 				jqXHR = @model.save()
 				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
 
