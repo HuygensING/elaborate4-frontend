@@ -35,7 +35,9 @@
 
       ProjectNav.prototype.render = function() {
         var rtpl;
-        rtpl = _.template(Templates.ProjectNav);
+        rtpl = _.template(Templates.ProjectNav, {
+          state: this.options.state
+        });
         this.$el.html(rtpl);
         return this;
       };

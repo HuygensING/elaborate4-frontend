@@ -1,12 +1,29 @@
 .main
-	.row.span7
-		.cell.span3.logo.aligncenter
+	.row.span2
+		.cell.span1.project.aligncenter
 			img(src="/images/logo.elaborate.png")
-			span.white.projecttitle <%= state.currentProject.get('title') %>
-		.cell.span2.project
-			nav.project
-		.cell.span2.alignright.user
-			nav.user
+			//- span.white.projecttitle <%= state.currentProject.get('title') %>
+			ul.horizontal.menu
+				li.thisproject.arrowdown 
+					span.projecttitle <%= state.currentProject.get('title') %>
+					ul.vertical.menu
+						//- li.spacer
+						li.search Search &amp; overview
+						li.settings Project settings
+						li.history History
+						li.publish Publish
+		.cell.span1.user.alignright
+			ul.horizontal.menu
+				li Help
+				li.username.arrowdown <%= user.title %>
+					ul.vertical.menu
+						//- li.spacer
+						li.projects.arrowleft My projects
+							ul.vertical.menu
+								| <% state.projects.each(function(project) { %>
+								li.project(data-id!="<%= project.id %>") <%= project.get('title') %>
+								| <% }); %>
+						li.logout Logout
 			img(src="/images/logo.huygens.png")
 				
 //- .sub

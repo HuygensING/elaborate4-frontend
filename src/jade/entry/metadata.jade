@@ -1,0 +1,13 @@
+form
+	ul(data-model-id!="<%= model.cid %>")
+		li
+			label Name
+			input(type="text", name="name", value!="<%= model.get('name') %>")
+		| <% _.each(model.get('settings').attributes, function(value, key) { %>
+		li
+			label <%= key %>
+			input(type="text", name!="<%= key %>", value!="<%= value %>")
+		| <% }); %>
+		li
+			label Publishable
+			| <input type="checkbox" name="publishable"<% if (model.get('publishable')) {%> checked<% } %>>

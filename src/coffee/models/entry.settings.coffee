@@ -7,15 +7,6 @@ define (require) ->
 
 	class EntrySettings extends Models.Base
 
-		# defaults: ->
-		# 	name: ''
-		# 	publishable: false
-
-		# parse: (attrs) ->
-		# 	attrs.transcriptions = new Collections.Transcriptions([], entryId: attrs.id)
-
-		# 	attrs
-
 		initialize: (models, options) ->
 			@projectId = options.projectId
 			@entryId = options.entryId

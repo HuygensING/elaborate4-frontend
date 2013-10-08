@@ -20,6 +20,7 @@
 
 #debug{display:none;position:fixed;width:100px;height:100px;bottom:0;right:0;background:#000;color:#fff}
 
+.entry .container .middle .entrymetadata-placeholder{padding:0 10px}
 .entry .container .middle .transcription-placeholder,.entry .container .middle .annotation-placeholder{position:relative;}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu,.entry .container .middle .annotation-placeholder .transcriptioneditmenu,.entry .container .middle .transcription-placeholder .annotationeditmenu,.entry .container .middle .annotation-placeholder .annotationeditmenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:absolute;width:200px;left:47%;margin-left:-100px;bottom:24px;opacity:.3;-webkit-transition:all 500ms;-moz-transition:all 500ms;-o-transition:all 500ms;transition:all 500ms;background-color:rgba(255,255,255,0.8);padding:5px;border:1px solid #ccc;border-radius:12px;text-align:center;}
 .entry .container .middle .transcription-placeholder .transcriptioneditmenu:hover,.entry .container .middle .annotation-placeholder .transcriptioneditmenu:hover,.entry .container .middle .transcription-placeholder .annotationeditmenu:hover,.entry .container .middle .annotation-placeholder .annotationeditmenu:hover{opacity:1}
@@ -52,18 +53,21 @@ form ul li input{border:1px solid #ccc;padding-left:4px}
 form ul li input[type="submit"]{margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px}
 
 header{white-space:nowrap;z-index:100;}
-header .main{position:fixed;left:0;right:0;}
-header .main .row{margin:0 auto;}
-header .main .row *{vertical-align:middle}
-header .main{background-color:#000;top:0;z-index:50;}
-header .main .cell{line-height:48px}
-header .main div.logo{overflow:hidden;}
-header .main div.logo .projecttitle{margin-left:10px;white-space:nowrap;font-weight:bold;overflow:hidden;cursor:pointer;font-size:1.3em}
-header .main nav{display:inline-block;}
-header .main nav.user li,header .main nav.project li{background-color:#000;overflow:hidden}
-header .main nav.user .vertical.menu li,header .main nav.project .vertical.menu li{padding-top:2px;box-shadow:0 -9px 30px rgba(34,34,34,0.8);}
-header .main nav.user .vertical.menu li:hover,header .main nav.project .vertical.menu li:hover{background:#222;text-shadow:1px 2px #000}
-header .main nav.user .vertical.menu li:hover + li,header .main nav.project .vertical.menu li:hover + li{box-shadow:0 -9px 30px #444}
+header .main{position:fixed;left:0;right:0;top:0;background-color:#000;z-index:50;}
+header .main .row{margin:0 auto}
+header ul.horizontal.menu{display:inline-block;}
+header ul.horizontal.menu li{background-color:#000;overflow:hidden;line-height:48px;}
+header ul.horizontal.menu li.thisproject ul.vertical.menu{right:0}
+header ul.horizontal.menu li.projects{overflow:visible;}
+header ul.horizontal.menu li.projects ul.vertical.menu{position:absolute;margin:0 0 0 -430px;width:auto;max-height:326px;overflow-y:auto;overflow-x:hidden;}
+header ul.horizontal.menu li.projects ul.vertical.menu li{width:200px;text-overflow:ellipsis}
+header ul.horizontal.menu li ul.vertical.menu{width:140px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;}
+header ul.horizontal.menu li ul.vertical.menu li{border-top:1px solid #444;font-weight:normal;color:#ddd;box-shadow:1px 1px 2px #777;}
+header ul.horizontal.menu li ul.vertical.menu li:hover{background-color:#222;color:#fff}
+header ul.horizontal.menu li ul.vertical.menu li:last-child{border-bottom-left-radius:6px;border-bottom-right-radius:6px}
+header ul.horizontal.menu li ul.vertical.menu li.spacer{border:none;background:none;height:17px;box-shadow:none}
+header .user .vertical.menu{margin-left:-62px}
+header .projecttitle{font-size:1.3em;display:inline-block;max-width:400px;overflow:hidden;text-overflow:ellipsis}
 
 
 .row{font-size:0;}
@@ -432,6 +436,8 @@ div p:first-child{margin-top:0}
 .submenu .cell .vertical.menu > li.spacer{background:none;height:8px;box-shadow:none}
 .submenu .cell .vertical.menu > li:hover{color:#46aaa8}
 .submenu .cell .vertical.menu > li:last-child{border-bottom-left-radius:6px;border-bottom-right-radius:6px;box-shadow:2px 0 4px #888}
+.submenu .cell .vertical.menu > li[data-key="edittextlayers"],.submenu .cell .vertical.menu > li[data-key="editfacsimiles"]{color:#bbb;}
+.submenu .cell .vertical.menu > li[data-key="edittextlayers"]:hover,.submenu .cell .vertical.menu > li[data-key="editfacsimiles"]:hover{color:#ddd}
 
 .subsubmenu{position:fixed;left:0;right:0;top:-200px;background-color:#666;box-shadow:0 30px 60px rgba(17,17,17,0.8);-webkit-transition:top 300ms;-moz-transition:top 300ms;-o-transition:top 300ms;transition:top 300ms;z-index:48;}
 .subsubmenu.active{top:88px}

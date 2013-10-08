@@ -17,7 +17,7 @@ define (require) ->
 			@render()
 
 		render: ->
-			rtpl = _.template Templates.ProjectNav
+			rtpl = _.template Templates.ProjectNav, state: @options.state
 			@$el.html rtpl
 
 			@

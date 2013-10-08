@@ -105,6 +105,34 @@ define (require) ->
 
 		# ### Methods
 
+		# Get the text that is annotated. This is the text between the start (<span>) and end (<sup>) tag.
+		# Text (numbers) from annotations (<sup>s) between de start and end tag are filtered out.
+		getAnnotatedText: (annotationNo) ->
+			startNode = @el.querySelector 'span[data-id="'+annotationNo+'"]'
+			endNode = @el.querySelector 'sup[data-id="'+annotationNo+'"]'
+
+			# Create a range between start and end nodes.
+			range = document.createRange()
+			range.setStartAfter startNode
+			range.setEndBefore endNode
+
+			# Create a TreeWalker based on the cloned contents (documentFragment).
+			treewalker = document.createTreeWalker range.cloneContents(), NodeFilter.SHOW_TEXT,
+				acceptNode: (node) =>
+					# Skip <sup>s. A sup must only contain a textNode, but in the unlikely case it will not, 
+					# for example: <sup data-id="46664"><i>12</i></sup>, "12" will be part of the returned text variable.
+					if node.parentNode.nodeType is 1 and node.parentNode.tagName is 'SUP' and node.parentNode.hasAttribute('data-id')
+						return NodeFilter.FILTER_SKIP
+					else
+						return NodeFilter.FILTER_ACCEPT
+
+			# Walk the tree and extract the textContent from the nodes.
+			text = ''
+			text += treewalker.currentNode.textContent while treewalker.nextNode()
+
+			text
+
+
 		addNewAnnotationTags: (range) ->
 			# Create marker at the beginning of the selection
 			span = document.createElement 'span'

@@ -21,13 +21,17 @@ define (require) ->
 		Preview: require 'views/entry/preview/main'
 		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/annotation.metadata'
+		EntryMetadata: require 'views/entry/metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
 		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
 		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
+		Modal: require 'hilib/views/modal/main'
+		Form: require 'hilib/views/form/main'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
+		Metadata: require 'text!html/entry/metadata.html'
 
 	# ## Entry
 	class Entry extends Views.Base
@@ -130,37 +134,13 @@ define (require) ->
 					width:			$el.width() - 20
 				@listenTo @transcriptionEdit, 'save', => @currentTranscription.save()
 			
-			@toggleEditPane 'transcription'
-
-		# move to supertinyeditor or separate view
-		setAnnotationText: (model) ->
-			annotationNo = model.get('annotationNo') ? 'newannotation'
-
-			span = @preview.el.querySelector 'span[data-id="'+annotationNo+'"]'
-			nextNode = span.nextSibling
-			text = nextNode.textContent
-
-			while nextNode?
-				# console.log nextNode.nodeType is 1
-				
-				if nextNode.nodeType is 1 and span.getAttribute('data-id') is nextNode.getAttribute('data-id')
-					break
-				
-				nextNode = nextNode.nextSibling
-
-				if nextNode.nodeType is 1 and nextNode.tagName is 'SUP' and nextNode.hasAttribute('data-id')
-					continue
-
-				text += nextNode.textContent
-
-			@annotationEdit.$('.ste-header').last().addClass('annotationtext').html text
+			@toggleEditPane 'transcription'	
 
 		renderAnnotation: (model) ->
 			@navigateToAnnotation model.id
 
 			if @annotationEdit? and model?
 				@annotationEdit.setModel model 
-				@setAnnotationText model
 			else
 				console.error 'No annotation given as argument!' unless model?
 				
@@ -177,7 +157,8 @@ define (require) ->
 					width: 			@preview.$el.width() - 4
 					wrap: 			true
 
-				@setAnnotationText model
+				
+				
 				
 
 				# * TODO: Clean up!
@@ -204,7 +185,12 @@ define (require) ->
 						collection: @project.get 'annotationtypes'
 						el: @el.querySelector('.container .middle .annotationmetadata')
 					@toggleEditPane 'annotationmetadata'
-				
+			
+			# Set annotated text to supertinyeditor header based on html between start (<span>) and end (<sup>) tags in @preview
+			annotationNo = model.get('annotationNo') ? 'newannotation'
+			annotatedText = @preview.getAnnotatedText annotationNo
+			@annotationEdit.$('.ste-header').last().addClass('annotationtext').html annotatedText
+
 			@toggleEditPane 'annotation'
 				
 		renderPreview: ->
@@ -231,7 +217,7 @@ define (require) ->
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li[data-key="save"]': 'save'
-			# 'click .menu li[data-key="metadata"]': 'metadata'
+			'click .menu li[data-key="metadata"]': 'metadata'
 			'click .menu li.subsub': 'toggleSubsubmenu'
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
@@ -356,6 +342,24 @@ define (require) ->
 		# 			collection: @project.get 'annotationtypes'
 		# 			el: @el.querySelector('.container .middle .annotationmetadata')
 		# 		@toggleEditPane 'annotationmetadata'
+
+		metadata: (ev) ->
+			entryMetadata = new Views.Form
+				tpl: Templates.Metadata
+				model: @model.clone()
+
+			modal = new Views.Modal
+				title: "Edit entry metadata"
+				$html: entryMetadata.$el
+				submitValue: 'Save metadata'
+				width: '300px'
+			modal.on 'submit', =>
+				@model.updateFromClone entryMetadata.model
+
+				# TODO Save the settings
+				# @model.get('settings').save()
+				jqXHR = @model.save()
+				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
 
 
 		# menuItemClicked: (ev) ->

@@ -20,13 +20,17 @@
       Preview: require('views/entry/preview/main'),
       SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/annotation.metadata'),
+      EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
-      AnnotationEditMenu: require('views/entry/annotation.edit.menu')
+      AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
+      Modal: require('hilib/views/modal/main'),
+      Form: require('hilib/views/form/main')
     };
     Templates = {
-      Entry: require('text!html/entry/main.html')
+      Entry: require('text!html/entry/main.html'),
+      Metadata: require('text!html/entry/metadata.html')
     };
     return Entry = (function(_super) {
       __extends(Entry, _super);
@@ -144,32 +148,12 @@
         return this.toggleEditPane('transcription');
       };
 
-      Entry.prototype.setAnnotationText = function(model) {
-        var annotationNo, nextNode, span, text, _ref1;
-        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
-        span = this.preview.el.querySelector('span[data-id="' + annotationNo + '"]');
-        nextNode = span.nextSibling;
-        text = nextNode.textContent;
-        while (nextNode != null) {
-          if (nextNode.nodeType === 1 && span.getAttribute('data-id') === nextNode.getAttribute('data-id')) {
-            break;
-          }
-          nextNode = nextNode.nextSibling;
-          if (nextNode.nodeType === 1 && nextNode.tagName === 'SUP' && nextNode.hasAttribute('data-id')) {
-            continue;
-          }
-          text += nextNode.textContent;
-        }
-        return this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(text);
-      };
-
       Entry.prototype.renderAnnotation = function(model) {
-        var $el,
+        var $el, annotatedText, annotationNo, _ref1,
           _this = this;
         this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
-          this.setAnnotationText(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
@@ -186,7 +170,6 @@
             width: this.preview.$el.width() - 4,
             wrap: true
           });
-          this.setAnnotationText(model);
           this.listenTo(this.annotationEdit, 'save', function() {
             var annotations;
             if (model.isNew()) {
@@ -218,6 +201,9 @@
             return _this.toggleEditPane('annotationmetadata');
           });
         }
+        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
+        annotatedText = this.preview.getAnnotatedText(annotationNo);
+        this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(annotatedText);
         return this.toggleEditPane('annotation');
       };
 
@@ -250,6 +236,7 @@
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
           'click .menu li[data-key="save"]': 'save',
+          'click .menu li[data-key="metadata"]': 'metadata',
           'click .menu li.subsub': 'toggleSubsubmenu'
         };
       };
@@ -334,6 +321,29 @@
         textLayerNode = document.createTextNode(textLayer + ' layer');
         li = this.el.querySelector('.submenu li[data-key="layer"]');
         return li.replaceChild(textLayerNode, li.firstChild);
+      };
+
+      Entry.prototype.metadata = function(ev) {
+        var entryMetadata, modal,
+          _this = this;
+        entryMetadata = new Views.Form({
+          tpl: Templates.Metadata,
+          model: this.model.clone()
+        });
+        modal = new Views.Modal({
+          title: "Edit entry metadata",
+          $html: entryMetadata.$el,
+          submitValue: 'Save metadata',
+          width: '300px'
+        });
+        return modal.on('submit', function() {
+          var jqXHR;
+          _this.model.updateFromClone(entryMetadata.model);
+          jqXHR = _this.model.save();
+          return jqXHR.done(function() {
+            return modal.messageAndFade('success', 'Metadata saved!');
+          });
+        });
       };
 
       Entry.prototype.toggleEditPane = function(viewName) {

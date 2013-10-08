@@ -119,6 +119,30 @@
         }
       };
 
+      TranscriptionPreview.prototype.getAnnotatedText = function(annotationNo) {
+        var endNode, range, startNode, text, treewalker,
+          _this = this;
+        startNode = this.el.querySelector('span[data-id="' + annotationNo + '"]');
+        endNode = this.el.querySelector('sup[data-id="' + annotationNo + '"]');
+        range = document.createRange();
+        range.setStartAfter(startNode);
+        range.setEndBefore(endNode);
+        treewalker = document.createTreeWalker(range.cloneContents(), NodeFilter.SHOW_TEXT, {
+          acceptNode: function(node) {
+            if (node.parentNode.nodeType === 1 && node.parentNode.tagName === 'SUP' && node.parentNode.hasAttribute('data-id')) {
+              return NodeFilter.FILTER_SKIP;
+            } else {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+        });
+        text = '';
+        while (treewalker.nextNode()) {
+          text += treewalker.currentNode.textContent;
+        }
+        return text;
+      };
+
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
