@@ -3990,7 +3990,7 @@ define('domready',[],function () {
         for (k in obj) {
           if (!__hasProp.call(obj, k)) continue;
           v = obj[k];
-          if (_.isObject(v) && !_.isArray(v) && !_.isFunction(v)) {
+          if (_.isObject(v) && !_.isArray(v) && !_.isFunction(v) && !v instanceof Backbone.Model && !v instanceof Backbone.Collection) {
             this.flattenObject(v, into, prefix + k + '.');
           } else {
             into[prefix + k] = v;
@@ -4074,15 +4074,19 @@ define('domready',[],function () {
         }
         return _results;
       },
-      setCursorToEnd: function(el) {
-        var range, sel;
+      setCursorToEnd: function(textEl, windowEl) {
+        var range, sel, win;
+        win = windowEl != null ? windowEl : window;
+        if (windowEl == null) {
+          windowEl = textEl;
+        }
+        windowEl.focus();
         range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse();
-        sel = window.getSelection();
+        range.selectNodeContents(textEl);
+        range.collapse(false);
+        sel = win.getSelection();
         sel.removeAllRanges();
-        sel.addRange(range);
-        return el.focus();
+        return sel.addRange(range);
       }
     };
   });
@@ -4152,6 +4156,13 @@ define('domready',[],function () {
 
       EntrySettings.prototype.url = function() {
         return config.baseUrl + ("projects/" + this.projectId + "/entries/" + this.entryId + "/settings");
+      };
+
+      EntrySettings.prototype.sync = function(method, model, options) {
+        if (method === 'create') {
+          method = 'update';
+        }
+        return EntrySettings.__super__.sync.apply(this, arguments);
       };
 
       return EntrySettings;
@@ -4621,9 +4632,11 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/entry',['require','config','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
-    var Collections, Entry, Models, config, _ref;
+  define('models/entry',['require','config','hilib/managers/ajax','hilib/managers/token','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
+    var Collections, Entry, Models, ajax, config, token, _ref;
     config = require('config');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Models = {
       Base: require('models/base'),
       Settings: require('models/entry.settings')
@@ -4647,6 +4660,36 @@ define('domready',[],function () {
         };
       };
 
+      Entry.prototype.set = function(attrs, options) {
+        var settings;
+        settings = this.get('settings');
+        if ((settings != null) && (settings.get(attrs) != null)) {
+          settings.set(attrs, options);
+          return this.trigger('change');
+        } else {
+          return Entry.__super__.set.apply(this, arguments);
+        }
+      };
+
+      Entry.prototype.clone = function() {
+        var newObj;
+        newObj = new this.constructor({
+          name: this.get('name'),
+          publishable: this.get('publishable')
+        });
+        newObj.set('settings', new Models.Settings(this.get('settings').toJSON(), {
+          projectId: this.collection.projectId,
+          entryId: this.id
+        }));
+        return newObj;
+      };
+
+      Entry.prototype.updateFromClone = function(clone) {
+        this.set('name', clone.get('name'));
+        this.set('publishable', clone.get('publishable'));
+        return this.get('settings').set(clone.get('settings').toJSON());
+      };
+
       Entry.prototype.parse = function(attrs) {
         attrs.transcriptions = new Collections.Transcriptions([], {
           projectId: this.collection.projectId,
@@ -4661,6 +4704,30 @@ define('domready',[],function () {
           entryId: attrs.id
         });
         return attrs;
+      };
+
+      Entry.prototype.sync = function(method, model, options) {
+        var data, jqXHR,
+          _this = this;
+        if (method === 'update') {
+          ajax.token = token.get();
+          data = {
+            name: this.get('name'),
+            publishable: this.get('publishable')
+          };
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify(data)
+          });
+          jqXHR.done(function(response) {
+            return _this.trigger('sync');
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else {
+          return Entry.__super__.sync.apply(this, arguments);
+        }
       };
 
       return Entry;
@@ -5529,16 +5596,171 @@ define('text!html/login.html',[],function () { return '<div class="cell span2"><
 
 }).call(this);
 
-(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.10",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;if(u.indexOf("empty:")===0){r();return}!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'<div class="placeholder pad4"><header><h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'<div class="options"><ul><% _.each(options, function(option) { %><li class="option"><div class="row span6"><div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>"><label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label></div><div class="cell span1 alignright"><div class="count"><%= option.count %></div></div></div></li><% }); %></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'<header><h3 data-name="<%= name %>"><%= title %></h3></header><div class="body"><label>From:</label><select><% _.each(options, function(option) { %><option><%= option %></option><% }); %></select><label>To:</label><select><% _.each(options.reverse(), function(option) { %><option><%= option %></option><% }); %></select></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(n){var r;return r=n("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},r.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}(),highlighter:function(e){var t,n,i;return e==null&&(e={}),t=e.className,i=e.tagName,t==null&&(t="hilite"),i==null&&(i="span"),n=null,{on:function(e){var r,s,o;return o=e.startNode,r=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(r),n=document.createElement(i),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return r(n).replaceWith(function(){return r(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=r(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(n,r,i){var s,o;r==null&&(r={}),i==null&&(i="");for(s in n){if(!e.call(n,s))continue;o=n[s],t.isObject(o)&&!t.isArray(o)&&!t.isFunction(o)?this.flattenObject(o,r,i+s+"."):r[i+s]=o}return r},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e){var t,n;return t=document.createRange(),t.selectNodeContents(e),t.collapse(),n=window.getSelection(),n.removeAllRanges(),n.addRange(t),e.focus()}}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.options.html",[],function(){return'<ul><% _.each(options, function(option) { %>\n<% var randomId = generateID(); %>\n<% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n<% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n<% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %><li class="option"><div data-count="<%= option.get(\'count\') %>" class="row span6"><div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>><label for="<%= randomId %>"><%= labelText %></label></div><div class="cell span1 alignright"><div class="count"><%= count %></div></div></div></li><% }); %></ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),u={Base:e("views/base")},s={List:e("models/list")},o={Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'}),s("text!html/facet/list.body.html",[],function(){return'<div class="options"><ul></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),t.support.cors=!0,{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","hilib/managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("hilib/managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %><div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>><label for="cb_searchin_annotations">Annotations</label></li><% } %>\n<% if (\'searchInTranscriptions\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>><label for="cb_searchin_transcriptions">Transcriptions</label></li><% } %></ul></div></div><% } %>\n<% if (\'textLayers\' in searchOptions) { %><div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %><li class="textlayer"><input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/><label for="cb_textlayer_<%= tl %>"><%= tl %></label></li><% }); %></ul></div></div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'<div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div style="display: none; text-align: center; margin-top: 20px" class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i}(u.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
-define('text!html/project/search.html',[],function () { return '<div class="row span3"><div class="cell span1 faceted-search-placeholder"></div><div class="cell span2"><div class="padl4 resultview"><header><div class="row span2"><div class="cell span1"> <h3 class="numfound"></h3></div><div class="cell span1 alignright"><nav><ul><li> <input id="cb_showkeywords" type="checkbox"/><label for="cb_showkeywords">Display keywords</label></li><li data-key="selectall">Select all</li><li data-key="deselectall">Deselect all</li></ul></nav></div></div><div class="row span2"><div class="cell span1"> <ul class="horizontal menu pagination"><li class="prev inactive">&lt;</li><li class="currentpage text"></li><li class="text">of</li><li class="pagecount text"></li><li class="next">&gt;</li></ul></div><div class="cell span1 alignright"></div></div></header><ul class="entries"></ul></div></div></div>';});
+(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.10",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;if(u.indexOf("empty:")===0){r();return}!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'<div class="placeholder pad4"><header><h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'<div class="options"><ul><% _.each(options, function(option) { %><li class="option"><div class="row span6"><div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>"><label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label></div><div class="cell span1 alignright"><div class="count"><%= option.count %></div></div></div></li><% }); %></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'<header><h3 data-name="<%= name %>"><%= title %></h3></header><div class="body"><label>From:</label><select><% _.each(options, function(option) { %><option><%= option %></option><% }); %></select><label>To:</label><select><% _.each(options.reverse(), function(option) { %><option><%= option %></option><% }); %></select></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(n){var r;return r=n("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},r.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}(),highlighter:function(e){var t,n,i;return e==null&&(e={}),t=e.className,i=e.tagName,t==null&&(t="hilite"),i==null&&(i="span"),n=null,{on:function(e){var r,s,o;return o=e.startNode,r=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(r),n=document.createElement(i),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return r(n).replaceWith(function(){return r(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=r(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(n,r,i){var s,o;r==null&&(r={}),i==null&&(i="");for(s in n){if(!e.call(n,s))continue;o=n[s],t.isObject(o)&&!t.isArray(o)&&!t.isFunction(o)?this.flattenObject(o,r,i+s+"."):r[i+s]=o}return r},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e){var t,n;return t=document.createRange(),t.selectNodeContents(e),t.collapse(),n=window.getSelection(),n.removeAllRanges(),n.addRange(t),e.focus()}}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.options.html",[],function(){return'<ul><% _.each(options, function(option) { %>\n<% var randomId = generateID(); %>\n<% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n<% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n<% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %><li class="option"><div data-count="<%= option.get(\'count\') %>" class="row span6"><div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>><label for="<%= randomId %>"><%= labelText %></label></div><div class="cell span1 alignright"><div class="count"><%= count %></div></div></div></li><% }); %></ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),u={Base:e("views/base")},s={List:e("models/list")},o={Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'}),s("text!html/facet/list.body.html",[],function(){return'<div class="options"><ul></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),t.support.cors=!0,{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","hilib/managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("hilib/managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %><div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>><label for="cb_searchin_annotations">Annotations</label></li><% } %>\n<% if (\'searchInTranscriptions\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>><label for="cb_searchin_transcriptions">Transcriptions</label></li><% } %></ul></div></div><% } %>\n<% if (\'textLayers\' in searchOptions) { %><div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %><li class="textlayer"><input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/><label for="cb_textlayer_<%= tl %>"><%= tl %></label></li><% }); %></ul></div></div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'<div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div style="display: none; text-align: center; margin-top: 20px" class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i.prototype.reset=function(){return this.model.clear()},i}(u.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
+define('text!hilib/views/modal/modal.html',[],function () { return '<div class="overlay"></div><div class="modalbody"><header><h2><%= title %></h2><p class="message"></p></header><div class="body"></div><% if (cancelAndSubmit) { %><footer><button class="cancel"><%= cancelValue %></button><button class="submit"><%= submitValue %></button></footer><% } %></div>';});
 
-define('text!html/project/search.results.html',[],function () { return '<% _.each(model.get(\'results\'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>\n<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>\n<% }); %></ul></div></li><% }); %>';});
+(function() {
+  define('hilib/managers/modal',['require'],function(require) {
+    var ModalManager;
+    ModalManager = (function() {
+      function ModalManager() {
+        this.modals = [];
+      }
+
+      ModalManager.prototype.add = function(modal) {
+        var arrLength, m, _i, _len, _ref;
+        _ref = this.modals;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          m = _ref[_i];
+          m.$('.overlay').css('opacity', '0.2');
+        }
+        arrLength = this.modals.push(modal);
+        modal.$('.overlay').css('z-index', 10000 + (arrLength * 2) - 1);
+        modal.$('.modalbody').css('z-index', 10000 + (arrLength * 2));
+        return $('body').prepend(modal.$el);
+      };
+
+      ModalManager.prototype.remove = function(modal) {
+        var index;
+        index = this.modals.indexOf(modal);
+        this.modals.splice(index, 1);
+        if (this.modals.length > 0) {
+          this.modals[this.modals.length - 1].$('.overlay').css('opacity', '0.7');
+        }
+        return modal.remove();
+      };
+
+      return ModalManager;
+
+    })();
+    return new ModalManager();
+  });
+
+}).call(this);
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/project/search','models/state','views/base','faceted-search','text!html/project/search.html','text!html/project/search.results.html'],function(require) {
+  define('hilib/views/modal/main',['require','backbone','text!hilib/views/modal/modal.html','hilib/managers/modal'],function(require) {
+    var Backbone, Modal, Tpl, modalManager, _ref;
+    Backbone = require('backbone');
+    Tpl = require('text!hilib/views/modal/modal.html');
+    modalManager = require('hilib/managers/modal');
+    return Modal = (function(_super) {
+      __extends(Modal, _super);
+
+      function Modal() {
+        _ref = Modal.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      Modal.prototype.className = "modal";
+
+      Modal.prototype.initialize = function() {
+        Modal.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      Modal.prototype.render = function() {
+        var data, marginLeft, rtpl, scrollTop, top, viewportHeight;
+        data = _.extend({
+          title: "My modal",
+          cancelAndSubmit: true,
+          cancelValue: 'Cancel',
+          submitValue: 'Submit'
+        }, this.options);
+        rtpl = _.template(Tpl, data);
+        this.$el.html(rtpl);
+        if (this.options.$html) {
+          this.$(".body").html(this.options.$html);
+        }
+        modalManager.add(this);
+        if (this.options.width != null) {
+          this.$('.modalbody').css('width', this.options.width);
+          marginLeft = -1 * parseInt(this.options.width, 10) / 2;
+          if (this.options.width.slice(-1) === '%') {
+            marginLeft += '%';
+          }
+          if (this.options.width.slice(-2) === 'vw') {
+            marginLeft += 'vw';
+          }
+          this.$('.modalbody').css('margin-left', marginLeft);
+        }
+        if (this.options.height != null) {
+          this.$('.modalbody').css('height', this.options.height);
+        }
+        scrollTop = document.querySelector('body').scrollTop;
+        viewportHeight = document.documentElement.clientHeight;
+        top = (viewportHeight - this.$('.modalbody').height()) / 2;
+        if (scrollTop > 0) {
+          this.$('.modalbody').css('top', top + scrollTop);
+        }
+        return this.$('.modalbody').css('margin-top', this.$('.modalbody').height() / -2);
+      };
+
+      Modal.prototype.events = {
+        "click button.submit": "onSubmit",
+        "click button.cancel": "onCancel",
+        "click .overlay": "onOverlayClicked"
+      };
+
+      Modal.prototype.onSubmit = function(ev) {
+        return this.trigger("submit");
+      };
+
+      Modal.prototype.onCancel = function(ev) {
+        this.trigger("cancel");
+        return this.fadeOut(0);
+      };
+
+      Modal.prototype.onOverlayClicked = function(ev) {
+        return modalManager.remove(this);
+      };
+
+      Modal.prototype.fadeOut = function(delay) {
+        var speed,
+          _this = this;
+        if (delay == null) {
+          delay = 1000;
+        }
+        speed = delay === 0 ? 0 : 500;
+        this.$(".modalbody").delay(delay).fadeOut(speed);
+        return setTimeout((function() {
+          return modalManager.remove(_this);
+        }), delay + speed - 100);
+      };
+
+      Modal.prototype.message = function(type, message) {
+        if (["success", "warning", "error"].indexOf(type) === -1) {
+          return console.error("Unknown message type!");
+        }
+        return this.$("p.message").html(message).addClass(type);
+      };
+
+      Modal.prototype.messageAndFade = function(type, message, delay) {
+        this.$(".modalbody .body").hide();
+        this.$("footer").hide();
+        this.message(type, message);
+        return this.fadeOut(delay);
+      };
+
+      return Modal;
+
+    })(Backbone.View);
+  });
+
+}).call(this);
+
+define('text!html/project/main.html',[],function () { return '<div class="submenu"><div class="row span3"><div class="cell span1"><ul class="horizontal menu"><li data-key="newsearch">New search</li></ul></div><div class="cell span1"><ul class="horizontal menu"><li data-key="newentry">New entry</li><li data-key="editselection" class="arrowdown">Edit selection</li></ul></div><div class="cell span1 alignright"><ul class="horizontal menu"><li data-key="print">Print</li></ul></div></div></div><div class="row span3"><div class="cell span1 faceted-search-placeholder"></div><div style="position:fixed" class="cell span2"><div class="padl4 resultview"><header><div class="row span2"><div class="cell span1"> <h3 class="numfound"></h3></div><div class="cell span1 alignright"><nav><ul><li> <input id="cb_showkeywords" type="checkbox"/><label for="cb_showkeywords">Display keywords</label></li><li data-key="selectall">Select all</li><li data-key="deselectall">Deselect all</li></ul></nav></div></div><div class="row span2"><div class="cell span1"> <ul class="horizontal menu pagination"><li class="prev inactive">&lt;</li><li class="currentpage text"></li><li class="text">of</li><li class="pagecount text"></li><li class="next">&gt;</li></ul></div><div class="cell span1 alignright"></div></div></header><ul class="entries"></ul></div></div></div>';});
+
+define('text!html/project/results.html',[],function () { return '<% _.each(model.get(\'results\'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>\n<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>\n<% }); %></ul></div></li><% }); %>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/project/search','models/state','views/base','faceted-search','hilib/views/modal/main','text!html/project/main.html','text!html/project/results.html'],function(require) {
     var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
     Fn = require('hilib/functions/general');
     config = require('config');
@@ -5549,11 +5771,12 @@ define('text!html/project/search.results.html',[],function () { return '<% _.eac
     };
     Views = {
       Base: require('views/base'),
-      FacetedSearch: require('faceted-search')
+      FacetedSearch: require('faceted-search'),
+      Modal: require('hilib/views/modal/main')
     };
     Templates = {
-      Search: require('text!html/project/search.html'),
-      Results: require('text!html/project/search.results.html')
+      Search: require('text!html/project/main.html'),
+      Results: require('text!html/project/results.html')
     };
     return ProjectSearch = (function(_super) {
       var _this = this;
@@ -5627,6 +5850,7 @@ define('text!html/project/search.results.html',[],function () { return '<% _.eac
       };
 
       ProjectSearch.prototype.events = {
+        'click .submenu li[data-key="newentry"]': 'newEntry',
         'click li.entry label': 'goToEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
@@ -5637,6 +5861,24 @@ define('text!html/project/search.results.html',[],function () { return '<% _.eac
           return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
         },
         'change #cb_showkeywords': 'toggleKeywords'
+      };
+
+      ProjectSearch.prototype.newEntry = function(ev) {
+        var $html, modal,
+          _this = this;
+        $html = $('<label>Name</label><input type="text" name="name" />');
+        modal = new Views.Modal({
+          title: "Create a new entry",
+          $html: $html,
+          submitValue: 'Create entry',
+          width: '300px'
+        });
+        return modal.on('submit', function() {
+          _this.project.get('entries').create({
+            name: modal.$('input[name="name"]').val()
+          });
+          return modal.message('success', 'Creating new entry...');
+        });
       };
 
       ProjectSearch.prototype.toggleKeywords = function(ev) {
@@ -6469,20 +6711,22 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
       Form.prototype.createModels = function() {
         var _base,
           _this = this;
-        if ((_base = this.options).value == null) {
-          _base.value = {};
-        }
         if (this.model == null) {
+          if ((_base = this.options).value == null) {
+            _base.value = {};
+          }
           this.model = new this.Model(this.options.value);
-        }
-        if (this.model.isNew()) {
-          return this.trigger('createModels:finished');
+          if (this.model.isNew()) {
+            return this.trigger('createModels:finished');
+          } else {
+            return this.model.fetch({
+              success: function() {
+                return _this.trigger('createModels:finished');
+              }
+            });
+          }
         } else {
-          return this.model.fetch({
-            success: function() {
-              return _this.trigger('createModels:finished');
-            }
-          });
+          return this.trigger('createModels:finished');
         }
       };
 
@@ -6780,17 +7024,17 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 
 }).call(this);
 
-define('text!html/project/settings.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><input id="leader" type="text" name="leader" value="<%= settings[\'Project leader\'] %>" data-attr="Project leader"/></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="save" value="Save settings"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Add/remove existing user(s)</h3></div><div class="cell span2 adduser"><h3>Add new user</h3></div></div></div></div>';});
+define('text!html/project/settings/main.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><input id="leader" type="text" name="leader" value="<%= settings[\'Project leader\'] %>" data-attr="Project leader"/></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="save" value="Save settings"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Add/remove existing user(s)</h3></div><div class="cell span2 adduser"><h3>Add new user</h3></div></div></div></div>';});
 
-define('text!html/project/metadata_annotations.html',[],function () { return '<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
+define('text!html/project/settings/metadata_annotations.html',[],function () { return '<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
 
-define('text!html/project/adduser.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><input type="text" name="username" placeholder="Username"/></li><li><input type="text" name="email" placeholder="E-mail"/></li><li><input type="text" name="firstName" placeholder="First name"/></li><li><input type="text" name="lastName" placeholder="Last name"/></li><li><input type="password" name="password" placeholder="Password"/></li><li><input type="submit" name="adduser" value="Add user"/></li></ul></form>';});
+define('text!html/project/settings/adduser.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><input type="text" name="username" placeholder="Username"/></li><li><input type="text" name="email" placeholder="E-mail"/></li><li><input type="text" name="firstName" placeholder="First name"/></li><li><input type="text" name="lastName" placeholder="Last name"/></li><li><input type="password" name="password" placeholder="Password"/></li><li><input type="submit" name="adduser" value="Add user"/></li></ul></form>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/settings',['require','hilib/managers/async','entry.metadata','views/base','views/ui/settings.submenu','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','models/project/statistics','models/project/settings','models/state','models/user','collections/project/annotation.types','collections/project/users','collections/users','text!html/project/settings.html','text!html/project/metadata_annotations.html','text!html/project/adduser.html'],function(require) {
+  define('views/project/settings',['require','hilib/managers/async','entry.metadata','views/base','views/ui/settings.submenu','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','models/project/statistics','models/project/settings','models/state','models/user','collections/project/annotation.types','collections/project/users','collections/users','text!html/project/settings/main.html','text!html/project/settings/metadata_annotations.html','text!html/project/settings/adduser.html'],function(require) {
     var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, _ref;
     Async = require('hilib/managers/async');
     EntryMetadata = require('entry.metadata');
@@ -6813,9 +7057,9 @@ define('text!html/project/adduser.html',[],function () { return '<form><ul data-
       AllUsers: require('collections/users')
     };
     Templates = {
-      Settings: require('text!html/project/settings.html'),
-      AnnotationTypes: require('text!html/project/metadata_annotations.html'),
-      AddUser: require('text!html/project/adduser.html')
+      Settings: require('text!html/project/settings/main.html'),
+      AnnotationTypes: require('text!html/project/settings/metadata_annotations.html'),
+      AddUser: require('text!html/project/settings/adduser.html')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);
@@ -7034,13 +7278,13 @@ define('text!html/project/adduser.html',[],function () { return '<form><ul data-
 
 }).call(this);
 
-define('text!html/project/history.html',[],function () { return '<h2>History</h2><% collection.each(function(item) { %><div class="row span18"><div class="cell span2"><%= item.get(\'userName\') %></div><div class="cell span3"><%= (new Date(item.get(\'createdOn\'))).toDateString() %> </div><div class="cell span13"><%= item.get(\'comment\') %></div></div><% }); %>';});
+define('text!html/project/settings/history.html',[],function () { return '<h2>History</h2><% collection.each(function(item) { %><div class="row span18"><div class="cell span2"><%= item.get(\'userName\') %></div><div class="cell span3"><%= (new Date(item.get(\'createdOn\'))).toDateString() %> </div><div class="cell span13"><%= item.get(\'comment\') %></div></div><% }); %>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/history',['require','views/base','hilib/managers/ajax','models/state','collections/project/history','text!html/project/history.html'],function(require) {
+  define('views/project/history',['require','views/base','hilib/managers/ajax','models/state','collections/project/history','text!html/project/settings/history.html'],function(require) {
     var BaseView, Collections, Models, ProjectHistory, Templates, ajax, _ref;
     BaseView = require('views/base');
     ajax = require('hilib/managers/ajax');
@@ -7051,7 +7295,7 @@ define('text!html/project/history.html',[],function () { return '<h2>History</h2
       History: require('collections/project/history')
     };
     Templates = {
-      History: require('text!html/project/history.html')
+      History: require('text!html/project/settings/history.html')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);
@@ -7613,6 +7857,30 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         }
       };
 
+      TranscriptionPreview.prototype.getAnnotatedText = function(annotationNo) {
+        var endNode, range, startNode, text, treewalker,
+          _this = this;
+        startNode = this.el.querySelector('span[data-id="' + annotationNo + '"]');
+        endNode = this.el.querySelector('sup[data-id="' + annotationNo + '"]');
+        range = document.createRange();
+        range.setStartAfter(startNode);
+        range.setEndBefore(endNode);
+        treewalker = document.createTreeWalker(range.cloneContents(), NodeFilter.SHOW_TEXT, {
+          acceptNode: function(node) {
+            if (node.parentNode.nodeType === 1 && node.parentNode.tagName === 'SUP' && node.parentNode.hasAttribute('data-id')) {
+              return NodeFilter.FILTER_SKIP;
+            } else {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+        });
+        text = '';
+        while (treewalker.nextNode()) {
+          text += treewalker.currentNode.textContent;
+        }
+        return text;
+      };
+
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
@@ -7683,8 +7951,15 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
 }).call(this);
 
 (function() {
-  define('hilib/modules/longpress/main',['require'],function(require) {
-    var Longpress, codes, diacritics, shiftcodes;
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('hilib/views/longpress/main',['require','hilib/functions/general','views/base'],function(require) {
+    var Fn, Longpress, Views, codes, diacritics, shiftcodes, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Base: require('views/base')
+    };
     codes = {
       65: 'a',
       66: 'b',
@@ -7807,44 +8082,28 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
       '>': '≥›',
       '=': '≈≠≡'
     };
-    return Longpress = (function() {
-      Longpress.prototype.timer = null;
+    return Longpress = (function(_super) {
+      __extends(Longpress, _super);
 
-      Longpress.prototype.lastKeyCode = null;
-
-      function Longpress(iframeDocument, el) {
-        this.el = el;
-        this.iframeDocument = iframeDocument;
-        this.iframeBody = iframeDocument.querySelector('body');
-        this.iframeBody.addEventListener('keydown', this.onKeydown.bind(this));
-        this.iframeBody.addEventListener('keyup', this.onKeyup.bind(this));
+      function Longpress() {
+        _ref = Longpress.__super__.constructor.apply(this, arguments);
+        return _ref;
       }
 
-      Longpress.prototype.onKeydown = function(e) {
-        var pressedChar,
-          _this = this;
-        if (e.keyCode === this.lastKeyCode) {
-          e.preventDefault();
-          pressedChar = e.shiftKey ? shiftcodes[e.keyCode] : codes[e.keyCode];
-          if ((this.timer == null) && (pressedChar != null)) {
-            this.timer = setTimeout((function() {
-              var list;
-              list = _this.createList(pressedChar);
-              return _this.show(list);
-            }), 300);
-          }
-        }
-        return this.lastKeyCode = e.keyCode;
-      };
-
-      Longpress.prototype.onKeyup = function(e) {
-        clearTimeout(this.timer);
+      Longpress.prototype.initialize = function() {
+        Longpress.__super__.initialize.apply(this, arguments);
         this.timer = null;
         this.lastKeyCode = null;
-        return this.hide();
+        this.keyDown = false;
+        this.iframe = this.options.parent.querySelector('iframe');
+        this.iframeBody = this.iframe.contentDocument.querySelector('body');
+        this.iframeBody.addEventListener('keydown', this.onKeydown.bind(this));
+        this.iframeBody.addEventListener('keyup', this.onKeyup.bind(this));
+        this.editorBody = this.options.parent;
+        return this.editorBody.addEventListener('click', this.onClick.bind(this));
       };
 
-      Longpress.prototype.createList = function(pressedChar) {
+      Longpress.prototype.render = function(pressedChar) {
         var frag, ul,
           _this = this;
         ul = document.createElement('ul');
@@ -7863,36 +8122,98 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         return ul;
       };
 
+      Longpress.prototype.onKeydown = function(e) {
+        var pressedChar,
+          _this = this;
+        if (this.longKeyDown) {
+          e.preventDefault();
+          return false;
+        }
+        pressedChar = e.shiftKey ? shiftcodes[e.keyCode] : codes[e.keyCode];
+        if (e.keyCode === this.lastKeyCode) {
+          e.preventDefault();
+          if (pressedChar != null) {
+            this.longKeyDown = true;
+            if (this.timer == null) {
+              this.timer = setTimeout((function() {
+                var list;
+                _this.rangeManager.set(_this.iframe.contentWindow.getSelection().getRangeAt(0));
+                list = _this.render(pressedChar);
+                return _this.show(list);
+              }), 300);
+            }
+          }
+        }
+        return this.lastKeyCode = e.keyCode;
+      };
+
+      Longpress.prototype.onKeyup = function(e) {
+        this.longKeyDown = false;
+        return this.hide();
+      };
+
+      Longpress.prototype.onClick = function(e) {
+        if (this.editorBody.querySelector('ul.longpress') != null) {
+          e.preventDefault();
+          e.stopPropagation();
+          return this.resetFocus();
+        }
+      };
+
+      Longpress.prototype.rangeManager = (function() {
+        var currentRange,
+          _this = this;
+        currentRange = null;
+        return {
+          get: function() {
+            return currentRange;
+          },
+          set: function(r) {
+            return currentRange = r.cloneRange();
+          },
+          clear: function() {
+            return currentRange = null;
+          }
+        };
+      })();
+
       Longpress.prototype.show = function(list) {
-        this.el.appendChild(list);
-        return $(list).addClass('active');
+        return this.editorBody.appendChild(list);
       };
 
       Longpress.prototype.hide = function() {
         var list;
-        list = this.el.querySelector('.longpress');
+        this.lastKeyCode = null;
+        list = this.editorBody.querySelector('.longpress');
         if (list != null) {
-          this.el.removeChild(list);
-          return $(list).removeClass('active');
+          clearTimeout(this.timer);
+          this.timer = null;
+          this.rangeManager.clear();
+          return this.editorBody.removeChild(list);
         }
       };
 
       Longpress.prototype.replaceChar = function(chr) {
-        var range, sel;
-        range = this.iframeDocument.getSelection().getRangeAt(0);
+        var range;
+        range = this.rangeManager.get();
         range.setStart(range.startContainer, range.startOffset - 1);
         range.deleteContents();
         range.insertNode(document.createTextNode(chr));
         range.collapse(false);
-        sel = this.iframeDocument.getSelection();
+        return this.resetFocus();
+      };
+
+      Longpress.prototype.resetFocus = function() {
+        var sel;
+        this.iframe.contentWindow.focus();
+        sel = this.iframe.contentWindow.getSelection();
         sel.removeAllRanges();
-        sel.addRange(range);
-        return this.iframeBody.focus();
+        return sel.addRange(this.rangeManager.get());
       };
 
       return Longpress;
 
-    })();
+    })(Views.Base);
   });
 
 }).call(this);
@@ -7903,11 +8224,12 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('hilib/views/supertinyeditor/supertinyeditor',['require','hilib/functions/general','hilib/functions/string','hilib/modules/longpress/main','views/base','text!hilib/views/supertinyeditor/supertinyeditor.html'],function(require) {
+  define('hilib/views/supertinyeditor/supertinyeditor',['require','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/views/longpress/main','views/base','text!hilib/views/supertinyeditor/supertinyeditor.html'],function(require) {
     var Fn, Longpress, StringFn, SuperTinyEditor, Tpl, Views, _ref;
     Fn = require('hilib/functions/general');
     StringFn = require('hilib/functions/string');
-    Longpress = require('hilib/modules/longpress/main');
+    require('hilib/functions/jquery.mixin');
+    Longpress = require('hilib/views/longpress/main');
     Views = {
       Base: require('views/base')
     };
@@ -7948,9 +8270,7 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         this.$currentHeader = this.$('.ste-header');
         this.renderControls();
         this.renderIframe();
-        if (this.options.html === '') {
-          $(this.iframeDocument).find('body').focus();
-        }
+        this.setFocus();
         return this;
       };
 
@@ -7986,7 +8306,7 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
       };
 
       SuperTinyEditor.prototype.renderIframe = function() {
-        var html, iframe,
+        var html, iframe, lp,
           _this = this;
         iframe = this.el.querySelector('iframe');
         iframe.style.width = this.options.width + 'px';
@@ -8001,7 +8321,9 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         if (this.options.wrap) {
           this.iframeBody.style.whiteSpace = 'normal';
         }
-        new Longpress(this.iframeDocument, this.el.querySelector('.ste-body'));
+        lp = new Longpress({
+          parent: this.el.querySelector('.ste-body')
+        });
         this.iframeDocument.addEventListener('scroll', function() {
           var target;
           if (!_this.autoScroll) {
@@ -8066,7 +8388,7 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
       };
 
       SuperTinyEditor.prototype.setFocus = function() {
-        return Fn.setCursorToEnd(this.iframeBody);
+        return Fn.setCursorToEnd(this.iframeBody, this.el.querySelector('iframe').contentWindow);
       };
 
       SuperTinyEditor.prototype.setScrollPercentage = function(percentages) {
@@ -8151,19 +8473,59 @@ define('text!html/entry/annotation.metadata.html',[],function () { return '<ul c
 
 }).call(this);
 
-define('text!html/entry/textlayers.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><ul class="textlayers"><% transcriptions.each(function(trans) { %><li><img src="/images/icon.bin.png" width="14px" height="14px"/><label data-id="<%= trans.id %>"> <%= trans.get(\'textLayer\') %></label></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><ul class="form addtextlayer"><li><label>Name</label><input type="text" name="name"/></li><li><label>Text</label><textarea name="text"></textarea></li><li><button class="addtextlayer">Add textlayer</button></li></ul></div></div></div>';});
+define('text!html/entry/metadata.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><label>Name</label><input type="text" name="name" value="<%= model.get(\'name\') %>"/></li><% _.each(model.get(\'settings\').attributes, function(value, key) { %><li><label><%= key %></label><input type="text" name="<%= key %>" value="<%= value %>"/></li><% }); %><li><label>Publishable</label><input type="checkbox" name="publishable"<% if (model.get(\'publishable\')) {%> checked<% } %>></li></ul></form>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/subsubmenu/textlayers.edit',['require','hilib/functions/general','views/base','text!html/entry/textlayers.edit.html'],function(require) {
+  define('views/entry/metadata',['require','hilib/functions/general','hilib/views/form/main','text!html/entry/metadata.html'],function(require) {
+    var EntryMetadata, Fn, Tpl, Views, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Form: require('hilib/views/form/main')
+    };
+    Tpl = require('text!html/entry/metadata.html');
+    return EntryMetadata = (function(_super) {
+      __extends(EntryMetadata, _super);
+
+      function EntryMetadata() {
+        _ref = EntryMetadata.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EntryMetadata.prototype.initialize = function() {
+        EntryMetadata.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      EntryMetadata.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      return EntryMetadata;
+
+    })(Views.Form);
+  });
+
+}).call(this);
+
+define('text!html/entry/subsubmenu/textlayers.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Text layers</h3><ul class="textlayers"><% transcriptions.each(function(trans) { %><li data-id="<%= trans.id %>" class="textlayer"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= trans.get(\'textLayer\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Add text layer</h3><ul class="form addtextlayer"><li><label>Name</label><input type="text" name="name"/></li><li><label>Text</label><textarea name="text"></textarea></li><li><button class="addtextlayer">Add textlayer</button></li></ul></div></div></div>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/subsubmenu/textlayers.edit',['require','hilib/functions/general','views/base','text!html/entry/subsubmenu/textlayers.edit.html'],function(require) {
     var EditTextlayers, Fn, Tpl, Views, _ref;
     Fn = require('hilib/functions/general');
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/textlayers.edit.html');
+    Tpl = require('text!html/entry/subsubmenu/textlayers.edit.html');
     return EditTextlayers = (function(_super) {
       __extends(EditTextlayers, _super);
 
@@ -8189,22 +8551,27 @@ define('text!html/entry/textlayers.edit.html',[],function () { return '<div clas
       };
 
       EditTextlayers.prototype.events = function() {
+        var _this = this;
         return {
           'click button.addtextlayer': 'addtextlayer',
-          'click ul.textlayers li img': 'removetextlayer',
-          'click ul.textlayers li.destroy label': 'destroytextlayer'
+          'click ul.textlayers li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.textlayers li.destroy .orcancel': 'cancelRemove',
+          'click ul.textlayers li.destroy .name': 'destroytextlayer'
         };
       };
 
-      EditTextlayers.prototype.removetextlayer = function(ev) {
+      EditTextlayers.prototype.cancelRemove = function(ev) {
         var parentLi;
-        parentLi = $(ev.currentTarget).parent();
-        return parentLi.toggleClass('destroy');
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
       };
 
       EditTextlayers.prototype.destroytextlayer = function(ev) {
         var transcriptionID;
-        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
         return this.collection.remove(this.collection.get(transcriptionID));
       };
 
@@ -8230,13 +8597,13 @@ define('text!html/entry/textlayers.edit.html',[],function () { return '<div clas
 
 }).call(this);
 
-define('text!html/entry/facsimiles.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><ul class="facsimiles"><% facsimiles.each(function(facs) { %><li><img src="/images/icon.bin.png" width="14px" height="14px"/><label data-id="<%= facs.id %>"> <%= facs.get(\'name\') %></label></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><ul class="form addfacsimile"><li><label>Name</label><input type="text" name="name"/></li><li><form enctype="multipart/form-data" class="addfile"><input type="file" name="filename"/></form></li><li><button class="addfacsimile">Add facsimile</button></li></ul></div></div></div>';});
+define('text!html/entry/subsubmenu/facsimiles.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Facsimiles</h3><ul class="facsimiles"><% facsimiles.each(function(facs) { %><li data-id="<%= facs.id %>" class="facsimile"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= facs.get(\'name\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Upload new facsimile</h3><ul class="form addfacsimile"><li><label>Name</label><input type="text" name="name"/></li><li><form enctype="multipart/form-data" class="addfile"><input type="file" name="filename"/></form></li><li><button class="addfacsimile">Add facsimile</button></li></ul></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/subsubmenu/facsimiles.edit',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','views/base','text!html/entry/facsimiles.edit.html'],function(require) {
+  define('views/entry/subsubmenu/facsimiles.edit',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','views/base','text!html/entry/subsubmenu/facsimiles.edit.html'],function(require) {
     var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
     Fn = require('hilib/functions/general');
     ajax = require('hilib/managers/ajax');
@@ -8244,7 +8611,7 @@ define('text!html/entry/facsimiles.edit.html',[],function () { return '<div clas
     Views = {
       Base: require('views/base')
     };
-    Tpl = require('text!html/entry/facsimiles.edit.html');
+    Tpl = require('text!html/entry/subsubmenu/facsimiles.edit.html');
     return EditFacsimiles = (function(_super) {
       __extends(EditFacsimiles, _super);
 
@@ -8270,9 +8637,13 @@ define('text!html/entry/facsimiles.edit.html',[],function () { return '<div clas
       };
 
       EditFacsimiles.prototype.events = function() {
+        var _this = this;
         return {
-          'click ul.facsimiles li img': 'removefacsimile',
-          'click ul.facsimiles li.destroy label': 'destroyfacsimile',
+          'click ul.facsimiles li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.facsimiles li.destroy .orcancel': 'cancelRemove',
+          'click ul.facsimiles li.destroy .name': 'destroyfacsimile',
           'keyup input[name="name"]': 'keyupName',
           'click button.addfacsimile': 'addfacsimile'
         };
@@ -8309,15 +8680,16 @@ define('text!html/entry/facsimiles.edit.html',[],function () { return '<div clas
         });
       };
 
-      EditFacsimiles.prototype.removefacsimile = function(ev) {
+      EditFacsimiles.prototype.cancelRemove = function(ev) {
         var parentLi;
-        parentLi = $(ev.currentTarget).parent();
-        return parentLi.toggleClass('destroy');
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
       };
 
       EditFacsimiles.prototype.destroyfacsimile = function(ev) {
         var transcriptionID;
-        transcriptionID = ev.currentTarget.getAttribute('data-id');
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
         return this.collection.remove(this.collection.get(transcriptionID));
       };
 
@@ -8487,13 +8859,13 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
 
 }).call(this);
 
-define('text!html/entry/main.html',[],function () { return '<div class="submenu"><div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="previous">Previous entry</li><li data-key="next">Next entry</li><li data-key="editfacsimiles" class="arrowdown subsub">Edit facsimiles</li><li data-key="facsimiles" class="alignright">Facsimiles<ul class="vertical menu facsimiles"><li class="spacer">&nbsp;</li><% facsimiles.each(function(facs) { %><li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get(\'name\') %></li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="edittextlayers" class="subsub">Edit layers</li><li data-key="layer" class="arrowdown">Layer<ul class="vertical menu textlayers"><li class="spacer">&nbsp;</li><% transcriptions.each(function(trans) { %><li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get(\'textLayer\') %> layer</li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="print">Print</li><li data-key="preview">Preview full screen</li></ul></div></div></div><div class="subsubmenu"><div class="edittextlayers"></div><div class="editfacsimiles"></div></div><div class="row span7 container"><div class="cell span3"><div class="left"><% if (facsimiles.length) { %><iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %></div></div><div class="cell span2"><div class="middle"><div class="transcription-placeholder"><div class="transcription-editor"></div></div><div class="annotation-placeholder"><div class="annotation-editor"></div></div><div class="annotationmetadata-placeholder"><div class="annotationmetadata"></div></div></div></div><div class="cell span2"><div class="right"></div></div></div>';});
+define('text!html/entry/main.html',[],function () { return '<div class="submenu"><div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="previous">&nbsp;</li><li data-key="current"><%= name %></li><li data-key="next">&nbsp;</li><li data-key="facsimiles" class="alignright">Facsimiles<ul class="vertical menu facsimiles"><li class="spacer">&nbsp;</li><li data-key="editfacsimiles" class="subsub">Edit...</li><% facsimiles.each(function(facs) { %><li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get(\'name\') %></li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="layer" class="arrowdown">Layer<ul class="vertical menu textlayers"><li class="spacer">&nbsp;</li><li data-key="edittextlayers" class="subsub">Edit...</li><% transcriptions.each(function(trans) { %><li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get(\'textLayer\') %> layer</li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="metadata">Metadata</li><li data-key="print">Print</li><li data-key="preview">Preview</li></ul></div></div></div><div class="subsubmenu"><div class="edittextlayers"></div><div class="editfacsimiles"></div></div><div class="row span7 container"><div class="cell span3"><div class="left"><% if (facsimiles.length) { %><iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %></div></div><div class="cell span2"><div class="middle"><div class="transcription-placeholder"><div class="transcription-editor"></div></div><div class="annotation-placeholder"><div class="annotation-editor"></div></div><div class="annotationmetadata-placeholder"><div class="annotationmetadata"></div></div></div></div><div class="cell span2"><div class="right"></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','text!html/entry/main.html'],function(require) {
+  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
     var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
     config = require('config');
@@ -8511,13 +8883,17 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       Preview: require('views/entry/preview/main'),
       SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/annotation.metadata'),
+      EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
-      AnnotationEditMenu: require('views/entry/annotation.edit.menu')
+      AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
+      Modal: require('hilib/views/modal/main'),
+      Form: require('hilib/views/form/main')
     };
     Templates = {
-      Entry: require('text!html/entry/main.html')
+      Entry: require('text!html/entry/main.html'),
+      Metadata: require('text!html/entry/metadata.html')
     };
     return Entry = (function(_super) {
       __extends(Entry, _super);
@@ -8635,32 +9011,12 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         return this.toggleEditPane('transcription');
       };
 
-      Entry.prototype.setAnnotationText = function(model) {
-        var annotationNo, nextNode, span, text, _ref1;
-        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
-        span = this.preview.el.querySelector('span[data-id="' + annotationNo + '"]');
-        nextNode = span.nextSibling;
-        text = nextNode.textContent;
-        while (nextNode != null) {
-          if (nextNode.nodeType === 1 && span.getAttribute('data-id') === nextNode.getAttribute('data-id')) {
-            break;
-          }
-          nextNode = nextNode.nextSibling;
-          if (nextNode.nodeType === 1 && nextNode.tagName === 'SUP' && nextNode.hasAttribute('data-id')) {
-            continue;
-          }
-          text += nextNode.textContent;
-        }
-        return this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(text);
-      };
-
       Entry.prototype.renderAnnotation = function(model) {
-        var $el,
+        var $el, annotatedText, annotationNo, _ref1,
           _this = this;
         this.navigateToAnnotation(model.id);
         if ((this.annotationEdit != null) && (model != null)) {
           this.annotationEdit.setModel(model);
-          this.setAnnotationText(model);
         } else {
           if (model == null) {
             console.error('No annotation given as argument!');
@@ -8677,8 +9033,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             width: this.preview.$el.width() - 4,
             wrap: true
           });
-          this.setAnnotationText(model);
-          this.annotationEdit.setFocus();
           this.listenTo(this.annotationEdit, 'save', function() {
             var annotations;
             if (model.isNew()) {
@@ -8710,6 +9064,9 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             return _this.toggleEditPane('annotationmetadata');
           });
         }
+        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
+        annotatedText = this.preview.getAnnotatedText(annotationNo);
+        this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(annotatedText);
         return this.toggleEditPane('annotation');
       };
 
@@ -8742,6 +9099,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
           'click .menu li[data-key="save"]': 'save',
+          'click .menu li[data-key="metadata"]': 'metadata',
           'click .menu li.subsub': 'toggleSubsubmenu'
         };
       };
@@ -8826,6 +9184,30 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         textLayerNode = document.createTextNode(textLayer + ' layer');
         li = this.el.querySelector('.submenu li[data-key="layer"]');
         return li.replaceChild(textLayerNode, li.firstChild);
+      };
+
+      Entry.prototype.metadata = function(ev) {
+        var entryMetadata, modal,
+          _this = this;
+        entryMetadata = new Views.Form({
+          tpl: Templates.Metadata,
+          model: this.model.clone()
+        });
+        modal = new Views.Modal({
+          title: "Edit entry metadata",
+          $html: entryMetadata.$el,
+          submitValue: 'Save metadata',
+          width: '300px'
+        });
+        return modal.on('submit', function() {
+          var jqXHR;
+          _this.model.updateFromClone(entryMetadata.model);
+          _this.model.get('settings').save();
+          jqXHR = _this.model.save();
+          return jqXHR.done(function() {
+            return modal.messageAndFade('success', 'Metadata saved!');
+          });
+        });
       };
 
       Entry.prototype.toggleEditPane = function(viewName) {
@@ -9032,137 +9414,18 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
 
 }).call(this);
 
-define('text!html/ui/nav.project.html',[],function () { return '<ul class="horizontal menu"><li class="thisproject arrowdown">This project<ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li><li>Help</li></ul>';});
+define('text!html/ui/header.html',[],function () { return '<div class="main"><div class="row span2"><div class="cell span1 project aligncenter"><img src="/images/logo.elaborate.png"/><ul class="horizontal menu"><li class="thisproject arrowdown"> <span class="projecttitle"><%= state.currentProject.get(\'title\') %></span><ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li></ul></div><div class="cell span1 user alignright"><ul class="horizontal menu"><li>Help</li><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="projects arrowleft">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li><li class="logout">Logout</li></ul></li></ul><img src="/images/logo.huygens.png"/></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/ui/nav.project',['require','views/base','text!html/ui/nav.project.html'],function(require) {
-    var BaseView, ProjectNav, Templates, _ref;
-    BaseView = require('views/base');
-    Templates = {
-      'ProjectNav': require('text!html/ui/nav.project.html')
-    };
-    return ProjectNav = (function(_super) {
-      __extends(ProjectNav, _super);
-
-      function ProjectNav() {
-        _ref = ProjectNav.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      ProjectNav.prototype.events = {
-        'click .settings': function() {
-          return this.publish('navigate:project:settings');
-        },
-        'click .search': function() {
-          return this.publish('navigate:project');
-        },
-        'click .history': function() {
-          return this.publish('navigate:project:history');
-        }
-      };
-
-      ProjectNav.prototype.initialize = function() {
-        ProjectNav.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      ProjectNav.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Templates.ProjectNav);
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      return ProjectNav;
-
-    })(BaseView);
-  });
-
-}).call(this);
-
-define('text!html/ui/nav.user.html',[],function () { return '<ul class="horizontal menu"><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="logout">Logout</li></ul></li><li class="projects arrowdown">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li></ul>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/ui/nav.user',['require','views/base','models/currentUser','models/state','text!html/ui/nav.user.html'],function(require) {
-    var BaseView, Models, NavUser, Templates, _ref;
+  define('views/ui/header',['require','views/base','models/currentUser','models/state','text!html/ui/header.html'],function(require) {
+    var BaseView, Header, Models, Templates, _ref;
     BaseView = require('views/base');
     Models = {
       currentUser: require('models/currentUser'),
       state: require('models/state')
-    };
-    Templates = {
-      'UserNav': require('text!html/ui/nav.user.html')
-    };
-    return NavUser = (function(_super) {
-      __extends(NavUser, _super);
-
-      function NavUser() {
-        _ref = NavUser.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      NavUser.prototype.events = {
-        'click .logout': 'logout',
-        'click .project': 'selectProject'
-      };
-
-      NavUser.prototype.selectProject = function(ev) {
-        var $ct, id;
-        $ct = $(ev.currentTarget);
-        $ct.addClass('active');
-        id = $ct.attr('data-id');
-        Models.state.setCurrentProject(id);
-        return this.publish('navigate:project');
-      };
-
-      NavUser.prototype.logout = function(ev) {
-        return Models.currentUser.logout();
-      };
-
-      NavUser.prototype.initialize = function() {
-        NavUser.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      NavUser.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Templates.UserNav, {
-          user: Models.currentUser.attributes,
-          state: Models.state.attributes
-        });
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      return NavUser;
-
-    })(BaseView);
-  });
-
-}).call(this);
-
-define('text!html/ui/header.html',[],function () { return '<div class="main"><div class="row span7"><div class="cell span3 logo aligncenter"><img src="/images/logo.elaborate.png"/><span class="white projecttitle"><%= state.currentProject.get(\'title\') %></span></div><div class="cell span2 project"><nav class="project"></nav></div><div class="cell span2 alignright user"><nav class="user"></nav><img src="/images/logo.huygens.png"/></div></div></div>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/ui/header',['require','views/base','models/currentUser','models/state','views/ui/nav.project','views/ui/nav.user','text!html/ui/header.html'],function(require) {
-    var BaseView, Header, Models, Templates, Views, _ref;
-    BaseView = require('views/base');
-    Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
-    };
-    Views = {
-      ProjectNav: require('views/ui/nav.project'),
-      UserNav: require('views/ui/nav.user')
     };
     Templates = {
       Header: require('text!html/ui/header.html')
@@ -9180,39 +9443,45 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
       Header.prototype.className = 'main';
 
       Header.prototype.events = {
-        'click .projecttitle': function() {
+        'click .user .logout': function() {
+          return Models.currentUser.logout();
+        },
+        'click .user .project': 'setProject',
+        'click .project .projecttitle': function() {
           return this.publish('navigate:project');
+        },
+        'click .project .settings': function() {
+          return this.publish('navigate:project:settings');
+        },
+        'click .project .search': function() {
+          return this.publish('navigate:project');
+        },
+        'click .project .history': function() {
+          return this.publish('navigate:project:history');
         }
       };
 
       Header.prototype.initialize = function() {
         Header.__super__.initialize.apply(this, arguments);
-        this.listenTo(Models.state, 'change:currentProject', this.render);
-        return this.subscribe('header:renderSubmenu', this.renderSubmenu);
-      };
-
-      Header.prototype.renderSubmenu = function(menus) {
-        this.$('.sub .left').html(menus.left);
-        this.$('.sub .center').html(menus.center);
-        return this.$('.sub .right').html(menus.right);
+        return this.listenTo(Models.state, 'change:currentProject', this.render);
       };
 
       Header.prototype.render = function() {
-        var projectNav, rtpl, userNav;
+        var rtpl;
         rtpl = _.template(Templates.Header, {
-          state: Models.state.attributes
+          state: Models.state.attributes,
+          user: Models.currentUser.attributes
         });
         this.$el.html(rtpl);
-        projectNav = new Views.ProjectNav({
-          managed: false
-        });
-        userNav = new Views.UserNav({
-          managed: false
-        });
-        this.$('nav.project').html(projectNav.$el);
-        this.$('nav.user').html(userNav.$el);
         this.publish('header:render:complete');
         return this;
+      };
+
+      Header.prototype.setProject = function(ev) {
+        var id;
+        id = ev.currentTarget.getAttribute('data-id');
+        Models.state.setCurrentProject(id);
+        return this.publish('navigate:project');
       };
 
       return Header;

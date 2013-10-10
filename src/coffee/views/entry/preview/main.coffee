@@ -29,8 +29,6 @@ define (require) ->
 
 			@setHeight()
 
-			@onHover()
-
 		# ### Render
 		render: ->
 			data = @currentTranscription.toJSON()
@@ -39,6 +37,8 @@ define (require) ->
 
 			rtpl = _.template Tpl, data
 			@$el.html rtpl
+
+			@onHover()
 
 			@
 
@@ -98,7 +98,7 @@ define (require) ->
 			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
 				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
 					@addNewAnnotationTags range
-					@trigger 'addAnnotation', model
+					@trigger 'editAnnotation', model
 				@addAnnotationTooltip.show
 					left: ev.pageX
 					top: ev.pageY
@@ -132,7 +132,6 @@ define (require) ->
 
 			text
 
-
 		addNewAnnotationTags: (range) ->
 			# Create marker at the beginning of the selection
 			span = document.createElement 'span'
@@ -154,7 +153,7 @@ define (require) ->
 		removeNewAnnotationTags: ->
 			@$('[data-id="newannotation"]').remove()
 			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
-			@trigger 'newAnnotationRemoved'
+			# @trigger 'newAnnotationRemoved'
 
 		# replaceNewAnnotationID: (model) ->
 		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
@@ -162,6 +161,7 @@ define (require) ->
 			# @currentTranscription.set 'body', @$el.html()
 
 		onHover: ->
+
 			supEnter = (ev) =>
 				id = ev.currentTarget.getAttribute('data-id')
 				
@@ -172,11 +172,14 @@ define (require) ->
 				@highlighter.on
 					startNode: startNode
 					endNode: ev.currentTarget
-					
 			supLeave = (ev) => @highlighter.off()
 
-
-			@$('sup[data-marker]').hover supEnter, supLeave
+			# Cache markers
+			markers = @$('sup[data-marker]')
+			# Unbind previous events
+			markers.off 'mouseenter mouseleave'
+			# Bind hover (mouseenter, mouseleave)
+			markers.hover supEnter, supLeave
 
 		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10
 

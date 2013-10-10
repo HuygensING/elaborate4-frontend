@@ -124,7 +124,7 @@ define (require) ->
 			else
 				$el = @$('.transcription-placeholder')
 				@transcriptionEdit = new Views.SuperTinyEditor
-					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save']
+					controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
 					cssFile:		'/css/main.css'
 					el:				$el.find('.transcription-editor')
 					height:			@preview.$el.innerHeight()
@@ -148,7 +148,7 @@ define (require) ->
 
 				@annotationEdit = new Views.SuperTinyEditor
 					cssFile:		'/css/main.css'
-					controls:		['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n']
+					controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
 					el:				$el.find('.annotation-editor')
 					height:			@preview.$el.innerHeight() - 31
 					html: 			model.get 'body'
@@ -157,39 +157,39 @@ define (require) ->
 					width: 			@preview.$el.width() - 4
 					wrap: 			true
 
-				
-				
-				
+			# * TODO: Clean up listeners! Put annotation editor in seperate view!
+			@stopListening @annotationEdit
 
-				# * TODO: Clean up!
-				@listenTo @annotationEdit, 'save', =>
-					if model.isNew()
-						annotations = @currentTranscription.get('annotations')
-						# We set the urlRoot (instead of the url), because the model is used outside of a collection.
-						# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
-						# a new model is created when using create. Thus, we have to save the model first and then add
-						# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
-						# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
-						# see @model.sync for more info.
-						model.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
-						model.save [],
-							success: => annotations.add model
-							error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
-					else
-						model.save()
-				@listenTo @annotationEdit, 'cancel', =>
-					@preview.removeNewAnnotationTags()
-				@listenTo @annotationEdit, 'metadata', =>
-					@annotationMetadata = new Views.AnnotationMetadata
-						model: model
-						collection: @project.get 'annotationtypes'
-						el: @el.querySelector('.container .middle .annotationmetadata')
-					@toggleEditPane 'annotationmetadata'
+			@listenTo @annotationEdit, 'save', =>
+				if model.isNew()
+					annotations = @currentTranscription.get('annotations')
+					# We set the urlRoot (instead of the url), because the model is used outside of a collection.
+					# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
+					# a new model is created when using create. Thus, we have to save the model first and then add
+					# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
+					# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
+					# see @model.sync for more info.
+					model.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
+					model.save [],
+						success: => 
+							annotations.add model
+						error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
+				else
+					model.save()
+			@listenTo @annotationEdit, 'cancel', =>
+				@preview.removeNewAnnotationTags()
+				@renderTranscription()
+			@listenTo @annotationEdit, 'metadata', =>
+				@annotationMetadata = new Views.AnnotationMetadata
+					model: model
+					collection: @project.get 'annotationtypes'
+					el: @el.querySelector('.container .middle .annotationmetadata')
+				@toggleEditPane 'annotationmetadata'
 			
 			# Set annotated text to supertinyeditor header based on html between start (<span>) and end (<sup>) tags in @preview
 			annotationNo = model.get('annotationNo') ? 'newannotation'
 			annotatedText = @preview.getAnnotatedText annotationNo
-			@annotationEdit.$('.ste-header').last().addClass('annotationtext').html annotatedText
+			@annotationEdit.$('.ste-header:nth-child(2)').addClass('annotationtext').html annotatedText
 
 			@toggleEditPane 'annotation'
 				
@@ -369,18 +369,28 @@ define (require) ->
 		# ### Methods
 
 		toggleEditPane: (viewName) ->
-			view = switch viewName
-				when 'transcription' then @transcriptionEdit
-				when 'annotation' then @annotationEdit
-				when 'annotationmetadata' then @annotationMetadata
-			@currentViewInEditPane = view
-			view.$el.parent().siblings().hide()
-			view.$el.parent().show()
+			if viewName is 'transcription'
+				@transcriptionEdit.show()
+
+				if @annotationEdit?
+					@preview.removeNewAnnotationTags()
+					@annotationEdit.hide() 
+			else if viewName is 'annotation'
+				@annotationEdit.show()
+				@transcriptionEdit.hide()
+
+			# view = switch viewName
+			# 	when 'transcription' then @transcriptionEdit
+			# 	when 'annotation' then @annotationEdit
+			# 	# when 'annotationmetadata' then @annotationMetadata
+			# @currentViewInEditPane = view
+			# view.$el.parent().siblings().hide()
+			# view.$el.parent().show()
 
 		addListeners: ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
-			@listenTo @preview, 'addAnnotation', @renderAnnotation
-			@listenTo @preview, 'newAnnotationRemoved', @renderTranscription
+			# @listenTo @preview, 'addAnnotation', @renderAnnotation
+			# @listenTo @preview, 'newAnnotationRemoved', @renderTranscription
 			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
 			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages

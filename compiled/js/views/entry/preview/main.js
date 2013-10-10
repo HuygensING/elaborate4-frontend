@@ -26,8 +26,7 @@
         this.addListeners();
         this.render();
         this.renderTooltips();
-        this.setHeight();
-        return this.onHover();
+        return this.setHeight();
       };
 
       TranscriptionPreview.prototype.render = function() {
@@ -37,6 +36,7 @@
         data.lineCount = brs.length;
         rtpl = _.template(Tpl, data);
         this.$el.html(rtpl);
+        this.onHover();
         return this;
       };
 
@@ -110,7 +110,7 @@
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
             _this.addNewAnnotationTags(range);
-            return _this.trigger('addAnnotation', model);
+            return _this.trigger('editAnnotation', model);
           });
           return this.addAnnotationTooltip.show({
             left: ev.pageX,
@@ -162,14 +162,13 @@
 
       TranscriptionPreview.prototype.removeNewAnnotationTags = function() {
         this.$('[data-id="newannotation"]').remove();
-        this.currentTranscription.set('body', this.$('.preview .body').html(), {
+        return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
-        return this.trigger('newAnnotationRemoved');
       };
 
       TranscriptionPreview.prototype.onHover = function() {
-        var supEnter, supLeave,
+        var markers, supEnter, supLeave,
           _this = this;
         supEnter = function(ev) {
           var id, startNode;
@@ -186,7 +185,9 @@
         supLeave = function(ev) {
           return _this.highlighter.off();
         };
-        return this.$('sup[data-marker]').hover(supEnter, supLeave);
+        markers = this.$('sup[data-marker]');
+        markers.off('mouseenter mouseleave');
+        return markers.hover(supEnter, supLeave);
       };
 
       TranscriptionPreview.prototype.setHeight = function() {

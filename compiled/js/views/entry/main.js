@@ -132,7 +132,7 @@
         } else {
           $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save'],
+            controls: ['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
             el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
@@ -161,7 +161,7 @@
           $el = this.$('.annotation-placeholder');
           this.annotationEdit = new Views.SuperTinyEditor({
             cssFile: '/css/main.css',
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n'],
+            controls: ['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
             el: $el.find('.annotation-editor'),
             height: this.preview.$el.innerHeight() - 31,
             html: model.get('body'),
@@ -170,40 +170,42 @@
             width: this.preview.$el.width() - 4,
             wrap: true
           });
-          this.listenTo(this.annotationEdit, 'save', function() {
-            var annotations;
-            if (model.isNew()) {
-              annotations = _this.currentTranscription.get('annotations');
-              model.urlRoot = function() {
-                return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
-              };
-              return model.save([], {
-                success: function() {
-                  return annotations.add(model);
-                },
-                error: function(model, xhr, options) {
-                  return console.error('Saving annotation failed!', model, xhr, options);
-                }
-              });
-            } else {
-              return model.save();
-            }
-          });
-          this.listenTo(this.annotationEdit, 'cancel', function() {
-            return _this.preview.removeNewAnnotationTags();
-          });
-          this.listenTo(this.annotationEdit, 'metadata', function() {
-            _this.annotationMetadata = new Views.AnnotationMetadata({
-              model: model,
-              collection: _this.project.get('annotationtypes'),
-              el: _this.el.querySelector('.container .middle .annotationmetadata')
-            });
-            return _this.toggleEditPane('annotationmetadata');
-          });
         }
+        this.stopListening(this.annotationEdit);
+        this.listenTo(this.annotationEdit, 'save', function() {
+          var annotations;
+          if (model.isNew()) {
+            annotations = _this.currentTranscription.get('annotations');
+            model.urlRoot = function() {
+              return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
+            };
+            return model.save([], {
+              success: function() {
+                return annotations.add(model);
+              },
+              error: function(model, xhr, options) {
+                return console.error('Saving annotation failed!', model, xhr, options);
+              }
+            });
+          } else {
+            return model.save();
+          }
+        });
+        this.listenTo(this.annotationEdit, 'cancel', function() {
+          _this.preview.removeNewAnnotationTags();
+          return _this.renderTranscription();
+        });
+        this.listenTo(this.annotationEdit, 'metadata', function() {
+          _this.annotationMetadata = new Views.AnnotationMetadata({
+            model: model,
+            collection: _this.project.get('annotationtypes'),
+            el: _this.el.querySelector('.container .middle .annotationmetadata')
+          });
+          return _this.toggleEditPane('annotationmetadata');
+        });
         annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
         annotatedText = this.preview.getAnnotatedText(annotationNo);
-        this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(annotatedText);
+        this.annotationEdit.$('.ste-header:nth-child(2)').addClass('annotationtext').html(annotatedText);
         return this.toggleEditPane('annotation');
       };
 
@@ -348,27 +350,21 @@
       };
 
       Entry.prototype.toggleEditPane = function(viewName) {
-        var view;
-        view = (function() {
-          switch (viewName) {
-            case 'transcription':
-              return this.transcriptionEdit;
-            case 'annotation':
-              return this.annotationEdit;
-            case 'annotationmetadata':
-              return this.annotationMetadata;
+        if (viewName === 'transcription') {
+          this.transcriptionEdit.show();
+          if (this.annotationEdit != null) {
+            this.preview.removeNewAnnotationTags();
+            return this.annotationEdit.hide();
           }
-        }).call(this);
-        this.currentViewInEditPane = view;
-        view.$el.parent().siblings().hide();
-        return view.$el.parent().show();
+        } else if (viewName === 'annotation') {
+          this.annotationEdit.show();
+          return this.transcriptionEdit.hide();
+        }
       };
 
       Entry.prototype.addListeners = function() {
         var _this = this;
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
         this.listenTo(this.preview, 'scrolled', function(percentages) {
           return _this.transcriptionEdit.setScrollPercentage(percentages);
         });
