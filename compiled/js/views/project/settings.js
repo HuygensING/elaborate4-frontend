@@ -25,9 +25,9 @@
       AllUsers: require('collections/users')
     };
     Templates = {
-      Settings: require('text!html/project/settings.html'),
-      AnnotationTypes: require('text!html/project/metadata_annotations.html'),
-      AddUser: require('text!html/project/adduser.html')
+      Settings: require('text!html/project/settings/main.html'),
+      AnnotationTypes: require('text!html/project/settings/metadata_annotations.html'),
+      AddUser: require('text!html/project/settings/adduser.html')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);

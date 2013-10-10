@@ -22,10 +22,10 @@ define (require) ->
 		AllUsers: require 'collections/users'
 
 	Templates =
-		Settings: require 'text!html/project/settings.html'
+		Settings: require 'text!html/project/settings/main.html'
 		# EntryMetadata: require 'text!html/project/metadata_entries.html'
-		AnnotationTypes: require 'text!html/project/metadata_annotations.html'
-		AddUser: require 'text!html/project/adduser.html'
+		AnnotationTypes: require 'text!html/project/settings/metadata_annotations.html'
+		AddUser: require 'text!html/project/settings/adduser.html'
 	
 	class ProjectSettings extends Views.Base
 

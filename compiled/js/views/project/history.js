@@ -13,7 +13,7 @@
       History: require('collections/project/history')
     };
     Templates = {
-      History: require('text!html/project/history.html')
+      History: require('text!html/project/settings/history.html')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);

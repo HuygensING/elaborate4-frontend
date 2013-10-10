@@ -13,11 +13,12 @@
     };
     Views = {
       Base: require('views/base'),
-      FacetedSearch: require('faceted-search')
+      FacetedSearch: require('faceted-search'),
+      Modal: require('hilib/views/modal/main')
     };
     Templates = {
-      Search: require('text!html/project/search.html'),
-      Results: require('text!html/project/search.results.html')
+      Search: require('text!html/project/main.html'),
+      Results: require('text!html/project/results.html')
     };
     return ProjectSearch = (function(_super) {
       var _this = this;
@@ -91,6 +92,7 @@
       };
 
       ProjectSearch.prototype.events = {
+        'click .submenu li[data-key="newentry"]': 'newEntry',
         'click li.entry label': 'goToEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
@@ -101,6 +103,24 @@
           return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
         },
         'change #cb_showkeywords': 'toggleKeywords'
+      };
+
+      ProjectSearch.prototype.newEntry = function(ev) {
+        var $html, modal,
+          _this = this;
+        $html = $('<label>Name</label><input type="text" name="name" />');
+        modal = new Views.Modal({
+          title: "Create a new entry",
+          $html: $html,
+          submitValue: 'Create entry',
+          width: '300px'
+        });
+        return modal.on('submit', function() {
+          _this.project.get('entries').create({
+            name: modal.$('input[name="name"]').val()
+          });
+          return modal.message('success', 'Creating new entry...');
+        });
       };
 
       ProjectSearch.prototype.toggleKeywords = function(ev) {

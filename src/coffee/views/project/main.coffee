@@ -14,10 +14,11 @@ define (require) ->
 	Views =
 		Base: require 'views/base'
 		FacetedSearch: require 'faceted-search'
+		Modal: require 'hilib/views/modal/main'
 
 	Templates =
-		Search: require 'text!html/project/search.html'
-		Results: require 'text!html/project/search.results.html'
+		Search: require 'text!html/project/main.html'
+		Results: require 'text!html/project/results.html'
 
 	class ProjectSearch extends Views.Base
 
@@ -79,12 +80,27 @@ define (require) ->
 
 		# ### Events
 		events:
+			'click .submenu li[data-key="newsearch"]': 'newSearch'
+			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click li.entry label': 'goToEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
 			'click li[data-key="selectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
 			'change #cb_showkeywords': 'toggleKeywords'
+
+		newEntry: (ev) ->
+			$html = $('<label>Name</label><input type="text" name="name" />')
+
+			modal = new Views.Modal
+				title: "Create a new entry"
+				$html: $html
+				submitValue: 'Create entry'
+				width: '300px'
+			modal.on 'submit', =>
+				@project.get('entries').create
+					name: modal.$('input[name="name"]').val()
+				modal.message 'success', 'Creating new entry...'
 
 		toggleKeywords: (ev) ->
 			if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()

@@ -1,7 +1,20 @@
+.submenu
+	.row.span3
+		.cell.span1
+			ul.horizontal.menu
+				li(data-key="newsearch") New search
+		.cell.span1
+			ul.horizontal.menu
+				li(data-key="newentry") New entry
+				li.arrowdown(data-key="editselection") Edit selection
+		.cell.span1.alignright
+			ul.horizontal.menu
+				li(data-key="print") Print
+
 .row.span3
 	.cell.span1.faceted-search-placeholder
 
-	.cell.span2
+	.cell.span2(style="position:fixed")
 		.padl4.resultview
 			header
 				.row.span2

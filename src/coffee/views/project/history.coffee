@@ -10,7 +10,7 @@ define (require) ->
 		History: require 'collections/project/history'
 
 	Templates =
-		History: require 'text!html/project/history.html'
+		History: require 'text!html/project/settings/history.html'
 	
 	class ProjectHistory extends BaseView
 
