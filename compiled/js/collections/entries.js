@@ -32,19 +32,22 @@
       Entries.prototype.setCurrent = function(modelID) {
         var model;
         model = this.get(modelID);
+        this.trigger('current:change', model);
         return this.current = model;
       };
 
       Entries.prototype.previous = function() {
-        var previousIndex;
+        var model, previousIndex;
         previousIndex = this.indexOf(this.current) - 1;
-        return this.setCurrent(this.at(previousIndex));
+        model = this.at(previousIndex);
+        return this.setCurrent(model);
       };
 
       Entries.prototype.next = function() {
-        var nextIndex;
+        var model, nextIndex;
         nextIndex = this.indexOf(this.current) + 1;
-        return this.setCurrent(this.at(nextIndex));
+        model = this.at(nextIndex);
+        return this.setCurrent(model);
       };
 
       return Entries;

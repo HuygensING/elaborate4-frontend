@@ -3,10 +3,9 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Collections, Entry, Models, ajax, config, token, _ref;
+    var Collections, Entry, Models, config, syncOverride, _ref;
     config = require('config');
-    ajax = require('hilib/managers/ajax');
-    token = require('hilib/managers/token');
+    syncOverride = require('hilib/mixins/model.sync');
     Models = {
       Base: require('models/base'),
       Settings: require('models/entry.settings')
@@ -28,6 +27,11 @@
           name: '',
           publishable: false
         };
+      };
+
+      Entry.prototype.initialize = function() {
+        Entry.__super__.initialize.apply(this, arguments);
+        return _.extend(this, syncOverride);
       };
 
       Entry.prototype.set = function(attrs, options) {
@@ -77,24 +81,9 @@
       };
 
       Entry.prototype.sync = function(method, model, options) {
-        var data, jqXHR,
-          _this = this;
-        if (method === 'update') {
-          ajax.token = token.get();
-          data = {
-            name: this.get('name'),
-            publishable: this.get('publishable')
-          };
-          jqXHR = ajax.put({
-            url: this.url(),
-            data: JSON.stringify(data)
-          });
-          jqXHR.done(function(response) {
-            return _this.trigger('sync');
-          });
-          return jqXHR.fail(function(response) {
-            return console.log('fail', response);
-          });
+        if (method === 'create' || method === 'update') {
+          options.attributes = ['name', 'publishable'];
+          return this.syncOverride(method, model, options);
         } else {
           return Entry.__super__.sync.apply(this, arguments);
         }

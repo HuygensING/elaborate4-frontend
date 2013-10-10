@@ -21,15 +21,17 @@ define (require) ->
 		setCurrent: (modelID) ->
 			model = @get modelID
 			
-			# @publish 'entries:current:change', model
+			@trigger 'current:change', model
 
 			# Set and return @current
 			@current = model
 
 		previous: ->
 			previousIndex = @indexOf(@current) - 1
-			@setCurrent @at previousIndex
+			model = @at previousIndex
+			@setCurrent model
 
 		next: ->
 			nextIndex = @indexOf(@current) + 1
-			@setCurrent @at nextIndex
+			model = @at nextIndex
+			@setCurrent model

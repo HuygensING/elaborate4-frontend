@@ -28,6 +28,7 @@ define (require) ->
 		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'
+		AnnotationEditor: require 'views/entry/annotation/main'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
@@ -99,27 +100,35 @@ define (require) ->
 
 			@addListeners()
 
+			# Get the annotations for the current transcription.
+			# * TODO: Move to model?
 			@currentTranscription.getAnnotations (annotations) =>
-				@renderAnnotation annotations.get @options.annotationID if @options.annotationID?
+				# If an annotationID was passed as an option, this means the URI mentions the annotation + ID
+				# and we have to show it.
+				if @options.annotationID?
+					annotation = annotations.get @options.annotationID
+					@preview.setAnnotatedText annotation
+					@renderAnnotation annotation
 					
 
 		renderFacsimile: ->
-			if @model.get('facsimiles').length
+			# Only load the iframe with the current facsimile if there is a current facsimile
+			if @model.get('facsimiles').current?
 				url = @model.get('facsimiles').current.get 'zoomableUrl'
 				@$('.left iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id='+ url
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
 				@$('.left iframe').height document.documentElement.clientHeight - 89
-			else
-				@el.querySelector('li[data-key="facsimiles"]').style.display = 'none'
 
 		# * TODO: Create separate View?
 		# * TODO: How many times is renderTranscription called on init?
 		renderTranscription: ->
+			# The preview is based on the transcription, so we have to render it each time the transcription is rendered
 			@renderPreview()
 			
 			if @transcriptionEdit?
 				@transcriptionEdit.setModel @currentTranscription
+				@transcriptionEdit.show()
 				# @transcriptionEditMenu.setModel @currentTranscription
 			else
 				$el = @$('.transcription-placeholder')
@@ -130,68 +139,26 @@ define (require) ->
 					height:			@preview.$el.innerHeight()
 					html:			@currentTranscription.get 'body'
 					htmlAttribute:	'body'
-					model:			@model.get('transcriptions').current
+					model:			@currentTranscription
 					width:			$el.width() - 20
 				@listenTo @transcriptionEdit, 'save', => @currentTranscription.save()
 			
-			@toggleEditPane 'transcription'	
+			@annotationEditor.hide() if @annotationEditor?
 
 		renderAnnotation: (model) ->
-			@navigateToAnnotation model.id
-
-			if @annotationEdit? and model?
-				@annotationEdit.setModel model 
-			else
-				console.error 'No annotation given as argument!' unless model?
-				
-				$el = @$('.annotation-placeholder')
-
-				@annotationEdit = new Views.SuperTinyEditor
-					cssFile:		'/css/main.css'
-					controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
-					el:				$el.find('.annotation-editor')
-					height:			@preview.$el.innerHeight() - 31
-					html: 			model.get 'body'
-					htmlAttribute:	'body'
-					model: 			model
-					width: 			@preview.$el.width() - 4
-					wrap: 			true
-
-			# * TODO: Clean up listeners! Put annotation editor in seperate view!
-			@stopListening @annotationEdit
-
-			@listenTo @annotationEdit, 'save', =>
-				if model.isNew()
-					annotations = @currentTranscription.get('annotations')
-					# We set the urlRoot (instead of the url), because the model is used outside of a collection.
-					# If we want to listenTo 'sync' then @collection.create does not work in this situation, because
-					# a new model is created when using create. Thus, we have to save the model first and then add
-					# the model to the collection. We cannot use the jqXHR.done method, because it is called when the 
-					# data is posted and we have to wait untill we have gotten the full object (by GET) from the server, 
-					# see @model.sync for more info.
-					model.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
-					model.save [],
-						success: => 
-							annotations.add model
-						error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
-				else
-					model.save()
-			@listenTo @annotationEdit, 'cancel', =>
-				@preview.removeNewAnnotationTags()
-				@renderTranscription()
-			@listenTo @annotationEdit, 'metadata', =>
-				@annotationMetadata = new Views.AnnotationMetadata
+			unless @annotationEditor
+				@annotationEditor = new Views.AnnotationEditor
+					el: @el.querySelector('.annotation-placeholder')
 					model: model
-					collection: @project.get 'annotationtypes'
-					el: @el.querySelector('.container .middle .annotationmetadata')
-				@toggleEditPane 'annotationmetadata'
-			
-			# Set annotated text to supertinyeditor header based on html between start (<span>) and end (<sup>) tags in @preview
-			annotationNo = model.get('annotationNo') ? 'newannotation'
-			annotatedText = @preview.getAnnotatedText annotationNo
-			@annotationEdit.$('.ste-header:nth-child(2)').addClass('annotationtext').html annotatedText
+					height: @preview.$el.innerHeight() - 31
+					width: @preview.$el.width() - 4
+				@listenTo @annotationEditor, 'cancel', =>
+					@preview.removeNewAnnotationTags()
+					@renderTranscription()
+			else
+				@annotationEditor.show model
 
-			@toggleEditPane 'annotation'
+			@transcriptionEdit.hide()
 				
 		renderPreview: ->
 			if @preview?
@@ -226,6 +193,7 @@ define (require) ->
 			currentMenu = null
 
 			(ev) ->
+				console.log 'toggling'
 				# The newMenu's name is set as a data-key.
 				newMenu = ev.currentTarget.getAttribute 'data-key'
 
@@ -299,7 +267,7 @@ define (require) ->
 				@navigateToTranscription()
 				@setTranscriptionNameToMenu()
 
-			@toggleEditPane 'transcription'
+			# @toggleEditPane 'transcription'
 
 		navigateToTranscription: ->
 			# Cut off '/transcriptions/*' if it exists
@@ -308,14 +276,6 @@ define (require) ->
 
 			# Navigate to the new fragement
 			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
-		
-		navigateToAnnotation: (id) ->
-			# Cut off '/annotations/*' if it exists
-			index = Backbone.history.fragment.indexOf '/annotations/'
-			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
-
-			# Navigate to the new fragement
-			Backbone.history.navigate Backbone.history.fragment + '/annotations/' + id, replace: true
 
 		setTranscriptionNameToMenu: ->
 			# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
@@ -368,16 +328,16 @@ define (require) ->
 
 		# ### Methods
 
-		toggleEditPane: (viewName) ->
-			if viewName is 'transcription'
-				@transcriptionEdit.show()
+		# toggleEditPane: (viewName) ->
+		# 	if viewName is 'transcription'
+		# 		@transcriptionEdit.show()
 
-				if @annotationEdit?
-					@preview.removeNewAnnotationTags()
-					@annotationEdit.hide() 
-			else if viewName is 'annotation'
-				@annotationEdit.show()
-				@transcriptionEdit.hide()
+		# 		if @annotationEditor?
+		# 			@preview.removeNewAnnotationTags()
+		# 			@annotationEditor.hide() 
+		# 	else if viewName is 'annotation'
+		# 		@annotationEditor.show()
+		# 		@transcriptionEdit.hide()
 
 			# view = switch viewName
 			# 	when 'transcription' then @transcriptionEdit

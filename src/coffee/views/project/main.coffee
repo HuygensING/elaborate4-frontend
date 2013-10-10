@@ -33,6 +33,7 @@ define (require) ->
 			@listenTo @model, 'change', (model, options) =>
 				# Reset the entries with the newly fetched results
 				@project.get('entries').set model.get 'results'
+				@listenTo @project.get('entries'), 'current:change', (entry) => @publish 'navigate:entry', entry.id
 				
 				@updateHeader()
 				@renderResult()
@@ -82,7 +83,7 @@ define (require) ->
 		events:
 			'click .submenu li[data-key="newsearch"]': 'newSearch'
 			'click .submenu li[data-key="newentry"]': 'newEntry'
-			'click li.entry label': 'goToEntry'
+			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
 			'click li[data-key="selectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
@@ -98,9 +99,16 @@ define (require) ->
 				submitValue: 'Create entry'
 				width: '300px'
 			modal.on 'submit', =>
-				@project.get('entries').create
-					name: modal.$('input[name="name"]').val()
+				entries = @project.get('entries')
+				
 				modal.message 'success', 'Creating new entry...'
+				
+				@listenToOnce entries, 'add', (entry) =>
+					modal.close()
+					@publish 'navigate:entry', entry.id
+
+				entries.create {name: modal.$('input[name="name"]').val()}, wait: true
+					
 
 		toggleKeywords: (ev) ->
 			if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
@@ -117,11 +125,11 @@ define (require) ->
 				@facetedSearch.next()
 
 
-		goToEntry: (ev) ->
+		changeCurrentEntry: (ev) ->
 			entryID = ev.currentTarget.getAttribute 'data-id'
 			@project.get('entries').setCurrent entryID
 			# id = ev.currentTarget.id.replace 'entry', ''
-			@publish 'navigate:entry', entryID
+			
 			
 
 		# ### Methods

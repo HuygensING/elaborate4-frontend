@@ -67,6 +67,9 @@ define (require) ->
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id') >> 0
 			annotation = @currentTranscription.get('annotations').findWhere annotationNo: id
+
+			@setAnnotatedText annotation
+
 			@editAnnotationTooltip.show
 				$el: $(ev.currentTarget)
 				model: annotation
@@ -105,9 +108,11 @@ define (require) ->
 
 		# ### Methods
 
-		# Get the text that is annotated. This is the text between the start (<span>) and end (<sup>) tag.
+		# Set the text that is annotated to the annotation model. This is the text between the start (<span>) and end (<sup>) tag.
 		# Text (numbers) from annotations (<sup>s) between de start and end tag are filtered out.
-		getAnnotatedText: (annotationNo) ->
+		setAnnotatedText: (annotation) ->
+			annotationNo = annotation.get 'annotationNo'
+
 			startNode = @el.querySelector 'span[data-id="'+annotationNo+'"]'
 			endNode = @el.querySelector 'sup[data-id="'+annotationNo+'"]'
 
@@ -130,7 +135,7 @@ define (require) ->
 			text = ''
 			text += treewalker.currentNode.textContent while treewalker.nextNode()
 
-			text
+			annotation.set 'annotatedText', text
 
 		addNewAnnotationTags: (range) ->
 			# Create marker at the beginning of the selection

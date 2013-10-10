@@ -26,7 +26,8 @@
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
       AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
-      Form: require('hilib/views/form/main')
+      Form: require('hilib/views/form/main'),
+      AnnotationEditor: require('views/entry/annotation/main')
     };
     Templates = {
       Entry: require('text!html/entry/main.html'),
@@ -106,20 +107,21 @@
         this.renderSubsubmenu();
         this.addListeners();
         return this.currentTranscription.getAnnotations(function(annotations) {
+          var annotation;
           if (_this.options.annotationID != null) {
-            return _this.renderAnnotation(annotations.get(_this.options.annotationID));
+            annotation = annotations.get(_this.options.annotationID);
+            _this.preview.setAnnotatedText(annotation);
+            return _this.renderAnnotation(annotation);
           }
         });
       };
 
       Entry.prototype.renderFacsimile = function() {
         var url;
-        if (this.model.get('facsimiles').length) {
+        if (this.model.get('facsimiles').current != null) {
           url = this.model.get('facsimiles').current.get('zoomableUrl');
           this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
           return this.$('.left iframe').height(document.documentElement.clientHeight - 89);
-        } else {
-          return this.el.querySelector('li[data-key="facsimiles"]').style.display = 'none';
         }
       };
 
@@ -129,6 +131,7 @@
         this.renderPreview();
         if (this.transcriptionEdit != null) {
           this.transcriptionEdit.setModel(this.currentTranscription);
+          this.transcriptionEdit.show();
         } else {
           $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
@@ -138,75 +141,35 @@
             height: this.preview.$el.innerHeight(),
             html: this.currentTranscription.get('body'),
             htmlAttribute: 'body',
-            model: this.model.get('transcriptions').current,
+            model: this.currentTranscription,
             width: $el.width() - 20
           });
           this.listenTo(this.transcriptionEdit, 'save', function() {
             return _this.currentTranscription.save();
           });
         }
-        return this.toggleEditPane('transcription');
+        if (this.annotationEditor != null) {
+          return this.annotationEditor.hide();
+        }
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        var $el, annotatedText, annotationNo, _ref1,
-          _this = this;
-        this.navigateToAnnotation(model.id);
-        if ((this.annotationEdit != null) && (model != null)) {
-          this.annotationEdit.setModel(model);
-        } else {
-          if (model == null) {
-            console.error('No annotation given as argument!');
-          }
-          $el = this.$('.annotation-placeholder');
-          this.annotationEdit = new Views.SuperTinyEditor({
-            cssFile: '/css/main.css',
-            controls: ['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
-            el: $el.find('.annotation-editor'),
+        var _this = this;
+        if (!this.annotationEditor) {
+          this.annotationEditor = new Views.AnnotationEditor({
+            el: this.el.querySelector('.annotation-placeholder'),
+            model: model,
             height: this.preview.$el.innerHeight() - 31,
-            html: model.get('body'),
-            htmlAttribute: 'body',
-            model: model,
-            width: this.preview.$el.width() - 4,
-            wrap: true
+            width: this.preview.$el.width() - 4
           });
+          this.listenTo(this.annotationEditor, 'cancel', function() {
+            _this.preview.removeNewAnnotationTags();
+            return _this.renderTranscription();
+          });
+        } else {
+          this.annotationEditor.show(model);
         }
-        this.stopListening(this.annotationEdit);
-        this.listenTo(this.annotationEdit, 'save', function() {
-          var annotations;
-          if (model.isNew()) {
-            annotations = _this.currentTranscription.get('annotations');
-            model.urlRoot = function() {
-              return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
-            };
-            return model.save([], {
-              success: function() {
-                return annotations.add(model);
-              },
-              error: function(model, xhr, options) {
-                return console.error('Saving annotation failed!', model, xhr, options);
-              }
-            });
-          } else {
-            return model.save();
-          }
-        });
-        this.listenTo(this.annotationEdit, 'cancel', function() {
-          _this.preview.removeNewAnnotationTags();
-          return _this.renderTranscription();
-        });
-        this.listenTo(this.annotationEdit, 'metadata', function() {
-          _this.annotationMetadata = new Views.AnnotationMetadata({
-            model: model,
-            collection: _this.project.get('annotationtypes'),
-            el: _this.el.querySelector('.container .middle .annotationmetadata')
-          });
-          return _this.toggleEditPane('annotationmetadata');
-        });
-        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
-        annotatedText = this.preview.getAnnotatedText(annotationNo);
-        this.annotationEdit.$('.ste-header:nth-child(2)').addClass('annotationtext').html(annotatedText);
-        return this.toggleEditPane('annotation');
+        return this.transcriptionEdit.hide();
       };
 
       Entry.prototype.renderPreview = function() {
@@ -248,6 +211,7 @@
         currentMenu = null;
         return function(ev) {
           var newMenu;
+          console.log('toggling');
           newMenu = ev.currentTarget.getAttribute('data-key');
           if (currentMenu === newMenu) {
             $(ev.currentTarget).removeClass('rotateup');
@@ -290,9 +254,8 @@
         if (newTranscription !== this.currentTranscription || this.currentViewInEditPane !== this.transcriptionEdit) {
           this.model.get('transcriptions').setCurrent(newTranscription);
           this.navigateToTranscription();
-          this.setTranscriptionNameToMenu();
+          return this.setTranscriptionNameToMenu();
         }
-        return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.navigateToTranscription = function() {
@@ -302,17 +265,6 @@
           Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
         }
         return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
-          replace: true
-        });
-      };
-
-      Entry.prototype.navigateToAnnotation = function(id) {
-        var index;
-        index = Backbone.history.fragment.indexOf('/annotations/');
-        if (index !== -1) {
-          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
-        }
-        return Backbone.history.navigate(Backbone.history.fragment + '/annotations/' + id, {
           replace: true
         });
       };
@@ -347,19 +299,6 @@
             return modal.messageAndFade('success', 'Metadata saved!');
           });
         });
-      };
-
-      Entry.prototype.toggleEditPane = function(viewName) {
-        if (viewName === 'transcription') {
-          this.transcriptionEdit.show();
-          if (this.annotationEdit != null) {
-            this.preview.removeNewAnnotationTags();
-            return this.annotationEdit.hide();
-          }
-        } else if (viewName === 'annotation') {
-          this.annotationEdit.show();
-          return this.transcriptionEdit.hide();
-        }
       };
 
       Entry.prototype.addListeners = function() {

@@ -38,6 +38,9 @@
         this.model = new Models.Search();
         this.listenTo(this.model, 'change', function(model, options) {
           _this.project.get('entries').set(model.get('results'));
+          _this.listenTo(_this.project.get('entries'), 'current:change', function(entry) {
+            return _this.publish('navigate:entry', entry.id);
+          });
           _this.updateHeader();
           return _this.renderResult();
         });
@@ -92,8 +95,9 @@
       };
 
       ProjectSearch.prototype.events = {
+        'click .submenu li[data-key="newsearch"]': 'newSearch',
         'click .submenu li[data-key="newentry"]': 'newEntry',
-        'click li.entry label': 'goToEntry',
+        'click li.entry label': 'changeCurrentEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
         'click li[data-key="selectall"]': function() {
@@ -116,10 +120,18 @@
           width: '300px'
         });
         return modal.on('submit', function() {
-          _this.project.get('entries').create({
-            name: modal.$('input[name="name"]').val()
+          var entries;
+          entries = _this.project.get('entries');
+          modal.message('success', 'Creating new entry...');
+          _this.listenToOnce(entries, 'add', function(entry) {
+            modal.close();
+            return _this.publish('navigate:entry', entry.id);
           });
-          return modal.message('success', 'Creating new entry...');
+          return entries.create({
+            name: modal.$('input[name="name"]').val()
+          }, {
+            wait: true
+          });
         });
       };
 
@@ -145,11 +157,10 @@
         }
       };
 
-      ProjectSearch.prototype.goToEntry = function(ev) {
+      ProjectSearch.prototype.changeCurrentEntry = function(ev) {
         var entryID;
         entryID = ev.currentTarget.getAttribute('data-id');
-        this.project.get('entries').setCurrent(entryID);
-        return this.publish('navigate:entry', entryID);
+        return this.project.get('entries').setCurrent(entryID);
       };
 
       ProjectSearch.prototype.updateHeader = function() {

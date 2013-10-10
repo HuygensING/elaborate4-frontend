@@ -2,8 +2,10 @@ define (require) ->
 
 	config = require 'config'
 
-	ajax = require 'hilib/managers/ajax'
-	token = require 'hilib/managers/token'
+	# ajax = require 'hilib/managers/ajax'
+	# token = require 'hilib/managers/token'
+
+	syncOverride = require 'hilib/mixins/model.sync'
 
 	Models = 
 		Base: require 'models/base'
@@ -18,6 +20,11 @@ define (require) ->
 		defaults: ->
 			name: ''
 			publishable: false
+
+		initialize: ->
+			super
+
+			_.extend @, syncOverride
 
 		set: (attrs, options) ->
 			settings = @get('settings')
@@ -59,19 +66,8 @@ define (require) ->
 			attrs
 
 		sync: (method, model, options) ->
-			if method is 'update'
-				ajax.token = token.get()
-
-				data = 
-					name: @get 'name'
-					publishable: @get 'publishable'
-
-				jqXHR = ajax.put
-					url: @url()
-					data: JSON.stringify data
-
-				# Options.success is not called, because the server does not respond with the updated model.
-				jqXHR.done (response) => @trigger 'sync'
-				jqXHR.fail (response) => console.log 'fail', response
+			if method is 'create' or method is 'update'
+				options.attributes = ['name', 'publishable']
+				@syncOverride method, model, options
 			else
 				super

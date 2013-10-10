@@ -82,6 +82,7 @@
         annotation = this.currentTranscription.get('annotations').findWhere({
           annotationNo: id
         });
+        this.setAnnotatedText(annotation);
         return this.editAnnotationTooltip.show({
           $el: $(ev.currentTarget),
           model: annotation
@@ -119,9 +120,10 @@
         }
       };
 
-      TranscriptionPreview.prototype.getAnnotatedText = function(annotationNo) {
-        var endNode, range, startNode, text, treewalker,
+      TranscriptionPreview.prototype.setAnnotatedText = function(annotation) {
+        var annotationNo, endNode, range, startNode, text, treewalker,
           _this = this;
+        annotationNo = annotation.get('annotationNo');
         startNode = this.el.querySelector('span[data-id="' + annotationNo + '"]');
         endNode = this.el.querySelector('sup[data-id="' + annotationNo + '"]');
         range = document.createRange();
@@ -140,7 +142,7 @@
         while (treewalker.nextNode()) {
           text += treewalker.currentNode.textContent;
         }
-        return text;
+        return annotation.set('annotatedText', text);
       };
 
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
