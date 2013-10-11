@@ -1,15 +1,14 @@
 (function() {
   define(function(require) {
-    var Backbone, MainRouter, Models, Views;
+    var Backbone, MainRouter, Models, Views, projects;
     Backbone = require('backbone');
     MainRouter = require('routers/main');
     Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
+      currentUser: require('models/currentUser')
     };
+    projects = require('collections/projects');
     Views = {
-      Header: require('views/ui/header'),
-      Debug: require('views/debug')
+      Header: require('views/ui/header')
     };
     /* DEBUG*/
 
@@ -19,26 +18,39 @@
     Backbone.on('unauthorized', function() {
       return console.log('[debug] unauthorized');
     });
-    Models.state.on('change:currentProject', function() {
-      return console.log('[debug] current project changed');
-    });
     return {
       /* /DEBUG*/
 
       init: function() {
-        var header, mainRouter;
+        var mainRouter,
+          _this = this;
         mainRouter = new MainRouter();
-        Backbone.history.start({
-          pushState: true
+        Models.currentUser.authorize({
+          authorized: function() {
+            return projects.getCurrent(function(current) {
+              var header;
+              header = new Views.Header({
+                managed: false
+              });
+              $('#container').prepend(header.render().$el);
+              Backbone.history.start({
+                pushState: true
+              });
+              console.log('projects/' + projects.current.get('name'));
+              return mainRouter.navigate('projects/' + projects.current.get('name'), {
+                trigger: true
+              });
+            });
+          },
+          unauthorized: function() {
+            Backbone.history.start({
+              pushState: true
+            });
+            return mainRouter.navigate('login', {
+              trigger: true
+            });
+          }
         });
-        header = new Views.Header({
-          managed: false
-        });
-        $('#container').prepend(header.$el);
-        $('body').append(new Views.Debug({
-          managed: false
-        }).$el);
-        Models.currentUser.authorize();
         return $(document).on('click', 'a:not([data-bypass])', function(e) {
           var href;
           href = $(this).attr('href');

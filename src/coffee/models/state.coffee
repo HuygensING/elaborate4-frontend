@@ -7,8 +7,8 @@ define (require) ->
 	Models = 
 		Base: require 'models/base'
 
-	Collections =
-		Projects: require 'collections/projects'
+	# Collections =
+	# 	Projects: require 'collections/projects'
 
 	class State extends Models.Base
 
@@ -16,7 +16,7 @@ define (require) ->
 		defaults: ->
 			headerRendered: false
 			currentProject: null
-			projects: new Collections.Projects()
+			# projects: new Collections.Projects()
 
 		initialize: ->
 			super
@@ -63,13 +63,13 @@ define (require) ->
 
 
 		getProjects: () ->
-			@get('projects').fetch
-				success: (collection) =>
-					@setCurrentProject()
-					# @set 'currentProject', collection.first()
-				error: (collection, response, options) =>
-					if response.status is 401
-						@publish 'unauthorized'
+			# @get('projects').fetch
+			# 	success: (collection) =>
+			# 		@setCurrentProject()
+			# 		# @set 'currentProject', collection.first()
+			# 	error: (collection, response, options) =>
+			# 		if response.status is 401
+			# 			@publish 'unauthorized'
 
 
 

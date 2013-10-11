@@ -2,10 +2,10 @@
 	.row.span2
 		.cell.span1.project.aligncenter
 			img(src="/images/logo.elaborate.png")
-			//- span.white.projecttitle <%= state.currentProject.get('title') %>
+			//- span.white.projecttitle <%= project.get('title') %>
 			ul.horizontal.menu
 				li.thisproject.arrowdown 
-					span.projecttitle <%= state.currentProject.get('title') %>
+					span.projecttitle <%= projects.current.get('title') %>
 					ul.vertical.menu
 						//- li.spacer
 						li.search Search &amp; overview
@@ -20,7 +20,7 @@
 						//- li.spacer
 						li.projects.arrowleft My projects
 							ul.vertical.menu
-								| <% state.projects.each(function(project) { %>
+								| <% projects.each(function(project) { %>
 								li.project(data-id!="<%= project.id %>") <%= project.get('title') %>
 								| <% }); %>
 						li.logout Logout

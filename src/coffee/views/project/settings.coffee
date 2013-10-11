@@ -13,10 +13,11 @@ define (require) ->
 	Models =
 		Statistics: require 'models/project/statistics'
 		Settings: require 'models/project/settings'
-		state: require 'models/state'
+		# state: require 'models/state'
 		User: require 'models/user'
 
 	Collections =
+		# projects: require 'collections/projects'
 		AnnotationTypes: require 'collections/project/annotation.types'
 		ProjectUsers: require 'collections/project/users'
 		AllUsers: require 'collections/users'
@@ -31,20 +32,15 @@ define (require) ->
 
 		className: 'projectsettings'
 
-
-
 		# ### Initialize
 		initialize: ->
 			super
 
-			@model = new Models.Settings()
-
-			Models.state.getCurrentProject (project) =>
-				# @project = project
-				@model.projectID = project.id
-				@model.fetch
-					success: => @render()
-					error: => console.log 'Error fetching settings'
+			@model = new Models.Settings null,
+				projectID: Collections.projects.current.id
+			@model.fetch
+				success: => @render()
+				error: => console.log 'Error fetching settings'
 
 		# ### Render
 		render: ->
@@ -53,7 +49,7 @@ define (require) ->
 
 			@renderSubMenu()
 
-			@loadTabData()
+			@renderTabs()
 			@loadStatistics()
 
 			@showTab @options.tabName if @options.tabName
@@ -70,14 +66,39 @@ define (require) ->
 					@model.save()
 					subMenu.setState 'save', 'inactive'
 
-			# @subscribe 'submenu:save', @saveSettings
+		renderTabs: ->
+			# Entry metadata
+			list = new Views.EditableList
+				value: Collections.projects.current.get('entrymetadatafields')
+			@listenTo list, 'change', (values) => @entryMetadata.save values
+			@$('div[data-tab="metadata-entries"]').append list.el
 
-			# @publish 'submenu:render',
-			# 	left: @$('.sub-menu-buttons .left').html()
+			# Annotation types
+			rtpl = _.template Templates.AnnotationTypes, annotationTypes: Collections.projects.current.get('annotationtypes')
+			@$('div[data-tab="metadata-annotations"]').html rtpl
 
-			# $('header.main .sub .center').html @$('.sub-menu-buttons .center').html()
-			# $('header.main .sub .right').html @$('.sub-menu-buttons .right').html()
+			# Users
+			@allusers = new Collections.AllUsers()
+			@allusers.fetch success: (collection) => @renderUserTab collection
 
+		renderUserTab: (collection) ->
+			combolist = new Views.ComboList
+				value: Collections.projects.current.get 'users'
+				config:
+					data: collection
+			@listenTo combolist, 'change', (userIDs) => console.log userIDs
+
+			@$('div[data-tab="users"] .userlist').append combolist.el
+
+			form = new Views.Form
+				Model: Models.User
+				tpl: Templates.AddUser
+
+			@listenTo form, 'save:success', (model, response, options) =>
+				combolist.addSelected model
+			@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
+
+			@$('div[data-tab="users"] .adduser').append form.el
 
 		# ### Events
 		events:
@@ -109,54 +130,6 @@ define (require) ->
 
 
 		# ### Methods
-
-		loadTabData: ->
-			@entryMetadata = new EntryMetadata @model.projectID
-			@entryMetadata.fetch (data) =>
-				list = new Views.EditableList
-					value: data
-				@listenTo list, 'change', (values) => @entryMetadata.save values
-				@$('div[data-tab="metadata-entries"]').append list.el
-
-			@annotationTypes = new Collections.AnnotationTypes [], projectId: @model.projectID
-			@annotationTypes.fetch
-				success: (collection, value, options) =>
-					rtpl = _.template Templates.AnnotationTypes, annotationTypes: collection
-					@$('div[data-tab="metadata-annotations"]').html rtpl
-				error: =>
-
-			async = new Async ['projectusers', 'allusers']
-
-			@projectusers = new Collections.ProjectUsers()
-			@projectusers.fetch
-				success: (collection, value, options) =>
-					async.called 'projectusers', collection
-				error: =>
-
-			@allusers = new Collections.AllUsers()
-			@allusers.fetch
-				success: (collection, value, options) =>
-					async.called 'allusers', collection
-				error: =>
-
-			async.on 'ready', (data) =>
-				combolist = new Views.ComboList
-					value: data.projectusers
-					config:
-						data: data.allusers
-				@listenTo combolist, 'change', (userIDs) => console.log userIDs
-				# rtpl = _.template Templates.Users, data
-				@$('div[data-tab="users"] .userlist').append combolist.el
-
-				form = new Views.Form
-					Model: Models.User
-					tpl: Templates.AddUser
-				# @listenTo form, 'change', (a, b, c) => console.log 'cahnge', a, b, c
-				@listenTo form, 'save:success', (model, response, options) =>
-					combolist.addSelected model
-				@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
-
-				@$('div[data-tab="users"] .adduser').append form.el
 
 		loadStatistics: ->
 			start = new Date().getTime()

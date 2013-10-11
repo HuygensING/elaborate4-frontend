@@ -16,7 +16,6 @@
     Models = {
       Statistics: require('models/project/statistics'),
       Settings: require('models/project/settings'),
-      state: require('models/state'),
       User: require('models/user')
     };
     Collections = {
@@ -42,17 +41,16 @@
       ProjectSettings.prototype.initialize = function() {
         var _this = this;
         ProjectSettings.__super__.initialize.apply(this, arguments);
-        this.model = new Models.Settings();
-        return Models.state.getCurrentProject(function(project) {
-          _this.model.projectID = project.id;
-          return _this.model.fetch({
-            success: function() {
-              return _this.render();
-            },
-            error: function() {
-              return console.log('Error fetching settings');
-            }
-          });
+        this.model = new Models.Settings(null, {
+          projectID: Collections.projects.current.id
+        });
+        return this.model.fetch({
+          success: function() {
+            return _this.render();
+          },
+          error: function() {
+            return console.log('Error fetching settings');
+          }
         });
       };
 
@@ -63,7 +61,7 @@
         });
         this.$el.html(rtpl);
         this.renderSubMenu();
-        this.loadTabData();
+        this.renderTabs();
         this.loadStatistics();
         if (this.options.tabName) {
           this.showTab(this.options.tabName);
@@ -85,6 +83,54 @@
             return subMenu.setState('save', 'inactive');
           }
         });
+      };
+
+      ProjectSettings.prototype.renderTabs = function() {
+        var list, rtpl,
+          _this = this;
+        list = new Views.EditableList({
+          value: Collections.projects.current.get('entrymetadatafields')
+        });
+        this.listenTo(list, 'change', function(values) {
+          return _this.entryMetadata.save(values);
+        });
+        this.$('div[data-tab="metadata-entries"]').append(list.el);
+        rtpl = _.template(Templates.AnnotationTypes, {
+          annotationTypes: Collections.projects.current.get('annotationtypes')
+        });
+        this.$('div[data-tab="metadata-annotations"]').html(rtpl);
+        this.allusers = new Collections.AllUsers();
+        return this.allusers.fetch({
+          success: function(collection) {
+            return _this.renderUserTab(collection);
+          }
+        });
+      };
+
+      ProjectSettings.prototype.renderUserTab = function(collection) {
+        var combolist, form,
+          _this = this;
+        combolist = new Views.ComboList({
+          value: Collections.projects.current.get('users'),
+          config: {
+            data: collection
+          }
+        });
+        this.listenTo(combolist, 'change', function(userIDs) {
+          return console.log(userIDs);
+        });
+        this.$('div[data-tab="users"] .userlist').append(combolist.el);
+        form = new Views.Form({
+          Model: Models.User,
+          tpl: Templates.AddUser
+        });
+        this.listenTo(form, 'save:success', function(model, response, options) {
+          return combolist.addSelected(model);
+        });
+        this.listenTo(form, 'save:error', function(a, b, c) {
+          return console.log('erro', a, b, c);
+        });
+        return this.$('div[data-tab="users"] .adduser').append(form.el);
       };
 
       ProjectSettings.prototype.events = {
@@ -111,74 +157,6 @@
 
       ProjectSettings.prototype.addAnnotationType = function(ev) {
         return ev.preventDefault();
-      };
-
-      ProjectSettings.prototype.loadTabData = function() {
-        var async,
-          _this = this;
-        this.entryMetadata = new EntryMetadata(this.model.projectID);
-        this.entryMetadata.fetch(function(data) {
-          var list;
-          list = new Views.EditableList({
-            value: data
-          });
-          _this.listenTo(list, 'change', function(values) {
-            return _this.entryMetadata.save(values);
-          });
-          return _this.$('div[data-tab="metadata-entries"]').append(list.el);
-        });
-        this.annotationTypes = new Collections.AnnotationTypes([], {
-          projectId: this.model.projectID
-        });
-        this.annotationTypes.fetch({
-          success: function(collection, value, options) {
-            var rtpl;
-            rtpl = _.template(Templates.AnnotationTypes, {
-              annotationTypes: collection
-            });
-            return _this.$('div[data-tab="metadata-annotations"]').html(rtpl);
-          },
-          error: function() {}
-        });
-        async = new Async(['projectusers', 'allusers']);
-        this.projectusers = new Collections.ProjectUsers();
-        this.projectusers.fetch({
-          success: function(collection, value, options) {
-            return async.called('projectusers', collection);
-          },
-          error: function() {}
-        });
-        this.allusers = new Collections.AllUsers();
-        this.allusers.fetch({
-          success: function(collection, value, options) {
-            return async.called('allusers', collection);
-          },
-          error: function() {}
-        });
-        return async.on('ready', function(data) {
-          var combolist, form;
-          combolist = new Views.ComboList({
-            value: data.projectusers,
-            config: {
-              data: data.allusers
-            }
-          });
-          _this.listenTo(combolist, 'change', function(userIDs) {
-            return console.log(userIDs);
-          });
-          _this.$('div[data-tab="users"] .userlist').append(combolist.el);
-          form = new Views.Form({
-            Model: Models.User,
-            tpl: Templates.AddUser
-          });
-          _this.listenTo(form, 'save:success', function(model, response, options) {
-            return combolist.addSelected(model);
-          });
-          _this.listenTo(form, 'save:error', function(a, b, c) {
-            return console.log('erro', a, b, c);
-          });
-          return _this.$('div[data-tab="users"] .adduser').append(form.el);
-        });
       };
 
       ProjectSettings.prototype.loadStatistics = function() {

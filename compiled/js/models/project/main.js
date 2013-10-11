@@ -31,7 +31,7 @@
           createdOn: '',
           creator: null,
           entries: null,
-          entrymetadatafields: [],
+          entrymetadatafields: null,
           level1: '',
           level2: '',
           level3: '',
@@ -40,7 +40,8 @@
           name: '',
           projectLeaderId: null,
           textLayers: [],
-          title: ''
+          title: '',
+          users: null
         };
       };
 
@@ -48,36 +49,42 @@
         attrs.entries = new Collections.Entries([], {
           projectId: attrs.id
         });
-        attrs.annotationtypes = new Collections.AnnotationTypes([], {
-          projectId: attrs.id
-        });
-        attrs.entrymetadatafields = new EntryMetadata(attrs.id);
-        attrs.users = new Collections.ProjectUsers([], {
-          projectId: attrs.id
-        });
         return attrs;
       };
 
       Project.prototype.load = function(cb) {
-        var async,
+        var annotationtypes, async, users,
           _this = this;
-        async = new Async(['annotationtypes', 'entrymetadatafields', 'users']);
-        async.on('ready', function(data) {
-          return cb(data);
-        });
-        this.get('annotationtypes').fetch({
-          success: function(collection) {
-            return async.called('annotationtypes', collection);
-          }
-        });
-        this.get('entrymetadatafields').fetch(function(data) {
-          return async.called('entrymetadatafields', data);
-        });
-        return this.get('users').fetch({
-          success: function(collection) {
-            return async.called('users', collection);
-          }
-        });
+        if (this.get('annotationtypes') === null && this.get('entrymetadatafields') === null && this.get('users') === null) {
+          async = new Async(['annotationtypes', 'users', 'entrymetadatafields']);
+          async.on('ready', function(data) {
+            return cb();
+          });
+          annotationtypes = new Collections.AnnotationTypes([], {
+            projectId: this.id
+          });
+          annotationtypes.fetch({
+            success: function(collection) {
+              _this.set('annotationtypes', collection);
+              return async.called('annotationtypes', collection);
+            }
+          });
+          users = new Collections.ProjectUsers([], {
+            projectId: this.id
+          });
+          users.fetch({
+            success: function(collection) {
+              _this.set('users', collection);
+              return async.called('users', collection);
+            }
+          });
+          return new EntryMetadata(this.id).fetch(function(data) {
+            _this.set('entrymetadatafields', data);
+            return async.called('entrymetadatafields', data);
+          });
+        } else {
+          return cb();
+        }
       };
 
       Project.prototype.fetchEntrymetadatafields = function(cb) {

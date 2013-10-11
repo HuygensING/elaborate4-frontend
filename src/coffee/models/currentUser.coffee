@@ -24,12 +24,21 @@ define (require) ->
 		initialize: ->
 			super
 
+			@loggedIn = false
+
 			@subscribe 'unauthorized', -> sessionStorage.clear()
 
-		authorize: ->
+		authorize: (args) ->
+			{@authorized, @unauthorized} = args
+
 			if token.get()
 				@fetchUserAttrs => 
-					@publish 'authorized'
+					# @trigger 'authorized'
+					# @publish 'authorized'
+					@authorized()
+					@loggedIn = true
+			else
+				@unauthorized()
 
 		login: (username, password) ->
 			@set 'username', username
@@ -37,14 +46,19 @@ define (require) ->
 
 			@fetchUserAttrs =>
 				sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
-				@publish 'authorized'
+				# @publish 'authorized'
+				# @trigger 'authorized'
+				@authorized()
+				@loggedIn = true
 
 		logout: (args) ->
 			jqXHR = $.ajax
 				type: 'post'
 				url: config.baseUrl + "sessions/#{token.get()}/logout"
 
-			jqXHR.done -> location.reload()
+			jqXHR.done ->
+				sessionStorage.clear()
+				location.reload()
 
 			jqXHR.fail -> console.error 'Logout failed'
 
@@ -68,7 +82,11 @@ define (require) ->
 
 					cb()
 
-				jqXHR.fail => @publish 'unauthorized'
+				jqXHR.fail =>
+					console.log 'herer!'
+					# @publish 'unauthorized'
+					# @trigger 'unauthorized'
+					@unauthorized()
 			
 
 	new CurrentUser()

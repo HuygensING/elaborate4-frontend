@@ -36,17 +36,22 @@
 
       CurrentUser.prototype.initialize = function() {
         CurrentUser.__super__.initialize.apply(this, arguments);
+        this.loggedIn = false;
         return this.subscribe('unauthorized', function() {
           return sessionStorage.clear();
         });
       };
 
-      CurrentUser.prototype.authorize = function() {
+      CurrentUser.prototype.authorize = function(args) {
         var _this = this;
+        this.authorized = args.authorized, this.unauthorized = args.unauthorized;
         if (token.get()) {
           return this.fetchUserAttrs(function() {
-            return _this.publish('authorized');
+            _this.authorized();
+            return _this.loggedIn = true;
           });
+        } else {
+          return this.unauthorized();
         }
       };
 
@@ -56,7 +61,8 @@
         this.password = password;
         return this.fetchUserAttrs(function() {
           sessionStorage.setItem('huygens_user', JSON.stringify(_this.attributes));
-          return _this.publish('authorized');
+          _this.authorized();
+          return _this.loggedIn = true;
         });
       };
 
@@ -67,6 +73,7 @@
           url: config.baseUrl + ("sessions/" + (token.get()) + "/logout")
         });
         jqXHR.done(function() {
+          sessionStorage.clear();
           return location.reload();
         });
         return jqXHR.fail(function() {
@@ -96,7 +103,8 @@
             return cb();
           });
           return jqXHR.fail(function() {
-            return _this.publish('unauthorized');
+            console.log('herer!');
+            return _this.unauthorized();
           });
         }
       };

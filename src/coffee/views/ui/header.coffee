@@ -5,6 +5,9 @@ define (require) ->
 		currentUser: require 'models/currentUser'
 		state: require 'models/state'
 
+	Collections =
+		projects: require 'collections/projects'
+
 	# Views =
 	# 	ProjectNav: require 'views/ui/nav.project'
 	# 	UserNav: require 'views/ui/nav.user'
@@ -27,10 +30,10 @@ define (require) ->
 			'click .project .history': -> @publish 'navigate:project:history'
 			# 'click .sub li': (ev) -> @publish 'header:submenu:'+ev.currentTarget.getAttribute('data-id')
 
-		initialize: ->
-			super
+		# initialize: ->
+		# 	super
 			
-			@listenTo Models.state, 'change:currentProject', @render
+		# 	@listenToOnce Models.currentUser, 'authorized', @render
 
 			# @subscribe 'header:renderSubmenu', @renderSubmenu
 
@@ -41,7 +44,7 @@ define (require) ->
 
 		render: ->
 			rtpl = _.template Templates.Header, 
-				state: Models.state.attributes
+				projects: Collections.projects
 				user: Models.currentUser.attributes
 			@$el.html rtpl
 
@@ -53,12 +56,13 @@ define (require) ->
 			# @$('nav.project').html projectNav.$el
 			# @$('nav.user').html userNav.$el
 
-			@publish 'header:render:complete'
+			# @publish 'header:render:complete'
 
 			@
 
 		# ### Methods
 		setProject: (ev) ->
 			id = ev.currentTarget.getAttribute 'data-id'
-			Models.state.setCurrentProject id
+			Collections.projects.setCurrent id
+			# * TODO: navigate always when current changes? ie listener in router?
 			@publish 'navigate:project'

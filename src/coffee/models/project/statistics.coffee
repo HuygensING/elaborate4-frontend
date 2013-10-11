@@ -5,18 +5,20 @@ define (require) ->
 	Models =
 		state: require 'models/state'
 
+	# Collections =
+	# 	projects: require 'collections/projects'
+
 	class ProjectStatistics
 
 		constructor: ->
 
 		fetch: (cb) ->
-			Models.state.getCurrentProjectId (id) =>
-				jqXHR = $.ajax
-					url: "#{config.baseUrl}projects/#{id}/statistics"
-					type: 'get'
-					dataType: 'json'
-					beforeSend: (xhr) =>
-						xhr.setRequestHeader 'Authorization', "SimpleAuth #{token.get()}"
+			jqXHR = $.ajax
+				url: "#{config.baseUrl}projects/#{Collections.projects.current.id}/statistics"
+				type: 'get'
+				dataType: 'json'
+				beforeSend: (xhr) =>
+					xhr.setRequestHeader 'Authorization', "SimpleAuth #{token.get()}"
 
-				jqXHR.done (data) ->
-					cb data
+			jqXHR.done (data) ->
+				cb data

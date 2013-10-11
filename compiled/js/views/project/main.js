@@ -3,13 +3,15 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
+    var Collections, Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
     Fn = require('hilib/functions/general');
     config = require('config');
     token = require('hilib/managers/token');
     Models = {
-      Search: require('models/project/search'),
-      state: require('models/state')
+      Search: require('models/project/search')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Views = {
       Base: require('views/base'),
@@ -44,12 +46,8 @@
           _this.updateHeader();
           return _this.renderResult();
         });
-        return Models.state.getCurrentProject(function(project) {
-          /* console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once*/
-
-          _this.project = project;
-          return _this.render();
-        });
+        this.project = Collections.projects.current;
+        return this.render();
       };
 
       ProjectSearch.prototype.render = function() {
@@ -70,6 +68,9 @@
           queryOptions: {
             resultRows: 12
           }
+        });
+        this.listenTo(this.facetedSearch, 'unauthorized', function() {
+          return _this.publish('unauthorized');
         });
         this.listenTo(this.facetedSearch, 'results:change', function(response, queryOptions) {
           _this.model.queryOptions = queryOptions;

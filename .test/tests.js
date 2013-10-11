@@ -161,6 +161,16 @@ define(function(require) {
       return it("", function() {});
     });
   });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
   describe("Annotation Edit Menu", function() {
     var AnnotationEditMenu, aem, stub;
     AnnotationEditMenu = require('views/entry/annotation.edit.menu');

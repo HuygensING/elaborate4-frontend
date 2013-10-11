@@ -3,13 +3,10 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Collections, Models, State, history, _ref;
+    var Models, State, history, _ref;
     history = require('hilib/managers/history');
     Models = {
       Base: require('models/base')
-    };
-    Collections = {
-      Projects: require('collections/projects')
     };
     State = (function(_super) {
       __extends(State, _super);
@@ -22,8 +19,7 @@
       State.prototype.defaults = function() {
         return {
           headerRendered: false,
-          currentProject: null,
-          projects: new Collections.Projects()
+          currentProject: null
         };
       };
 
@@ -90,19 +86,7 @@
         }
       };
 
-      State.prototype.getProjects = function() {
-        var _this = this;
-        return this.get('projects').fetch({
-          success: function(collection) {
-            return _this.setCurrentProject();
-          },
-          error: function(collection, response, options) {
-            if (response.status === 401) {
-              return _this.publish('unauthorized');
-            }
-          }
-        });
-      };
+      State.prototype.getProjects = function() {};
 
       return State;
 

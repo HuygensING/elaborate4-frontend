@@ -8,8 +8,7 @@
     token = require('hilib/managers/token');
     ajax = require('hilib/managers/ajax');
     Models = {
-      Base: require('models/base'),
-      state: require('models/state')
+      Base: require('models/base')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);
@@ -20,9 +19,12 @@
       }
 
       ProjectSettings.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/settings";
+        return "" + config.baseUrl + "projects/" + this.projectID + "/settings";
+      };
+
+      ProjectSettings.prototype.initialize = function(attrs, options) {
+        ProjectSettings.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectID;
       };
 
       ProjectSettings.prototype.sync = function(method, model, options) {

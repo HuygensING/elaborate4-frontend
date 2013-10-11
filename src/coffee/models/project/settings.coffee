@@ -5,13 +5,15 @@ define (require) ->
 
 	Models = 
 		Base: require 'models/base'
-		state: require 'models/state'
 
 	class ProjectSettings extends Models.Base
 
-		url: ->
-			id = Models.state.get('currentProject').id
-			"#{config.baseUrl}projects/#{id}/settings"
+		url: -> "#{config.baseUrl}projects/#{@projectID}/settings"
+
+		initialize: (attrs, options) ->
+			super
+
+			@projectID = options.projectID
 
 		sync: (method, model, options) ->
 			if method is 'create'

@@ -58,12 +58,12 @@
         return attrs;
       };
 
-      Project.prototype.load = function(cb) {
+      Project.prototype.load = function() {
         var async,
           _this = this;
         async = new Async(['annotationtypes', 'entrymetadatafields', 'users']);
         async.on('ready', function(data) {
-          return cb(data);
+          return console.log(data);
         });
         this.get('annotationtypes').fetch({
           success: function(collection) {

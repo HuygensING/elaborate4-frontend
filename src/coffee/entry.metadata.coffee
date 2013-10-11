@@ -5,9 +5,6 @@ define (require) ->
 	token = require 'hilib/managers/token'
 	ajax = require 'hilib/managers/ajax'
 
-	Models = 
-		state: require 'models/state'
-
 	# ## EntryMetadata
 	class EntryMetadata
 

@@ -24,7 +24,7 @@ define (require) ->
 			createdOn: ''
 			creator: null
 			entries: null
-			entrymetadatafields: []
+			entrymetadatafields: null
 			level1: ''
 			level2: ''
 			level3: ''
@@ -34,6 +34,7 @@ define (require) ->
 			projectLeaderId: null
 			textLayers: []
 			title: ''
+			users: null
 
 		# initialize: ->
 		# 	super
@@ -42,18 +43,31 @@ define (require) ->
 
 		parse: (attrs) ->
 			attrs.entries = new Collections.Entries([], projectId: attrs.id)
-			attrs.annotationtypes = new Collections.AnnotationTypes([], projectId: attrs.id)
-			attrs.entrymetadatafields = new EntryMetadata attrs.id
-			attrs.users = new Collections.ProjectUsers([], projectId: attrs.id)
+		# 	attrs.annotationtypes = new Collections.AnnotationTypes([], projectId: attrs.id)
+		# 	attrs.users = new Collections.ProjectUsers([], projectId: attrs.id)
 
 			attrs
 
 		load: (cb) ->
-			async = new Async ['annotationtypes', 'entrymetadatafields', 'users']
-			async.on 'ready', (data) => cb data
-			@get('annotationtypes').fetch success: (collection) -> async.called 'annotationtypes', collection
-			@get('entrymetadatafields').fetch (data) => async.called 'entrymetadatafields', data
-			@get('users').fetch success: (collection) -> async.called 'users', collection
+			if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('users') is null
+				async = new Async ['annotationtypes', 'users', 'entrymetadatafields']
+				async.on 'ready', (data) => cb()
+
+				annotationtypes = new Collections.AnnotationTypes [], projectId: @id
+				annotationtypes.fetch success: (collection) => 
+					@set 'annotationtypes', collection
+					async.called 'annotationtypes', collection
+
+				users = new Collections.ProjectUsers [], projectId: @id
+				users.fetch success: (collection) => 
+					@set 'users', collection
+					async.called 'users', collection
+
+				new EntryMetadata(@id).fetch (data) =>
+					@set 'entrymetadatafields', data
+					async.called 'entrymetadatafields', data
+			else
+				cb()
 
 		fetchEntrymetadatafields: (cb) ->
 			ajax.token = token.get()

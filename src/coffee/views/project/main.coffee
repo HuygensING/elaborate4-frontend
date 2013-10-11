@@ -9,7 +9,10 @@ define (require) ->
 
 	Models =
 		Search: require 'models/project/search'
-		state: require 'models/state'
+		# state: require 'models/state'
+
+	Collections = 
+		projects: require 'collections/projects'
 
 	Views =
 		Base: require 'views/base'
@@ -39,10 +42,11 @@ define (require) ->
 				@renderResult()
 				
 
-			Models.state.getCurrentProject (project) =>
-				### console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once ###
-				@project = project
-				@render()
+			# Models.state.getCurrentProject (project) =>
+			# 	### console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once ###
+			# 	@project = project
+			@project = Collections.projects.current
+			@render()
 
 		# ### Render
 		render: ->
@@ -60,6 +64,7 @@ define (require) ->
 					searchInTranscriptions: true
 				queryOptions:
 					resultRows: 12
+			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
 			@listenTo @facetedSearch, 'results:change', (response, queryOptions) => 
 				@model.queryOptions = queryOptions
 				@model.set response

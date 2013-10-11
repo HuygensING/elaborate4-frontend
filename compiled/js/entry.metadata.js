@@ -1,12 +1,9 @@
 (function() {
   define(function(require) {
-    var EntryMetadata, Models, ajax, config, token;
+    var EntryMetadata, ajax, config, token;
     config = require('config');
     token = require('hilib/managers/token');
     ajax = require('hilib/managers/ajax');
-    Models = {
-      state: require('models/state')
-    };
     return EntryMetadata = (function() {
       var url;
 
