@@ -19,10 +19,14 @@
         return _ref;
       }
 
+      Annotation.prototype.urlRoot = function() {
+        return config.baseUrl + ("projects/" + this.collection.projectId + "/entries/" + this.collection.entryId + "/transcriptions/" + this.collection.transcriptionId + "/annotations");
+      };
+
       Annotation.prototype.defaults = function() {
         return {
           annotationMetadataItems: [],
-          annotationNo: null,
+          annotationNo: 'newannotation',
           annotationType: {
             id: 1
           },

@@ -19,7 +19,7 @@ define (require) ->
 		SubMenu: require 'views/ui/entry.submenu'
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview/main'
-		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
+		# SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
 		AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EntryMetadata: require 'views/entry/metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
@@ -28,7 +28,8 @@ define (require) ->
 		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'
-		AnnotationEditor: require 'views/entry/annotation/main'
+		AnnotationEditor: require 'views/entry/editors/annotation'
+		LayerEditor: require 'views/entry/editors/layer'
 
 	Templates =
 		Entry: require 'text!html/entry/main.html'
@@ -86,12 +87,6 @@ define (require) ->
 			rtpl = _.template Templates.Entry, @model.toJSON()
 			@$el.html rtpl
 
-			# Set the url to reflect the current transcription
-			@navigateToTranscription() unless @options.transcriptionName?
-
-			# Set the name of the transcription to the submenu
-			@setTranscriptionNameToMenu()
-
 			@renderFacsimile()
 			
 			@renderTranscription()
@@ -120,30 +115,30 @@ define (require) ->
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
 				@$('.left iframe').height document.documentElement.clientHeight - 89
 
-		# * TODO: Create separate View?
 		# * TODO: How many times is renderTranscription called on init?
 		renderTranscription: ->
 			# The preview is based on the transcription, so we have to render it each time the transcription is rendered
 			@renderPreview()
-			
-			if @transcriptionEdit?
-				@transcriptionEdit.setModel @currentTranscription
-				@transcriptionEdit.show()
-				# @transcriptionEditMenu.setModel @currentTranscription
+
+			@setTranscriptionNameToMenu()
+
+			unless @layerEditor
+				@layerEditor = new Views.LayerEditor
+					el: @el.querySelector('.transcription-placeholder')
+					model: @currentTranscription
+					height: @preview.$el.innerHeight()
 			else
-				$el = @$('.transcription-placeholder')
-				@transcriptionEdit = new Views.SuperTinyEditor
-					controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
-					cssFile:		'/css/main.css'
-					el:				$el.find('.transcription-editor')
-					height:			@preview.$el.innerHeight()
-					html:			@currentTranscription.get 'body'
-					htmlAttribute:	'body'
-					model:			@currentTranscription
-					width:			$el.width() - 20
-				@listenTo @transcriptionEdit, 'save', => @currentTranscription.save()
-			
+				@layerEditor.show @currentTranscription
+
 			@annotationEditor.hide() if @annotationEditor?
+				
+		renderPreview: ->
+			if @preview?
+				@preview.setModel @model
+			else
+				@preview = new Views.Preview
+					model: @model
+					el: @$('.container .right')
 
 		renderAnnotation: (model) ->
 			unless @annotationEditor
@@ -155,18 +150,11 @@ define (require) ->
 				@listenTo @annotationEditor, 'cancel', =>
 					@preview.removeNewAnnotationTags()
 					@renderTranscription()
+				@listenTo @annotationEditor, 'newannotation:saved', (annotation) => @currentTranscription.get('annotations').add annotation
 			else
 				@annotationEditor.show model
 
-			@transcriptionEdit.hide()
-				
-		renderPreview: ->
-			if @preview?
-				@preview.setModel @model
-			else
-				@preview = new Views.Preview
-					model: @model
-					el: @$('.container .right')
+			@layerEditor.hide()
 
 		renderSubsubmenu: ->
 			@subviews.textlayersEdit = new Views.EditTextlayers
@@ -183,9 +171,9 @@ define (require) ->
 			'click .menu li[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
-			'click .menu li[data-key="save"]': 'save'
-			'click .menu li[data-key="metadata"]': 'metadata'
 			'click .menu li.subsub': 'toggleSubsubmenu'
+			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
+			# 'click .menu li[data-key="save"]': 'save'
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
@@ -223,21 +211,6 @@ define (require) ->
 					currentMenu = newMenu
 
 
-		# edittextlayers: (ev) ->
-		# 	subsubmenu = @$('.subsubmenu')
-		# 	textlayers = subsubmenu.find('.textlayers')
-
-		# 	@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
-		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-		# 	textlayers.show().siblings().hide()
-
-		# editfacsimiles: (ev) ->
-		# 	subsubmenu = @$('.subsubmenu')
-		# 	facsimiles = subsubmenu.find('.facsimiles')
-
-		# 	@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
-		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-		# 	facsimiles.show().siblings().hide()
 
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
@@ -257,53 +230,17 @@ define (require) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
 			newTranscription = @model.get('transcriptions').get transcriptionID
 
-			# We don't want to navigateToTranscription if the model hasn't changed.
-			# Transcriptions.setCurrent has a check for setting the same model, so this is redundant, but reads better,
-			# otherwise we would have to navigateToTranscription and setCurrent after that.
-			if newTranscription isnt @currentTranscription or @currentViewInEditPane isnt @transcriptionEdit
+			# If the newTranscription is truly new than set it to be the current transcription.
+			if newTranscription isnt @currentTranscription 
 				# Set @currentTranscription to newTranscription
 				@model.get('transcriptions').setCurrent newTranscription
+			# If newTranscription and @currentTranscription are the same than it is still possible the transcription editor
+			# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
+			# trigger when the model hasn't changed.
+			else if not @layerEditor.visible()
+				@model.get('transcriptions').trigger 'current:change', @currentTranscription 
 
-				@navigateToTranscription()
-				@setTranscriptionNameToMenu()
-
-			# @toggleEditPane 'transcription'
-
-		navigateToTranscription: ->
-			# Cut off '/transcriptions/*' if it exists
-			index = Backbone.history.fragment.indexOf '/transcriptions/'
-			Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
-
-			# Navigate to the new fragement
-			Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
-
-		setTranscriptionNameToMenu: ->
-			# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
-			# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
-			textLayer = @currentTranscription.get 'textLayer'
-			textLayerNode = document.createTextNode textLayer+ ' layer'
-			li = @el.querySelector '.submenu li[data-key="layer"]'
-			li.replaceChild textLayerNode, li.firstChild
-
-		# save: (ev) ->
-		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
-		# 		annotations = @model.get('transcriptions').current.get('annotations')	
-
-		# 		# Create on a collection will save the model and add it to the collection.
-		# 		# Pass wait:true to wait for the server response, because we need the ID from the server
-		# 		annotations.create @annotationEdit.model.attributes, 
-		# 			wait: true
-		# 			success: => @renderTranscription()
-
-		# metadata: (ev) ->
-		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
-		# 		@annotationMetadata = new Views.AnnotationMetadata
-		# 			model: @annotationEdit.model
-		# 			collection: @project.get 'annotationtypes'
-		# 			el: @el.querySelector('.container .middle .annotationmetadata')
-		# 		@toggleEditPane 'annotationmetadata'
-
-		metadata: (ev) ->
+		editEntryMetadata: (ev) ->
 			entryMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()
@@ -316,44 +253,31 @@ define (require) ->
 			modal.on 'submit', =>
 				@model.updateFromClone entryMetadata.model
 
-				# TODO Save the settings
 				@model.get('settings').save()
+
 				jqXHR = @model.save()
 				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
 
 
-		# menuItemClicked: (ev) ->
-		# 	key = ev.currentTarget.getAttribute 'data-key'
-
 
 		# ### Methods
 
-		# toggleEditPane: (viewName) ->
-		# 	if viewName is 'transcription'
-		# 		@transcriptionEdit.show()
+		# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
+		# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
+		setTranscriptionNameToMenu: ->
+			textLayer = @currentTranscription.get 'textLayer'
+			textLayerNode = document.createTextNode textLayer+ ' layer'
+			li = @el.querySelector '.submenu li[data-key="layer"]'
+			li.replaceChild textLayerNode, li.firstChild
 
-		# 		if @annotationEditor?
-		# 			@preview.removeNewAnnotationTags()
-		# 			@annotationEditor.hide() 
-		# 	else if viewName is 'annotation'
-		# 		@annotationEditor.show()
-		# 		@transcriptionEdit.hide()
-
-			# view = switch viewName
-			# 	when 'transcription' then @transcriptionEdit
-			# 	when 'annotation' then @annotationEdit
-			# 	# when 'annotationmetadata' then @annotationMetadata
-			# @currentViewInEditPane = view
-			# view.$el.parent().siblings().hide()
-			# view.$el.parent().show()
 
 		addListeners: ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
 			# @listenTo @preview, 'addAnnotation', @renderAnnotation
-			# @listenTo @preview, 'newAnnotationRemoved', @renderTranscription
+			@listenTo @preview, 'annotation:removed', @renderTranscription
 			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
-			@listenTo @preview, 'scrolled', (percentages) => @transcriptionEdit.setScrollPercentage percentages
-			@listenTo @transcriptionEdit, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
+			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
+			@listenTo @layerEditor.editor, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
 			# @listenTo @transcriptionEdit, 'change', (cmd, doc) => 
 			# 	console.log 'achgne!'
 			# 	@currentTranscription.set 'body', doc
@@ -381,5 +305,72 @@ define (require) ->
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 				@renderFacsimile()
 				@preview.setHeight()
-				@transcriptionEdit.setIframeHeight @preview.$el.innerHeight()
-				@annotationEdit.setIframeHeight @preview.$el.innerHeight() if @annotationEdit?
+				@layerEditor.editor.setIframeHeight @preview.$el.innerHeight()
+				@annotationEditor.editor.setIframeHeight @preview.$el.innerHeight() if @annotationEditor?
+
+
+
+		# toggleEditPane: (viewName) ->
+		# 	if viewName is 'transcription'
+		# 		@transcriptionEdit.show()
+
+		# 		if @annotationEditor?
+		# 			@preview.removeNewAnnotationTags()
+		# 			@annotationEditor.hide() 
+		# 	else if viewName is 'annotation'
+		# 		@annotationEditor.show()
+		# 		@transcriptionEdit.hide()
+
+			# view = switch viewName
+			# 	when 'transcription' then @transcriptionEdit
+			# 	when 'annotation' then @annotationEdit
+			# 	# when 'annotationmetadata' then @annotationMetadata
+			# @currentViewInEditPane = view
+			# view.$el.parent().siblings().hide()
+			# view.$el.parent().show()
+
+		# navigateToTranscription: ->
+		# 	# Cut off '/transcriptions/*' if it exists
+		# 	index = Backbone.history.fragment.indexOf '/transcriptions/'
+		# 	Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
+
+		# 	# Navigate to the new fragement
+		# 	Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
+
+		# save: (ev) ->
+		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
+		# 		annotations = @model.get('transcriptions').current.get('annotations')	
+
+		# 		# Create on a collection will save the model and add it to the collection.
+		# 		# Pass wait:true to wait for the server response, because we need the ID from the server
+		# 		annotations.create @annotationEdit.model.attributes, 
+		# 			wait: true
+		# 			success: => @renderTranscription()
+
+		# metadata: (ev) ->
+		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
+		# 		@annotationMetadata = new Views.AnnotationMetadata
+		# 			model: @annotationEdit.model
+		# 			collection: @project.get 'annotationtypes'
+		# 			el: @el.querySelector('.container .middle .annotationmetadata')
+		# 		@toggleEditPane 'annotationmetadata'
+
+		# menuItemClicked: (ev) ->
+		# 	key = ev.currentTarget.getAttribute 'data-key'
+
+
+		# edittextlayers: (ev) ->
+		# 	subsubmenu = @$('.subsubmenu')
+		# 	textlayers = subsubmenu.find('.textlayers')
+
+		# 	@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
+		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+		# 	textlayers.show().siblings().hide()
+
+		# editfacsimiles: (ev) ->
+		# 	subsubmenu = @$('.subsubmenu')
+		# 	facsimiles = subsubmenu.find('.facsimiles')
+
+		# 	@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
+		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
+		# 	facsimiles.show().siblings().hide()

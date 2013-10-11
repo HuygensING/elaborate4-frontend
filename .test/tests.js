@@ -156,6 +156,11 @@ define(function(require) {
       return it("", function() {});
     });
   });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
   describe("Annotation Edit Menu", function() {
     var AnnotationEditMenu, aem, stub;
     AnnotationEditMenu = require('views/entry/annotation.edit.menu');
@@ -177,6 +182,21 @@ define(function(require) {
     return describe("setModel", function() {
       it("should set new model to @model", function() {});
       return it("should add listeners to the new @model", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
     });
   });
   describe("", function() {

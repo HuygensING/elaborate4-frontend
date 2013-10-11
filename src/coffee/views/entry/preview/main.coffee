@@ -2,6 +2,8 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
 
+	config = require 'config'
+
 	Views = 
 		Base: require 'views/base'
 		AddAnnotationTooltip: require 'views/entry/preview/annotation.add.tooltip'
@@ -48,11 +50,15 @@ define (require) ->
 			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el
 			@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
 			@listenTo @editAnnotationTooltip, 'delete', (model) =>
-				if model?
+				if model.get('annotationNo') is 'newannotation'
+					@removeNewAnnotation()
+				else
 					# Remove the annotation from the collection, the transcription model wil take care of the rest
 					@currentTranscription.get('annotations').remove model
-				else
-					@removeNewAnnotationTags()
+
+				# Let the entry view know an annotation has been removed so it can remove the annotationEditor view and
+				# show the current transcription.
+				@trigger 'annotation:removed'
 
 		# ### Events
 		events: ->
@@ -65,9 +71,9 @@ define (require) ->
 			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
 		supClicked: (ev) ->
-			id = ev.currentTarget.getAttribute('data-id') >> 0
-			annotation = @currentTranscription.get('annotations').findWhere annotationNo: id
-
+			id = ev.currentTarget.getAttribute('data-id')
+			annotation = if id is 'newannotation' then @newAnnotation else @currentTranscription.get('annotations').findWhere annotationNo: id >> 0
+		
 			@setAnnotatedText annotation
 
 			@editAnnotationTooltip.show
@@ -96,15 +102,15 @@ define (require) ->
 			# A selection cannot start inside a marker.
 			isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') or range.endContainer.parentNode.hasAttribute('data-marker')
 
-			### console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0 ###
 			# if not range.collapsed and not startIsSup and not endIsSup
 			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
-				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
-					@addNewAnnotationTags range
-					@trigger 'editAnnotation', model
+				# Listen once to the click on the (to be shown) add annotation tooltip.
+				@listenToOnce @addAnnotationTooltip, 'clicked', (model) => @addNewAnnotation model, range
+				# Show the add annotation tooltip.
 				@addAnnotationTooltip.show
 					left: ev.pageX
 					top: ev.pageY
+
 
 		# ### Methods
 
@@ -137,6 +143,19 @@ define (require) ->
 
 			annotation.set 'annotatedText', text
 
+		addNewAnnotation: (newAnnotation, range) ->
+			@newAnnotation = newAnnotation
+
+			@addNewAnnotationTags range
+			
+			# Set the urlRoot manually, because a new annotation has not been added to the collection yet.
+			annotations = @currentTranscription.get 'annotations'
+			newAnnotation.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
+			
+			@setAnnotatedText newAnnotation
+
+			@trigger 'editAnnotation', newAnnotation
+
 		addNewAnnotationTags: (range) ->
 			# Create marker at the beginning of the selection
 			span = document.createElement 'span'
@@ -154,6 +173,10 @@ define (require) ->
 			range.insertNode sup
 
 			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
+
+		removeNewAnnotation: ->
+			@newAnnotation = null
+			@removeNewAnnotationTags()
 
 		removeNewAnnotationTags: ->
 			@$('[data-id="newannotation"]').remove()
@@ -195,6 +218,7 @@ define (require) ->
 			@render()
 
 		addListeners: ->
+			# * TODO: Triggers double render??
 			@listenTo @currentTranscription, 'current:change', @render
 			@listenTo @currentTranscription, 'change:body', @render
 

@@ -11,9 +11,11 @@ define (require) ->
 
 	class Annotation extends Models.Base
 
+		urlRoot: -> config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
+
 		defaults: ->
 			annotationMetadataItems: []
-			annotationNo: null
+			annotationNo: 'newannotation'
 			annotationType:
 				id: 1
 			body: ''

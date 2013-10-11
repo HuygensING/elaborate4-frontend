@@ -18,7 +18,6 @@
       Base: require('views/base'),
       SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
-      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
       AnnotationMetadata: require('views/entry/annotation.metadata'),
       EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
@@ -27,7 +26,8 @@
       AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
       Form: require('hilib/views/form/main'),
-      AnnotationEditor: require('views/entry/annotation/main')
+      AnnotationEditor: require('views/entry/editors/annotation'),
+      LayerEditor: require('views/entry/editors/layer')
     };
     Templates = {
       Entry: require('text!html/entry/main.html'),
@@ -98,10 +98,6 @@
           _this = this;
         rtpl = _.template(Templates.Entry, this.model.toJSON());
         this.$el.html(rtpl);
-        if (this.options.transcriptionName == null) {
-          this.navigateToTranscription();
-        }
-        this.setTranscriptionNameToMenu();
         this.renderFacsimile();
         this.renderTranscription();
         this.renderSubsubmenu();
@@ -126,30 +122,30 @@
       };
 
       Entry.prototype.renderTranscription = function() {
-        var $el,
-          _this = this;
         this.renderPreview();
-        if (this.transcriptionEdit != null) {
-          this.transcriptionEdit.setModel(this.currentTranscription);
-          this.transcriptionEdit.show();
-        } else {
-          $el = this.$('.transcription-placeholder');
-          this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
-            cssFile: '/css/main.css',
-            el: $el.find('.transcription-editor'),
-            height: this.preview.$el.innerHeight(),
-            html: this.currentTranscription.get('body'),
-            htmlAttribute: 'body',
+        this.setTranscriptionNameToMenu();
+        if (!this.layerEditor) {
+          this.layerEditor = new Views.LayerEditor({
+            el: this.el.querySelector('.transcription-placeholder'),
             model: this.currentTranscription,
-            width: $el.width() - 20
+            height: this.preview.$el.innerHeight()
           });
-          this.listenTo(this.transcriptionEdit, 'save', function() {
-            return _this.currentTranscription.save();
-          });
+        } else {
+          this.layerEditor.show(this.currentTranscription);
         }
         if (this.annotationEditor != null) {
           return this.annotationEditor.hide();
+        }
+      };
+
+      Entry.prototype.renderPreview = function() {
+        if (this.preview != null) {
+          return this.preview.setModel(this.model);
+        } else {
+          return this.preview = new Views.Preview({
+            model: this.model,
+            el: this.$('.container .right')
+          });
         }
       };
 
@@ -166,21 +162,13 @@
             _this.preview.removeNewAnnotationTags();
             return _this.renderTranscription();
           });
+          this.listenTo(this.annotationEditor, 'newannotation:saved', function(annotation) {
+            return _this.currentTranscription.get('annotations').add(annotation);
+          });
         } else {
           this.annotationEditor.show(model);
         }
-        return this.transcriptionEdit.hide();
-      };
-
-      Entry.prototype.renderPreview = function() {
-        if (this.preview != null) {
-          return this.preview.setModel(this.model);
-        } else {
-          return this.preview = new Views.Preview({
-            model: this.model,
-            el: this.$('.container .right')
-          });
-        }
+        return this.layerEditor.hide();
       };
 
       Entry.prototype.renderSubsubmenu = function() {
@@ -200,9 +188,8 @@
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
-          'click .menu li[data-key="save"]': 'save',
-          'click .menu li[data-key="metadata"]': 'metadata',
-          'click .menu li.subsub': 'toggleSubsubmenu'
+          'click .menu li.subsub': 'toggleSubsubmenu',
+          'click .menu li[data-key="metadata"]': 'editEntryMetadata'
         };
       };
 
@@ -251,33 +238,14 @@
         var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
         newTranscription = this.model.get('transcriptions').get(transcriptionID);
-        if (newTranscription !== this.currentTranscription || this.currentViewInEditPane !== this.transcriptionEdit) {
-          this.model.get('transcriptions').setCurrent(newTranscription);
-          this.navigateToTranscription();
-          return this.setTranscriptionNameToMenu();
+        if (newTranscription !== this.currentTranscription) {
+          return this.model.get('transcriptions').setCurrent(newTranscription);
+        } else if (!this.layerEditor.visible()) {
+          return this.model.get('transcriptions').trigger('current:change', this.currentTranscription);
         }
       };
 
-      Entry.prototype.navigateToTranscription = function() {
-        var index;
-        index = Backbone.history.fragment.indexOf('/transcriptions/');
-        if (index !== -1) {
-          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
-        }
-        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
-          replace: true
-        });
-      };
-
-      Entry.prototype.setTranscriptionNameToMenu = function() {
-        var li, textLayer, textLayerNode;
-        textLayer = this.currentTranscription.get('textLayer');
-        textLayerNode = document.createTextNode(textLayer + ' layer');
-        li = this.el.querySelector('.submenu li[data-key="layer"]');
-        return li.replaceChild(textLayerNode, li.firstChild);
-      };
-
-      Entry.prototype.metadata = function(ev) {
+      Entry.prototype.editEntryMetadata = function(ev) {
         var entryMetadata, modal,
           _this = this;
         entryMetadata = new Views.Form({
@@ -301,13 +269,22 @@
         });
       };
 
+      Entry.prototype.setTranscriptionNameToMenu = function() {
+        var li, textLayer, textLayerNode;
+        textLayer = this.currentTranscription.get('textLayer');
+        textLayerNode = document.createTextNode(textLayer + ' layer');
+        li = this.el.querySelector('.submenu li[data-key="layer"]');
+        return li.replaceChild(textLayerNode, li.firstChild);
+      };
+
       Entry.prototype.addListeners = function() {
         var _this = this;
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'annotation:removed', this.renderTranscription);
         this.listenTo(this.preview, 'scrolled', function(percentages) {
-          return _this.transcriptionEdit.setScrollPercentage(percentages);
+          return _this.layerEditor.editor.setScrollPercentage(percentages);
         });
-        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
+        this.listenTo(this.layerEditor.editor, 'scrolled', function(percentages) {
           return Fn.setScrollPercentage(_this.preview.el, percentages);
         });
         this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
@@ -339,9 +316,9 @@
           return Fn.timeoutWithReset(600, function() {
             _this.renderFacsimile();
             _this.preview.setHeight();
-            _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
-            if (_this.annotationEdit != null) {
-              return _this.annotationEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            _this.layerEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+            if (_this.annotationEditor != null) {
+              return _this.annotationEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
             }
           });
         });

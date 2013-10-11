@@ -3,8 +3,9 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Fn, Tpl, TranscriptionPreview, Views, _ref;
+    var Fn, Tpl, TranscriptionPreview, Views, config, _ref;
     Fn = require('hilib/functions/general');
+    config = require('config');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/preview/annotation.add.tooltip'),
@@ -52,11 +53,12 @@
           return _this.trigger('editAnnotation', model);
         });
         return this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
-          if (model != null) {
-            return _this.currentTranscription.get('annotations').remove(model);
+          if (model.get('annotationNo') === 'newannotation') {
+            _this.removeNewAnnotation();
           } else {
-            return _this.removeNewAnnotationTags();
+            _this.currentTranscription.get('annotations').remove(model);
           }
+          return _this.trigger('annotation:removed');
         });
       };
 
@@ -78,9 +80,9 @@
 
       TranscriptionPreview.prototype.supClicked = function(ev) {
         var annotation, id;
-        id = ev.currentTarget.getAttribute('data-id') >> 0;
-        annotation = this.currentTranscription.get('annotations').findWhere({
-          annotationNo: id
+        id = ev.currentTarget.getAttribute('data-id');
+        annotation = id === 'newannotation' ? this.newAnnotation : this.currentTranscription.get('annotations').findWhere({
+          annotationNo: id >> 0
         });
         this.setAnnotatedText(annotation);
         return this.editAnnotationTooltip.show({
@@ -106,12 +108,9 @@
         }
         range = sel.getRangeAt(0);
         isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') || range.endContainer.parentNode.hasAttribute('data-marker');
-        /* console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0*/
-
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
-            _this.addNewAnnotationTags(range);
-            return _this.trigger('editAnnotation', model);
+            return _this.addNewAnnotation(model, range);
           });
           return this.addAnnotationTooltip.show({
             left: ev.pageX,
@@ -145,6 +144,19 @@
         return annotation.set('annotatedText', text);
       };
 
+      TranscriptionPreview.prototype.addNewAnnotation = function(newAnnotation, range) {
+        var annotations,
+          _this = this;
+        this.newAnnotation = newAnnotation;
+        this.addNewAnnotationTags(range);
+        annotations = this.currentTranscription.get('annotations');
+        newAnnotation.urlRoot = function() {
+          return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
+        };
+        this.setAnnotatedText(newAnnotation);
+        return this.trigger('editAnnotation', newAnnotation);
+      };
+
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
@@ -160,6 +172,11 @@
         return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
+      };
+
+      TranscriptionPreview.prototype.removeNewAnnotation = function() {
+        this.newAnnotation = null;
+        return this.removeNewAnnotationTags();
       };
 
       TranscriptionPreview.prototype.removeNewAnnotationTags = function() {

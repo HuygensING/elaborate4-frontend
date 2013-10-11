@@ -4085,8 +4085,10 @@ define('domready',[],function () {
         range.selectNodeContents(textEl);
         range.collapse(false);
         sel = win.getSelection();
-        sel.removeAllRanges();
-        return sel.addRange(range);
+        if (sel != null) {
+          sel.removeAllRanges();
+          return sel.addRange(range);
+        }
       }
     };
   });
@@ -4125,6 +4127,68 @@ define('domready',[],function () {
           };
         }
         return $.ajax($.extend(ajaxArgs, args));
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  define('hilib/mixins/model.sync',['require','hilib/managers/ajax','hilib/managers/token'],function(require) {
+    var ajax, token;
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
+    return {
+      syncOverride: function(method, model, options) {
+        var data, jqXHR, name, obj, _i, _len, _ref,
+          _this = this;
+        if (options.attributes != null) {
+          obj = {};
+          _ref = options.attributes;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            name = _ref[_i];
+            obj[name] = this.get(name);
+          }
+          data = JSON.stringify(obj);
+        } else {
+          data = JSON.stringify(model.toJSON());
+        }
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.post({
+            url: this.url(),
+            dataType: 'text',
+            data: data
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var url, xhr;
+            if (jqXHR.status === 201) {
+              url = jqXHR.getResponseHeader('Location');
+              xhr = ajax.get({
+                url: url
+              });
+              return xhr.done(function(data, textStatus, jqXHR) {
+                _this.trigger('sync');
+                return options.success(data);
+              });
+            }
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: data
+          });
+          jqXHR.done(function(response) {
+            return _this.trigger('sync');
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        }
       }
     };
   });
@@ -4632,11 +4696,10 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/entry',['require','config','hilib/managers/ajax','hilib/managers/token','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
-    var Collections, Entry, Models, ajax, config, token, _ref;
+  define('models/entry',['require','config','hilib/mixins/model.sync','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
+    var Collections, Entry, Models, config, syncOverride, _ref;
     config = require('config');
-    ajax = require('hilib/managers/ajax');
-    token = require('hilib/managers/token');
+    syncOverride = require('hilib/mixins/model.sync');
     Models = {
       Base: require('models/base'),
       Settings: require('models/entry.settings')
@@ -4658,6 +4721,11 @@ define('domready',[],function () {
           name: '',
           publishable: false
         };
+      };
+
+      Entry.prototype.initialize = function() {
+        Entry.__super__.initialize.apply(this, arguments);
+        return _.extend(this, syncOverride);
       };
 
       Entry.prototype.set = function(attrs, options) {
@@ -4707,24 +4775,9 @@ define('domready',[],function () {
       };
 
       Entry.prototype.sync = function(method, model, options) {
-        var data, jqXHR,
-          _this = this;
-        if (method === 'update') {
-          ajax.token = token.get();
-          data = {
-            name: this.get('name'),
-            publishable: this.get('publishable')
-          };
-          jqXHR = ajax.put({
-            url: this.url(),
-            data: JSON.stringify(data)
-          });
-          jqXHR.done(function(response) {
-            return _this.trigger('sync');
-          });
-          return jqXHR.fail(function(response) {
-            return console.log('fail', response);
-          });
+        if (method === 'create' || method === 'update') {
+          options.attributes = ['name', 'publishable'];
+          return this.syncOverride(method, model, options);
         } else {
           return Entry.__super__.sync.apply(this, arguments);
         }
@@ -4771,19 +4824,22 @@ define('domready',[],function () {
       Entries.prototype.setCurrent = function(modelID) {
         var model;
         model = this.get(modelID);
+        this.trigger('current:change', model);
         return this.current = model;
       };
 
       Entries.prototype.previous = function() {
-        var previousIndex;
+        var model, previousIndex;
         previousIndex = this.indexOf(this.current) - 1;
-        return this.setCurrent(this.at(previousIndex));
+        model = this.at(previousIndex);
+        return this.setCurrent(model);
       };
 
       Entries.prototype.next = function() {
-        var nextIndex;
+        var model, nextIndex;
         nextIndex = this.indexOf(this.current) + 1;
-        return this.setCurrent(this.at(nextIndex));
+        model = this.at(nextIndex);
+        return this.setCurrent(model);
       };
 
       return Entries;
@@ -5700,21 +5756,23 @@ define('text!hilib/views/modal/modal.html',[],function () { return '<div class="
       };
 
       Modal.prototype.events = {
-        "click button.submit": "onSubmit",
-        "click button.cancel": "onCancel",
-        "click .overlay": "onOverlayClicked"
+        "click button.submit": function() {
+          return this.trigger('submit');
+        },
+        "click button.cancel": function() {
+          return this.cancel();
+        },
+        "click .overlay": function() {
+          return this.cancel();
+        }
       };
 
-      Modal.prototype.onSubmit = function(ev) {
-        return this.trigger("submit");
-      };
-
-      Modal.prototype.onCancel = function(ev) {
+      Modal.prototype.cancel = function() {
         this.trigger("cancel");
-        return this.fadeOut(0);
+        return this.close();
       };
 
-      Modal.prototype.onOverlayClicked = function(ev) {
+      Modal.prototype.close = function() {
         return modalManager.remove(this);
       };
 
@@ -5727,7 +5785,7 @@ define('text!hilib/views/modal/modal.html',[],function () { return '<div class="
         speed = delay === 0 ? 0 : 500;
         this.$(".modalbody").delay(delay).fadeOut(speed);
         return setTimeout((function() {
-          return modalManager.remove(_this);
+          return _this.close();
         }), delay + speed - 100);
       };
 
@@ -5796,6 +5854,9 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
         this.model = new Models.Search();
         this.listenTo(this.model, 'change', function(model, options) {
           _this.project.get('entries').set(model.get('results'));
+          _this.listenTo(_this.project.get('entries'), 'current:change', function(entry) {
+            return _this.publish('navigate:entry', entry.id);
+          });
           _this.updateHeader();
           return _this.renderResult();
         });
@@ -5850,8 +5911,9 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
       };
 
       ProjectSearch.prototype.events = {
+        'click .submenu li[data-key="newsearch"]': 'newSearch',
         'click .submenu li[data-key="newentry"]': 'newEntry',
-        'click li.entry label': 'goToEntry',
+        'click li.entry label': 'changeCurrentEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
         'click li[data-key="selectall"]': function() {
@@ -5874,10 +5936,18 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
           width: '300px'
         });
         return modal.on('submit', function() {
-          _this.project.get('entries').create({
-            name: modal.$('input[name="name"]').val()
+          var entries;
+          entries = _this.project.get('entries');
+          modal.message('success', 'Creating new entry...');
+          _this.listenToOnce(entries, 'add', function(entry) {
+            modal.close();
+            return _this.publish('navigate:entry', entry.id);
           });
-          return modal.message('success', 'Creating new entry...');
+          return entries.create({
+            name: modal.$('input[name="name"]').val()
+          }, {
+            wait: true
+          });
         });
       };
 
@@ -5903,11 +5973,10 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
         }
       };
 
-      ProjectSearch.prototype.goToEntry = function(ev) {
+      ProjectSearch.prototype.changeCurrentEntry = function(ev) {
         var entryID;
         entryID = ev.currentTarget.getAttribute('data-id');
-        this.project.get('entries').setCurrent(entryID);
-        return this.publish('navigate:entry', entryID);
+        return this.project.get('entries').setCurrent(entryID);
       };
 
       ProjectSearch.prototype.updateHeader = function() {
@@ -7764,8 +7833,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         this.addListeners();
         this.render();
         this.renderTooltips();
-        this.setHeight();
-        return this.onHover();
+        return this.setHeight();
       };
 
       TranscriptionPreview.prototype.render = function() {
@@ -7775,6 +7843,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         data.lineCount = brs.length;
         rtpl = _.template(Tpl, data);
         this.$el.html(rtpl);
+        this.onHover();
         return this;
       };
 
@@ -7820,6 +7889,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         annotation = this.currentTranscription.get('annotations').findWhere({
           annotationNo: id
         });
+        this.setAnnotatedText(annotation);
         return this.editAnnotationTooltip.show({
           $el: $(ev.currentTarget),
           model: annotation
@@ -7848,7 +7918,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
             _this.addNewAnnotationTags(range);
-            return _this.trigger('addAnnotation', model);
+            return _this.trigger('editAnnotation', model);
           });
           return this.addAnnotationTooltip.show({
             left: ev.pageX,
@@ -7857,9 +7927,10 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         }
       };
 
-      TranscriptionPreview.prototype.getAnnotatedText = function(annotationNo) {
-        var endNode, range, startNode, text, treewalker,
+      TranscriptionPreview.prototype.setAnnotatedText = function(annotation) {
+        var annotationNo, endNode, range, startNode, text, treewalker,
           _this = this;
+        annotationNo = annotation.get('annotationNo');
         startNode = this.el.querySelector('span[data-id="' + annotationNo + '"]');
         endNode = this.el.querySelector('sup[data-id="' + annotationNo + '"]');
         range = document.createRange();
@@ -7878,7 +7949,7 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         while (treewalker.nextNode()) {
           text += treewalker.currentNode.textContent;
         }
-        return text;
+        return annotation.set('annotatedText', text);
       };
 
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
@@ -7900,14 +7971,13 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
 
       TranscriptionPreview.prototype.removeNewAnnotationTags = function() {
         this.$('[data-id="newannotation"]').remove();
-        this.currentTranscription.set('body', this.$('.preview .body').html(), {
+        return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
-        return this.trigger('newAnnotationRemoved');
       };
 
       TranscriptionPreview.prototype.onHover = function() {
-        var supEnter, supLeave,
+        var markers, supEnter, supLeave,
           _this = this;
         supEnter = function(ev) {
           var id, startNode;
@@ -7924,7 +7994,9 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         supLeave = function(ev) {
           return _this.highlighter.off();
         };
-        return this.$('sup[data-marker]').hover(supEnter, supLeave);
+        markers = this.$('sup[data-marker]');
+        markers.off('mouseenter mouseleave');
+        return markers.hover(supEnter, supLeave);
       };
 
       TranscriptionPreview.prototype.setHeight = function() {
@@ -8409,6 +8481,14 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         }), 200);
       };
 
+      SuperTinyEditor.prototype.show = function() {
+        return this.el.style.display = 'block';
+      };
+
+      SuperTinyEditor.prototype.hide = function() {
+        return this.el.style.display = 'none';
+      };
+
       return SuperTinyEditor;
 
     })(Views.Base);
@@ -8859,13 +8939,125 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
 
 }).call(this);
 
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/annotation/main',['require','views/base','hilib/views/supertinyeditor/supertinyeditor'],function(require) {
+    var AnnotationEditor, Views, _ref;
+    Views = {
+      Base: require('views/base'),
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor')
+    };
+    return AnnotationEditor = (function(_super) {
+      __extends(AnnotationEditor, _super);
+
+      function AnnotationEditor() {
+        _ref = AnnotationEditor.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      AnnotationEditor.prototype.className = '';
+
+      AnnotationEditor.prototype.initialize = function() {
+        AnnotationEditor.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      AnnotationEditor.prototype.render = function() {
+        var _this = this;
+        this.editor = new Views.SuperTinyEditor({
+          cssFile: '/css/main.css',
+          controls: ['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
+          el: this.$('.annotation-editor'),
+          height: this.options.height,
+          html: this.model.get('body'),
+          htmlAttribute: 'body',
+          model: this.model,
+          width: this.options.width,
+          wrap: true
+        });
+        this.listenTo(this.editor, 'save', this.save);
+        this.listenTo(this.editor, 'cancel', function() {
+          return _this.trigger('cancel');
+        });
+        this.listenTo(this.editor, 'metadata', this.editMetadata);
+        this.show();
+        return this;
+      };
+
+      AnnotationEditor.prototype.events = function() {};
+
+      AnnotationEditor.prototype.show = function(annotation) {
+        if (annotation != null) {
+          this.model = annotation;
+        }
+        this.editor.setModel(this.model);
+        this.editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html(this.model.get('annotatedText'));
+        this.setURLPath(this.model.id);
+        return this.el.style.display = 'block';
+      };
+
+      AnnotationEditor.prototype.hide = function() {
+        return this.el.style.display = 'none';
+      };
+
+      AnnotationEditor.prototype.setURLPath = function(id) {
+        var fragment, index;
+        console.log;
+        index = Backbone.history.fragment.indexOf('/annotations/');
+        fragment = index !== -1 ? Backbone.history.fragment.substr(0, index) : Backbone.history.fragment;
+        if (id != null) {
+          fragment = fragment + '/annotations/' + id;
+        }
+        return Backbone.history.navigate(fragment, {
+          replace: true
+        });
+      };
+
+      AnnotationEditor.prototype.save = function() {
+        var annotations,
+          _this = this;
+        if (this.model.isNew()) {
+          annotations = this.currentTranscription.get('annotations');
+          this.model.urlRoot = function() {
+            return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
+          };
+          return this.model.save([], {
+            success: function() {
+              return annotations.add(model);
+            },
+            error: function(model, xhr, options) {
+              return console.error('Saving annotation failed!', model, xhr, options);
+            }
+          });
+        } else {
+          return this.model.save();
+        }
+      };
+
+      AnnotationEditor.prototype.editMetadata = function() {
+        return this.annotationMetadata = new Views.AnnotationMetadata({
+          model: model,
+          collection: this.project.get('annotationtypes'),
+          el: this.el.querySelector('.container .middle .annotationmetadata')
+        });
+      };
+
+      return AnnotationEditor;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
 define('text!html/entry/main.html',[],function () { return '<div class="submenu"><div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="previous">&nbsp;</li><li data-key="current"><%= name %></li><li data-key="next">&nbsp;</li><li data-key="facsimiles" class="alignright">Facsimiles<ul class="vertical menu facsimiles"><li class="spacer">&nbsp;</li><li data-key="editfacsimiles" class="subsub">Edit...</li><% facsimiles.each(function(facs) { %><li data-key="facsimile" data-value="<%= facs.id %>"><%= facs.get(\'name\') %></li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="layer" class="arrowdown">Layer<ul class="vertical menu textlayers"><li class="spacer">&nbsp;</li><li data-key="edittextlayers" class="subsub">Edit...</li><% transcriptions.each(function(trans) { %><li data-key="transcription" data-value="<%= trans.id %>"><%= trans.get(\'textLayer\') %> layer</li><% }); %></ul></li></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"><li data-key="metadata">Metadata</li><li data-key="print">Print</li><li data-key="preview">Preview</li></ul></div></div></div><div class="subsubmenu"><div class="edittextlayers"></div><div class="editfacsimiles"></div></div><div class="row span7 container"><div class="cell span3"><div class="left"><% if (facsimiles.length) { %><iframe id="viewer_iframe" name="viewer_iframe" scrolling="no" width="100%" frameborder="0"></iframe><% } %></div></div><div class="cell span2"><div class="middle"><div class="transcription-placeholder"><div class="transcription-editor"></div></div><div class="annotation-placeholder"><div class="annotation-editor"></div></div><div class="annotationmetadata-placeholder"><div class="annotationmetadata"></div></div></div></div><div class="cell span2"><div class="right"></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
+  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','views/entry/annotation/main','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
     var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
     config = require('config');
@@ -8889,7 +9081,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
       AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
-      Form: require('hilib/views/form/main')
+      Form: require('hilib/views/form/main'),
+      AnnotationEditor: require('views/entry/annotation/main')
     };
     Templates = {
       Entry: require('text!html/entry/main.html'),
@@ -8969,20 +9162,21 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         this.renderSubsubmenu();
         this.addListeners();
         return this.currentTranscription.getAnnotations(function(annotations) {
+          var annotation;
           if (_this.options.annotationID != null) {
-            return _this.renderAnnotation(annotations.get(_this.options.annotationID));
+            annotation = annotations.get(_this.options.annotationID);
+            _this.preview.setAnnotatedText(annotation);
+            return _this.renderAnnotation(annotation);
           }
         });
       };
 
       Entry.prototype.renderFacsimile = function() {
         var url;
-        if (this.model.get('facsimiles').length) {
+        if (this.model.get('facsimiles').current != null) {
           url = this.model.get('facsimiles').current.get('zoomableUrl');
           this.$('.left iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.0/viewer.html?rft_id=' + url);
           return this.$('.left iframe').height(document.documentElement.clientHeight - 89);
-        } else {
-          return this.el.querySelector('li[data-key="facsimiles"]').style.display = 'none';
         }
       };
 
@@ -8992,82 +9186,45 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         this.renderPreview();
         if (this.transcriptionEdit != null) {
           this.transcriptionEdit.setModel(this.currentTranscription);
+          this.transcriptionEdit.show();
         } else {
           $el = this.$('.transcription-placeholder');
           this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save'],
+            controls: ['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
             cssFile: '/css/main.css',
             el: $el.find('.transcription-editor'),
             height: this.preview.$el.innerHeight(),
             html: this.currentTranscription.get('body'),
             htmlAttribute: 'body',
-            model: this.model.get('transcriptions').current,
+            model: this.currentTranscription,
             width: $el.width() - 20
           });
           this.listenTo(this.transcriptionEdit, 'save', function() {
             return _this.currentTranscription.save();
           });
         }
-        return this.toggleEditPane('transcription');
+        if (this.annotationEditor != null) {
+          return this.annotationEditor.hide();
+        }
       };
 
       Entry.prototype.renderAnnotation = function(model) {
-        var $el, annotatedText, annotationNo, _ref1,
-          _this = this;
-        this.navigateToAnnotation(model.id);
-        if ((this.annotationEdit != null) && (model != null)) {
-          this.annotationEdit.setModel(model);
-        } else {
-          if (model == null) {
-            console.error('No annotation given as argument!');
-          }
-          $el = this.$('.annotation-placeholder');
-          this.annotationEdit = new Views.SuperTinyEditor({
-            cssFile: '/css/main.css',
-            controls: ['bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo', 'n', 'b_save', 'b_cancel', 'b_metadata', 'n'],
-            el: $el.find('.annotation-editor'),
-            height: this.preview.$el.innerHeight() - 31,
-            html: model.get('body'),
-            htmlAttribute: 'body',
+        var _this = this;
+        if (!this.annotationEditor) {
+          this.annotationEditor = new Views.AnnotationEditor({
+            el: this.el.querySelector('.annotation-placeholder'),
             model: model,
-            width: this.preview.$el.width() - 4,
-            wrap: true
+            height: this.preview.$el.innerHeight() - 31,
+            width: this.preview.$el.width() - 4
           });
-          this.listenTo(this.annotationEdit, 'save', function() {
-            var annotations;
-            if (model.isNew()) {
-              annotations = _this.currentTranscription.get('annotations');
-              model.urlRoot = function() {
-                return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
-              };
-              return model.save([], {
-                success: function() {
-                  return annotations.add(model);
-                },
-                error: function(model, xhr, options) {
-                  return console.error('Saving annotation failed!', model, xhr, options);
-                }
-              });
-            } else {
-              return model.save();
-            }
+          this.listenTo(this.annotationEditor, 'cancel', function() {
+            _this.preview.removeNewAnnotationTags();
+            return _this.renderTranscription();
           });
-          this.listenTo(this.annotationEdit, 'cancel', function() {
-            return _this.preview.removeNewAnnotationTags();
-          });
-          this.listenTo(this.annotationEdit, 'metadata', function() {
-            _this.annotationMetadata = new Views.AnnotationMetadata({
-              model: model,
-              collection: _this.project.get('annotationtypes'),
-              el: _this.el.querySelector('.container .middle .annotationmetadata')
-            });
-            return _this.toggleEditPane('annotationmetadata');
-          });
+        } else {
+          this.annotationEditor.show(model);
         }
-        annotationNo = (_ref1 = model.get('annotationNo')) != null ? _ref1 : 'newannotation';
-        annotatedText = this.preview.getAnnotatedText(annotationNo);
-        this.annotationEdit.$('.ste-header').last().addClass('annotationtext').html(annotatedText);
-        return this.toggleEditPane('annotation');
+        return this.transcriptionEdit.hide();
       };
 
       Entry.prototype.renderPreview = function() {
@@ -9109,6 +9266,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         currentMenu = null;
         return function(ev) {
           var newMenu;
+          console.log('toggling');
           newMenu = ev.currentTarget.getAttribute('data-key');
           if (currentMenu === newMenu) {
             $(ev.currentTarget).removeClass('rotateup');
@@ -9151,9 +9309,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         if (newTranscription !== this.currentTranscription || this.currentViewInEditPane !== this.transcriptionEdit) {
           this.model.get('transcriptions').setCurrent(newTranscription);
           this.navigateToTranscription();
-          this.setTranscriptionNameToMenu();
+          return this.setTranscriptionNameToMenu();
         }
-        return this.toggleEditPane('transcription');
       };
 
       Entry.prototype.navigateToTranscription = function() {
@@ -9163,17 +9320,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
         }
         return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
-          replace: true
-        });
-      };
-
-      Entry.prototype.navigateToAnnotation = function(id) {
-        var index;
-        index = Backbone.history.fragment.indexOf('/annotations/');
-        if (index !== -1) {
-          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
-        }
-        return Backbone.history.navigate(Backbone.history.fragment + '/annotations/' + id, {
           replace: true
         });
       };
@@ -9210,28 +9356,9 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
       };
 
-      Entry.prototype.toggleEditPane = function(viewName) {
-        var view;
-        view = (function() {
-          switch (viewName) {
-            case 'transcription':
-              return this.transcriptionEdit;
-            case 'annotation':
-              return this.annotationEdit;
-            case 'annotationmetadata':
-              return this.annotationMetadata;
-          }
-        }).call(this);
-        this.currentViewInEditPane = view;
-        view.$el.parent().siblings().hide();
-        return view.$el.parent().show();
-      };
-
       Entry.prototype.addListeners = function() {
         var _this = this;
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'addAnnotation', this.renderAnnotation);
-        this.listenTo(this.preview, 'newAnnotationRemoved', this.renderTranscription);
         this.listenTo(this.preview, 'scrolled', function(percentages) {
           return _this.transcriptionEdit.setScrollPercentage(percentages);
         });
