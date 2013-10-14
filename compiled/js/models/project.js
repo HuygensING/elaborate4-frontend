@@ -14,7 +14,7 @@
     EntryMetadata = require('entry.metadata');
     Collections = {
       Entries: require('collections/entries'),
-      AnnotationTypes: require('collections/project/annotation.types'),
+      AnnotationTypes: require('collections/project/annotationtypes'),
       ProjectUsers: require('collections/project/users')
     };
     return Project = (function(_super) {

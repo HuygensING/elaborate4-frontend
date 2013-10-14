@@ -1,31 +1,31 @@
-define (require) ->
+# define (require) ->
 
-	Models =
-		state: require 'models/state'
-		currentUser: require 'models/currentUser'
+# 	Models =
+# 		state: require 'models/state'
+# 		currentUser: require 'models/currentUser'
 
-	Views = 
-		Base: require 'views/base'
+# 	Views = 
+# 		Base: require 'views/base'
 
-	Templates =
-		Debug: require 'text!html/debug.html'
+# 	Templates =
+# 		Debug: require 'text!html/debug.html'
 
-	class Debug extends Views.Base
+# 	class Debug extends Views.Base
 
-		id: 'debug'
+# 		id: 'debug'
 
-		events:
-			'click .current-project': -> Models.state.getCurrentProject (project) -> console.log project
-			'click .current-user': -> console.log Models.currentUser
-			'click .state': -> console.log Models.state
+# 		events:
+# 			'click .current-project': -> Models.state.getCurrentProject (project) -> console.log project
+# 			'click .current-user': -> console.log Models.currentUser
+# 			'click .state': -> console.log Models.state
 
-		initialize: ->
-			super
+# 		initialize: ->
+# 			super
 
-			@render()
+# 			@render()
 
-		render: ->
-			rtpl = _.template Templates.Debug
-			@$el.html rtpl
+# 		render: ->
+# 			rtpl = _.template Templates.Debug
+# 			@$el.html rtpl
 
-			@
+# 			@

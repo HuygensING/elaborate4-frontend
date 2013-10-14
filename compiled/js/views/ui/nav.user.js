@@ -3,11 +3,13 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var BaseView, Models, NavUser, Templates, _ref;
+    var BaseView, Collections, Models, NavUser, Templates, _ref;
     BaseView = require('views/base');
     Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
+      currentUser: require('models/currentUser')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Templates = {
       'UserNav': require('text!html/ui/nav.user.html')
@@ -30,8 +32,7 @@
         $ct = $(ev.currentTarget);
         $ct.addClass('active');
         id = $ct.attr('data-id');
-        Models.state.setCurrentProject(id);
-        return this.publish('navigate:project');
+        return Collections.projects.setCurrent(id);
       };
 
       NavUser.prototype.logout = function(ev) {
@@ -47,7 +48,7 @@
         var rtpl;
         rtpl = _.template(Templates.UserNav, {
           user: Models.currentUser.attributes,
-          state: Models.state.attributes
+          projects: Collections.projects
         });
         this.$el.html(rtpl);
         return this;

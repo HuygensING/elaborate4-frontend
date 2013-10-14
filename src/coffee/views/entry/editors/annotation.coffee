@@ -1,9 +1,17 @@
 # Description...
 define (require) ->
 
+	Collections = 
+		projects: require 'collections/projects'
+
 	Views = 
 		Base: require 'views/base'
 		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
+		Modal: require 'hilib/views/modal/main'
+		Form: require 'hilib/views/form/main'
+
+	Templates =
+		Metadata: require 'text!html/entry/annotation.metadata.html'
 
 	# ## AnnotationEditor
 	class AnnotationEditor extends Views.Base
@@ -14,7 +22,7 @@ define (require) ->
 		initialize: ->
 			super
 
-			@render()
+			Collections.projects.getCurrent (@project) => @render()
 
 		# ### Render
 		render: ->
@@ -75,8 +83,26 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
-			@annotationMetadata = new Views.AnnotationMetadata
-				model: model
-				collection: @project.get 'annotationtypes'
-				el: @el.querySelector('.container .middle .annotationmetadata')
+			annotationMetadata = new Views.Form
+				tpl: Templates.Metadata
+				model: @model.clone()
+				collection: @project.get('annotationtypes')
+
+			modal = new Views.Modal
+				title: "Edit annotation metadata"
+				$html: annotationMetadata.$el
+				submitValue: 'Save metadata'
+				width: '300px'
+			modal.on 'submit', =>
+				# @model.updateFromClone entryMetadata.model
+
+				# @model.get('settings').save()
+
+				# jqXHR = @model.save()
+				# jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
+
+			# @annotationMetadata = new Views.AnnotationMetadata
+			# 	model: model
+			# 	collection: @project.get 'annotationtypes'
+			# 	el: @el.querySelector('.container .middle .annotationmetadata')
 	

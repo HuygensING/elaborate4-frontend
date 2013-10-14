@@ -7,7 +7,7 @@
     config = require('config');
     Base = require('collections/base');
     Models = {
-      AnnotationType: require('models/project/annotation.type')
+      AnnotationType: require('models/project/annotationtype')
     };
     return AnnotationTypes = (function(_super) {
       __extends(AnnotationTypes, _super);

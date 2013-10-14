@@ -1,8 +1,9 @@
-ul.form
-	li
-		label Type
-		select(name="type")
-			| <% collection.each(function(item) { %>
-			| <% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
-			| <option data-id!="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
-			| <% }); %>
+form
+	ul.form
+		li
+			label Type
+			select(name="type")
+				| <% collection.each(function(item) { %>
+				| <% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
+				| <option data-id!="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
+				| <% }); %>

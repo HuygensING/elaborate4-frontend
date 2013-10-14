@@ -11,8 +11,11 @@ define (require) ->
 	# SuperTinyEditor = require 'supertinyeditor'
 
 	Models =
-		state: require 'models/state'
+		# state: require 'models/state'
 		Entry: require 'models/entry'
+
+	Collections =
+		projects: require 'collections/projects'
 
 	Views = 
 		Base: require 'views/base'
@@ -51,10 +54,8 @@ define (require) ->
 			@listenToOnce async, 'ready', => @render()
 				
 
-			Models.state.getCurrentProject (project) => 
-				@project = project # TMP
-
-				project.get('entries').fetch
+			Collections.projects.getCurrent (@project) => 
+				@project.get('entries').fetch
 					success: (collection, response, options) =>
 						# setCurrent returns the current model/entry
 						@model = collection.setCurrent @options.entryId
@@ -75,10 +76,10 @@ define (require) ->
 
 						@model.get('settings').fetch success: -> async.called 'settings'
 
-				project.get('annotationtypes').fetch
+				@project.get('annotationtypes').fetch
 					success: => async.called 'annotationtypes'
 
-				project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
+				@project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
 
 				
 
@@ -181,7 +182,6 @@ define (require) ->
 			currentMenu = null
 
 			(ev) ->
-				console.log 'toggling'
 				# The newMenu's name is set as a data-key.
 				newMenu = ev.currentTarget.getAttribute 'data-key'
 

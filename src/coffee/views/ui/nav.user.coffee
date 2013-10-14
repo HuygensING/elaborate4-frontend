@@ -3,7 +3,10 @@ define (require) ->
 
 	Models =
 		currentUser: require 'models/currentUser'
-		state: require 'models/state'
+		# state: require 'models/state'
+
+	Collections =
+		projects: require 'collections/projects'
 
 	Templates =
 		'UserNav': require 'text!html/ui/nav.user.html'
@@ -18,8 +21,7 @@ define (require) ->
 			$ct = $(ev.currentTarget)
 			$ct.addClass 'active'
 			id = $ct.attr 'data-id'
-			Models.state.setCurrentProject id
-			@publish 'navigate:project'
+			Collections.projects.setCurrent id
 
 		logout: (ev) ->
 			Models.currentUser.logout()
@@ -32,7 +34,7 @@ define (require) ->
 		render: ->
 			rtpl = _.template Templates.UserNav,
 				user: Models.currentUser.attributes
-				state: Models.state.attributes
+				projects: Collections.projects
 
 			@$el.html rtpl
 

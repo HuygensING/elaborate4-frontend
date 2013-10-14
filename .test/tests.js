@@ -61,19 +61,9 @@ define(function(require) {
       return it("", function() {});
     });
   });
-  describe("", function() {
-    return describe("", function() {
-      return it("", function() {});
-    });
-  });
   describe("module", function() {
     return describe("method", function() {
       return it("should", function() {});
-    });
-  });
-  describe("", function() {
-    return describe("", function() {
-      return it("", function() {});
     });
   });
   describe("", function() {

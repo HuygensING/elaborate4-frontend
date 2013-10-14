@@ -41,13 +41,17 @@
         this.listenTo(this.model, 'change', function(model, options) {
           _this.project.get('entries').set(model.get('results'));
           _this.listenTo(_this.project.get('entries'), 'current:change', function(entry) {
-            return _this.publish('navigate:entry', entry.id);
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+              trigger: true
+            });
           });
           _this.updateHeader();
           return _this.renderResult();
         });
-        this.project = Collections.projects.current;
-        return this.render();
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+          return _this.render();
+        });
       };
 
       ProjectSearch.prototype.render = function() {
@@ -126,7 +130,9 @@
           modal.message('success', 'Creating new entry...');
           _this.listenToOnce(entries, 'add', function(entry) {
             modal.close();
-            return _this.publish('navigate:entry', entry.id);
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+              trigger: true
+            });
           });
           return entries.create({
             name: modal.$('input[name="name"]').val()

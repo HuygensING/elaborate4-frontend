@@ -27,6 +27,6 @@ define (require) ->
 
 		render: ->
 			rtpl = _.template Templates.Login
-			@$el.html rtpl
-
+			@$el.html rtpl()
+			
 			@

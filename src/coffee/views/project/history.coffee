@@ -1,10 +1,10 @@
 define (require) ->
 	BaseView = require 'views/base'
 
-	ajax = require 'hilib/managers/ajax'
+	# ajax = require 'hilib/managers/ajax'
 
-	Models =
-		state: require 'models/state'
+	# Models =
+	# 	state: require 'models/state'
 
 	Collections =
 		History: require 'collections/project/history'
@@ -21,9 +21,7 @@ define (require) ->
 
 			@collection = new Collections.History()
 
-			Models.state.getCurrentProject (project) =>
-				@collection.fetch
-					success: => @render()
+			@collection.fetch success: => @render()
 
 		render: ->
 			rtpl = _.template Templates.History, collection: @collection

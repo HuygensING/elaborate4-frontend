@@ -36,7 +36,7 @@
       Login.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.Login);
-        this.$el.html(rtpl);
+        this.$el.html(rtpl());
         return this;
       };
 

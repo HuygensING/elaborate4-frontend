@@ -1,6 +1,7 @@
 define (require) ->
 	Backbone = require 'backbone'
 
+	history = require 'hilib/managers/history'
 
 	MainRouter = require 'routers/main'
 
@@ -25,24 +26,24 @@ define (require) ->
 	init: ->
 		# projects.once 'current:change', (current) ->
 		mainRouter = new MainRouter()
-
+		Backbone.history.start pushState: true
 		
 		# Models.currentUser.once 'authorized', -> 
 		# Models.currentUser.once 'unauthorized', ->
 
 		Models.currentUser.authorize
 			authorized: =>
-				# projects = require 'collections/projects'
+				projects.fetch()
 				projects.getCurrent (current) ->
 					header = new Views.Header managed: false
 					$('#container').prepend header.render().$el
-
-					Backbone.history.start pushState: true
-					console.log 'projects/'+projects.current.get('name')
-					mainRouter.navigate 'projects/'+projects.current.get('name'), trigger: true
+					# console.log history
+					url = history.last() ? 'projects/'+projects.current.get('name')
+					mainRouter.navigate url, trigger: true
+					# console.log url
 			unauthorized: =>
-				Backbone.history.start pushState: true
 				mainRouter.navigate 'login', trigger: true
+
 		# $('body').append new Views.Debug(managed: false).$el
 
 

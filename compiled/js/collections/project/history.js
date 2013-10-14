@@ -9,7 +9,8 @@
       state: require('models/state')
     };
     Collections = {
-      Base: require('collections/base')
+      Base: require('collections/base'),
+      projects: require('collections/projects')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);
@@ -20,9 +21,7 @@
       }
 
       ProjectHistory.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/logentries";
+        return "" + config.baseUrl + "projects/" + Collections.projects.current.id + "/logentries";
       };
 
       return ProjectHistory;

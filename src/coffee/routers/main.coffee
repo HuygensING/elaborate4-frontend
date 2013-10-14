@@ -1,17 +1,13 @@
 define (require) ->
 	Backbone = require 'backbone'
+
 	viewManager = require 'hilib/managers/view'
 	history = require 'hilib/managers/history'
-
 	Pubsub = require 'hilib/managers/pubsub'
-	currentUser = require 'models/currentUser'
 	Fn = require 'hilib/functions/general'
 
-	# Collections =
-	# 	projects: require 'collections/projects'
-
-	# Models =
-	# 	state: require 'models/state'
+	Collections =
+		projects: require 'collections/projects'
 
 	Views =
 		Login: require 'views/login'
@@ -27,41 +23,12 @@ define (require) ->
 
 			@on 'route', -> history.update()
 
-			# @subscribe 'authorized', =>
-			# 	console.log 'authorized'
-			# 	if history.last()?
-			# 		@navigate history.last(), trigger: true
-			# 	else
-			# 		console.log Collections.projects.current
-			# 		@navigate "projects/#{Collections.projects.current.get('name')}", trigger: true
-
-			# @subscribe 'unauthorized', =>
-			# 	console.log 'unauthorized'
-			# 	sessionStorage.clear()
-			# 	@navigate 'login', trigger: true if Backbone.history.fragment isnt 'login' # Check for current route cuz unauthorized can be fired multiple times (from multiple sources)
-
-			# @subscribe 'navigate:project:settings', =>
-				# console.log 'navigate:project:settings'
-				# Models.state.getCurrentProjectName (name) =>
-				# 	@navigate "projects/#{name}/settings", trigger: true
-
-			# @subscribe 'navigate:project:history', =>
-				# console.log 'navigate:project:history'
-				# Models.state.getCurrentProjectName (name) =>
-				# 	@navigate "projects/#{name}/history", trigger: true
-
-			# @subscribe 'navigate:project', =>
-				# console.log 'navigate:project'
-				# Models.state.getCurrentProjectName (name) =>
-				# 	@navigate "projects/#{name}", trigger: true
-
-			# @subscribe 'navigate:entry', (entryID) =>
-				# console.log 'navigate:entry'
-				# Models.state.getCurrentProjectName (name) =>
-				# 	@navigate "projects/#{name}/entries/#{entryID}", trigger: true
+			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
+			Collections.projects.getCurrent =>
+				@listenTo Collections.projects, 'current:change', (project) => @navigate "projects/#{project.get('name')}", trigger: true
 
 		'routes':
-			# '': 'project'
+			'': 'project'
 			'login': 'login'
 			'projects/:name': 'project'
 			'projects/:name/settings/:tab': 'projectSettings'
@@ -71,14 +38,14 @@ define (require) ->
 			'projects/:name/entries/:id/transcriptions/:name': 'entry'
 			'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
 
-		home: ->
-			viewManager.show Views.Home
+		# home: ->
+		# 	viewManager.show Views.Home
 
 		login: ->
 			viewManager.show Views.Login
 
 		project: (name) ->
-			viewManager.show Views.ProjectMain if currentUser.loggedIn
+			viewManager.show Views.ProjectMain
 
 		projectSettings: (name, tab) ->
 			viewManager.show Views.ProjectSettings,

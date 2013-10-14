@@ -36,7 +36,8 @@ define (require) ->
 			@listenTo @model, 'change', (model, options) =>
 				# Reset the entries with the newly fetched results
 				@project.get('entries').set model.get 'results'
-				@listenTo @project.get('entries'), 'current:change', (entry) => @publish 'navigate:entry', entry.id
+				@listenTo @project.get('entries'), 'current:change', (entry) =>
+					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 				
 				@updateHeader()
 				@renderResult()
@@ -45,8 +46,7 @@ define (require) ->
 			# Models.state.getCurrentProject (project) =>
 			# 	### console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once ###
 			# 	@project = project
-			@project = Collections.projects.current
-			@render()
+			Collections.projects.getCurrent (@project) => @render()
 
 		# ### Render
 		render: ->
@@ -110,7 +110,7 @@ define (require) ->
 				
 				@listenToOnce entries, 'add', (entry) =>
 					modal.close()
-					@publish 'navigate:entry', entry.id
+					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
 				entries.create {name: modal.$('input[name="name"]').val()}, wait: true
 					

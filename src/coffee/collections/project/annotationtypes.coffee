@@ -3,7 +3,7 @@ define (require) ->
 	Base = require 'collections/base'
 
 	Models =
-		AnnotationType: require 'models/project/annotation.type'
+		AnnotationType: require 'models/project/annotationtype'
 
 	class AnnotationTypes extends Base
 

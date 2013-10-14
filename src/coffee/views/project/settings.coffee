@@ -17,8 +17,8 @@ define (require) ->
 		User: require 'models/user'
 
 	Collections =
-		# projects: require 'collections/projects'
-		AnnotationTypes: require 'collections/project/annotation.types'
+		projects: require 'collections/projects'
+		AnnotationTypes: require 'collections/project/annotationtypes'
 		ProjectUsers: require 'collections/project/users'
 		AllUsers: require 'collections/users'
 
@@ -36,15 +36,16 @@ define (require) ->
 		initialize: ->
 			super
 
-			@model = new Models.Settings null,
-				projectID: Collections.projects.current.id
-			@model.fetch
-				success: => @render()
-				error: => console.log 'Error fetching settings'
+			Collections.projects.getCurrent (@project) =>
+				@model = new Models.Settings null,
+					projectID: @project.id
+				@model.fetch success: => @render()
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Settings, settings: @model.attributes
+			rtpl = _.template Templates.Settings, 
+				settings: @model.attributes
+				projectMembers: @project.get('users')
 			@$el.html rtpl
 
 			@renderSubMenu()
@@ -69,12 +70,12 @@ define (require) ->
 		renderTabs: ->
 			# Entry metadata
 			list = new Views.EditableList
-				value: Collections.projects.current.get('entrymetadatafields')
+				value: @project.get('entrymetadatafields')
 			@listenTo list, 'change', (values) => @entryMetadata.save values
 			@$('div[data-tab="metadata-entries"]').append list.el
 
 			# Annotation types
-			rtpl = _.template Templates.AnnotationTypes, annotationTypes: Collections.projects.current.get('annotationtypes')
+			rtpl = _.template Templates.AnnotationTypes, annotationTypes: @project.get('annotationtypes')
 			@$('div[data-tab="metadata-annotations"]').html rtpl
 
 			# Users
@@ -83,7 +84,7 @@ define (require) ->
 
 		renderUserTab: (collection) ->
 			combolist = new Views.ComboList
-				value: Collections.projects.current.get 'users'
+				value: @project.get 'users'
 				config:
 					data: collection
 			@listenTo combolist, 'change', (userIDs) => console.log userIDs
@@ -104,7 +105,16 @@ define (require) ->
 		events:
 			'click input[name="addannotationtype"]': 'addAnnotationType'
 			'click li[data-tab]': 'showTab'
-			'change div[data-tab] input': (ev) -> @model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
+			'change div[data-tab="project"] input': 'updateModel'
+			'change div[data-tab="project"] select': 'updateModel'
+			'click input[name="savesettings"]': 'saveSettings'
+
+		saveSettings: (ev) -> 
+			ev.preventDefault()
+
+			@model.save()
+
+		updateModel: (ev) -> @model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
 
 		showTab: (ev) ->
 			if _.isString ev
@@ -134,7 +144,7 @@ define (require) ->
 		loadStatistics: ->
 			start = new Date().getTime()
 
-			stats = new Models.Statistics()
+			stats = new Models.Statistics @project.id
 			stats.fetch (data) =>
 				str = JSON.stringify(data, null, 4)
 				

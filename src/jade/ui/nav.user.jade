@@ -4,6 +4,6 @@ ul.horizontal.menu
 			li.logout Logout
 			li.projects My projects
 				ul.vertical.menu
-					| <% state.projects.each(function(project) { %>
+					| <% projects.each(function(project) { %>
 					li.project(data-id!="<%= project.id %>") <%= project.get('title') %>
 					| <% }); %>

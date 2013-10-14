@@ -21,18 +21,29 @@ define (require) ->
 
 		className: 'main'
 
+		# ### Events
 		events:
 			'click .user .logout': -> Models.currentUser.logout() 
 			'click .user .project': 'setProject'
-			'click .project .projecttitle': -> @publish 'navigate:project'
-			'click .project .settings': -> @publish 'navigate:project:settings'
-			'click .project .search': -> @publish 'navigate:project'
-			'click .project .history': -> @publish 'navigate:project:history'
+			'click .project .projecttitle': 'navigateToProject'
+			'click .project .settings': 'navigateToProjectSettings'
+			'click .project .search': 'navigateToProject'
+			'click .project .history': 'navigateToProjectHistory'
+
+		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+		# navigateToProjectSearch: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}"
+		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
+
 			# 'click .sub li': (ev) -> @publish 'header:submenu:'+ev.currentTarget.getAttribute('data-id')
 
-		# initialize: ->
-		# 	super
+		initialize: ->
+			super
 			
+			@listenTo Collections.projects, 'current:change', (project) => @render()
+
+			Collections.projects.getCurrent (@project) =>
+
 		# 	@listenToOnce Models.currentUser, 'authorized', @render
 
 			# @subscribe 'header:renderSubmenu', @renderSubmenu
@@ -65,4 +76,4 @@ define (require) ->
 			id = ev.currentTarget.getAttribute 'data-id'
 			Collections.projects.setCurrent id
 			# * TODO: navigate always when current changes? ie listener in router?
-			@publish 'navigate:project'
+			# @publish 'navigate:project'

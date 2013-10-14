@@ -32,18 +32,39 @@
           return Models.currentUser.logout();
         },
         'click .user .project': 'setProject',
-        'click .project .projecttitle': function() {
-          return this.publish('navigate:project');
-        },
-        'click .project .settings': function() {
-          return this.publish('navigate:project:settings');
-        },
-        'click .project .search': function() {
-          return this.publish('navigate:project');
-        },
-        'click .project .history': function() {
-          return this.publish('navigate:project:history');
-        }
+        'click .project .projecttitle': 'navigateToProject',
+        'click .project .settings': 'navigateToProjectSettings',
+        'click .project .search': 'navigateToProject',
+        'click .project .history': 'navigateToProjectHistory'
+      };
+
+      Header.prototype.navigateToProject = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')), {
+          trigger: true
+        });
+      };
+
+      Header.prototype.navigateToProjectSettings = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/settings", {
+          trigger: true
+        });
+      };
+
+      Header.prototype.navigateToProjectHistory = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/history", {
+          trigger: true
+        });
+      };
+
+      Header.prototype.initialize = function() {
+        var _this = this;
+        Header.__super__.initialize.apply(this, arguments);
+        this.listenTo(Collections.projects, 'current:change', function(project) {
+          return _this.render();
+        });
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+        });
       };
 
       Header.prototype.render = function() {
@@ -59,8 +80,7 @@
       Header.prototype.setProject = function(ev) {
         var id;
         id = ev.currentTarget.getAttribute('data-id');
-        Collections.projects.setCurrent(id);
-        return this.publish('navigate:project');
+        return Collections.projects.setCurrent(id);
       };
 
       return Header;

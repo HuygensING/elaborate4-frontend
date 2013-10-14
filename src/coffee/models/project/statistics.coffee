@@ -1,20 +1,21 @@
+# * TODO: use hilib/managers/ajax
 define (require) ->
 	config = require 'config'
 	token = require 'hilib/managers/token'
 
-	Models =
-		state: require 'models/state'
+	# Models =
+	# 	state: require 'models/state'
 
 	# Collections =
 	# 	projects: require 'collections/projects'
 
 	class ProjectStatistics
 
-		constructor: ->
+		constructor: (@projectID) ->
 
 		fetch: (cb) ->
 			jqXHR = $.ajax
-				url: "#{config.baseUrl}projects/#{Collections.projects.current.id}/statistics"
+				url: "#{config.baseUrl}projects/#{@projectID}/statistics"
 				type: 'get'
 				dataType: 'json'
 				beforeSend: (xhr) =>

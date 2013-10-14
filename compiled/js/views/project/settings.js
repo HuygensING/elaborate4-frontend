@@ -19,7 +19,8 @@
       User: require('models/user')
     };
     Collections = {
-      AnnotationTypes: require('collections/project/annotation.types'),
+      projects: require('collections/projects'),
+      AnnotationTypes: require('collections/project/annotationtypes'),
       ProjectUsers: require('collections/project/users'),
       AllUsers: require('collections/users')
     };
@@ -41,23 +42,24 @@
       ProjectSettings.prototype.initialize = function() {
         var _this = this;
         ProjectSettings.__super__.initialize.apply(this, arguments);
-        this.model = new Models.Settings(null, {
-          projectID: Collections.projects.current.id
-        });
-        return this.model.fetch({
-          success: function() {
-            return _this.render();
-          },
-          error: function() {
-            return console.log('Error fetching settings');
-          }
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+          _this.model = new Models.Settings(null, {
+            projectID: _this.project.id
+          });
+          return _this.model.fetch({
+            success: function() {
+              return _this.render();
+            }
+          });
         });
       };
 
       ProjectSettings.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.Settings, {
-          settings: this.model.attributes
+          settings: this.model.attributes,
+          projectMembers: this.project.get('users')
         });
         this.$el.html(rtpl);
         this.renderSubMenu();
@@ -89,14 +91,14 @@
         var list, rtpl,
           _this = this;
         list = new Views.EditableList({
-          value: Collections.projects.current.get('entrymetadatafields')
+          value: this.project.get('entrymetadatafields')
         });
         this.listenTo(list, 'change', function(values) {
           return _this.entryMetadata.save(values);
         });
         this.$('div[data-tab="metadata-entries"]').append(list.el);
         rtpl = _.template(Templates.AnnotationTypes, {
-          annotationTypes: Collections.projects.current.get('annotationtypes')
+          annotationTypes: this.project.get('annotationtypes')
         });
         this.$('div[data-tab="metadata-annotations"]').html(rtpl);
         this.allusers = new Collections.AllUsers();
@@ -111,7 +113,7 @@
         var combolist, form,
           _this = this;
         combolist = new Views.ComboList({
-          value: Collections.projects.current.get('users'),
+          value: this.project.get('users'),
           config: {
             data: collection
           }
@@ -136,9 +138,18 @@
       ProjectSettings.prototype.events = {
         'click input[name="addannotationtype"]': 'addAnnotationType',
         'click li[data-tab]': 'showTab',
-        'change div[data-tab] input': function(ev) {
-          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
-        }
+        'change div[data-tab="project"] input': 'updateModel',
+        'change div[data-tab="project"] select': 'updateModel',
+        'click input[name="savesettings"]': 'saveSettings'
+      };
+
+      ProjectSettings.prototype.saveSettings = function(ev) {
+        ev.preventDefault();
+        return this.model.save();
+      };
+
+      ProjectSettings.prototype.updateModel = function(ev) {
+        return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
       };
 
       ProjectSettings.prototype.showTab = function(ev) {
@@ -163,7 +174,7 @@
         var start, stats,
           _this = this;
         start = new Date().getTime();
-        stats = new Models.Statistics();
+        stats = new Models.Statistics(this.project.id);
         return stats.fetch(function(data) {
           var delta, end, remaining, str;
           str = JSON.stringify(data, null, 4);

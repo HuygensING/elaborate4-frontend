@@ -22,7 +22,12 @@
 							input#title(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")
 						li
 							label(for="leader") Project leader
-							input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
+							select(name="leader", data-attr="Project leader")
+								option -- select member --
+								| <% projectMembers.each(function(member) { %>
+								option(value!="<%= member.id %>") <%= member.get('title') %>
+								| <% }); %>
+							//- input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
 						li
 							label(for="start") Start date
 							input#start(type="text", name="start", value!="<%= settings['Start date'] %>", data-attr="Start date")
@@ -33,7 +38,7 @@
 							label(for="version") Version
 							input#version(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
 						li
-							input(type="submit", name="save", value="Save settings")
+							input(type="submit", name="savesettings", value="Save settings")
 			.cell.span1
 				h4 Statistics 
 				img.loader(src="/images/loader.gif")

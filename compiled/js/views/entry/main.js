@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
+    var Async, Backbone, Collections, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
     config = require('config');
     Fn = require('hilib/functions/general');
@@ -11,8 +11,10 @@
     require('hilib/functions/jquery.mixin');
     Async = require('hilib/managers/async');
     Models = {
-      state: require('models/state'),
       Entry: require('models/entry')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Views = {
       Base: require('views/base'),
@@ -52,9 +54,9 @@
         this.listenToOnce(async, 'ready', function() {
           return _this.render();
         });
-        return Models.state.getCurrentProject(function(project) {
+        return Collections.projects.getCurrent(function(project) {
           _this.project = project;
-          project.get('entries').fetch({
+          _this.project.get('entries').fetch({
             success: function(collection, response, options) {
               _this.model = collection.setCurrent(_this.options.entryId);
               _this.model.get('transcriptions').fetch({
@@ -82,12 +84,12 @@
               });
             }
           });
-          project.get('annotationtypes').fetch({
+          _this.project.get('annotationtypes').fetch({
             success: function() {
               return async.called('annotationtypes');
             }
           });
-          return project.fetchEntrymetadatafields(function() {
+          return _this.project.fetchEntrymetadatafields(function() {
             return async.called('entrymetadatafields');
           });
         });
@@ -198,7 +200,6 @@
         currentMenu = null;
         return function(ev) {
           var newMenu;
-          console.log('toggling');
           newMenu = ev.currentTarget.getAttribute('data-key');
           if (currentMenu === newMenu) {
             $(ev.currentTarget).removeClass('rotateup');

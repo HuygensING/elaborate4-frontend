@@ -1,7 +1,8 @@
 (function() {
   define(function(require) {
-    var Backbone, MainRouter, Models, Views, projects;
+    var Backbone, MainRouter, Models, Views, history, projects;
     Backbone = require('backbone');
+    history = require('hilib/managers/history');
     MainRouter = require('routers/main');
     Models = {
       currentUser: require('models/currentUser')
@@ -25,27 +26,25 @@
         var mainRouter,
           _this = this;
         mainRouter = new MainRouter();
+        Backbone.history.start({
+          pushState: true
+        });
         Models.currentUser.authorize({
           authorized: function() {
+            projects.fetch();
             return projects.getCurrent(function(current) {
-              var header;
+              var header, url, _ref;
               header = new Views.Header({
                 managed: false
               });
               $('#container').prepend(header.render().$el);
-              Backbone.history.start({
-                pushState: true
-              });
-              console.log('projects/' + projects.current.get('name'));
-              return mainRouter.navigate('projects/' + projects.current.get('name'), {
+              url = (_ref = history.last()) != null ? _ref : 'projects/' + projects.current.get('name');
+              return mainRouter.navigate(url, {
                 trigger: true
               });
             });
           },
           unauthorized: function() {
-            Backbone.history.start({
-              pushState: true
-            });
             return mainRouter.navigate('login', {
               trigger: true
             });

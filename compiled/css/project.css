@@ -49,7 +49,8 @@ form ul li{margin-bottom:8px;}
 form ul li label{display:inline-block;width:100px;}
 form ul li label.small{width:40px}
 form ul li label.large{width:160px}
-form ul li input{border:1px solid #ccc;padding-left:4px}
+form ul li select{width:156px;border:1px solid #ccc;background:none}
+form ul li input{width:150px;border:1px solid #ccc;padding-left:4px}
 form ul li input[type="submit"]{margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px}
 
 header.main{white-space:nowrap;z-index:100;}
@@ -413,6 +414,7 @@ div p:first-child{margin-top:0}
 .projectsettings div[data-tab].active{display:block}
 .projectsettings div[data-tab] h4{margin-top:3px;margin-right:10px;display:inline-block}
 .projectsettings div[data-tab] .adduser input[type="submit"]{margin-left:0}
+.projectsettings div[data-tab] ul.selected-annotation-types{padding-left:16px}
 
 .submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}

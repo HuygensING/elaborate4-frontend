@@ -3,10 +3,18 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var AnnotationEditor, Views, _ref;
+    var AnnotationEditor, Collections, Templates, Views, _ref;
+    Collections = {
+      projects: require('collections/projects')
+    };
     Views = {
       Base: require('views/base'),
-      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor')
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
+      Modal: require('hilib/views/modal/main'),
+      Form: require('hilib/views/form/main')
+    };
+    Templates = {
+      Metadata: require('text!html/entry/annotation.metadata.html')
     };
     return AnnotationEditor = (function(_super) {
       __extends(AnnotationEditor, _super);
@@ -19,8 +27,12 @@
       AnnotationEditor.prototype.className = '';
 
       AnnotationEditor.prototype.initialize = function() {
+        var _this = this;
         AnnotationEditor.__super__.initialize.apply(this, arguments);
-        return this.render();
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+          return _this.render();
+        });
       };
 
       AnnotationEditor.prototype.render = function() {
@@ -90,11 +102,20 @@
       };
 
       AnnotationEditor.prototype.editMetadata = function() {
-        return this.annotationMetadata = new Views.AnnotationMetadata({
-          model: model,
-          collection: this.project.get('annotationtypes'),
-          el: this.el.querySelector('.container .middle .annotationmetadata')
+        var annotationMetadata, modal,
+          _this = this;
+        annotationMetadata = new Views.Form({
+          tpl: Templates.Metadata,
+          model: this.model.clone(),
+          collection: this.project.get('annotationtypes')
         });
+        modal = new Views.Modal({
+          title: "Edit annotation metadata",
+          $html: annotationMetadata.$el,
+          submitValue: 'Save metadata',
+          width: '300px'
+        });
+        return modal.on('submit', function() {});
       };
 
       return AnnotationEditor;

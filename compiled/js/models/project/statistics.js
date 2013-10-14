@@ -1,19 +1,18 @@
 (function() {
   define(function(require) {
-    var Models, ProjectStatistics, config, token;
+    var ProjectStatistics, config, token;
     config = require('config');
     token = require('hilib/managers/token');
-    Models = {
-      state: require('models/state')
-    };
     return ProjectStatistics = (function() {
-      function ProjectStatistics() {}
+      function ProjectStatistics(projectID) {
+        this.projectID = projectID;
+      }
 
       ProjectStatistics.prototype.fetch = function(cb) {
         var jqXHR,
           _this = this;
         jqXHR = $.ajax({
-          url: "" + config.baseUrl + "projects/" + Collections.projects.current.id + "/statistics",
+          url: "" + config.baseUrl + "projects/" + this.projectID + "/statistics",
           type: 'get',
           dataType: 'json',
           beforeSend: function(xhr) {
