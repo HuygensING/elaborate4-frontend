@@ -16,4 +16,11 @@ form
 			label Password
 			input(type="password", name="password")
 		li
+			label Role
+			select(name="role")
+				option USER
+				option READER
+				option PROJECTLEADER
+				option ADMIN
+		li
 			input(type="submit", name="adduser", value="Add user")

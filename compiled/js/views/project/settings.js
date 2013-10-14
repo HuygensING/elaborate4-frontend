@@ -76,14 +76,8 @@
           _this = this;
         subMenu = new Views.SubMenu();
         this.$el.prepend(subMenu.$el);
-        this.listenTo(this.model, 'change', function() {
-          return subMenu.setState('save', 'active');
-        });
-        return this.listenTo(subMenu, 'clicked', function(menuItem) {
-          if (menuItem.key === 'save') {
-            _this.model.save();
-            return subMenu.setState('save', 'inactive');
-          }
+        return this.listenTo(this.model, 'change', function() {
+          return $('input[name="savesettings"]').removeClass('inactive');
         });
       };
 
@@ -94,7 +88,7 @@
           value: this.project.get('entrymetadatafields')
         });
         this.listenTo(list, 'change', function(values) {
-          return _this.entryMetadata.save(values);
+          return new EntryMetadata(_this.project.id).save(values);
         });
         this.$('div[data-tab="metadata-entries"]').append(list.el);
         rtpl = _.template(Templates.AnnotationTypes, {
@@ -115,7 +109,10 @@
         combolist = new Views.ComboList({
           value: this.project.get('users'),
           config: {
-            data: collection
+            data: collection,
+            settings: {
+              placeholder: 'Add new member'
+            }
           }
         });
         this.listenTo(combolist, 'change', function(userIDs) {
@@ -144,8 +141,15 @@
       };
 
       ProjectSettings.prototype.saveSettings = function(ev) {
+        var _this = this;
         ev.preventDefault();
-        return this.model.save();
+        if (!$(ev.currentTarget).hasClass('inactive')) {
+          return this.model.save(null, {
+            success: function() {
+              return $(ev.currentTarget).addClass('inactive');
+            }
+          });
+        }
       };
 
       ProjectSettings.prototype.updateModel = function(ev) {
@@ -167,7 +171,8 @@
       };
 
       ProjectSettings.prototype.addAnnotationType = function(ev) {
-        return ev.preventDefault();
+        ev.preventDefault();
+        return console.log('NOT IMPLEMENTED');
       };
 
       ProjectSettings.prototype.loadStatistics = function() {

@@ -1,6 +1,8 @@
 define (require) ->
 
 	Async = require 'hilib/managers/async'
+
+	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
 	EntryMetadata = require 'entry.metadata'
 
 	Views =
@@ -61,17 +63,17 @@ define (require) ->
 			subMenu = new Views.SubMenu()
 			@$el.prepend subMenu.$el
 
-			@listenTo @model, 'change', => subMenu.setState 'save', 'active'
-			@listenTo subMenu, 'clicked', (menuItem) =>
-				if menuItem.key is 'save'
-					@model.save()
-					subMenu.setState 'save', 'inactive'
+			@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
+			# @listenTo subMenu, 'clicked', (menuItem) =>
+			# 	if menuItem.key is 'save'
+			# 		@model.save()
+			# 		subMenu.setState 'save', 'inactive'
 
 		renderTabs: ->
 			# Entry metadata
 			list = new Views.EditableList
 				value: @project.get('entrymetadatafields')
-			@listenTo list, 'change', (values) => @entryMetadata.save values
+			@listenTo list, 'change', (values) => new EntryMetadata(@project.id).save values
 			@$('div[data-tab="metadata-entries"]').append list.el
 
 			# Annotation types
@@ -87,6 +89,8 @@ define (require) ->
 				value: @project.get 'users'
 				config:
 					data: collection
+					settings:
+						placeholder: 'Add new member'
 			@listenTo combolist, 'change', (userIDs) => console.log userIDs
 
 			@$('div[data-tab="users"] .userlist').append combolist.el
@@ -112,7 +116,8 @@ define (require) ->
 		saveSettings: (ev) -> 
 			ev.preventDefault()
 
-			@model.save()
+			unless $(ev.currentTarget).hasClass 'inactive'
+				@model.save null, success: => $(ev.currentTarget).addClass 'inactive'
 
 		updateModel: (ev) -> @model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
 
@@ -134,9 +139,7 @@ define (require) ->
 		addAnnotationType: (ev) ->
 			ev.preventDefault()
 
-			# console.log ev
-			# @annotationTypes.create
-
+			console.log 'NOT IMPLEMENTED'
 
 
 		# ### Methods

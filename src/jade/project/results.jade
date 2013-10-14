@@ -1,6 +1,6 @@
 | <% _.each(model.get('results'), function(entry) { %>
 li.entry(id!="entry<%=entry.id %>") 
-	input(type="checkbox")
+	input(type="checkbox", data-id!="<%= entry.id %>")
 	label(data-id!="<%=entry.id%>") <%= entry.name %>
 	.keywords
 		ul

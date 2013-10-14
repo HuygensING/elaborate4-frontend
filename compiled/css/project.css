@@ -51,7 +51,11 @@ form ul li label.small{width:40px}
 form ul li label.large{width:160px}
 form ul li select{width:156px;border:1px solid #ccc;background:none}
 form ul li input{width:150px;border:1px solid #ccc;padding-left:4px}
-form ul li input[type="submit"]{margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px}
+form ul li input[type="checkbox"]{width:auto}
+form ul li input[type="submit"]{border:1px solid #ccc;margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px;}
+form ul li input[type="submit"].inactive{opacity:.5;cursor:default}
+button.simple{border:1px solid #ccc;margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px;}
+button.simple.inactive{opacity:.5;cursor:default}
 
 header.main{white-space:nowrap;z-index:100;}
 header.main .main{position:fixed;left:0;right:0;top:0;background-color:#000;z-index:50;}
@@ -355,7 +359,6 @@ html,body{font-family:Verdana,Arial,Helvetica,sans-serif;font-size:12px}
 ul{margin:0;padding:0}
 #container{margin:0 auto;width:100%;}
 #container #main{padding-top:88px}
-#container footer{text-align:center}
 h1,h2,h3,h4,a{color:#46aaa8}
 a:visited{color:#317776}
 div p:first-child{margin-top:0}
@@ -387,14 +390,22 @@ div p:first-child{margin-top:0}
 .menu.vertical{width:200px;text-align:left;}
 .menu.vertical ul{top:-1px;left:210px}
 
-.projectsearch .resultview header{padding-bottom:12px;border-bottom:1px solid #ddd;margin-top:10px;}
+.projectsearch .resultview header{padding-bottom:12px;border-bottom:1px solid #ddd;}
 .projectsearch .resultview header h3{margin-top:0}
 .projectsearch .resultview header nav{color:#46aaa8;}
 .projectsearch .resultview header nav ul li{margin-left:6px;cursor:pointer;display:inline-block;}
 .projectsearch .resultview header nav ul li label{color:#000;cursor:default}
-.projectsearch .resultview header .pagination{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;display:none;}
-.projectsearch .resultview header .pagination li{color:#46aaa8;padding:4px}
-.projectsearch .resultview header .pagination .inactive,.projectsearch .resultview header .pagination .text{color:#bbb;cursor:default}
+.projectsearch .resultview header .editselection-placeholder{display:none;background:#f1f1f1;box-shadow:0 0 6px #aaa;margin-bottom:20px;border-radius:6px;}
+.projectsearch .resultview header .editselection-placeholder form{padding:12px}
+.projectsearch .resultview header .editselection-placeholder li *{vertical-align:middle}
+.projectsearch .resultview header .editselection-placeholder li input[type="checkbox"]{margin-left:6px}
+.projectsearch .resultview header .editselection-placeholder footer{text-align:right;padding:0 8px 8px 0;}
+.projectsearch .resultview header .editselection-placeholder footer *{vertical-align:middle}
+.projectsearch .resultview header .editselection-placeholder footer button.cancel{background:none;border:none;box-shadow:1px 1px 2px #ccc;color:#f66;border-radius:4px}
+.projectsearch .resultview header .editselection-placeholder footer span{margin:0 4px 0 8px}
+.projectsearch .resultview header .pagination-placeholder .pagination{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;display:none;}
+.projectsearch .resultview header .pagination-placeholder .pagination li{color:#46aaa8;padding:4px}
+.projectsearch .resultview header .pagination-placeholder .pagination .inactive,.projectsearch .resultview header .pagination-placeholder .pagination .text{color:#bbb;cursor:default}
 .projectsearch .resultview > ul{margin-top:20px;list-style:none;}
 .projectsearch .resultview > ul li{margin-bottom:12px;}
 .projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px}
@@ -416,7 +427,7 @@ div p:first-child{margin-top:0}
 .projectsettings div[data-tab] .adduser input[type="submit"]{margin-left:0}
 .projectsettings div[data-tab] ul.selected-annotation-types{padding-left:16px}
 
-.submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
+.submenu{box-shadow:0 12px 12px #fff;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}
 .submenu .cell{line-height:40px;}

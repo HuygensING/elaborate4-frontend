@@ -16,7 +16,8 @@
     Views = {
       Base: require('views/base'),
       FacetedSearch: require('faceted-search'),
-      Modal: require('hilib/views/modal/main')
+      Modal: require('hilib/views/modal/main'),
+      EditSelection: require('views/project/editselection')
     };
     Templates = {
       Search: require('text!html/project/main.html'),
@@ -59,6 +60,10 @@
           _this = this;
         rtpl = _.template(Templates.Search, this.project.attributes);
         this.$el.html(rtpl);
+        this.editSelection = new Views.EditSelection({
+          el: this.el.querySelector('.editselection-placeholder'),
+          model: this.project
+        });
         this.facetedSearch = new Views.FacetedSearch({
           el: this.$('.faceted-search-placeholder'),
           baseUrl: config.baseUrl,
@@ -100,8 +105,13 @@
       };
 
       ProjectSearch.prototype.events = {
-        'click .submenu li[data-key="newsearch"]': 'newSearch',
+        'click .submenu li[data-key="newsearch"]': function() {
+          return this.facetedSearch.reset();
+        },
         'click .submenu li[data-key="newentry"]': 'newEntry',
+        'click .submenu li[data-key="editselection"]': function(ev) {
+          return this.$('.editselection-placeholder').toggle();
+        },
         'click li.entry label': 'changeCurrentEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
@@ -111,13 +121,19 @@
         'click li[data-key="deselectall"]': function() {
           return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
         },
-        'change #cb_showkeywords': 'toggleKeywords'
+        'change #cb_showkeywords': function(ev) {
+          if (ev.currentTarget.checked) {
+            return this.$('.keywords').show();
+          } else {
+            return this.$('.keywords').hide();
+          }
+        }
       };
 
       ProjectSearch.prototype.newEntry = function(ev) {
         var $html, modal,
           _this = this;
-        $html = $('<label>Name</label><input type="text" name="name" />');
+        $html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>');
         modal = new Views.Modal({
           title: "Create a new entry",
           $html: $html,
@@ -140,14 +156,6 @@
             wait: true
           });
         });
-      };
-
-      ProjectSearch.prototype.toggleKeywords = function(ev) {
-        if (ev.currentTarget.checked) {
-          return this.$('.keywords').show();
-        } else {
-          return this.$('.keywords').hide();
-        }
       };
 
       ProjectSearch.prototype.changePage = function(ev) {

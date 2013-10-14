@@ -21,11 +21,10 @@ define (require) ->
 			ajax.token = token.get()
 			jqXHR = ajax.get url: url
 
-			jqXHR.done (data) ->
-				cb data
+			jqXHR.done (data) -> cb data
 
 		save: (newValues) ->
 			ajax.token = token.get()
 			jqXHR = ajax.put
 				url: url
-				data: newValues
+				data: JSON.stringify newValues

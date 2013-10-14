@@ -23,6 +23,16 @@
         return config.baseUrl + ("projects/" + this.collection.projectId + "/entries/" + this.collection.entryId + "/transcriptions/" + this.collection.transcriptionId + "/annotations");
       };
 
+      Annotation.prototype.set = function(attrs, options) {
+        var attr;
+        if (_.isString(attrs) && attrs.substr(0, 9) === 'metadata.') {
+          attr = attrs.substr(9);
+          return this.attributes['metadata'][attr] = options;
+        } else {
+          return Annotation.__super__.set.apply(this, arguments);
+        }
+      };
+
       Annotation.prototype.defaults = function() {
         return {
           annotationMetadataItems: [],
@@ -34,7 +44,8 @@
           createdOn: '',
           creator: null,
           modifiedOn: '',
-          modifier: null
+          modifier: null,
+          metadata: {}
         };
       };
 
@@ -46,7 +57,8 @@
             url: this.url(),
             data: JSON.stringify({
               body: this.get('body'),
-              typeId: this.get('annotationType').id
+              typeId: this.get('annotationType').id,
+              metadata: this.get('metadata')
             }),
             dataType: 'text'
           });
@@ -70,7 +82,8 @@
             url: this.url(),
             data: JSON.stringify({
               body: this.get('body'),
-              typeId: this.get('annotationType').id
+              typeId: this.get('annotationType').id,
+              metadata: this.get('metadata')
             })
           });
           jqXHR.done(function(response) {

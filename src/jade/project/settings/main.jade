@@ -25,7 +25,8 @@
 							select(name="leader", data-attr="Project leader")
 								option -- select member --
 								| <% projectMembers.each(function(member) { %>
-								option(value!="<%= member.id %>") <%= member.get('title') %>
+								|<% var selected = (member.id === parseInt(settings['Project leader'], 10)) ? ' selected' : ''; %>
+								|<option value="<%= member.id %>"<%= selected %>><%= member.get('title') %></option>
 								| <% }); %>
 							//- input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
 						li
@@ -38,7 +39,7 @@
 							label(for="version") Version
 							input#version(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
 						li
-							input(type="submit", name="savesettings", value="Save settings")
+							input.inactive(type="submit", name="savesettings", value="Save settings")
 			.cell.span1
 				h4 Statistics 
 				img.loader(src="/images/loader.gif")
@@ -53,6 +54,6 @@
 	div(data-tab="users")
 		.row.span3
 			.cell.span1.userlist
-				h3 Add/remove existing user(s)
+				h3 Project members
 			.cell.span2.adduser
-				h3 Add new user
+				h3 Add new user to project

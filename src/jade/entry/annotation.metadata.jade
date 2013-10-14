@@ -1,9 +1,14 @@
 form
-	ul.form
+	ul.form(data-model-id!="<%= model.cid %>")
 		li
 			label Type
-			select(name="type")
+			select(name="metadata.type")
 				| <% collection.each(function(item) { %>
 				| <% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
-				| <option data-id!="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
+				| <option value="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
 				| <% }); %>
+		| <% _.each(model.get('annotationMetadataItems'), function(metadata) { %>
+		li 
+			label(title!="<%= metadata.annotationTypeMetadataItem.description %>") <%= metadata.annotationTypeMetadataItem.name %>
+			input(type="text", name!="metadata.<%= metadata.annotationTypeMetadataItem.name %>", value!="<%= metadata.data %>")
+		| <% }); %>

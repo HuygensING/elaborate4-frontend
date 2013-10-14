@@ -61,14 +61,14 @@ define(function(require) {
       return it("", function() {});
     });
   });
-  describe("module", function() {
-    return describe("method", function() {
-      return it("should", function() {});
-    });
-  });
   describe("", function() {
     return describe("", function() {
       return it("", function() {});
+    });
+  });
+  describe("module", function() {
+    return describe("method", function() {
+      return it("should", function() {});
     });
   });
   describe("", function() {
@@ -182,6 +182,11 @@ define(function(require) {
     return describe("setModel", function() {
       it("should set new model to @model", function() {});
       return it("should add listeners to the new @model", function() {});
+    });
+  });
+  describe("", function() {
+    return describe("", function() {
+      return it("", function() {});
     });
   });
   describe("", function() {

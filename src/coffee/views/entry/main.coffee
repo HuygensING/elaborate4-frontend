@@ -50,7 +50,7 @@ define (require) ->
 			@subviews = {}
 
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
-			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']
+			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes']
 			@listenToOnce async, 'ready', => @render()
 				
 
@@ -79,7 +79,7 @@ define (require) ->
 				@project.get('annotationtypes').fetch
 					success: => async.called 'annotationtypes'
 
-				@project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
+				# @project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
 
 				
 
@@ -214,11 +214,13 @@ define (require) ->
 
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
-			@publish 'navigate:entry', @model.collection.previous().id
+			entryID = @model.collection.previous().id
+			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
 
 
 		nextEntry: ->
-			@publish 'navigate:entry', @model.collection.next().id
+			entryID = @model.collection.next().id
+			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
 
 		changeFacsimile: (ev) ->
 			facsimileID = ev.currentTarget.getAttribute 'data-value'
@@ -294,8 +296,7 @@ define (require) ->
 				@currentTranscription = current
 				# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
 				# the user is not fast enough to click an annotation
-				@currentTranscription.getAnnotations()
-				@renderTranscription()
+				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
 			@listenTo @model.get('transcriptions'), 'add', (transcription) => 
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
 				@$('.submenu .textlayers').append li

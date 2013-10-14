@@ -83,6 +83,7 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
+			console.log @model
 			annotationMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()
@@ -94,6 +95,17 @@ define (require) ->
 				submitValue: 'Save metadata'
 				width: '300px'
 			modal.on 'submit', =>
+				metadata = annotationMetadata.model.get 'metadata'
+
+				if metadata.type?
+					@model.set 'annotationType', @project.get('annotationtypes').get(metadata.type)
+					delete metadata.type
+
+				jqXHR = @model.save()
+				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
+
+
+
 				# @model.updateFromClone entryMetadata.model
 
 				# @model.get('settings').save()

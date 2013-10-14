@@ -13,6 +13,14 @@ define (require) ->
 
 		urlRoot: -> config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
 
+		set: (attrs, options) ->
+			if _.isString(attrs) and attrs.substr(0, 9) is 'metadata.'
+				attr = attrs.substr(9)
+				@attributes['metadata'][attr] = options
+			else
+				super
+
+
 		defaults: ->
 			annotationMetadataItems: []
 			annotationNo: 'newannotation'
@@ -23,6 +31,22 @@ define (require) ->
 			creator: null
 			modifiedOn: ''
 			modifier: null
+			metadata: {}
+
+		# get: (attr) ->
+		# 	if attr is 'metadata'
+		# 		original = @get 'annotationMetadataItems'
+		# 		edited = @attributes['metadata']
+
+		# 		return @attributes['metadata']
+		# 	else	
+		# 		super
+
+		# getMetadata: ->
+		# 	console.log @get 'metadata'
+		# 	console.log @get 'annotationMetadataItems'
+
+		# 	@get 'metadata'
 
 		sync: (method, model, options) ->
 			if method is 'create'
@@ -31,6 +55,7 @@ define (require) ->
 					data: JSON.stringify
 						body: @get 'body'
 						typeId: @get('annotationType').id
+						metadata: @get 'metadata'
 					dataType: 'text'
 
 				jqXHR.done (data, textStatus, jqXHR) =>
@@ -48,6 +73,7 @@ define (require) ->
 					data: JSON.stringify
 						body: @get 'body'
 						typeId: @get('annotationType').id
+						metadata: @get 'metadata'
 				jqXHR.done (response) => options.success response
 				jqXHR.fail (response) => console.log 'fail', response
 

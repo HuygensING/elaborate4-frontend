@@ -6,18 +6,21 @@
 		.cell.span1
 			ul.horizontal.menu
 				li(data-key="newentry") New entry
-				li.arrowdown(data-key="editselection") Edit selection
+				li(data-key="editselection") Edit selection
 		.cell.span1.alignright
 			ul.horizontal.menu
 				li(data-key="print") Print
 
-.row.span3
-	.cell.span1.faceted-search-placeholder
+.row.span3(style="margin: 20px 0")
+	.cell.span1
+		.padl4
+			.faceted-search-placeholder
 
 	.cell.span2(style="position:fixed")
-		.padl4.resultview
+		.padr4.resultview
 			header
-				.row.span2
+				.editselection-placeholder
+				.row.span2.numfound-placeholder
 					.cell.span1 
 						h3.numfound
 					.cell.span1.alignright
@@ -28,7 +31,7 @@
 									label(for="cb_showkeywords") Display keywords
 								li(data-key="selectall") Select all
 								li(data-key="deselectall") Deselect all
-				.row.span2
+				.row.span2.pagination-placeholder
 					.cell.span1 
 						ul.horizontal.menu.pagination
 							li.prev.inactive &lt;
@@ -36,11 +39,6 @@
 							li.text of
 							li.pagecount.text
 							li.next &gt;
-					.cell.span1.alignright
-				.row.span2
-					.cell.span1
-						form.editmultiplemetadata
-							ul				
-					.cell.span1				
+					.cell.span1.alignright		
 
 			ul.entries

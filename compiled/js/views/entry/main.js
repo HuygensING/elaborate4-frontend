@@ -50,7 +50,7 @@
           _this = this;
         Entry.__super__.initialize.apply(this, arguments);
         this.subviews = {};
-        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
+        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes']);
         this.listenToOnce(async, 'ready', function() {
           return _this.render();
         });
@@ -84,13 +84,10 @@
               });
             }
           });
-          _this.project.get('annotationtypes').fetch({
+          return _this.project.get('annotationtypes').fetch({
             success: function() {
               return async.called('annotationtypes');
             }
-          });
-          return _this.project.fetchEntrymetadatafields(function() {
-            return async.called('entrymetadatafields');
           });
         });
       };
@@ -219,11 +216,19 @@
       })();
 
       Entry.prototype.previousEntry = function() {
-        return this.publish('navigate:entry', this.model.collection.previous().id);
+        var entryID;
+        entryID = this.model.collection.previous().id;
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/entries/" + entryID, {
+          trigger: true
+        });
       };
 
       Entry.prototype.nextEntry = function() {
-        return this.publish('navigate:entry', this.model.collection.next().id);
+        var entryID;
+        entryID = this.model.collection.next().id;
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/entries/" + entryID, {
+          trigger: true
+        });
       };
 
       Entry.prototype.changeFacsimile = function(ev) {
@@ -302,8 +307,9 @@
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
-          _this.currentTranscription.getAnnotations();
-          return _this.renderTranscription();
+          return _this.currentTranscription.getAnnotations(function(annotations) {
+            return _this.renderTranscription();
+          });
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
           var li;

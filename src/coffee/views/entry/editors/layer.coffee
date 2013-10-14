@@ -51,6 +51,8 @@ define (require) ->
 
 		hide: -> @el.style.display = 'none'
 
+		visible: -> @el.style.display is 'block'
+
 		setURLPath: ->
 			oldFragment = Backbone.history.fragment
 			# Cut off '/annotations/*' if it exists.

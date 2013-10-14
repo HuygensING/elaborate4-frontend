@@ -104,6 +104,7 @@
       AnnotationEditor.prototype.editMetadata = function() {
         var annotationMetadata, modal,
           _this = this;
+        console.log(this.model);
         annotationMetadata = new Views.Form({
           tpl: Templates.Metadata,
           model: this.model.clone(),
@@ -115,7 +116,18 @@
           submitValue: 'Save metadata',
           width: '300px'
         });
-        return modal.on('submit', function() {});
+        return modal.on('submit', function() {
+          var jqXHR, metadata;
+          metadata = annotationMetadata.model.get('metadata');
+          if (metadata.type != null) {
+            _this.model.set('annotationType', _this.project.get('annotationtypes').get(metadata.type));
+            delete metadata.type;
+          }
+          jqXHR = _this.model.save();
+          return jqXHR.done(function() {
+            return modal.messageAndFade('success', 'Metadata saved!');
+          });
+        });
       };
 
       return AnnotationEditor;

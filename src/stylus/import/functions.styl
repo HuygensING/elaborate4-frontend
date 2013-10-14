@@ -75,6 +75,17 @@ okbutton()
 cancelbutton()
 	button(#E26161, #880303)
 	
+simplebutton()
+	border 1px solid #CCC
+	margin-left 100px
+	box-shadow 1px 1px 2px #CCC
+	border-radius 4px
+	color #333
+	padding 2px 6px
+
+	&.inactive
+		opacity 0.5
+		cursor default
 
 elaboratebutton()
 	vertical_gradient(#565656, #444)

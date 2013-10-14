@@ -18,6 +18,7 @@ define (require) ->
 		Base: require 'views/base'
 		FacetedSearch: require 'faceted-search'
 		Modal: require 'hilib/views/modal/main'
+		EditSelection: require 'views/project/editselection'
 
 	Templates =
 		Search: require 'text!html/project/main.html'
@@ -53,6 +54,12 @@ define (require) ->
 			rtpl = _.template Templates.Search, @project.attributes
 			@$el.html rtpl
 
+			# Render the EditSelection view. Is toggled in the menu and can be used
+			# to edit the metadata of multiple entries at once.
+			@editSelection = new Views.EditSelection
+				el: @el.querySelector '.editselection-placeholder'
+				model: @project
+
 			@facetedSearch = new Views.FacetedSearch
 				el: @$('.faceted-search-placeholder')
 				baseUrl: config.baseUrl
@@ -86,17 +93,18 @@ define (require) ->
 
 		# ### Events
 		events:
-			'click .submenu li[data-key="newsearch"]': 'newSearch'
+			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
+			'click .submenu li[data-key="editselection"]': (ev) -> @$('.editselection-placeholder').toggle()
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
 			'click li[data-key="selectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
-			'change #cb_showkeywords': 'toggleKeywords'
+			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 
 		newEntry: (ev) ->
-			$html = $('<label>Name</label><input type="text" name="name" />')
+			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')
 
 			modal = new Views.Modal
 				title: "Create a new entry"
@@ -113,10 +121,6 @@ define (require) ->
 					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
 				entries.create {name: modal.$('input[name="name"]').val()}, wait: true
-					
-
-		toggleKeywords: (ev) ->
-			if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 
 		changePage: (ev) ->
 			ct = $(ev.currentTarget)

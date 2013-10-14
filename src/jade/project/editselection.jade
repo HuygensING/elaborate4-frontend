@@ -1,0 +1,33 @@
+//- The entrymetadatafields are split over two <div class="cell">s
+//- The left .cell renders everything smaller than length/2, the rest is
+//- rendered in the right .cell.
+//- The tabindexes are calculated using the same logic, the tabs run vertically and
+//- at the last input in the left .cell, the tab jumps to first in the right .cell.
+//- The input[type="submit"] button gets the highest tabindex.
+
+.row.span2
+	.cell.span1
+		form
+			ul
+				| <% _.each(entrymetadatafields, function(field, key, list) { %>
+				| <% if (key < list.length/2) { %>
+				li 
+					label <%= field %>
+					input(type="text", name!="<%= field %>", tabindex!="<%= (key * 2 + 1) %>")
+					input(type="checkbox", tabindex!="<%= (key * 2 + 2) %>", data-name!="<%= field %>")
+				| <% }}); %>
+	.cell.span1
+		form
+			ul
+				| <% _.each(entrymetadatafields, function(field, key, list) { %>
+				| <% if (key >= list.length/2) { %>
+				li 
+					label <%= field %>
+					input(type="text", name!="<%= field %>", tabindex!="<%= (list.length/2 + key * 2 - 1) %>")
+					input(type="checkbox", tabindex!="<%= (list.length/2 + key * 2) %>")
+				| <% }}); %>
+
+footer
+	button.simple.inactive(name="editselection", tabindex!="<%= entrymetadatafields.length * 2 + 1 %>") Save metadata
+	span or
+	button.cancel(tabindex!="<%= entrymetadatafields.length * 2 + 2 %>") Cancel

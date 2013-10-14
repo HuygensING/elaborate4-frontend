@@ -29,7 +29,7 @@
         ajax.token = token.get();
         return jqXHR = ajax.put({
           url: url,
-          data: newValues
+          data: JSON.stringify(newValues)
         });
       };
 

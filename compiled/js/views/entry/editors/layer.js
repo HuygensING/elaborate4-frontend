@@ -60,6 +60,10 @@
         return this.el.style.display = 'none';
       };
 
+      LayerEditor.prototype.visible = function() {
+        return this.el.style.display === 'block';
+      };
+
       LayerEditor.prototype.setURLPath = function() {
         var index, newFragment, newTextLayer, oldFragment, oldTextLayer;
         oldFragment = Backbone.history.fragment;
