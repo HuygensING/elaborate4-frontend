@@ -1,8 +1,0 @@
-h2 History
-
-| <% collection.each(function(item) { %>
-.row.span18
-	.cell.span2 <%= item.get('userName') %>
-	.cell.span3 <%= (new Date(item.get('createdOn'))).toDateString() %> 
-	.cell.span13 <%= item.get('comment') %>
-| <% }); %>

@@ -18,9 +18,7 @@
     };
     Views = {
       Base: require('views/base'),
-      SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
-      AnnotationMetadata: require('views/entry/annotation.metadata'),
       EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
@@ -127,7 +125,8 @@
           this.layerEditor = new Views.LayerEditor({
             el: this.el.querySelector('.transcription-placeholder'),
             model: this.currentTranscription,
-            height: this.preview.$el.innerHeight()
+            height: this.preview.$el.innerHeight(),
+            width: this.preview.$el.width() - 4
           });
         } else {
           this.layerEditor.show(this.currentTranscription);
@@ -324,8 +323,10 @@
             _this.renderFacsimile();
             _this.preview.setHeight();
             _this.layerEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+            _this.layerEditor.editor.setIframeWidth(_this.preview.$el.width() - 4);
             if (_this.annotationEditor != null) {
-              return _this.annotationEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+              _this.annotationEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+              return _this.annotationEditor.editor.setIframeWidth(_this.preview.$el.width() - 4);
             }
           });
         });

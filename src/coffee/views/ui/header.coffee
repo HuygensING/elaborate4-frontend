@@ -29,6 +29,7 @@ define (require) ->
 			'click .project .settings': 'navigateToProjectSettings'
 			'click .project .search': 'navigateToProject'
 			'click .project .history': 'navigateToProjectHistory'
+			'click .message': -> @$('.message').removeClass 'active'
 
 		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
 		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
@@ -43,6 +44,8 @@ define (require) ->
 			@listenTo Collections.projects, 'current:change', (project) => @render()
 
 			Collections.projects.getCurrent (@project) =>
+
+			@subscribe 'message', @showMessage, @
 
 		# 	@listenToOnce Models.currentUser, 'authorized', @render
 
@@ -77,3 +80,13 @@ define (require) ->
 			Collections.projects.setCurrent id
 			# * TODO: navigate always when current changes? ie listener in router?
 			# @publish 'navigate:project'
+
+		showMessage: (msg) ->
+			$message = @$('.message')
+			$message.addClass 'active'
+			$message.html msg
+
+			timer = setTimeout (=>
+				$message.removeClass 'active'
+				clearTimeout timer
+			), 7000

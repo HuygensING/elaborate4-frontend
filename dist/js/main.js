@@ -3405,6 +3405,37 @@ define('domready',[],function () {
   return Backbone;
 }));
 
+(function() {
+  define('hilib/managers/history',['require'],function(require) {
+    var History;
+    History = (function() {
+      function History() {}
+
+      History.prototype.history = [];
+
+      History.prototype.update = function() {
+        if (window.location.pathname !== '/login') {
+          this.history.push(window.location.pathname);
+        }
+        return sessionStorage.setItem('history', JSON.stringify(this.history));
+      };
+
+      History.prototype.clear = function() {
+        return sessionStorage.removeItem('history');
+      };
+
+      History.prototype.last = function() {
+        return this.history[this.history.length - 1];
+      };
+
+      return History;
+
+    })();
+    return new History();
+  });
+
+}).call(this);
+
 /* UP FOR REMOVAL*/
 
 
@@ -3448,7 +3479,6 @@ define('domready',[],function () {
           this.token = sessionStorage.getItem('huygens_token');
         }
         if (this.token == null) {
-          this.publish('unauthorized');
           return false;
         }
         return this.token;
@@ -3604,193 +3634,6 @@ define('domready',[],function () {
 
     })();
     return new ViewManager();
-  });
-
-}).call(this);
-
-(function() {
-  define('hilib/managers/history',['require'],function(require) {
-    var History;
-    History = (function() {
-      function History() {}
-
-      History.prototype.history = [];
-
-      History.prototype.update = function() {
-        if (window.location.pathname !== '/login') {
-          this.history.push(window.location.pathname);
-        }
-        return sessionStorage.setItem('history', JSON.stringify(this.history));
-      };
-
-      History.prototype.clear = function() {
-        return sessionStorage.removeItem('history');
-      };
-
-      History.prototype.last = function() {
-        return this.history[this.history.length - 1];
-      };
-
-      return History;
-
-    })();
-    return new History();
-  });
-
-}).call(this);
-
-(function() {
-  define('config',['require'],function(require) {
-    return {
-      'baseUrl': 'http://demo7.huygens.knaw.nl/elab4testBE/'
-    };
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('models/base',['require','backbone','hilib/managers/token','hilib/managers/pubsub'],function(require) {
-    var Backbone, Base, Pubsub, token, _ref;
-    Backbone = require('backbone');
-    token = require('hilib/managers/token');
-    Pubsub = require('hilib/managers/pubsub');
-    return Base = (function(_super) {
-      __extends(Base, _super);
-
-      function Base() {
-        _ref = Base.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      Base.prototype.initialize = function() {
-        return _.extend(this, Pubsub);
-      };
-
-      Base.prototype.sync = function(method, model, options) {
-        var _this = this;
-        options.beforeSend = function(xhr) {
-          return xhr.setRequestHeader('Authorization', "SimpleAuth " + (token.get()));
-        };
-        return Base.__super__.sync.call(this, method, model, options);
-      };
-
-      return Base;
-
-    })(Backbone.Model);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('models/currentUser',['require','config','hilib/managers/token','models/base','collections/base'],function(require) {
-    var Collections, CurrentUser, Models, config, token, _ref;
-    config = require('config');
-    token = require('hilib/managers/token');
-    Models = {
-      Base: require('models/base')
-    };
-    Collections = {
-      Base: require('collections/base')
-    };
-    CurrentUser = (function(_super) {
-      __extends(CurrentUser, _super);
-
-      function CurrentUser() {
-        _ref = CurrentUser.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      CurrentUser.prototype.defaults = function() {
-        return {
-          rev: null,
-          username: null,
-          title: null,
-          email: null,
-          firstName: null,
-          lastName: null,
-          root: null,
-          roleString: null,
-          loggedIn: null
-        };
-      };
-
-      CurrentUser.prototype.initialize = function() {
-        CurrentUser.__super__.initialize.apply(this, arguments);
-        return this.subscribe('unauthorized', function() {
-          return sessionStorage.clear();
-        });
-      };
-
-      CurrentUser.prototype.authorize = function() {
-        var _this = this;
-        if (token.get()) {
-          return this.fetchUserAttrs(function() {
-            return _this.publish('authorized');
-          });
-        }
-      };
-
-      CurrentUser.prototype.login = function(username, password) {
-        var _this = this;
-        this.set('username', username);
-        this.password = password;
-        return this.fetchUserAttrs(function() {
-          sessionStorage.setItem('huygens_user', JSON.stringify(_this.attributes));
-          return _this.publish('authorized');
-        });
-      };
-
-      CurrentUser.prototype.logout = function(args) {
-        var jqXHR;
-        jqXHR = $.ajax({
-          type: 'post',
-          url: config.baseUrl + ("sessions/" + (token.get()) + "/logout")
-        });
-        jqXHR.done(function() {
-          return location.reload();
-        });
-        return jqXHR.fail(function() {
-          return console.error('Logout failed');
-        });
-      };
-
-      CurrentUser.prototype.fetchUserAttrs = function(cb) {
-        var jqXHR, userAttrs,
-          _this = this;
-        if (userAttrs = sessionStorage.getItem('huygens_user')) {
-          this.set(JSON.parse(userAttrs));
-          return cb();
-        } else {
-          jqXHR = $.ajax({
-            type: 'post',
-            url: config.baseUrl + 'sessions/login',
-            data: {
-              username: this.get('username'),
-              password: this.password
-            }
-          });
-          jqXHR.done(function(data) {
-            _this.password = null;
-            token.set(data.token);
-            _this.set(data.user);
-            return cb();
-          });
-          return jqXHR.fail(function() {
-            return _this.publish('unauthorized');
-          });
-        }
-      };
-
-      return CurrentUser;
-
-    })(Models.Base);
-    return new CurrentUser();
   });
 
 }).call(this);
@@ -4060,6 +3903,9 @@ define('domready',[],function () {
       },
       checkCheckboxes: function(selector, checked, baseEl) {
         var cb, checkboxes, _i, _len, _results;
+        if (selector == null) {
+          selector = 'input[type="checkbox"]';
+        }
         if (checked == null) {
           checked = true;
         }
@@ -4090,6 +3936,15 @@ define('domready',[],function () {
           return sel.addRange(range);
         }
       }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  define('config',['require'],function(require) {
+    return {
+      'baseUrl': 'http://demo7.huygens.knaw.nl/elab4testBE/'
     };
   });
 
@@ -4129,6 +3984,131 @@ define('domready',[],function () {
         return $.ajax($.extend(ajaxArgs, args));
       }
     };
+  });
+
+}).call(this);
+
+(function() {
+  define('hilib/managers/async',['require','underscore'],function(require) {
+    var Async, _;
+    _ = require('underscore');
+    return Async = (function() {
+      function Async(names) {
+        if (names == null) {
+          names = [];
+        }
+        _.extend(this, Backbone.Events);
+        this.callbacksCalled = {};
+        this.register(names);
+      }
+
+      Async.prototype.register = function(names) {
+        var name, _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = names.length; _i < _len; _i++) {
+          name = names[_i];
+          _results.push(this.callbacksCalled[name] = false);
+        }
+        return _results;
+      };
+
+      Async.prototype.called = function(name, data) {
+        if (data == null) {
+          data = true;
+        }
+        this.callbacksCalled[name] = data;
+        if (_.every(this.callbacksCalled, function(called) {
+          return called !== false;
+        })) {
+          return this.ready();
+        }
+      };
+
+      Async.prototype.ready = function() {
+        return this.trigger('ready', this.callbacksCalled);
+      };
+
+      return Async;
+
+    })();
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/base',['require','backbone','hilib/managers/token','hilib/managers/pubsub'],function(require) {
+    var Backbone, Base, Pubsub, token, _ref;
+    Backbone = require('backbone');
+    token = require('hilib/managers/token');
+    Pubsub = require('hilib/managers/pubsub');
+    return Base = (function(_super) {
+      __extends(Base, _super);
+
+      function Base() {
+        _ref = Base.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      Base.prototype.initialize = function() {
+        return _.extend(this, Pubsub);
+      };
+
+      Base.prototype.sync = function(method, model, options) {
+        var _this = this;
+        options.beforeSend = function(xhr) {
+          return xhr.setRequestHeader('Authorization', "SimpleAuth " + (token.get()));
+        };
+        return Base.__super__.sync.call(this, method, model, options);
+      };
+
+      return Base;
+
+    })(Backbone.Model);
+  });
+
+}).call(this);
+
+(function() {
+  define('entry.metadata',['require','config','hilib/managers/token','hilib/managers/ajax'],function(require) {
+    var EntryMetadata, ajax, config, token;
+    config = require('config');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
+    return EntryMetadata = (function() {
+      var url;
+
+      url = null;
+
+      function EntryMetadata(projectID) {
+        url = "" + config.baseUrl + "projects/" + projectID + "/entrymetadatafields";
+      }
+
+      EntryMetadata.prototype.fetch = function(cb) {
+        var jqXHR;
+        ajax.token = token.get();
+        jqXHR = ajax.get({
+          url: url
+        });
+        return jqXHR.done(function(data) {
+          return cb(data);
+        });
+      };
+
+      EntryMetadata.prototype.save = function(newValues) {
+        var jqXHR;
+        ajax.token = token.get();
+        return jqXHR = ajax.put({
+          url: url,
+          data: JSON.stringify(newValues)
+        });
+      };
+
+      return EntryMetadata;
+
+    })();
   });
 
 }).call(this);
@@ -4257,10 +4237,24 @@ define('domready',[],function () {
         return _ref;
       }
 
+      Annotation.prototype.urlRoot = function() {
+        return config.baseUrl + ("projects/" + this.collection.projectId + "/entries/" + this.collection.entryId + "/transcriptions/" + this.collection.transcriptionId + "/annotations");
+      };
+
+      Annotation.prototype.set = function(attrs, options) {
+        var attr;
+        if (_.isString(attrs) && attrs.substr(0, 9) === 'metadata.') {
+          attr = attrs.substr(9);
+          return this.attributes['metadata'][attr] = options;
+        } else {
+          return Annotation.__super__.set.apply(this, arguments);
+        }
+      };
+
       Annotation.prototype.defaults = function() {
         return {
           annotationMetadataItems: [],
-          annotationNo: null,
+          annotationNo: 'newannotation',
           annotationType: {
             id: 1
           },
@@ -4268,7 +4262,8 @@ define('domready',[],function () {
           createdOn: '',
           creator: null,
           modifiedOn: '',
-          modifier: null
+          modifier: null,
+          metadata: {}
         };
       };
 
@@ -4280,7 +4275,8 @@ define('domready',[],function () {
             url: this.url(),
             data: JSON.stringify({
               body: this.get('body'),
-              typeId: this.get('annotationType').id
+              typeId: this.get('annotationType').id,
+              metadata: this.get('metadata')
             }),
             dataType: 'text'
           });
@@ -4304,7 +4300,8 @@ define('domready',[],function () {
             url: this.url(),
             data: JSON.stringify({
               body: this.get('body'),
-              typeId: this.get('annotationType').id
+              typeId: this.get('annotationType').id,
+              metadata: this.get('metadata')
             })
           });
           jqXHR.done(function(response) {
@@ -4853,7 +4850,7 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/annotation.type',['require','models/base'],function(require) {
+  define('models/project/annotationtype',['require','models/base'],function(require) {
     var AnnotationType, Models, _ref;
     Models = {
       Base: require('models/base')
@@ -4889,12 +4886,12 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/project/annotation.types',['require','config','collections/base','models/project/annotation.type'],function(require) {
+  define('collections/project/annotationtypes',['require','config','collections/base','models/project/annotationtype'],function(require) {
     var AnnotationTypes, Base, Models, config, _ref;
     config = require('config');
     Base = require('collections/base');
     Models = {
-      AnnotationType: require('models/project/annotation.type')
+      AnnotationType: require('models/project/annotationtype')
     };
     return AnnotationTypes = (function(_super) {
       __extends(AnnotationTypes, _super);
@@ -4930,17 +4927,54 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project',['require','hilib/managers/ajax','hilib/managers/token','config','models/base','collections/entries','collections/project/annotation.types'],function(require) {
-    var Collections, Models, Project, ajax, config, token, _ref;
+  define('collections/project/users',['require','config','collections/base'],function(require) {
+    var Collections, ProjectUsers, config, _ref;
+    config = require('config');
+    Collections = {
+      Base: require('collections/base')
+    };
+    return ProjectUsers = (function(_super) {
+      __extends(ProjectUsers, _super);
+
+      function ProjectUsers() {
+        _ref = ProjectUsers.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      ProjectUsers.prototype.initialize = function(models, options) {
+        ProjectUsers.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectId;
+      };
+
+      ProjectUsers.prototype.url = function() {
+        return "" + config.baseUrl + "projects/" + this.projectID + "/users";
+      };
+
+      return ProjectUsers;
+
+    })(Collections.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/project/main',['require','hilib/managers/ajax','hilib/managers/token','hilib/managers/async','config','models/base','entry.metadata','collections/entries','collections/project/annotationtypes','collections/project/users'],function(require) {
+    var Async, Collections, EntryMetadata, Models, Project, ajax, config, token, _ref;
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
+    Async = require('hilib/managers/async');
     config = require('config');
     Models = {
       Base: require('models/base')
     };
+    EntryMetadata = require('entry.metadata');
     Collections = {
       Entries: require('collections/entries'),
-      AnnotationTypes: require('collections/project/annotation.types')
+      AnnotationTypes: require('collections/project/annotationtypes'),
+      ProjectUsers: require('collections/project/users')
     };
     return Project = (function(_super) {
       __extends(Project, _super);
@@ -4956,7 +4990,7 @@ define('domready',[],function () {
           createdOn: '',
           creator: null,
           entries: null,
-          entrymetadatafields: [],
+          entrymetadatafields: null,
           level1: '',
           level2: '',
           level3: '',
@@ -4965,7 +4999,8 @@ define('domready',[],function () {
           name: '',
           projectLeaderId: null,
           textLayers: [],
-          title: ''
+          title: '',
+          users: null
         };
       };
 
@@ -4973,10 +5008,42 @@ define('domready',[],function () {
         attrs.entries = new Collections.Entries([], {
           projectId: attrs.id
         });
-        attrs.annotationtypes = new Collections.AnnotationTypes([], {
-          projectId: attrs.id
-        });
         return attrs;
+      };
+
+      Project.prototype.load = function(cb) {
+        var annotationtypes, async, users,
+          _this = this;
+        if (this.get('annotationtypes') === null && this.get('entrymetadatafields') === null && this.get('users') === null) {
+          async = new Async(['annotationtypes', 'users', 'entrymetadatafields']);
+          async.on('ready', function(data) {
+            return cb();
+          });
+          annotationtypes = new Collections.AnnotationTypes([], {
+            projectId: this.id
+          });
+          annotationtypes.fetch({
+            success: function(collection) {
+              _this.set('annotationtypes', collection);
+              return async.called('annotationtypes', collection);
+            }
+          });
+          users = new Collections.ProjectUsers([], {
+            projectId: this.id
+          });
+          users.fetch({
+            success: function(collection) {
+              _this.set('users', collection);
+              return async.called('users', collection);
+            }
+          });
+          return new EntryMetadata(this.id).fetch(function(data) {
+            _this.set('entrymetadatafields', data);
+            return async.called('entrymetadatafields', data);
+          });
+        } else {
+          return cb();
+        }
       };
 
       Project.prototype.fetchEntrymetadatafields = function(cb) {
@@ -5008,14 +5075,15 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/projects',['require','config','collections/base','models/project'],function(require) {
-    var Base, Models, Projects, config, _ref;
+  define('collections/projects',['require','config','hilib/managers/history','collections/base','models/project/main'],function(require) {
+    var Base, Models, Projects, config, history, _ref;
     config = require('config');
+    history = require('hilib/managers/history');
     Base = require('collections/base');
     Models = {
-      Project: require('models/project')
+      Project: require('models/project/main')
     };
-    return Projects = (function(_super) {
+    Projects = (function(_super) {
       __extends(Projects, _super);
 
       function Projects() {
@@ -5027,123 +5095,63 @@ define('domready',[],function () {
 
       Projects.prototype.url = config.baseUrl + 'projects';
 
-      return Projects;
-
-    })(Base);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('models/state',['require','hilib/managers/history','models/base','collections/projects'],function(require) {
-    var Collections, Models, State, history, _ref;
-    history = require('hilib/managers/history');
-    Models = {
-      Base: require('models/base')
-    };
-    Collections = {
-      Projects: require('collections/projects')
-    };
-    State = (function(_super) {
-      __extends(State, _super);
-
-      function State() {
-        _ref = State.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      State.prototype.defaults = function() {
-        return {
-          headerRendered: false,
-          currentProject: null,
-          projects: new Collections.Projects()
-        };
+      Projects.prototype.initialize = function() {
+        Projects.__super__.initialize.apply(this, arguments);
+        return this.on('sync', this.setCurrent, this);
       };
 
-      State.prototype.initialize = function() {
+      Projects.prototype.fetch = function(options) {
         var _this = this;
-        State.__super__.initialize.apply(this, arguments);
-        return this.subscribe('authorized', function() {
-          return _this.getProjects();
-        });
+        if (options == null) {
+          options = {};
+        }
+        if (!options.error) {
+          options.error = function(collection, response, options) {
+            if (response.status === 401) {
+              sessionStorage.clear();
+              return Backbone.history.navigate('login', {
+                trigger: true
+              });
+            }
+          };
+        }
+        return Projects.__super__.fetch.call(this, options);
       };
 
-      State.prototype._getCurrentProject = function(cb, prop) {
-        var returnProp,
-          _this = this;
-        returnProp = function(model) {
-          var returnVal;
-          returnVal = prop != null ? model.get(prop) : model;
-          return cb(returnVal);
-        };
-        if (this.get('currentProject') != null) {
-          return returnProp(this.get('currentProject'));
+      Projects.prototype.getCurrent = function(cb) {
+        var _this = this;
+        if (this.current != null) {
+          return cb(this.current);
         } else {
-          return this.once('change:currentProject', function(stateModel, projectModel, options) {
-            return returnProp(projectModel);
+          return this.once('current:change', function() {
+            return cb(_this.current);
           });
         }
       };
 
-      State.prototype.getCurrentProjectId = function(cb) {
-        return this._getCurrentProject(cb, 'id');
-      };
-
-      State.prototype.getCurrentProjectName = function(cb) {
-        return this._getCurrentProject(cb, 'name');
-      };
-
-      State.prototype.getCurrentProject = function(cb) {
-        return this._getCurrentProject(cb);
-      };
-
-      State.prototype.setCurrentProject = function(id) {
-        var fragmentPart, project;
+      Projects.prototype.setCurrent = function(id) {
+        var fragmentPart,
+          _this = this;
         fragmentPart = history.last() != null ? history.last().split('/') : [];
-        if (id != null) {
-          project = this.get('projects').get(id);
+        if ((id != null) && _.isString(id)) {
+          this.current = this.get(id);
         } else if (fragmentPart[1] === 'projects') {
-          project = this.get('projects').find(function(p) {
+          this.current = this.find(function(p) {
             return p.get('name') === fragmentPart[2];
           });
         } else {
-          project = this.get('projects').first();
+          this.current = this.first();
         }
-        return this.set('currentProject', project);
-      };
-
-      State.prototype.onHeaderRendered = function(cb) {
-        if (this.get('headerRendered')) {
-          return cb();
-        } else {
-          return this.subscribe('header:render:complete', function() {
-            cb();
-            return this.set('headerRendered', true);
-          });
-        }
-      };
-
-      State.prototype.getProjects = function() {
-        var _this = this;
-        return this.get('projects').fetch({
-          success: function(collection) {
-            return _this.setCurrentProject();
-          },
-          error: function(collection, response, options) {
-            if (response.status === 401) {
-              return _this.publish('unauthorized');
-            }
-          }
+        this.current.load(function() {
+          return _this.trigger('current:change', _this.current);
         });
+        return this.current;
       };
 
-      return State;
+      return Projects;
 
-    })(Models.Base);
-    return new State();
+    })(Base);
+    return new Projects();
   });
 
 }).call(this);
@@ -5186,6 +5194,125 @@ define('domready',[],function () {
       return BaseView;
 
     })(Backbone.View);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/currentUser',['require','config','hilib/managers/token','models/base','collections/base'],function(require) {
+    var Collections, CurrentUser, Models, config, token, _ref;
+    config = require('config');
+    token = require('hilib/managers/token');
+    Models = {
+      Base: require('models/base')
+    };
+    Collections = {
+      Base: require('collections/base')
+    };
+    CurrentUser = (function(_super) {
+      __extends(CurrentUser, _super);
+
+      function CurrentUser() {
+        _ref = CurrentUser.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      CurrentUser.prototype.defaults = function() {
+        return {
+          rev: null,
+          username: null,
+          title: null,
+          email: null,
+          firstName: null,
+          lastName: null,
+          root: null,
+          roleString: null,
+          loggedIn: null
+        };
+      };
+
+      CurrentUser.prototype.initialize = function() {
+        CurrentUser.__super__.initialize.apply(this, arguments);
+        this.loggedIn = false;
+        return this.subscribe('unauthorized', function() {
+          return sessionStorage.clear();
+        });
+      };
+
+      CurrentUser.prototype.authorize = function(args) {
+        var _this = this;
+        this.authorized = args.authorized, this.unauthorized = args.unauthorized;
+        if (token.get()) {
+          return this.fetchUserAttrs(function() {
+            _this.authorized();
+            return _this.loggedIn = true;
+          });
+        } else {
+          return this.unauthorized();
+        }
+      };
+
+      CurrentUser.prototype.login = function(username, password) {
+        var _this = this;
+        this.set('username', username);
+        this.password = password;
+        return this.fetchUserAttrs(function() {
+          sessionStorage.setItem('huygens_user', JSON.stringify(_this.attributes));
+          _this.authorized();
+          return _this.loggedIn = true;
+        });
+      };
+
+      CurrentUser.prototype.logout = function(args) {
+        var jqXHR;
+        jqXHR = $.ajax({
+          type: 'post',
+          url: config.baseUrl + ("sessions/" + (token.get()) + "/logout")
+        });
+        jqXHR.done(function() {
+          sessionStorage.clear();
+          return location.reload();
+        });
+        return jqXHR.fail(function() {
+          return console.error('Logout failed');
+        });
+      };
+
+      CurrentUser.prototype.fetchUserAttrs = function(cb) {
+        var jqXHR, userAttrs,
+          _this = this;
+        if (userAttrs = sessionStorage.getItem('huygens_user')) {
+          this.set(JSON.parse(userAttrs));
+          return cb();
+        } else {
+          jqXHR = $.ajax({
+            type: 'post',
+            url: config.baseUrl + 'sessions/login',
+            data: {
+              username: this.get('username'),
+              password: this.password
+            }
+          });
+          jqXHR.done(function(data) {
+            _this.password = null;
+            token.set(data.token);
+            _this.set(data.user);
+            return cb();
+          });
+          return jqXHR.fail(function() {
+            console.log('herer!');
+            return _this.unauthorized();
+          });
+        }
+      };
+
+      return CurrentUser;
+
+    })(Models.Base);
+    return new CurrentUser();
   });
 
 }).call(this);
@@ -5577,7 +5704,7 @@ define('text',['module'], function (module) {
     return text;
 });
 
-define('text!html/login.html',[],function () { return '<div class="cell span2"><div class="padl5 padr5"><p>\t\neLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. \nAccess to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/</p><p>eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission \nto members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. \nThe edition will then become available online in a sober design which will be elaborated on step by step in the next few years.</p><p><p>The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. \nThe new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of <a href="http://alfalab.ehumanities.nl">Alfalab</a>.</p></p><p><p>Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.\nFor more information: <a href="info-elaborate@huygens.knaw.nl">info-elaborate@huygens.knaw.nl</a></p></p><h2>eLaborate2</h2><p>Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/\nIn the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.</p><h2>Links</h2><p>More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)</p><p> <p>Links to digital editions prepared in eLaborate2 are listed at <a href="http://www.e-laborate.nl/en/">http://www.e-laborate.nl/en/</a></p></p><p> <p>Information about tools for digital text analysis can be found in Alfalab&#39;s Textlab. <a href="http://alfalab.ehumanities.nl/textlab">http://alfalab.ehumanities.nl/textlab</a></p></p><p> <p>Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at <a href="http://www.textualscholarship.nl/">http://www.textualscholarship.nl/</a></p></p><p> <p>More about Huygens ING at <a href="http://www.huygens.knaw.nl/">http://www.huygens.knaw.nl/</a></p></p></div></div><div class="cell span1 alignright"><div class="padl5 padr5"><form class="login"><label>Username</label><input id="username" type="text" name="username" value="root"/><br/><label>Password</label><input id="password" type="password" name="password" value="toor"/><br/><input id="submit" type="submit" value="Login"/></form></div></div>';});
+define('text!html/login.html',[],function () { return '<div class="cell span2"><div class="padl5 padr5"><p>\t\neLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. \nAccess to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/</p><p>eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission \nto members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. \nThe edition will then become available online in a sober design which will be elaborated on step by step in the next few years.</p><p><p>The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. \nThe new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of <a href="http://alfalab.ehumanities.nl">Alfalab</a>.</p></p><p><p>Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.\nFor more information: <a href="info-elaborate@huygens.knaw.nl">info-elaborate@huygens.knaw.nl</a></p></p><h2>eLaborate2</h2><p>Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/\nIn the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.</p><h2>Links</h2><p>More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)</p><p> <p>Links to digital editions prepared in eLaborate2 are listed at <a href="http://www.e-laborate.nl/en/">http://www.e-laborate.nl/en/</a></p></p><p> <p>Information about tools for digital text analysis can be found in Alfalab&#39;s Textlab. <a href="http://alfalab.ehumanities.nl/textlab">http://alfalab.ehumanities.nl/textlab</a></p></p><p> <p>Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at <a href="http://www.textualscholarship.nl/">http://www.textualscholarship.nl/</a></p></p><p> <p>More about Huygens ING at <a href="http://www.huygens.knaw.nl/">http://www.huygens.knaw.nl/</a></p></p></div></div><div class="cell span1 alignright"><div class="padl5 padr5"><form class="login region"><ul><li><label>Username</label><input id="username" type="text" name="username" value="root"/></li><li><label>Password</label><input id="password" type="password" name="password" value="toor"/></li><li><input id="submit" type="submit" value="Login" style="width: 75px"/></li></ul></form></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
@@ -5617,7 +5744,7 @@ define('text!html/login.html',[],function () { return '<div class="cell span2"><
       Login.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.Login);
-        this.$el.html(rtpl);
+        this.$el.html(rtpl());
         return this;
       };
 
@@ -5652,7 +5779,7 @@ define('text!html/login.html',[],function () { return '<div class="cell span2"><
 
 }).call(this);
 
-(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.10",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;if(u.indexOf("empty:")===0){r();return}!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'<div class="placeholder pad4"><header><h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'<div class="options"><ul><% _.each(options, function(option) { %><li class="option"><div class="row span6"><div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>"><label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label></div><div class="cell span1 alignright"><div class="count"><%= option.count %></div></div></div></li><% }); %></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'<header><h3 data-name="<%= name %>"><%= title %></h3></header><div class="body"><label>From:</label><select><% _.each(options, function(option) { %><option><%= option %></option><% }); %></select><label>To:</label><select><% _.each(options.reverse(), function(option) { %><option><%= option %></option><% }); %></select></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(n){var r;return r=n("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},r.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}(),highlighter:function(e){var t,n,i;return e==null&&(e={}),t=e.className,i=e.tagName,t==null&&(t="hilite"),i==null&&(i="span"),n=null,{on:function(e){var r,s,o;return o=e.startNode,r=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(r),n=document.createElement(i),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return r(n).replaceWith(function(){return r(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=r(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(n,r,i){var s,o;r==null&&(r={}),i==null&&(i="");for(s in n){if(!e.call(n,s))continue;o=n[s],t.isObject(o)&&!t.isArray(o)&&!t.isFunction(o)?this.flattenObject(o,r,i+s+"."):r[i+s]=o}return r},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e){var t,n;return t=document.createRange(),t.selectNodeContents(e),t.collapse(),n=window.getSelection(),n.removeAllRanges(),n.addRange(t),e.focus()}}})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0)}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count)}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.options.html",[],function(){return'<ul><% _.each(options, function(option) { %>\n<% var randomId = generateID(); %>\n<% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n<% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n<% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %><li class="option"><div data-count="<%= option.get(\'count\') %>" class="row span6"><div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>><label for="<%= randomId %>"><%= labelText %></label></div><div class="cell span1 alignright"><div class="count"><%= count %></div></div></div></li><% }); %></ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),u={Base:e("views/base")},s={List:e("models/list")},o={Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'}),s("text!html/facet/list.body.html",[],function(){return'<div class="options"><ul></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return i.__super__.initialize.apply(this,arguments),this.model=new o.List(e.attrs,{parse:!0}),this.collection=new r.Options(e.attrs.options,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,r=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),this.optionsView=new a.Options({el:this.$(".body .options"),collection:this.collection,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return r.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.collection.updateOptions(e)},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),t.support.cors=!0,{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","hilib/managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("hilib/managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(){var e=this;r.__super__.initialize.apply(this,arguments),this.on("change:sort",function(){return e.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %><div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>><label for="cb_searchin_annotations">Annotations</label></li><% } %>\n<% if (\'searchInTranscriptions\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>><label for="cb_searchin_transcriptions">Transcriptions</label></li><% } %></ul></div></div><% } %>\n<% if (\'textLayers\' in searchOptions) { %><div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %><li class="textlayer"><input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/><label for="cb_textlayer_<%= tl %>"><%= tl %></label></li><% }); %></ul></div></div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'<div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div style="display: none; text-align: center; margin-top: 20px" class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l;return a=r("config"),f=r("facetviewmap"),s={FacetedSearch:r("models/main")},u={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},o={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return l=i.__super__.constructor.apply(this,arguments),l}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(f,e.facetViewMap),delete e.facetViewMap,t.extend(a.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(a,e),n=t.extend(a.queryOptions,a.textSearchOptions),this.model=new s.FacetedSearch(n),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(o.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),a.search&&(n=new u.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.fetchResults(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in f?(n=f[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){var t=this;return e==null&&(e={}),this.model.set(e),this.model.fetch({success:function(){return t.renderFacets()}})},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.sortResultsBy=function(e){return this.model.set({sort:e})},i.prototype.reset=function(){return this.model.clear()},i}(u.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
+(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(n){var r;return r=n("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},r.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=0,function(t,n){return clearTimeout(e),e=setTimeout(n,t)}}(),highlighter:function(e){var t,n,i;return e==null&&(e={}),t=e.className,i=e.tagName,t==null&&(t="hilite"),i==null&&(i="span"),n=null,{on:function(e){var r,s,o;return o=e.startNode,r=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(r),n=document.createElement(i),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return r(n).replaceWith(function(){return r(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=r(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(n,r,i){var s,o;r==null&&(r={}),i==null&&(i="");for(s in n){if(!e.call(n,s))continue;o=n[s],t.isObject(o)&&!t.isArray(o)&&!t.isFunction(o)?this.flattenObject(o,r,i+s+"."):r[i+s]=o}return r},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e){var t,n;return t=document.createRange(),t.selectNodeContents(e),t.collapse(),n=window.getSelection(),n.removeAllRanges(),n.addRange(t),e.focus()}}})}.call(this),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),s("text",["module"],function(e){var t,n,r,s,o,u=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],a=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,f=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,l=typeof location!="undefined"&&location.href,c=l&&location.protocol&&location.protocol.replace(/\:/,""),h=l&&location.hostname,p=l&&(location.port||undefined),d={},v=e.config&&e.config()||{};t={version:"2.0.10",strip:function(e){if(e){e=e.replace(a,"");var t=e.match(f);t&&(e=t[1])}else e="";return e},jsEscape:function(e){return e.replace(/(['\\])/g,"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r").replace(/[\u2028]/g,"\\u2028").replace(/[\u2029]/g,"\\u2029")},createXhr:v.createXhr||function(){var e,t,n;if(typeof XMLHttpRequest!="undefined")return new XMLHttpRequest;if(typeof ActiveXObject!="undefined")for(t=0;t<3;t+=1){n=u[t];try{e=new ActiveXObject(n)}catch(r){}if(e){u=[n];break}}return e},parseName:function(e){var t,n,r,i=!1,s=e.indexOf("."),o=e.indexOf("./")===0||e.indexOf("../")===0;return s!==-1&&(!o||s>1)?(t=e.substring(0,s),n=e.substring(s+1,e.length)):t=e,r=n||t,s=r.indexOf("!"),s!==-1&&(i=r.substring(s+1)==="strip",r=r.substring(0,s),n?n=r:t=r),{moduleName:t,ext:n,strip:i}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(e,n,r,i){var s,o,u,a=t.xdRegExp.exec(e);return a?(s=a[2],o=a[3],o=o.split(":"),u=o[1],o=o[0],(!s||s===n)&&(!o||o.toLowerCase()===r.toLowerCase())&&(!u&&!o||u===i)):!0},finishLoad:function(e,n,r,i){r=n?t.strip(r):r,v.isBuild&&(d[e]=r),i(r)},load:function(e,n,r,i){if(i.isBuild&&!i.inlineText){r();return}v.isBuild=i.isBuild;var s=t.parseName(e),o=s.moduleName+(s.ext?"."+s.ext:""),u=n.toUrl(o),a=v.useXhr||t.useXhr;if(u.indexOf("empty:")===0){r();return}!l||a(u,c,h,p)?t.get(u,function(n){t.finishLoad(e,s.strip,n,r)},function(e){r.error&&r.error(e)}):n([o],function(e){t.finishLoad(s.moduleName+"."+s.ext,s.strip,e,r)})},write:function(e,n,r,i){if(d.hasOwnProperty(n)){var s=t.jsEscape(d[n]);r.asModule(e+"!"+n,"define(function () { return '"+s+"';});\n")}},writeFile:function(e,n,r,i,s){var o=t.parseName(n),u=o.ext?"."+o.ext:"",a=o.moduleName+u,f=r.toUrl(o.moduleName+u)+".js";t.load(a,r,function(n){var r=function(e){return i(f,e)};r.asModule=function(e,t){return i.asModule(e,f,t)},t.write(e,a,r,s)},s)}};if(v.env==="node"||!v.env&&typeof process!="undefined"&&process.versions&&!!process.versions.node&&!process.versions["node-webkit"])n=i.nodeRequire("fs"),t.get=function(e,t,r){try{var i=n.readFileSync(e,"utf8");i.indexOf("﻿")===0&&(i=i.substring(1)),t(i)}catch(s){r(s)}};else if(v.env==="xhr"||!v.env&&t.createXhr())t.get=function(e,n,r,i){var s=t.createXhr(),o;s.open("GET",e,!0);if(i)for(o in i)i.hasOwnProperty(o)&&s.setRequestHeader(o.toLowerCase(),i[o]);v.onXhr&&v.onXhr(s,e),s.onreadystatechange=function(t){var i,o;s.readyState===4&&(i=s.status,i>399&&i<600?(o=new Error(e+" HTTP status: "+i),o.xhr=s,r(o)):n(s.responseText),v.onXhrComplete&&v.onXhrComplete(s,e))},s.send(null)};else if(v.env==="rhino"||!v.env&&typeof Packages!="undefined"&&typeof java!="undefined")t.get=function(e,t){var n,r,i="utf-8",s=new java.io.File(e),o=java.lang.System.getProperty("line.separator"),u=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(s),i)),a="";try{n=new java.lang.StringBuffer,r=u.readLine(),r&&r.length()&&r.charAt(0)===65279&&(r=r.substring(1)),r!==null&&n.append(r);while((r=u.readLine())!==null)n.append(o),n.append(r);a=String(n.toString())}finally{u.close()}t(a)};else if(v.env==="xpconnect"||!v.env&&typeof Components!="undefined"&&Components.classes&&Components.interfaces)r=Components.classes,s=Components.interfaces,Components.utils["import"]("resource://gre/modules/FileUtils.jsm"),o="@mozilla.org/windows-registry-key;1"in r,t.get=function(e,t){var n,i,u,a={};o&&(e=e.replace(/\//g,"\\")),u=new FileUtils.File(e);try{n=r["@mozilla.org/network/file-input-stream;1"].createInstance(s.nsIFileInputStream),n.init(u,1,0,!1),i=r["@mozilla.org/intl/converter-input-stream;1"].createInstance(s.nsIConverterInputStream),i.init(n,"utf-8",n.available(),s.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER),i.readString(n.available(),a),i.close(),n.close(),t(a.value)}catch(f){throw new Error((u&&u.path||"")+": "+f)}};return t}),s("text!html/facet.html",[],function(){return'<div class="placeholder pad4"><header><h3 data-name="<%= name %>"><%= title %></h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/facet",["require","views/base","text!html/facet.html"],function(n){var i,s,o,u;return o={Base:n("views/base")},s={Facet:n("text!html/facet.html")},i=function(n){function i(){return u=i.__super__.constructor.apply(this,arguments),u}return r(i,n),i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments)},i.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},i.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},i.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},i.prototype.render=function(){var e;return e=t.template(s.Facet,this.model.attributes),this.$el.html(e),this},i.prototype.update=function(e){},i}(o.Base)})}.call(this),s("text!html/facet/boolean.body.html",[],function(){return'<div class="options"><ul><% _.each(options, function(option) { %><li class="option"><div class="row span6"><div class="cell span5"><input id="<%= name %>_<%= option.name %>" name="<%= name %>_<%= option.name %>" type="checkbox" data-value="<%= option.name %>"><label for="<%= name %>_<%= option.name %>"><%= ucfirst(option.name) %></label></div><div class="cell span1 alignright"><div class="count"><%= option.count %></div></div></div></li><% }); %></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","text!html/facet/boolean.body.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},u={Facet:e("views/facet")},o={Body:e("text!html/facet/boolean.body.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Body,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r.prototype.reset=function(){return this.render()},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),s("text!html/facet/date.html",[],function(){return'<header><h3 data-name="<%= name %>"><%= title %></h3></header><div class="body"><label>From:</label><select><% _.each(options, function(option) { %><option><%= option %></option><% }); %></select><label>To:</label><select><% _.each(options.reverse(), function(option) { %><option><%= option %></option><% }); %></select></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","text!html/facet/date.html"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},u={Facet:e("views/facet")},o={Date:e("text!html/facet/date.html")},r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=t.template(o.Date,t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r.prototype.reset=function(){},r}(u.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.revert=function(){var e=this;return this.each(function(e){return e.set("checked",!1,{silent:!0})}),this.trigger("change")},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0,{silent:!0})}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count,{silent:!0})}),this.sort()},r}(r.Base)})}.call(this),s("text!html/facet/list.options.html",[],function(){return'<ul><% _.each(options, function(option) { %>\n<% var randomId = generateID(); %>\n<% var checked = (option.get(\'checked\')) ? \'checked\' : \'\'; %>\n<% var count = (option.get(\'count\') === 0) ? option.get(\'total\') : option.get(\'count\'); %>\n<% var labelText = (option.id === \':empty\') ? \'<i>(empty)</i>\' : option.id %><li class="option"><div data-count="<%= option.get(\'count\') %>" class="row span6"><div class="cell span5"><input id="<%= randomId %>" name="<%= randomId %>" type="checkbox" data-value="<%= option.id %>" <%= checked %>><label for="<%= randomId %>"><%= labelText %></label></div><div class="cell span1 alignright"><div class="count"><%= count %></div></div></div></li><% }); %></ul>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","text!html/facet/list.options.html"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),u={Base:e("views/base")},s={List:e("models/list")},o={Options:e("text!html/facet/list.options.html")},i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.listenTo(this.collection,"change",this.render),this.render()},i.prototype.render=function(){var e,n;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,n=t.template(o.Options,{options:e,generateID:r.generateID}),this.$el.html(n)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(u.Base)})}.call(this),s("text!html/facet/list.menu.html",[],function(){return'<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'}),s("text!html/facet/list.body.html",[],function(){return'<div class="options"><ul></ul></div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","text!html/facet/list.menu.html","text!html/facet/list.body.html"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},a={Facet:e("views/facet"),Options:e("views/facets/list.options")},u={Menu:e("text!html/facet/list.menu.html"),Body:e("text!html/facet/list.body.html")},s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return this.options=e,i.__super__.initialize.apply(this,arguments),this.model=new o.List(this.options.attrs,{parse:!0}),this.render()},i.prototype.render=function(){var e,n,s,o=this;return i.__super__.render.apply(this,arguments),n=t.template(u.Menu,this.model.attributes),e=t.template(u.Body,this.model.attributes),this.$(".options").html(n),this.$(".body").html(e),s=new r.Options(this.options.attrs.options,{parse:!0}),this.optionsView=new a.Options({el:this.$(".body .options"),collection:s,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return o.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.optionsView.collection.updateOptions(e)},i.prototype.reset=function(){return this.optionsView.collection.revert()},i}(a.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t;return t=e("jquery"),t.support.cors=!0,{token:null,get:function(e){return this.fire("get",e)},post:function(e){return this.fire("post",e)},put:function(e){return this.fire("put",e)},fire:function(e,n){var r,i=this;return r={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&(r.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+i.token)}),t.ajax(t.extend(r,n))}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","config","hilib/managers/ajax","models/base"],function(e){var r,i,s,o,u;return o=e("config"),s=e("hilib/managers/ajax"),i={Base:e("models/base")},r=function(e){function r(){return u=r.__super__.constructor.apply(this,arguments),u}return n(r,e),r.prototype.serverResponse={},r.prototype.defaults=function(){return{facetValues:[]}},r.prototype.initialize=function(e,t){var n=this;this.attrs=e,r.__super__.initialize.apply(this,arguments),this.on("change",function(){return n.fetch()});if(this.has("resultRows"))return this.resultRows=this.get("resultRows"),this.unset("resultRows")},r.prototype.fetch=function(e){var t=this;return e==null&&(e={}),e.error=function(e,t,n){return console.log("fetching results failed",e,t,n)},r.__super__.fetch.apply(this,arguments)},r.prototype.parse=function(){return{}},r.prototype.set=function(e,n){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),r.__super__.set.call(this,e,n)},r.prototype.handleResponse=function(e){return this.serverResponse=e,this.publish("results:change",e,this.attributes)},r.prototype.setCursor=function(e){var t,n=this;if(this.serverResponse[e])return t=s.get({url:this.serverResponse[e]}),t.done(function(e){return n.handleResponse(e)}),t.fail(function(){return console.error("setCursor failed")})},r.prototype.sync=function(e,t,n){var r,i=this;if(e==="read")return s.token=o.token,r=s.post({url:o.baseUrl+o.searchPath,data:JSON.stringify(this.attributes),dataType:"text"}),r.done(function(e,t,r){var o,u;if(r.status===201)return o=r.getResponseHeader("Location"),i.resultRows!=null&&(o+="?rows="+i.resultRows),u=s.get({url:o}),u.done(function(e,t,r){return i.handleResponse(e),n.success(e)})}),r.fail(function(e,t,n){if(e.status===401)return i.publish("unauthorized")})},r.prototype.reset=function(){return this.clear({silent:!0}),this.set(this.defaults(),{silent:!0}),this.set(this.attrs,{silent:!0}),this.fetch()},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),s("text!html/facet/search.menu.html",[],function(){return'<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div><% if (\'searchInAnnotations\' in searchOptions || \'searchInTranscriptions\' in searchOptions) { %>\n<% cb_searchin_annotations_checked = (\'searchInAnnotations\' in searchOptions && searchOptions.searchInAnnotations) ? \' checked \' : \'\' %>\n<% cb_searchin_transcriptions_checked = (\'searchInTranscriptions\' in searchOptions && searchOptions.searchInTranscriptions) ? \' checked \' : \'\' %><div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins"><% if (\'searchInAnnotations\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_annotations" type="checkbox" data-prop="searchInAnnotations"<%= cb_searchin_annotations_checked %>><label for="cb_searchin_annotations">Annotations</label></li><% } %>\n<% if (\'searchInTranscriptions\' in searchOptions) { %><li class="searchin"><input id="cb_searchin_transcriptions" type="checkbox" data-prop="searchInTranscriptions"<%= cb_searchin_transcriptions_checked %>><label for="cb_searchin_transcriptions">Transcriptions</label></li><% } %></ul></div></div><% } %>\n<% if (\'textLayers\' in searchOptions) { %><div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers"><% _.each(searchOptions.textLayers, function(tl) { %><li class="textlayer"><input id="cb_textlayer_<%= tl %>" type="checkbox" data-proparr="textLayers"/><label for="cb_textlayer_<%= tl %>"><%= tl %></label></li><% }); %></ul></div></div><% } %>'}),s("text!html/facet/search.body.html",[],function(){return'<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'}),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","text!html/facet/search.menu.html","text!html/facet/search.body.html"],function(n){var i,s,o,u,a,f;return a=n("config"),i={Search:n("models/search")},u={Facet:n("views/facet")},o={Menu:n("text!html/facet/search.menu.html"),Body:n("text!html/facet/search.body.html")},s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button.search":"search"})},s.prototype.search=function(e){var t=this;return e.preventDefault(),this.$("#search").addClass("loading"),this.trigger("change",{term:this.$("#search").val()}),this.subscribe("results:change",function(){return t.$("#search").removeClass("loading")})},s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.model=new i.Search({searchOptions:a.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,u=this;return s.__super__.render.apply(this,arguments),i=t.template(o.Menu,this.model.attributes),n=t.template(o.Body,this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,u.model.set(r,n)})}),this},s}(u.Facet)})}.call(this),s("text!html/faceted-search.html",[],function(){return'\n<div class="faceted-search">\n  <form>\n    <div class="search-placeholder"></div>\n    <div class="facets">\n      <div class="loader">\n        <h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/>\n      </div>\n    </div>\n  </form>\n</div>'}),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("main",["require","hilib/functions/general","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","text!html/faceted-search.html"],function(r){var i,s,o,u,a,f,l,c;return s=r("hilib/functions/general"),f=r("config"),l=r("facetviewmap"),o={FacetedSearch:r("models/main")},a={Base:r("views/base"),Search:r("views/search"),Facets:{List:r("views/facets/list"),Boolean:r("views/facets/boolean"),Date:r("views/facets/date")}},u={FacetedSearch:r("text!html/faceted-search.html")},i=function(r){function i(){return c=i.__super__.constructor.apply(this,arguments),c}return n(i,r),i.prototype.initialize=function(e){var n,r=this;return i.__super__.initialize.apply(this,arguments),this.facetViews={},this.firstRender=!0,t.extend(l,e.facetViewMap),delete e.facetViewMap,t.extend(f.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(f,e),n=t.extend(f.queryOptions,f.textSearchOptions),this.model=new o.FacetedSearch(n),this.listenTo(this.model,"sync",this.renderFacets),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("results:change",function(e,t){return r.trigger("results:change",e,t)}),this.render()},i.prototype.render=function(){var e,n;return e=t.template(u.FacetedSearch),this.$el.html(e),this.$(".loader").fadeIn("slow"),f.search&&(n=new a.Search,this.$(".search-placeholder").html(n.$el),this.listenTo(n,"change",this.fetchResults)),this.model.fetch(),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a;this.$(".loader").hide();if(this.firstRender){this.firstRender=!1,i=document.createDocumentFragment(),o=this.model.serverResponse.facets;for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in l?(n=l[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",this.fetchResults),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}u=this.model.serverResponse.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.fetchResults=function(e){return e==null&&(e={}),this.model.set(e)},i.prototype.next=function(){return this.model.setCursor("_next")},i.prototype.prev=function(){return this.model.setCursor("_prev")},i.prototype.hasNext=function(){return t.has(this.model.serverResponse,"_next")},i.prototype.hasPrev=function(){return t.has(this.model.serverResponse,"_prev")},i.prototype.reset=function(){var t,n,r;r=this.model.serverResponse.facets;for(n in r){if(!e.call(r,n))continue;t=r[n],this.facetViews[t.name].reset&&this.facetViews[t.name].reset()}return this.model.reset()},i}(a.Base)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
 define('text!hilib/views/modal/modal.html',[],function () { return '<div class="overlay"></div><div class="modalbody"><header><h2><%= title %></h2><p class="message"></p></header><div class="body"></div><% if (cancelAndSubmit) { %><footer><button class="cancel"><%= cancelValue %></button><button class="submit"><%= submitValue %></button></footer><% } %></div>';});
 
 (function() {
@@ -5810,35 +5937,152 @@ define('text!hilib/views/modal/modal.html',[],function () { return '<div class="
 
 }).call(this);
 
-define('text!html/project/main.html',[],function () { return '<div class="submenu"><div class="row span3"><div class="cell span1"><ul class="horizontal menu"><li data-key="newsearch">New search</li></ul></div><div class="cell span1"><ul class="horizontal menu"><li data-key="newentry">New entry</li><li data-key="editselection" class="arrowdown">Edit selection</li></ul></div><div class="cell span1 alignright"><ul class="horizontal menu"><li data-key="print">Print</li></ul></div></div></div><div class="row span3"><div class="cell span1 faceted-search-placeholder"></div><div style="position:fixed" class="cell span2"><div class="padl4 resultview"><header><div class="row span2"><div class="cell span1"> <h3 class="numfound"></h3></div><div class="cell span1 alignright"><nav><ul><li> <input id="cb_showkeywords" type="checkbox"/><label for="cb_showkeywords">Display keywords</label></li><li data-key="selectall">Select all</li><li data-key="deselectall">Deselect all</li></ul></nav></div></div><div class="row span2"><div class="cell span1"> <ul class="horizontal menu pagination"><li class="prev inactive">&lt;</li><li class="currentpage text"></li><li class="text">of</li><li class="pagecount text"></li><li class="next">&gt;</li></ul></div><div class="cell span1 alignright"></div></div></header><ul class="entries"></ul></div></div></div>';});
-
-define('text!html/project/results.html',[],function () { return '<% _.each(model.get(\'results\'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>\n<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>\n<% }); %></ul></div></li><% }); %>';});
+define('text!html/project/editselection.html',[],function () { return '<div class="row span2"><div class="cell span1"><form><ul><% _.each(entrymetadatafields, function(field, key, list) { %>\n<% if (key < list.length/2) { %><li> <label><%= field %></label><input type="text" name="<%= field %>" tabindex="<%= (key * 2 + 1) %>"/><input type="checkbox" tabindex="<%= (key * 2 + 2) %>" data-name="<%= field %>"/></li><% }}); %></ul></form></div><div class="cell span1"><form><ul><% _.each(entrymetadatafields, function(field, key, list) { %>\n<% if (key >= list.length/2) { %><li> <label><%= field %></label><input type="text" name="<%= field %>" tabindex="<%= (list.length/2 + key * 2 - 1) %>"/><input type="checkbox" tabindex="<%= (list.length/2 + key * 2) %>"/></li><% }}); %></ul></form></div></div><footer><button name="savemetadata" tabindex="<%= entrymetadatafields.length * 2 + 1 %>" class="simple inactive">Save metadata</button><span>or</span><button name="cancel" tabindex="<%= entrymetadatafields.length * 2 + 2 %>">Cancel</button></footer>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/project/search','models/state','views/base','faceted-search','hilib/views/modal/main','text!html/project/main.html','text!html/project/results.html'],function(require) {
-    var Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
+  define('views/project/editselection',['require','hilib/managers/ajax','hilib/managers/token','views/base','text!html/project/editselection.html'],function(require) {
+    var EditSelection, Templates, Views, ajax, token, _ref;
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
+    Views = {
+      Base: require('views/base')
+    };
+    Templates = {
+      EditSelection: require('text!html/project/editselection.html')
+    };
+    return EditSelection = (function(_super) {
+      __extends(EditSelection, _super);
+
+      function EditSelection() {
+        _ref = EditSelection.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditSelection.prototype.initialize = function() {
+        EditSelection.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      EditSelection.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Templates.EditSelection, this.model.attributes);
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      EditSelection.prototype.events = function() {
+        return {
+          'click button[name="savemetadata"]': 'saveEditSelection',
+          'click button[name="cancel"]': function() {
+            return this.hide();
+          },
+          'keyup input[type="text"]': 'checkInput',
+          'change input[type="checkbox"]': 'toggleInactive'
+        };
+      };
+
+      EditSelection.prototype.checkInput = function(ev) {
+        var cb;
+        cb = ev.currentTarget.nextSibling;
+        cb.checked = ev.currentTarget.value.trim().length > 0;
+        return this.toggleInactive();
+      };
+
+      EditSelection.prototype.toggleInactive = function() {
+        var entryCBs, metadataCBs;
+        entryCBs = document.querySelectorAll('.entries input[type="checkbox"]:checked');
+        metadataCBs = this.el.querySelectorAll('input[type=checkbox]:checked');
+        if (entryCBs.length === 0 || metadataCBs.length === 0) {
+          return this.$('button[name="savemetadata"]').addClass('inactive');
+        } else {
+          return this.$('button[name="savemetadata"]').removeClass('inactive');
+        }
+      };
+
+      EditSelection.prototype.saveEditSelection = function(ev) {
+        var entryIDs, jqXHR, settings,
+          _this = this;
+        ev.preventDefault();
+        if (!$(ev.currentTarget).hasClass('inactive')) {
+          entryIDs = _.map(document.querySelectorAll('.entries input[type="checkbox"]:checked'), function(cb) {
+            return parseInt(cb.getAttribute('data-id'), 10);
+          });
+          settings = {};
+          _.each(this.el.querySelectorAll('input[type="checkbox"]:checked'), function(cb) {
+            var key, value;
+            key = cb.getAttribute('data-name');
+            value = _this.el.querySelector("input[name='" + key + "']").value;
+            if (value.trim().length > 0) {
+              return settings[key] = value;
+            }
+          });
+          if (entryIDs.length > 0 && _.size(settings) > 0) {
+            ajax.token = token.get();
+            jqXHR = ajax.put({
+              url: "projects/" + this.model.id + "/multipleentrysettings",
+              data: JSON.stringify({
+                projectEntryIds: entryIDs,
+                settings: settings
+              }),
+              dataType: 'text'
+            });
+            jqXHR.done(function() {
+              _this.hide();
+              return _this.publish('message', 'Metadata of multiple entries saved.');
+            });
+            return jqXHR.fail(function(jqXHR, textStatus, errorThrown) {
+              return console.log(jqXHR, textStatus, errorThrown);
+            });
+          }
+        }
+      };
+
+      EditSelection.prototype.hide = function() {
+        this.trigger('close');
+        this.el.querySelector('form').reset();
+        return this.el.style.display = 'none';
+      };
+
+      return EditSelection;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/project/main.html',[],function () { return '<div class="submenu"><div class="row span3"><div class="cell span1"><ul class="horizontal menu"><li data-key="newsearch">New search</li></ul></div><div class="cell span1"><ul class="horizontal menu"><li data-key="newentry">New entry</li><li data-key="editselection">Edit selection</li></ul></div><div class="cell span1 alignright"><ul class="horizontal menu"><li data-key="print">Print</li></ul></div></div></div><div style="margin: 20px 0" class="row span3"><div class="cell span1"><div class="padl4"><div class="faceted-search-placeholder"></div></div></div><div style="position:fixed" class="cell span2"><div class="padr4 resultview"><header><div class="editselection-placeholder"></div><div class="row span2 numfound-placeholder"><div class="cell span1"> <h3 class="numfound"></h3></div><div class="cell span1 alignright"><nav><ul><li> <input id="cb_showkeywords" type="checkbox"/><label for="cb_showkeywords">Display keywords</label></li><li data-key="selectall">Select all</li><li data-key="deselectall">Deselect all</li></ul></nav></div></div><div class="row span2 pagination-placeholder"><div class="cell span1"> <ul class="horizontal menu pagination"><li class="prev inactive">&lt;</li><li class="currentpage text"></li><li class="text">of</li><li class="pagecount text"></li><li class="next">&gt;</li></ul></div><div class="cell span1 alignright">\t\t</div></div></header><ul class="entries"></ul></div></div></div>';});
+
+define('text!html/project/results.html',[],function () { return '<% _.each(model.get(\'results\'), function(entry) { %><li id="entry<%=entry.id %>" class="entry"> <input type="checkbox" data-id="<%= entry.id %>"/><label data-id="<%=entry.id%>"><%= entry.name %></label><div class="keywords"><ul><% _.each(entry._kwic, function(kwic) { %>\n<% _.each(kwic, function(row) { %><li><%= row %></li><% }); %>\n<% }); %></ul></div></li><% }); %>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/project/search','collections/projects','views/base','faceted-search','hilib/views/modal/main','views/project/editselection','text!html/project/main.html','text!html/project/results.html'],function(require) {
+    var Collections, Fn, Models, ProjectSearch, Templates, Views, config, token, _ref;
     Fn = require('hilib/functions/general');
     config = require('config');
     token = require('hilib/managers/token');
     Models = {
-      Search: require('models/project/search'),
-      state: require('models/state')
+      Search: require('models/project/search')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Views = {
       Base: require('views/base'),
       FacetedSearch: require('faceted-search'),
-      Modal: require('hilib/views/modal/main')
+      Modal: require('hilib/views/modal/main'),
+      EditSelection: require('views/project/editselection')
     };
     Templates = {
       Search: require('text!html/project/main.html'),
       Results: require('text!html/project/results.html')
     };
     return ProjectSearch = (function(_super) {
-      var _this = this;
-
       __extends(ProjectSearch, _super);
 
       function ProjectSearch() {
@@ -5855,14 +6099,14 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
         this.listenTo(this.model, 'change', function(model, options) {
           _this.project.get('entries').set(model.get('results'));
           _this.listenTo(_this.project.get('entries'), 'current:change', function(entry) {
-            return _this.publish('navigate:entry', entry.id);
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+              trigger: true
+            });
           });
           _this.updateHeader();
           return _this.renderResult();
         });
-        return Models.state.getCurrentProject(function(project) {
-          /* console.log 'callback called' # FIX Callback is called twice on login! But initialize is only run once*/
-
+        return Collections.projects.getCurrent(function(project) {
           _this.project = project;
           return _this.render();
         });
@@ -5873,6 +6117,11 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
           _this = this;
         rtpl = _.template(Templates.Search, this.project.attributes);
         this.$el.html(rtpl);
+        this.editSelection = new Views.EditSelection({
+          el: this.el.querySelector('.editselection-placeholder'),
+          model: this.project
+        });
+        this.listenTo(this.editSelection, 'close', this.uncheckCheckboxes);
         this.facetedSearch = new Views.FacetedSearch({
           el: this.$('.faceted-search-placeholder'),
           baseUrl: config.baseUrl,
@@ -5886,6 +6135,9 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
           queryOptions: {
             resultRows: 12
           }
+        });
+        this.listenTo(this.facetedSearch, 'unauthorized', function() {
+          return _this.publish('unauthorized');
         });
         this.listenTo(this.facetedSearch, 'results:change', function(response, queryOptions) {
           _this.model.queryOptions = queryOptions;
@@ -5911,24 +6163,36 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
       };
 
       ProjectSearch.prototype.events = {
-        'click .submenu li[data-key="newsearch"]': 'newSearch',
+        'click .submenu li[data-key="newsearch"]': function() {
+          return this.facetedSearch.reset();
+        },
         'click .submenu li[data-key="newentry"]': 'newEntry',
+        'click .submenu li[data-key="editselection"]': function(ev) {
+          return this.$('.editselection-placeholder').toggle();
+        },
         'click li.entry label': 'changeCurrentEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
         'click li[data-key="selectall"]': function() {
-          return Fn.checkCheckboxes('.entries input[type="checkbox"]', true, ProjectSearch.el);
+          return Fn.checkCheckboxes('.entries input[type="checkbox"]', true, this.el);
         },
-        'click li[data-key="deselectall"]': function() {
-          return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
+        'click li[data-key="deselectall"]': 'uncheckCheckboxes',
+        'change #cb_showkeywords': function(ev) {
+          if (ev.currentTarget.checked) {
+            return this.$('.keywords').show();
+          } else {
+            return this.$('.keywords').hide();
+          }
         },
-        'change #cb_showkeywords': 'toggleKeywords'
+        'change .entry input[type="checkbox"]': function() {
+          return this.editSelection.toggleInactive();
+        }
       };
 
       ProjectSearch.prototype.newEntry = function(ev) {
         var $html, modal,
           _this = this;
-        $html = $('<label>Name</label><input type="text" name="name" />');
+        $html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>');
         modal = new Views.Modal({
           title: "Create a new entry",
           $html: $html,
@@ -5941,7 +6205,10 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
           modal.message('success', 'Creating new entry...');
           _this.listenToOnce(entries, 'add', function(entry) {
             modal.close();
-            return _this.publish('navigate:entry', entry.id);
+            _this.publish('message', 'New entry added to project.');
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+              trigger: true
+            });
           });
           return entries.create({
             name: modal.$('input[name="name"]').val()
@@ -5949,14 +6216,6 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
             wait: true
           });
         });
-      };
-
-      ProjectSearch.prototype.toggleKeywords = function(ev) {
-        if (ev.currentTarget.checked) {
-          return this.$('.keywords').show();
-        } else {
-          return this.$('.keywords').hide();
-        }
       };
 
       ProjectSearch.prototype.changePage = function(ev) {
@@ -5977,6 +6236,10 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
         var entryID;
         entryID = ev.currentTarget.getAttribute('data-id');
         return this.project.get('entries').setCurrent(entryID);
+      };
+
+      ProjectSearch.prototype.uncheckCheckboxes = function() {
+        return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, this.el);
       };
 
       ProjectSearch.prototype.updateHeader = function() {
@@ -6001,104 +6264,12 @@ define('text!html/project/results.html',[],function () { return '<% _.each(model
 
       return ProjectSearch;
 
-    }).call(this, Views.Base);
+    })(Views.Base);
   });
 
 }).call(this);
 
-(function() {
-  define('hilib/managers/async',['require','underscore'],function(require) {
-    var Async, _;
-    _ = require('underscore');
-    return Async = (function() {
-      function Async(names) {
-        if (names == null) {
-          names = [];
-        }
-        _.extend(this, Backbone.Events);
-        this.callbacksCalled = {};
-        this.register(names);
-      }
-
-      Async.prototype.register = function(names) {
-        var name, _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = names.length; _i < _len; _i++) {
-          name = names[_i];
-          _results.push(this.callbacksCalled[name] = false);
-        }
-        return _results;
-      };
-
-      Async.prototype.called = function(name, data) {
-        if (data == null) {
-          data = true;
-        }
-        this.callbacksCalled[name] = data;
-        if (_.every(this.callbacksCalled, function(called) {
-          return called !== false;
-        })) {
-          return this.ready();
-        }
-      };
-
-      Async.prototype.ready = function() {
-        return this.trigger('ready', this.callbacksCalled);
-      };
-
-      return Async;
-
-    })();
-  });
-
-}).call(this);
-
-(function() {
-  define('entry.metadata',['require','config','hilib/managers/token','hilib/managers/ajax','models/state'],function(require) {
-    var EntryMetadata, Models, ajax, config, token;
-    config = require('config');
-    token = require('hilib/managers/token');
-    ajax = require('hilib/managers/ajax');
-    Models = {
-      state: require('models/state')
-    };
-    return EntryMetadata = (function() {
-      var url;
-
-      url = null;
-
-      function EntryMetadata(projectID) {
-        url = "" + config.baseUrl + "projects/" + projectID + "/entrymetadatafields";
-      }
-
-      EntryMetadata.prototype.fetch = function(cb) {
-        var jqXHR;
-        ajax.token = token.get();
-        jqXHR = ajax.get({
-          url: url
-        });
-        return jqXHR.done(function(data) {
-          return cb(data);
-        });
-      };
-
-      EntryMetadata.prototype.save = function(newValues) {
-        var jqXHR;
-        ajax.token = token.get();
-        return jqXHR = ajax.put({
-          url: url,
-          data: newValues
-        });
-      };
-
-      return EntryMetadata;
-
-    })();
-  });
-
-}).call(this);
-
-define('text!html/ui/settings.submenu.html',[],function () { return '<div class="row span7"><div class="cell span3 left"><ul class="horizontal menu"><li data-key="save" class="inactive">Saved</li></ul></div><div class="cell span2 aligncenter"><ul class="horizontal menu"></ul></div><div class="cell span2 alignright"><ul class="horizontal menu"></ul></div></div>';});
+define('text!html/ui/settings.submenu.html',[],function () { return '';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
@@ -6248,7 +6419,7 @@ define('text!hilib/views/form/editablelist/main.html',[],function () { return '<
 
 }).call(this);
 
-define('text!hilib/views/form/combolist/main.html',[],function () { return '<div class="input"><input type="text" data-view-id="<%= viewId %>"/><div class="caret"></div></div><% if (editable) { %><button class="edit">Edit</button><% } %><ul class="list"></ul><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>" class="selected"><%= model.get(\'title\') %></li><% }); %></ul>';});
+define('text!hilib/views/form/combolist/main.html',[],function () { return '<div class="input"><input type="text" data-view-id="<%= viewId %>" placeholder="<%= placeholder %>"/><div class="caret"></div></div><% if (editable) { %><button class="edit">Edit</button><% } %><ul class="list"></ul><ul class="selected"><% selected.each(function(model) { %><li data-id="<%= model.id %>" class="selected"><%= model.get(\'title\') %></li><% }); %></ul>';});
 
 (function() {
   define('hilib/mixins/dropdown/options',['require'],function(require) {
@@ -6347,7 +6518,8 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
           viewId: this.cid,
           selected: this.selected,
           mutable: this.settings.mutable,
-          editable: this.settings.editable
+          editable: this.settings.editable,
+          placeholder: this.settings.placeholder
         });
         this.$el.html(rtpl);
         this.$optionlist = this.$('ul.list');
@@ -6746,7 +6918,8 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
         this.data.viewId = this.cid;
         if (this.model != null) {
           this.data.model = this.model;
-        } else if (this.collection != null) {
+        }
+        if (this.collection != null) {
           this.data.collection = this.collection;
         }
         rtpl = _.template(this.tpl, this.data);
@@ -6856,31 +7029,28 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 }).call(this);
 
 (function() {
-  define('models/project/statistics',['require','config','hilib/managers/token','models/state'],function(require) {
-    var Models, ProjectStatistics, config, token;
+  define('models/project/statistics',['require','config','hilib/managers/token'],function(require) {
+    var ProjectStatistics, config, token;
     config = require('config');
     token = require('hilib/managers/token');
-    Models = {
-      state: require('models/state')
-    };
     return ProjectStatistics = (function() {
-      function ProjectStatistics() {}
+      function ProjectStatistics(projectID) {
+        this.projectID = projectID;
+      }
 
       ProjectStatistics.prototype.fetch = function(cb) {
-        var _this = this;
-        return Models.state.getCurrentProjectId(function(id) {
-          var jqXHR;
-          jqXHR = $.ajax({
-            url: "" + config.baseUrl + "projects/" + id + "/statistics",
-            type: 'get',
-            dataType: 'json',
-            beforeSend: function(xhr) {
-              return xhr.setRequestHeader('Authorization', "SimpleAuth " + (token.get()));
-            }
-          });
-          return jqXHR.done(function(data) {
-            return cb(data);
-          });
+        var jqXHR,
+          _this = this;
+        jqXHR = $.ajax({
+          url: "" + config.baseUrl + "projects/" + this.projectID + "/statistics",
+          type: 'get',
+          dataType: 'json',
+          beforeSend: function(xhr) {
+            return xhr.setRequestHeader('Authorization', "SimpleAuth " + (token.get()));
+          }
+        });
+        return jqXHR.done(function(data) {
+          return cb(data);
         });
       };
 
@@ -6895,14 +7065,13 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/settings',['require','config','hilib/managers/token','hilib/managers/ajax','models/base','models/state'],function(require) {
+  define('models/project/settings',['require','config','hilib/managers/token','hilib/managers/ajax','models/base'],function(require) {
     var Models, ProjectSettings, ajax, config, token, _ref;
     config = require('config');
     token = require('hilib/managers/token');
     ajax = require('hilib/managers/ajax');
     Models = {
-      Base: require('models/base'),
-      state: require('models/state')
+      Base: require('models/base')
     };
     return ProjectSettings = (function(_super) {
       __extends(ProjectSettings, _super);
@@ -6913,9 +7082,12 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
       }
 
       ProjectSettings.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/settings";
+        return "" + config.baseUrl + "projects/" + this.projectID + "/settings";
+      };
+
+      ProjectSettings.prototype.initialize = function(attrs, options) {
+        ProjectSettings.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectID;
       };
 
       ProjectSettings.prototype.sync = function(method, model, options) {
@@ -6975,7 +7147,7 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
           email: '',
           firstName: '',
           lastName: '',
-          role: 'User',
+          role: 'USER',
           password: ''
         };
       };
@@ -7034,40 +7206,6 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/project/users',['require','config','models/state','collections/base'],function(require) {
-    var Collections, Models, ProjectUsers, config, _ref;
-    config = require('config');
-    Models = {
-      state: require('models/state')
-    };
-    Collections = {
-      Base: require('collections/base')
-    };
-    return ProjectUsers = (function(_super) {
-      __extends(ProjectUsers, _super);
-
-      function ProjectUsers() {
-        _ref = ProjectUsers.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      ProjectUsers.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/users";
-      };
-
-      return ProjectUsers;
-
-    })(Collections.Base);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
   define('collections/users',['require','config','collections/base'],function(require) {
     var Collections, Users, config, _ref;
     config = require('config');
@@ -7093,19 +7231,21 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 
 }).call(this);
 
-define('text!html/project/settings/main.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><input id="leader" type="text" name="leader" value="<%= settings[\'Project leader\'] %>" data-attr="Project leader"/></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="save" value="Save settings"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Add/remove existing user(s)</h3></div><div class="cell span2 adduser"><h3>Add new user</h3></div></div></div></div>';});
+define('text!html/project/settings/main.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><select name="leader" data-attr="Project leader"><option>-- select member --</option><% projectMembers.each(function(member) { %>\n<% var selected = (member.id === parseInt(settings[\'Project leader\'], 10)) ? \' selected\' : \'\'; %>\n<option value="<%= member.id %>"<%= selected %>><%= member.get(\'title\') %></option>\n<% }); %></select></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="savesettings" value="Save settings" class="inactive"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Project members</h3></div><div class="cell span2 adduser"><h3>Add new user to project</h3></div></div></div></div>';});
 
-define('text!html/project/settings/metadata_annotations.html',[],function () { return '<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
+define('text!html/project/settings/metadata_annotations.html',[],function () { return '<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul class="selected-annotation-types"><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
 
-define('text!html/project/settings/adduser.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><input type="text" name="username" placeholder="Username"/></li><li><input type="text" name="email" placeholder="E-mail"/></li><li><input type="text" name="firstName" placeholder="First name"/></li><li><input type="text" name="lastName" placeholder="Last name"/></li><li><input type="password" name="password" placeholder="Password"/></li><li><input type="submit" name="adduser" value="Add user"/></li></ul></form>';});
+define('text!html/project/settings/adduser.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><label>Username</label><input type="text" name="username"/></li><li><label>E-mail</label><input type="text" name="email"/></li><li><label>First name</label><input type="text" name="firstName"/></li><li><label>Last name</label><input type="text" name="lastName"/></li><li><label>Password</label><input type="password" name="password"/></li><li><label>Role</label><select name="role"><option value="USER">USER</option><option value="READER">READER</option><option value="PROJECTLEADER">PROJECTLEADER</option><option value="ADMIN">ADMIN</option></select></li><li><input type="submit" name="adduser" value="Add user"/></li></ul></form>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/settings',['require','hilib/managers/async','entry.metadata','views/base','views/ui/settings.submenu','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','models/project/statistics','models/project/settings','models/state','models/user','collections/project/annotation.types','collections/project/users','collections/users','text!html/project/settings/main.html','text!html/project/settings/metadata_annotations.html','text!html/project/settings/adduser.html'],function(require) {
-    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, _ref;
+  define('views/project/settings',['require','hilib/managers/async','hilib/managers/ajax','hilib/managers/token','entry.metadata','views/base','views/ui/settings.submenu','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','models/project/statistics','models/project/settings','models/user','collections/projects','collections/project/annotationtypes','collections/project/users','collections/users','text!html/project/settings/main.html','text!html/project/settings/metadata_annotations.html','text!html/project/settings/adduser.html'],function(require) {
+    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, ajax, token, _ref;
     Async = require('hilib/managers/async');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     EntryMetadata = require('entry.metadata');
     Views = {
       Base: require('views/base'),
@@ -7117,11 +7257,11 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
     Models = {
       Statistics: require('models/project/statistics'),
       Settings: require('models/project/settings'),
-      state: require('models/state'),
       User: require('models/user')
     };
     Collections = {
-      AnnotationTypes: require('collections/project/annotation.types'),
+      projects: require('collections/projects'),
+      AnnotationTypes: require('collections/project/annotationtypes'),
       ProjectUsers: require('collections/project/users'),
       AllUsers: require('collections/users')
     };
@@ -7143,15 +7283,14 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
       ProjectSettings.prototype.initialize = function() {
         var _this = this;
         ProjectSettings.__super__.initialize.apply(this, arguments);
-        this.model = new Models.Settings();
-        return Models.state.getCurrentProject(function(project) {
-          _this.model.projectID = project.id;
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+          _this.model = new Models.Settings(null, {
+            projectID: _this.project.id
+          });
           return _this.model.fetch({
             success: function() {
               return _this.render();
-            },
-            error: function() {
-              return console.log('Error fetching settings');
             }
           });
         });
@@ -7160,11 +7299,12 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
       ProjectSettings.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.Settings, {
-          settings: this.model.attributes
+          settings: this.model.attributes,
+          projectMembers: this.project.get('users')
         });
         this.$el.html(rtpl);
         this.renderSubMenu();
-        this.loadTabData();
+        this.renderTabs();
         this.loadStatistics();
         if (this.options.tabName) {
           this.showTab(this.options.tabName);
@@ -7177,23 +7317,92 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
           _this = this;
         subMenu = new Views.SubMenu();
         this.$el.prepend(subMenu.$el);
-        this.listenTo(this.model, 'change', function() {
-          return subMenu.setState('save', 'active');
+        return this.listenTo(this.model, 'change', function() {
+          return $('input[name="savesettings"]').removeClass('inactive');
         });
-        return this.listenTo(subMenu, 'clicked', function(menuItem) {
-          if (menuItem.key === 'save') {
-            _this.model.save();
-            return subMenu.setState('save', 'inactive');
+      };
+
+      ProjectSettings.prototype.renderTabs = function() {
+        var list, rtpl,
+          _this = this;
+        list = new Views.EditableList({
+          value: this.project.get('entrymetadatafields')
+        });
+        this.listenTo(list, 'change', function(values) {
+          return new EntryMetadata(_this.project.id).save(values);
+        });
+        this.$('div[data-tab="metadata-entries"]').append(list.el);
+        rtpl = _.template(Templates.AnnotationTypes, {
+          annotationTypes: this.project.get('annotationtypes')
+        });
+        this.$('div[data-tab="metadata-annotations"]').html(rtpl);
+        this.allusers = new Collections.AllUsers();
+        return this.allusers.fetch({
+          success: function(collection) {
+            return _this.renderUserTab(collection);
           }
         });
+      };
+
+      ProjectSettings.prototype.renderUserTab = function(collection) {
+        var combolist, form,
+          _this = this;
+        combolist = new Views.ComboList({
+          value: this.project.get('users'),
+          config: {
+            data: collection,
+            settings: {
+              placeholder: 'Add new member'
+            }
+          }
+        });
+        this.listenTo(combolist, 'change', function(userIDs) {
+          return console.log(userIDs);
+        });
+        this.$('div[data-tab="users"] .userlist').append(combolist.el);
+        form = new Views.Form({
+          Model: Models.User,
+          tpl: Templates.AddUser
+        });
+        this.listenTo(form, 'save:success', function(model, response, options) {
+          var jqXHR;
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: "projects/" + (_this.project.get('name')) + "/projectusers/" + model.id,
+            dataType: 'text'
+          });
+          return jqXHR.done(function() {
+            return combolist.addSelected(model);
+          });
+        });
+        this.listenTo(form, 'save:error', function(a, b, c) {
+          return console.log('erro', a, b, c);
+        });
+        return this.$('div[data-tab="users"] .adduser').append(form.el);
       };
 
       ProjectSettings.prototype.events = {
         'click input[name="addannotationtype"]': 'addAnnotationType',
         'click li[data-tab]': 'showTab',
-        'change div[data-tab] input': function(ev) {
-          return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
+        'change div[data-tab="project"] input': 'updateModel',
+        'change div[data-tab="project"] select': 'updateModel',
+        'click input[name="savesettings"]': 'saveSettings'
+      };
+
+      ProjectSettings.prototype.saveSettings = function(ev) {
+        var _this = this;
+        ev.preventDefault();
+        if (!$(ev.currentTarget).hasClass('inactive')) {
+          return this.model.save(null, {
+            success: function() {
+              return $(ev.currentTarget).addClass('inactive');
+            }
+          });
         }
+      };
+
+      ProjectSettings.prototype.updateModel = function(ev) {
+        return this.model.set(ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value);
       };
 
       ProjectSettings.prototype.showTab = function(ev) {
@@ -7211,82 +7420,15 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
       };
 
       ProjectSettings.prototype.addAnnotationType = function(ev) {
-        return ev.preventDefault();
-      };
-
-      ProjectSettings.prototype.loadTabData = function() {
-        var async,
-          _this = this;
-        this.entryMetadata = new EntryMetadata(this.model.projectID);
-        this.entryMetadata.fetch(function(data) {
-          var list;
-          list = new Views.EditableList({
-            value: data
-          });
-          _this.listenTo(list, 'change', function(values) {
-            return _this.entryMetadata.save(values);
-          });
-          return _this.$('div[data-tab="metadata-entries"]').append(list.el);
-        });
-        this.annotationTypes = new Collections.AnnotationTypes([], {
-          projectId: this.model.projectID
-        });
-        this.annotationTypes.fetch({
-          success: function(collection, value, options) {
-            var rtpl;
-            rtpl = _.template(Templates.AnnotationTypes, {
-              annotationTypes: collection
-            });
-            return _this.$('div[data-tab="metadata-annotations"]').html(rtpl);
-          },
-          error: function() {}
-        });
-        async = new Async(['projectusers', 'allusers']);
-        this.projectusers = new Collections.ProjectUsers();
-        this.projectusers.fetch({
-          success: function(collection, value, options) {
-            return async.called('projectusers', collection);
-          },
-          error: function() {}
-        });
-        this.allusers = new Collections.AllUsers();
-        this.allusers.fetch({
-          success: function(collection, value, options) {
-            return async.called('allusers', collection);
-          },
-          error: function() {}
-        });
-        return async.on('ready', function(data) {
-          var combolist, form;
-          combolist = new Views.ComboList({
-            value: data.projectusers,
-            config: {
-              data: data.allusers
-            }
-          });
-          _this.listenTo(combolist, 'change', function(userIDs) {
-            return console.log(userIDs);
-          });
-          _this.$('div[data-tab="users"] .userlist').append(combolist.el);
-          form = new Views.Form({
-            Model: Models.User,
-            tpl: Templates.AddUser
-          });
-          _this.listenTo(form, 'save:success', function(model, response, options) {
-            return combolist.addSelected(model);
-          });
-          _this.listenTo(form, 'save:error', function(a, b, c) {
-            return console.log('erro', a, b, c);
-          });
-          return _this.$('div[data-tab="users"] .adduser').append(form.el);
-        });
+        ev.preventDefault();
+        return console.log('NOT IMPLEMENTED');
       };
 
       ProjectSettings.prototype.loadStatistics = function() {
         var start, stats,
           _this = this;
         start = new Date().getTime();
-        stats = new Models.Statistics();
+        stats = new Models.Statistics(this.project.id);
         return stats.fetch(function(data) {
           var delta, end, remaining, str;
           str = JSON.stringify(data, null, 4);
@@ -7317,11 +7459,49 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/project/history',['require','config','models/state','collections/base'],function(require) {
+  define('models/project/history',['require','models/base'],function(require) {
+    var Models, ProjectHistory, _ref;
+    Models = {
+      Base: require('models/base')
+    };
+    return ProjectHistory = (function(_super) {
+      __extends(ProjectHistory, _super);
+
+      function ProjectHistory() {
+        _ref = ProjectHistory.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      ProjectHistory.prototype.defaults = function() {
+        return {
+          comment: '',
+          userName: '',
+          createdOn: null,
+          dateString: ''
+        };
+      };
+
+      ProjectHistory.prototype.parse = function(attrs) {
+        attrs.dateString = new Date(attrs.createdOn).toDateString();
+        return attrs;
+      };
+
+      return ProjectHistory;
+
+    })(Models.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('collections/project/history',['require','config','models/project/history','collections/base'],function(require) {
     var Collections, Models, ProjectHistory, config, _ref;
     config = require('config');
     Models = {
-      state: require('models/state')
+      History: require('models/project/history')
     };
     Collections = {
       Base: require('collections/base')
@@ -7334,10 +7514,15 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
         return _ref;
       }
 
+      ProjectHistory.prototype.model = Models.History;
+
       ProjectHistory.prototype.url = function() {
-        var id;
-        id = Models.state.get('currentProject').id;
-        return "" + config.baseUrl + "projects/" + id + "/logentries";
+        return "" + config.baseUrl + "projects/" + this.projectID + "/logentries";
+      };
+
+      ProjectHistory.prototype.initialize = function(models, options) {
+        ProjectHistory.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectID;
       };
 
       return ProjectHistory;
@@ -7347,24 +7532,21 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
 
 }).call(this);
 
-define('text!html/project/settings/history.html',[],function () { return '<h2>History</h2><% collection.each(function(item) { %><div class="row span18"><div class="cell span2"><%= item.get(\'userName\') %></div><div class="cell span3"><%= (new Date(item.get(\'createdOn\'))).toDateString() %> </div><div class="cell span13"><%= item.get(\'comment\') %></div></div><% }); %>';});
+define('text!html/project/history.html',[],function () { return '<h2>History\n<% _.each(logEntries, function(entries, date) { %><h3><%= date %></h3><ul><% _.each(entries, function(entry) { %><li><span class="username"><%= entry.get(\'userName\') %>&nbsp;</span><span class="comment"><%= entry.get(\'comment\') %> </span></li><% }); %></ul><% }); %></h2>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/history',['require','views/base','hilib/managers/ajax','models/state','collections/project/history','text!html/project/settings/history.html'],function(require) {
-    var BaseView, Collections, Models, ProjectHistory, Templates, ajax, _ref;
+  define('views/project/history',['require','views/base','collections/project/history','collections/projects','text!html/project/history.html'],function(require) {
+    var BaseView, Collections, ProjectHistory, Templates, _ref;
     BaseView = require('views/base');
-    ajax = require('hilib/managers/ajax');
-    Models = {
-      state: require('models/state')
-    };
     Collections = {
-      History: require('collections/project/history')
+      History: require('collections/project/history'),
+      projects: require('collections/projects')
     };
     Templates = {
-      History: require('text!html/project/settings/history.html')
+      History: require('text!html/project/history.html')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);
@@ -7379,8 +7561,10 @@ define('text!html/project/settings/history.html',[],function () { return '<h2>Hi
       ProjectHistory.prototype.initialize = function() {
         var _this = this;
         ProjectHistory.__super__.initialize.apply(this, arguments);
-        this.collection = new Collections.History();
-        return Models.state.getCurrentProject(function(project) {
+        return Collections.projects.getCurrent(function(project) {
+          _this.collection = new Collections.History([], {
+            projectID: project.id
+          });
           return _this.collection.fetch({
             success: function() {
               return _this.render();
@@ -7392,7 +7576,7 @@ define('text!html/project/settings/history.html',[],function () { return '<h2>Hi
       ProjectHistory.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.History, {
-          collection: this.collection
+          logEntries: this.collection.groupBy('dateString')
         });
         this.$el.html(rtpl);
         return this;
@@ -7536,59 +7720,6 @@ define('text!html/project/settings/history.html',[],function () { return '<h2>Hi
         });
       };
     })(jQuery);
-  });
-
-}).call(this);
-
-define('text!html/ui/entry.submenu.html',[],function () { return '';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/ui/entry.submenu',['require','views/base','text!html/ui/entry.submenu.html'],function(require) {
-    var BaseView, SubMenu, Templates, _ref;
-    BaseView = require('views/base');
-    Templates = {
-      'SubMenu': require('text!html/ui/entry.submenu.html')
-    };
-    return SubMenu = (function(_super) {
-      __extends(SubMenu, _super);
-
-      function SubMenu() {
-        _ref = SubMenu.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      SubMenu.prototype.events = {
-        'click li': 'buttonClicked'
-      };
-
-      SubMenu.prototype.buttonClicked = function(ev) {
-        ev.stopPropagation();
-        return this.trigger('clicked', {
-          key: ev.currentTarget.getAttribute('data-key'),
-          value: ev.currentTarget.getAttribute('data-value')
-        });
-      };
-
-      SubMenu.prototype.className = 'submenu';
-
-      SubMenu.prototype.initialize = function() {
-        SubMenu.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      SubMenu.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Templates.SubMenu, this.options);
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      return SubMenu;
-
-    })(BaseView);
   });
 
 }).call(this);
@@ -7809,9 +7940,10 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/preview/main',['require','hilib/functions/general','views/base','views/entry/preview/annotation.add.tooltip','views/entry/preview/annotation.edit.tooltip','text!html/entry/preview.html'],function(require) {
-    var Fn, Tpl, TranscriptionPreview, Views, _ref;
+  define('views/entry/preview/main',['require','hilib/functions/general','config','views/base','views/entry/preview/annotation.add.tooltip','views/entry/preview/annotation.edit.tooltip','text!html/entry/preview.html'],function(require) {
+    var Fn, Tpl, TranscriptionPreview, Views, config, _ref;
     Fn = require('hilib/functions/general');
+    config = require('config');
     Views = {
       Base: require('views/base'),
       AddAnnotationTooltip: require('views/entry/preview/annotation.add.tooltip'),
@@ -7859,11 +7991,12 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
           return _this.trigger('editAnnotation', model);
         });
         return this.listenTo(this.editAnnotationTooltip, 'delete', function(model) {
-          if (model != null) {
-            return _this.currentTranscription.get('annotations').remove(model);
+          if (model.get('annotationNo') === 'newannotation') {
+            _this.removeNewAnnotation();
           } else {
-            return _this.removeNewAnnotationTags();
+            _this.currentTranscription.get('annotations').remove(model);
           }
+          return _this.trigger('annotation:removed');
         });
       };
 
@@ -7885,9 +8018,9 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
 
       TranscriptionPreview.prototype.supClicked = function(ev) {
         var annotation, id;
-        id = ev.currentTarget.getAttribute('data-id') >> 0;
-        annotation = this.currentTranscription.get('annotations').findWhere({
-          annotationNo: id
+        id = ev.currentTarget.getAttribute('data-id');
+        annotation = id === 'newannotation' ? this.newAnnotation : this.currentTranscription.get('annotations').findWhere({
+          annotationNo: id >> 0
         });
         this.setAnnotatedText(annotation);
         return this.editAnnotationTooltip.show({
@@ -7913,12 +8046,9 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         }
         range = sel.getRangeAt(0);
         isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') || range.endContainer.parentNode.hasAttribute('data-marker');
-        /* console.log range.collapsed, isInsideMarker, @$('[data-id="newannotation"]').length > 0*/
-
         if (!(range.collapsed || isInsideMarker || this.$('[data-id="newannotation"]').length > 0)) {
           this.listenToOnce(this.addAnnotationTooltip, 'clicked', function(model) {
-            _this.addNewAnnotationTags(range);
-            return _this.trigger('editAnnotation', model);
+            return _this.addNewAnnotation(model, range);
           });
           return this.addAnnotationTooltip.show({
             left: ev.pageX,
@@ -7952,6 +8082,19 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         return annotation.set('annotatedText', text);
       };
 
+      TranscriptionPreview.prototype.addNewAnnotation = function(newAnnotation, range) {
+        var annotations,
+          _this = this;
+        this.newAnnotation = newAnnotation;
+        this.addNewAnnotationTags(range);
+        annotations = this.currentTranscription.get('annotations');
+        newAnnotation.urlRoot = function() {
+          return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
+        };
+        this.setAnnotatedText(newAnnotation);
+        return this.trigger('editAnnotation', newAnnotation);
+      };
+
       TranscriptionPreview.prototype.addNewAnnotationTags = function(range) {
         var span, sup;
         span = document.createElement('span');
@@ -7967,6 +8110,11 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
         return this.currentTranscription.set('body', this.$('.preview .body').html(), {
           silent: true
         });
+      };
+
+      TranscriptionPreview.prototype.removeNewAnnotation = function() {
+        this.newAnnotation = null;
+        return this.removeNewAnnotationTags();
       };
 
       TranscriptionPreview.prototype.removeNewAnnotationTags = function() {
@@ -8016,6 +8164,392 @@ define('text!html/entry/preview.html',[],function () { return '<div class="previ
       };
 
       return TranscriptionPreview;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/metadata.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><label>Name</label><input type="text" name="name" value="<%= model.get(\'name\') %>"/></li><% _.each(model.get(\'settings\').attributes, function(value, key) { %><li><label><%= key %></label><input type="text" name="<%= key %>" value="<%= value %>"/></li><% }); %><li><label>Publishable</label><input type="checkbox" name="publishable"<% if (model.get(\'publishable\')) {%> checked<% } %>></li></ul></form>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/metadata',['require','hilib/functions/general','hilib/views/form/main','text!html/entry/metadata.html'],function(require) {
+    var EntryMetadata, Fn, Tpl, Views, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Form: require('hilib/views/form/main')
+    };
+    Tpl = require('text!html/entry/metadata.html');
+    return EntryMetadata = (function(_super) {
+      __extends(EntryMetadata, _super);
+
+      function EntryMetadata() {
+        _ref = EntryMetadata.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EntryMetadata.prototype.initialize = function() {
+        EntryMetadata.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      EntryMetadata.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      return EntryMetadata;
+
+    })(Views.Form);
+  });
+
+}).call(this);
+
+define('text!html/entry/subsubmenu/textlayers.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Text layers</h3><ul class="textlayers"><% transcriptions.each(function(trans) { %><li data-id="<%= trans.id %>" class="textlayer"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= trans.get(\'textLayer\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Add text layer</h3><ul class="form addtextlayer"><li><label>Name</label><input type="text" name="name"/></li><li><label>Text</label><textarea name="text"></textarea></li><li><button class="addtextlayer">Add textlayer</button></li></ul></div></div></div>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/subsubmenu/textlayers.edit',['require','hilib/functions/general','views/base','text!html/entry/subsubmenu/textlayers.edit.html'],function(require) {
+    var EditTextlayers, Fn, Tpl, Views, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/subsubmenu/textlayers.edit.html');
+    return EditTextlayers = (function(_super) {
+      __extends(EditTextlayers, _super);
+
+      function EditTextlayers() {
+        _ref = EditTextlayers.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditTextlayers.prototype.initialize = function() {
+        EditTextlayers.__super__.initialize.apply(this, arguments);
+        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'remove', this.render);
+        return this.render();
+      };
+
+      EditTextlayers.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, {
+          transcriptions: this.collection
+        });
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      EditTextlayers.prototype.events = function() {
+        var _this = this;
+        return {
+          'click button.addtextlayer': 'addtextlayer',
+          'click ul.textlayers li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.textlayers li.destroy .orcancel': 'cancelRemove',
+          'click ul.textlayers li.destroy .name': 'destroytextlayer'
+        };
+      };
+
+      EditTextlayers.prototype.cancelRemove = function(ev) {
+        var parentLi;
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
+      };
+
+      EditTextlayers.prototype.destroytextlayer = function(ev) {
+        var transcriptionID;
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
+        return this.collection.remove(this.collection.get(transcriptionID));
+      };
+
+      EditTextlayers.prototype.addtextlayer = function() {
+        var data, name, text;
+        name = this.el.querySelector('input[name="name"]').value;
+        text = this.el.querySelector('textarea[name="text"]').value;
+        if (name !== '') {
+          data = {
+            textLayer: name,
+            body: text
+          };
+          return this.collection.create(data, {
+            wait: true
+          });
+        }
+      };
+
+      return EditTextlayers;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/subsubmenu/facsimiles.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Facsimiles</h3><ul class="facsimiles"><% facsimiles.each(function(facs) { %><li data-id="<%= facs.id %>" class="facsimile"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= facs.get(\'name\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Upload new facsimile</h3><ul class="form addfacsimile"><li><label>Name</label><input type="text" name="name"/></li><li><form enctype="multipart/form-data" class="addfile"><input type="file" name="filename"/></form></li><li><button class="addfacsimile">Add facsimile</button></li></ul></div></div></div>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/subsubmenu/facsimiles.edit',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','views/base','text!html/entry/subsubmenu/facsimiles.edit.html'],function(require) {
+    var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
+    Fn = require('hilib/functions/general');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/subsubmenu/facsimiles.edit.html');
+    return EditFacsimiles = (function(_super) {
+      __extends(EditFacsimiles, _super);
+
+      function EditFacsimiles() {
+        _ref = EditFacsimiles.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      EditFacsimiles.prototype.initialize = function() {
+        EditFacsimiles.__super__.initialize.apply(this, arguments);
+        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'remove', this.render);
+        return this.render();
+      };
+
+      EditFacsimiles.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, {
+          facsimiles: this.collection
+        });
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      EditFacsimiles.prototype.events = function() {
+        var _this = this;
+        return {
+          'click ul.facsimiles li': function(ev) {
+            return $(ev.currentTarget).addClass('destroy');
+          },
+          'click ul.facsimiles li.destroy .orcancel': 'cancelRemove',
+          'click ul.facsimiles li.destroy .name': 'destroyfacsimile',
+          'keyup input[name="name"]': 'keyupName',
+          'click button.addfacsimile': 'addfacsimile'
+        };
+      };
+
+      EditFacsimiles.prototype.keyupName = function(ev) {
+        return this.el.querySelector('form.addfile').style.display = ev.currentTarget.value.length > 0 ? 'block' : 'none';
+      };
+
+      EditFacsimiles.prototype.addfacsimile = function(ev) {
+        var form, formData, jqXHR,
+          _this = this;
+        ev.stopPropagation();
+        ev.preventDefault();
+        form = this.el.querySelector('form.addfile');
+        formData = new FormData(form);
+        jqXHR = ajax.post({
+          url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload',
+          data: formData,
+          cache: false,
+          contentType: false,
+          processData: false
+        });
+        return jqXHR.done(function(response) {
+          var data;
+          data = {
+            name: _this.el.querySelector('input[name="name"]').value,
+            filename: response[1].originalName,
+            zoomableUrl: response[1].jp2url
+          };
+          return _this.collection.create(data, {
+            wait: true
+          });
+        });
+      };
+
+      EditFacsimiles.prototype.cancelRemove = function(ev) {
+        var parentLi;
+        ev.stopPropagation();
+        parentLi = $(ev.currentTarget).parents('li');
+        return parentLi.removeClass('destroy');
+      };
+
+      EditFacsimiles.prototype.destroyfacsimile = function(ev) {
+        var transcriptionID;
+        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
+        return this.collection.remove(this.collection.get(transcriptionID));
+      };
+
+      return EditFacsimiles;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/transcription.edit.menu.html',[],function () { return '<button disabled="disabled" class="ok small">Save</button>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/transcription.edit.menu',['require','hilib/functions/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
+    var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
+    Fn = require('hilib/functions/general');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/transcription.edit.menu.html');
+    return TranscriptionEditMenu = (function(_super) {
+      __extends(TranscriptionEditMenu, _super);
+
+      function TranscriptionEditMenu() {
+        _ref = TranscriptionEditMenu.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      TranscriptionEditMenu.prototype.className = 'transcriptioneditmenu';
+
+      TranscriptionEditMenu.prototype.initialize = function() {
+        TranscriptionEditMenu.__super__.initialize.apply(this, arguments);
+        this.addListeners();
+        return this.render();
+      };
+
+      TranscriptionEditMenu.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      TranscriptionEditMenu.prototype.events = function() {
+        return {
+          'click button.ok': 'save'
+        };
+      };
+
+      TranscriptionEditMenu.prototype.save = function() {
+        return this.model.save();
+      };
+
+      TranscriptionEditMenu.prototype.setModel = function(transcription) {
+        this.model = transcription;
+        return this.addListeners();
+      };
+
+      TranscriptionEditMenu.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.model, 'sync', function() {
+          return _this.el.querySelector('button.ok').disabled = true;
+        });
+        return this.listenTo(this.model, 'change:body', function() {
+          return _this.el.querySelector('button.ok').disabled = false;
+        });
+      };
+
+      return TranscriptionEditMenu;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+define('text!html/entry/annotation.edit.menu.html',[],function () { return '<button class="metadata small">Metadata</button><button class="cancel small">Cancel</button><button disabled="disabled" class="ok small">Save</button>';});
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/annotation.edit.menu',['require','hilib/functions/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
+    var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
+    Fn = require('hilib/functions/general');
+    config = require('config');
+    Views = {
+      Base: require('views/base')
+    };
+    Tpl = require('text!html/entry/annotation.edit.menu.html');
+    return AnnotationEditMenu = (function(_super) {
+      __extends(AnnotationEditMenu, _super);
+
+      function AnnotationEditMenu() {
+        _ref = AnnotationEditMenu.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      AnnotationEditMenu.prototype.className = 'annotationeditmenu';
+
+      AnnotationEditMenu.prototype.initialize = function() {
+        AnnotationEditMenu.__super__.initialize.apply(this, arguments);
+        this.addListeners();
+        return this.render();
+      };
+
+      AnnotationEditMenu.prototype.render = function() {
+        var rtpl;
+        rtpl = _.template(Tpl, this.model.toJSON());
+        this.$el.html(rtpl);
+        return this;
+      };
+
+      AnnotationEditMenu.prototype.events = function() {
+        var _this = this;
+        return {
+          'click button.ok': 'save',
+          'click button.cancel': function() {
+            return _this.trigger('cancel', _this.model);
+          },
+          'click button.metadata': function() {
+            return _this.trigger('metadata', _this.model);
+          }
+        };
+      };
+
+      AnnotationEditMenu.prototype.save = function() {
+        var _this = this;
+        if (this.model.isNew()) {
+          this.model.urlRoot = function() {
+            return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
+          };
+          return this.model.save([], {
+            success: function() {
+              return _this.collection.add(_this.model);
+            },
+            error: function(model, xhr, options) {
+              return console.error('Saving annotation failed!', model, xhr, options);
+            }
+          });
+        } else {
+          return this.model.save();
+        }
+      };
+
+      AnnotationEditMenu.prototype.setModel = function(annotation) {
+        this.model = annotation;
+        return this.addListeners();
+      };
+
+      AnnotationEditMenu.prototype.addListeners = function() {
+        var _this = this;
+        this.listenTo(this.model, 'sync', function(model, resp, options) {
+          return _this.el.querySelector('button.ok').disabled = true;
+        });
+        return this.listenTo(this.model, 'change:body', function() {
+          return _this.el.querySelector('button.ok').disabled = false;
+        });
+      };
+
+      return AnnotationEditMenu;
 
     })(Views.Base);
   });
@@ -8459,6 +8993,12 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         return iframe.style.height = height + 'px';
       };
 
+      SuperTinyEditor.prototype.setIframeWidth = function(width) {
+        var iframe;
+        iframe = this.el.querySelector('iframe');
+        return iframe.style.width = width + 'px';
+      };
+
       SuperTinyEditor.prototype.setFocus = function() {
         return Fn.setCursorToEnd(this.iframeBody, this.el.querySelector('iframe').contentWindow);
       };
@@ -8481,14 +9021,6 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
         }), 200);
       };
 
-      SuperTinyEditor.prototype.show = function() {
-        return this.el.style.display = 'block';
-      };
-
-      SuperTinyEditor.prototype.hide = function() {
-        return this.el.style.display = 'none';
-      };
-
       return SuperTinyEditor;
 
     })(Views.Base);
@@ -8496,458 +9028,25 @@ define('text!hilib/views/supertinyeditor/supertinyeditor.html',[],function () { 
 
 }).call(this);
 
-define('text!html/entry/annotation.metadata.html',[],function () { return '<ul class="form"><li><label>Type</label><select name="type"><% collection.each(function(item) { %>\n<% var selected = (item.id === model.get(\'annotationType\').id) ? \' selected\' : \'\'; %>\n<option data-id!="<%= item.id %>"<%= selected %>><%= item.get(\'description\') %> (<%= item.get(\'name\') %>)</option>\n<% }); %></select></li></ul>';});
+define('text!html/entry/annotation.metadata.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>" class="form"><li><label>Type</label><select name="metadata.type"><% collection.each(function(item) { %>\n<% var selected = (item.id === model.get(\'annotationType\').id) ? \' selected\' : \'\'; %>\n<option value="<%= item.id %>"<%= selected %>><%= item.get(\'description\') %> (<%= item.get(\'name\') %>)</option>\n<% }); %></select></li><% _.each(model.get(\'annotationMetadataItems\'), function(metadata) { %><li> <label title="<%= metadata.annotationTypeMetadataItem.description %>"><%= metadata.annotationTypeMetadataItem.name %></label><input type="text" name="metadata.<%= metadata.annotationTypeMetadataItem.name %>" value="<%= metadata.data %>"/></li><% }); %></ul></form>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/annotation.metadata',['require','hilib/functions/general','views/base','text!html/entry/annotation.metadata.html'],function(require) {
-    var AnnotationMetadata, Fn, Tpl, Views, _ref;
-    Fn = require('hilib/functions/general');
-    Views = {
-      Base: require('views/base')
+  define('views/entry/editors/annotation',['require','collections/projects','views/base','hilib/views/supertinyeditor/supertinyeditor','hilib/views/modal/main','hilib/views/form/main','text!html/entry/annotation.metadata.html'],function(require) {
+    var AnnotationEditor, Collections, Templates, Views, _ref;
+    Collections = {
+      projects: require('collections/projects')
     };
-    Tpl = require('text!html/entry/annotation.metadata.html');
-    return AnnotationMetadata = (function(_super) {
-      __extends(AnnotationMetadata, _super);
-
-      function AnnotationMetadata() {
-        _ref = AnnotationMetadata.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      AnnotationMetadata.prototype.initialize = function() {
-        AnnotationMetadata.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      AnnotationMetadata.prototype.render = function() {
-        var rtpl;
-        console.log(this.model, this.collection.toJSON());
-        rtpl = _.template(Tpl, {
-          model: this.model,
-          collection: this.collection
-        });
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      AnnotationMetadata.prototype.events = function() {
-        return {
-          'change select': 'selectChanged'
-        };
-      };
-
-      AnnotationMetadata.prototype.selectChanged = function(ev) {
-        var annotationTypeID;
-        annotationTypeID = ev.currentTarget.options[ev.currentTarget.selectedIndex].getAttribute('data-id');
-        this.model.set('annotationType', this.collection.get(annotationTypeID));
-        return console.log(this.model);
-      };
-
-      return AnnotationMetadata;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/metadata.html',[],function () { return '<form><ul data-model-id="<%= model.cid %>"><li><label>Name</label><input type="text" name="name" value="<%= model.get(\'name\') %>"/></li><% _.each(model.get(\'settings\').attributes, function(value, key) { %><li><label><%= key %></label><input type="text" name="<%= key %>" value="<%= value %>"/></li><% }); %><li><label>Publishable</label><input type="checkbox" name="publishable"<% if (model.get(\'publishable\')) {%> checked<% } %>></li></ul></form>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/metadata',['require','hilib/functions/general','hilib/views/form/main','text!html/entry/metadata.html'],function(require) {
-    var EntryMetadata, Fn, Tpl, Views, _ref;
-    Fn = require('hilib/functions/general');
-    Views = {
-      Form: require('hilib/views/form/main')
-    };
-    Tpl = require('text!html/entry/metadata.html');
-    return EntryMetadata = (function(_super) {
-      __extends(EntryMetadata, _super);
-
-      function EntryMetadata() {
-        _ref = EntryMetadata.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      EntryMetadata.prototype.initialize = function() {
-        EntryMetadata.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      EntryMetadata.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      return EntryMetadata;
-
-    })(Views.Form);
-  });
-
-}).call(this);
-
-define('text!html/entry/subsubmenu/textlayers.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Text layers</h3><ul class="textlayers"><% transcriptions.each(function(trans) { %><li data-id="<%= trans.id %>" class="textlayer"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= trans.get(\'textLayer\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Add text layer</h3><ul class="form addtextlayer"><li><label>Name</label><input type="text" name="name"/></li><li><label>Text</label><textarea name="text"></textarea></li><li><button class="addtextlayer">Add textlayer</button></li></ul></div></div></div>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/subsubmenu/textlayers.edit',['require','hilib/functions/general','views/base','text!html/entry/subsubmenu/textlayers.edit.html'],function(require) {
-    var EditTextlayers, Fn, Tpl, Views, _ref;
-    Fn = require('hilib/functions/general');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/subsubmenu/textlayers.edit.html');
-    return EditTextlayers = (function(_super) {
-      __extends(EditTextlayers, _super);
-
-      function EditTextlayers() {
-        _ref = EditTextlayers.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      EditTextlayers.prototype.initialize = function() {
-        EditTextlayers.__super__.initialize.apply(this, arguments);
-        this.listenTo(this.collection, 'add', this.render);
-        this.listenTo(this.collection, 'remove', this.render);
-        return this.render();
-      };
-
-      EditTextlayers.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, {
-          transcriptions: this.collection
-        });
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      EditTextlayers.prototype.events = function() {
-        var _this = this;
-        return {
-          'click button.addtextlayer': 'addtextlayer',
-          'click ul.textlayers li': function(ev) {
-            return $(ev.currentTarget).addClass('destroy');
-          },
-          'click ul.textlayers li.destroy .orcancel': 'cancelRemove',
-          'click ul.textlayers li.destroy .name': 'destroytextlayer'
-        };
-      };
-
-      EditTextlayers.prototype.cancelRemove = function(ev) {
-        var parentLi;
-        ev.stopPropagation();
-        parentLi = $(ev.currentTarget).parents('li');
-        return parentLi.removeClass('destroy');
-      };
-
-      EditTextlayers.prototype.destroytextlayer = function(ev) {
-        var transcriptionID;
-        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
-        return this.collection.remove(this.collection.get(transcriptionID));
-      };
-
-      EditTextlayers.prototype.addtextlayer = function() {
-        var data, name, text;
-        name = this.el.querySelector('input[name="name"]').value;
-        text = this.el.querySelector('textarea[name="text"]').value;
-        if (name !== '') {
-          data = {
-            textLayer: name,
-            body: text
-          };
-          return this.collection.create(data, {
-            wait: true
-          });
-        }
-      };
-
-      return EditTextlayers;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/subsubmenu/facsimiles.edit.html',[],function () { return '<div class="row span3"><div class="cell span1"><div class="pad2"><h3>Facsimiles</h3><ul class="facsimiles"><% facsimiles.each(function(facs) { %><li data-id="<%= facs.id %>" class="facsimile"><span class="name"><img src="/images/icon.bin.png" width="14px" height="14px"/><label><%= facs.get(\'name\') %></label></span><span class="orcancel">or Cancel</span></li><% }); %></ul></div></div><div class="cell span2"><div class="pad2"><h3>Upload new facsimile</h3><ul class="form addfacsimile"><li><label>Name</label><input type="text" name="name"/></li><li><form enctype="multipart/form-data" class="addfile"><input type="file" name="filename"/></form></li><li><button class="addfacsimile">Add facsimile</button></li></ul></div></div></div>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/subsubmenu/facsimiles.edit',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','views/base','text!html/entry/subsubmenu/facsimiles.edit.html'],function(require) {
-    var EditFacsimiles, Fn, Tpl, Views, ajax, token, _ref;
-    Fn = require('hilib/functions/general');
-    ajax = require('hilib/managers/ajax');
-    token = require('hilib/managers/token');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/subsubmenu/facsimiles.edit.html');
-    return EditFacsimiles = (function(_super) {
-      __extends(EditFacsimiles, _super);
-
-      function EditFacsimiles() {
-        _ref = EditFacsimiles.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      EditFacsimiles.prototype.initialize = function() {
-        EditFacsimiles.__super__.initialize.apply(this, arguments);
-        this.listenTo(this.collection, 'add', this.render);
-        this.listenTo(this.collection, 'remove', this.render);
-        return this.render();
-      };
-
-      EditFacsimiles.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, {
-          facsimiles: this.collection
-        });
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      EditFacsimiles.prototype.events = function() {
-        var _this = this;
-        return {
-          'click ul.facsimiles li': function(ev) {
-            return $(ev.currentTarget).addClass('destroy');
-          },
-          'click ul.facsimiles li.destroy .orcancel': 'cancelRemove',
-          'click ul.facsimiles li.destroy .name': 'destroyfacsimile',
-          'keyup input[name="name"]': 'keyupName',
-          'click button.addfacsimile': 'addfacsimile'
-        };
-      };
-
-      EditFacsimiles.prototype.keyupName = function(ev) {
-        return this.el.querySelector('form.addfile').style.display = ev.currentTarget.value.length > 0 ? 'block' : 'none';
-      };
-
-      EditFacsimiles.prototype.addfacsimile = function(ev) {
-        var form, formData, jqXHR,
-          _this = this;
-        ev.stopPropagation();
-        ev.preventDefault();
-        form = this.el.querySelector('form.addfile');
-        formData = new FormData(form);
-        jqXHR = ajax.post({
-          url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload',
-          data: formData,
-          cache: false,
-          contentType: false,
-          processData: false
-        });
-        return jqXHR.done(function(response) {
-          var data;
-          data = {
-            name: _this.el.querySelector('input[name="name"]').value,
-            filename: response[1].originalName,
-            zoomableUrl: response[1].jp2url
-          };
-          return _this.collection.create(data, {
-            wait: true
-          });
-        });
-      };
-
-      EditFacsimiles.prototype.cancelRemove = function(ev) {
-        var parentLi;
-        ev.stopPropagation();
-        parentLi = $(ev.currentTarget).parents('li');
-        return parentLi.removeClass('destroy');
-      };
-
-      EditFacsimiles.prototype.destroyfacsimile = function(ev) {
-        var transcriptionID;
-        transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
-        return this.collection.remove(this.collection.get(transcriptionID));
-      };
-
-      return EditFacsimiles;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/transcription.edit.menu.html',[],function () { return '<button disabled="disabled" class="ok small">Save</button>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/transcription.edit.menu',['require','hilib/functions/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
-    var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
-    Fn = require('hilib/functions/general');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/transcription.edit.menu.html');
-    return TranscriptionEditMenu = (function(_super) {
-      __extends(TranscriptionEditMenu, _super);
-
-      function TranscriptionEditMenu() {
-        _ref = TranscriptionEditMenu.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      TranscriptionEditMenu.prototype.className = 'transcriptioneditmenu';
-
-      TranscriptionEditMenu.prototype.initialize = function() {
-        TranscriptionEditMenu.__super__.initialize.apply(this, arguments);
-        this.addListeners();
-        return this.render();
-      };
-
-      TranscriptionEditMenu.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      TranscriptionEditMenu.prototype.events = function() {
-        return {
-          'click button.ok': 'save'
-        };
-      };
-
-      TranscriptionEditMenu.prototype.save = function() {
-        return this.model.save();
-      };
-
-      TranscriptionEditMenu.prototype.setModel = function(transcription) {
-        this.model = transcription;
-        return this.addListeners();
-      };
-
-      TranscriptionEditMenu.prototype.addListeners = function() {
-        var _this = this;
-        this.listenTo(this.model, 'sync', function() {
-          return _this.el.querySelector('button.ok').disabled = true;
-        });
-        return this.listenTo(this.model, 'change:body', function() {
-          return _this.el.querySelector('button.ok').disabled = false;
-        });
-      };
-
-      return TranscriptionEditMenu;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/annotation.edit.menu.html',[],function () { return '<button class="metadata small">Metadata</button><button class="cancel small">Cancel</button><button disabled="disabled" class="ok small">Save</button>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/annotation.edit.menu',['require','hilib/functions/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
-    var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
-    Fn = require('hilib/functions/general');
-    config = require('config');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/annotation.edit.menu.html');
-    return AnnotationEditMenu = (function(_super) {
-      __extends(AnnotationEditMenu, _super);
-
-      function AnnotationEditMenu() {
-        _ref = AnnotationEditMenu.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      AnnotationEditMenu.prototype.className = 'annotationeditmenu';
-
-      AnnotationEditMenu.prototype.initialize = function() {
-        AnnotationEditMenu.__super__.initialize.apply(this, arguments);
-        this.addListeners();
-        return this.render();
-      };
-
-      AnnotationEditMenu.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      AnnotationEditMenu.prototype.events = function() {
-        var _this = this;
-        return {
-          'click button.ok': 'save',
-          'click button.cancel': function() {
-            return _this.trigger('cancel', _this.model);
-          },
-          'click button.metadata': function() {
-            return _this.trigger('metadata', _this.model);
-          }
-        };
-      };
-
-      AnnotationEditMenu.prototype.save = function() {
-        var _this = this;
-        if (this.model.isNew()) {
-          this.model.urlRoot = function() {
-            return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
-          };
-          return this.model.save([], {
-            success: function() {
-              return _this.collection.add(_this.model);
-            },
-            error: function(model, xhr, options) {
-              return console.error('Saving annotation failed!', model, xhr, options);
-            }
-          });
-        } else {
-          return this.model.save();
-        }
-      };
-
-      AnnotationEditMenu.prototype.setModel = function(annotation) {
-        this.model = annotation;
-        return this.addListeners();
-      };
-
-      AnnotationEditMenu.prototype.addListeners = function() {
-        var _this = this;
-        this.listenTo(this.model, 'sync', function(model, resp, options) {
-          return _this.el.querySelector('button.ok').disabled = true;
-        });
-        return this.listenTo(this.model, 'change:body', function() {
-          return _this.el.querySelector('button.ok').disabled = false;
-        });
-      };
-
-      return AnnotationEditMenu;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/annotation/main',['require','views/base','hilib/views/supertinyeditor/supertinyeditor'],function(require) {
-    var AnnotationEditor, Views, _ref;
     Views = {
       Base: require('views/base'),
-      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor')
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
+      Modal: require('hilib/views/modal/main'),
+      Form: require('hilib/views/form/main')
+    };
+    Templates = {
+      Metadata: require('text!html/entry/annotation.metadata.html')
     };
     return AnnotationEditor = (function(_super) {
       __extends(AnnotationEditor, _super);
@@ -8960,8 +9059,12 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
       AnnotationEditor.prototype.className = '';
 
       AnnotationEditor.prototype.initialize = function() {
+        var _this = this;
         AnnotationEditor.__super__.initialize.apply(this, arguments);
-        return this.render();
+        return Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+          return _this.render();
+        });
       };
 
       AnnotationEditor.prototype.render = function() {
@@ -9004,7 +9107,6 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
 
       AnnotationEditor.prototype.setURLPath = function(id) {
         var fragment, index;
-        console.log;
         index = Backbone.history.fragment.indexOf('/annotations/');
         fragment = index !== -1 ? Backbone.history.fragment.substr(0, index) : Backbone.history.fragment;
         if (id != null) {
@@ -9016,16 +9118,11 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
       };
 
       AnnotationEditor.prototype.save = function() {
-        var annotations,
-          _this = this;
+        var _this = this;
         if (this.model.isNew()) {
-          annotations = this.currentTranscription.get('annotations');
-          this.model.urlRoot = function() {
-            return config.baseUrl + ("projects/" + annotations.projectId + "/entries/" + annotations.entryId + "/transcriptions/" + annotations.transcriptionId + "/annotations");
-          };
           return this.model.save([], {
-            success: function() {
-              return annotations.add(model);
+            success: function(model) {
+              return _this.trigger('newannotation:saved', model);
             },
             error: function(model, xhr, options) {
               return console.error('Saving annotation failed!', model, xhr, options);
@@ -9037,14 +9134,125 @@ define('text!html/entry/annotation.edit.menu.html',[],function () { return '<but
       };
 
       AnnotationEditor.prototype.editMetadata = function() {
-        return this.annotationMetadata = new Views.AnnotationMetadata({
-          model: model,
-          collection: this.project.get('annotationtypes'),
-          el: this.el.querySelector('.container .middle .annotationmetadata')
+        var annotationMetadata, modal,
+          _this = this;
+        annotationMetadata = new Views.Form({
+          tpl: Templates.Metadata,
+          model: this.model.clone(),
+          collection: this.project.get('annotationtypes')
+        });
+        modal = new Views.Modal({
+          title: "Edit annotation metadata",
+          $html: annotationMetadata.$el,
+          submitValue: 'Save metadata',
+          width: '300px'
+        });
+        return modal.on('submit', function() {
+          var jqXHR, metadata;
+          metadata = annotationMetadata.model.get('metadata');
+          if (metadata.type != null) {
+            _this.model.set('annotationType', _this.project.get('annotationtypes').get(metadata.type));
+            delete metadata.type;
+          }
+          jqXHR = _this.model.save();
+          return jqXHR.done(function() {
+            return modal.messageAndFade('success', 'Metadata saved!');
+          });
         });
       };
 
       return AnnotationEditor;
+
+    })(Views.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('views/entry/editors/layer',['require','hilib/functions/string','views/base','hilib/views/supertinyeditor/supertinyeditor'],function(require) {
+    var LayerEditor, StringFn, Views, _ref;
+    StringFn = require('hilib/functions/string');
+    Views = {
+      Base: require('views/base'),
+      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor')
+    };
+    return LayerEditor = (function(_super) {
+      __extends(LayerEditor, _super);
+
+      function LayerEditor() {
+        _ref = LayerEditor.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      LayerEditor.prototype.className = '';
+
+      LayerEditor.prototype.initialize = function() {
+        LayerEditor.__super__.initialize.apply(this, arguments);
+        return this.render();
+      };
+
+      LayerEditor.prototype.render = function() {
+        var $el,
+          _this = this;
+        $el = this.$('.transcription-placeholder');
+        this.editor = new Views.SuperTinyEditor({
+          controls: ['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
+          cssFile: '/css/main.css',
+          el: this.$('.transcription-editor'),
+          height: this.options.height,
+          html: this.model.get('body'),
+          htmlAttribute: 'body',
+          model: this.model,
+          width: this.options.width
+        });
+        this.listenTo(this.editor, 'save', function() {
+          return _this.model.save();
+        });
+        this.show();
+        return this;
+      };
+
+      LayerEditor.prototype.events = function() {};
+
+      LayerEditor.prototype.show = function(layer) {
+        if (layer != null) {
+          this.model = layer;
+        }
+        this.editor.setModel(this.model);
+        this.setURLPath();
+        return this.el.style.display = 'block';
+      };
+
+      LayerEditor.prototype.hide = function() {
+        return this.el.style.display = 'none';
+      };
+
+      LayerEditor.prototype.visible = function() {
+        return this.el.style.display === 'block';
+      };
+
+      LayerEditor.prototype.setURLPath = function() {
+        var index, newFragment, newTextLayer, oldFragment, oldTextLayer;
+        oldFragment = Backbone.history.fragment;
+        index = oldFragment.indexOf('/transcriptions/');
+        newFragment = index !== -1 ? oldFragment.substr(0, index) : oldFragment;
+        oldTextLayer = oldFragment.substr(index);
+        oldTextLayer = oldTextLayer.replace('/transcriptions/', '');
+        index = oldTextLayer.indexOf('/');
+        if (index !== -1) {
+          oldTextLayer = oldTextLayer.substr(0, index);
+        }
+        newTextLayer = StringFn.slugify(this.model.get('textLayer'));
+        newFragment = newFragment + '/transcriptions/' + newTextLayer;
+        return Backbone.history.navigate(newFragment, {
+          replace: true
+        });
+      };
+
+      return LayerEditor;
 
     })(Views.Base);
   });
@@ -9057,8 +9265,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/state','models/entry','views/base','views/ui/entry.submenu','views/entry/preview/main','hilib/views/supertinyeditor/supertinyeditor','views/entry/annotation.metadata','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','views/entry/annotation/main','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
-    var Async, Backbone, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
+  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/entry','collections/projects','views/base','views/entry/preview/main','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','views/entry/editors/annotation','views/entry/editors/layer','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
+    var Async, Backbone, Collections, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
     config = require('config');
     Fn = require('hilib/functions/general');
@@ -9066,15 +9274,14 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
     require('hilib/functions/jquery.mixin');
     Async = require('hilib/managers/async');
     Models = {
-      state: require('models/state'),
       Entry: require('models/entry')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Views = {
       Base: require('views/base'),
-      SubMenu: require('views/ui/entry.submenu'),
       Preview: require('views/entry/preview/main'),
-      SuperTinyEditor: require('hilib/views/supertinyeditor/supertinyeditor'),
-      AnnotationMetadata: require('views/entry/annotation.metadata'),
       EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
@@ -9082,7 +9289,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
       Form: require('hilib/views/form/main'),
-      AnnotationEditor: require('views/entry/annotation/main')
+      AnnotationEditor: require('views/entry/editors/annotation'),
+      LayerEditor: require('views/entry/editors/layer')
     };
     Templates = {
       Entry: require('text!html/entry/main.html'),
@@ -9103,13 +9311,13 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           _this = this;
         Entry.__super__.initialize.apply(this, arguments);
         this.subviews = {};
-        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes', 'entrymetadatafields']);
+        async = new Async(['transcriptions', 'facsimiles', 'settings', 'annotationtypes']);
         this.listenToOnce(async, 'ready', function() {
           return _this.render();
         });
-        return Models.state.getCurrentProject(function(project) {
+        return Collections.projects.getCurrent(function(project) {
           _this.project = project;
-          project.get('entries').fetch({
+          _this.project.get('entries').fetch({
             success: function(collection, response, options) {
               _this.model = collection.setCurrent(_this.options.entryId);
               _this.model.get('transcriptions').fetch({
@@ -9137,13 +9345,10 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
               });
             }
           });
-          project.get('annotationtypes').fetch({
+          return _this.project.get('annotationtypes').fetch({
             success: function() {
               return async.called('annotationtypes');
             }
-          });
-          return project.fetchEntrymetadatafields(function() {
-            return async.called('entrymetadatafields');
           });
         });
       };
@@ -9153,10 +9358,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           _this = this;
         rtpl = _.template(Templates.Entry, this.model.toJSON());
         this.$el.html(rtpl);
-        if (this.options.transcriptionName == null) {
-          this.navigateToTranscription();
-        }
-        this.setTranscriptionNameToMenu();
         this.renderFacsimile();
         this.renderTranscription();
         this.renderSubsubmenu();
@@ -9181,30 +9382,31 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       };
 
       Entry.prototype.renderTranscription = function() {
-        var $el,
-          _this = this;
         this.renderPreview();
-        if (this.transcriptionEdit != null) {
-          this.transcriptionEdit.setModel(this.currentTranscription);
-          this.transcriptionEdit.show();
-        } else {
-          $el = this.$('.transcription-placeholder');
-          this.transcriptionEdit = new Views.SuperTinyEditor({
-            controls: ['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo'],
-            cssFile: '/css/main.css',
-            el: $el.find('.transcription-editor'),
-            height: this.preview.$el.innerHeight(),
-            html: this.currentTranscription.get('body'),
-            htmlAttribute: 'body',
+        this.setTranscriptionNameToMenu();
+        if (!this.layerEditor) {
+          this.layerEditor = new Views.LayerEditor({
+            el: this.el.querySelector('.transcription-placeholder'),
             model: this.currentTranscription,
-            width: $el.width() - 20
+            height: this.preview.$el.innerHeight(),
+            width: this.preview.$el.width() - 4
           });
-          this.listenTo(this.transcriptionEdit, 'save', function() {
-            return _this.currentTranscription.save();
-          });
+        } else {
+          this.layerEditor.show(this.currentTranscription);
         }
         if (this.annotationEditor != null) {
           return this.annotationEditor.hide();
+        }
+      };
+
+      Entry.prototype.renderPreview = function() {
+        if (this.preview != null) {
+          return this.preview.setModel(this.model);
+        } else {
+          return this.preview = new Views.Preview({
+            model: this.model,
+            el: this.$('.container .right')
+          });
         }
       };
 
@@ -9221,21 +9423,13 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             _this.preview.removeNewAnnotationTags();
             return _this.renderTranscription();
           });
+          this.listenTo(this.annotationEditor, 'newannotation:saved', function(annotation) {
+            return _this.currentTranscription.get('annotations').add(annotation);
+          });
         } else {
           this.annotationEditor.show(model);
         }
-        return this.transcriptionEdit.hide();
-      };
-
-      Entry.prototype.renderPreview = function() {
-        if (this.preview != null) {
-          return this.preview.setModel(this.model);
-        } else {
-          return this.preview = new Views.Preview({
-            model: this.model,
-            el: this.$('.container .right')
-          });
-        }
+        return this.layerEditor.hide();
       };
 
       Entry.prototype.renderSubsubmenu = function() {
@@ -9255,9 +9449,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
-          'click .menu li[data-key="save"]': 'save',
-          'click .menu li[data-key="metadata"]': 'metadata',
-          'click .menu li.subsub': 'toggleSubsubmenu'
+          'click .menu li.subsub': 'toggleSubsubmenu',
+          'click .menu li[data-key="metadata"]': 'editEntryMetadata'
         };
       };
 
@@ -9266,7 +9459,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         currentMenu = null;
         return function(ev) {
           var newMenu;
-          console.log('toggling');
           newMenu = ev.currentTarget.getAttribute('data-key');
           if (currentMenu === newMenu) {
             $(ev.currentTarget).removeClass('rotateup');
@@ -9286,11 +9478,19 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       })();
 
       Entry.prototype.previousEntry = function() {
-        return this.publish('navigate:entry', this.model.collection.previous().id);
+        var entryID;
+        entryID = this.model.collection.previous().id;
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/entries/" + entryID, {
+          trigger: true
+        });
       };
 
       Entry.prototype.nextEntry = function() {
-        return this.publish('navigate:entry', this.model.collection.next().id);
+        var entryID;
+        entryID = this.model.collection.next().id;
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/entries/" + entryID, {
+          trigger: true
+        });
       };
 
       Entry.prototype.changeFacsimile = function(ev) {
@@ -9306,33 +9506,14 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         var newTranscription, transcriptionID;
         transcriptionID = ev.currentTarget.getAttribute('data-value');
         newTranscription = this.model.get('transcriptions').get(transcriptionID);
-        if (newTranscription !== this.currentTranscription || this.currentViewInEditPane !== this.transcriptionEdit) {
-          this.model.get('transcriptions').setCurrent(newTranscription);
-          this.navigateToTranscription();
-          return this.setTranscriptionNameToMenu();
+        if (newTranscription !== this.currentTranscription) {
+          return this.model.get('transcriptions').setCurrent(newTranscription);
+        } else if (!this.layerEditor.visible()) {
+          return this.model.get('transcriptions').trigger('current:change', this.currentTranscription);
         }
       };
 
-      Entry.prototype.navigateToTranscription = function() {
-        var index;
-        index = Backbone.history.fragment.indexOf('/transcriptions/');
-        if (index !== -1) {
-          Backbone.history.fragment = Backbone.history.fragment.substr(0, index);
-        }
-        return Backbone.history.navigate(Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(this.currentTranscription.get('textLayer')), {
-          replace: true
-        });
-      };
-
-      Entry.prototype.setTranscriptionNameToMenu = function() {
-        var li, textLayer, textLayerNode;
-        textLayer = this.currentTranscription.get('textLayer');
-        textLayerNode = document.createTextNode(textLayer + ' layer');
-        li = this.el.querySelector('.submenu li[data-key="layer"]');
-        return li.replaceChild(textLayerNode, li.firstChild);
-      };
-
-      Entry.prototype.metadata = function(ev) {
+      Entry.prototype.editEntryMetadata = function(ev) {
         var entryMetadata, modal,
           _this = this;
         entryMetadata = new Views.Form({
@@ -9356,13 +9537,22 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
       };
 
+      Entry.prototype.setTranscriptionNameToMenu = function() {
+        var li, textLayer, textLayerNode;
+        textLayer = this.currentTranscription.get('textLayer');
+        textLayerNode = document.createTextNode(textLayer + ' layer');
+        li = this.el.querySelector('.submenu li[data-key="layer"]');
+        return li.replaceChild(textLayerNode, li.firstChild);
+      };
+
       Entry.prototype.addListeners = function() {
         var _this = this;
         this.listenTo(this.preview, 'editAnnotation', this.renderAnnotation);
+        this.listenTo(this.preview, 'annotation:removed', this.renderTranscription);
         this.listenTo(this.preview, 'scrolled', function(percentages) {
-          return _this.transcriptionEdit.setScrollPercentage(percentages);
+          return _this.layerEditor.editor.setScrollPercentage(percentages);
         });
-        this.listenTo(this.transcriptionEdit, 'scrolled', function(percentages) {
+        this.listenTo(this.layerEditor.editor, 'scrolled', function(percentages) {
           return Fn.setScrollPercentage(_this.preview.el, percentages);
         });
         this.listenTo(this.model.get('facsimiles'), 'current:change', function(current) {
@@ -9379,8 +9569,9 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
-          _this.currentTranscription.getAnnotations();
-          return _this.renderTranscription();
+          return _this.currentTranscription.getAnnotations(function(annotations) {
+            return _this.renderTranscription();
+          });
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
           var li;
@@ -9394,9 +9585,11 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           return Fn.timeoutWithReset(600, function() {
             _this.renderFacsimile();
             _this.preview.setHeight();
-            _this.transcriptionEdit.setIframeHeight(_this.preview.$el.innerHeight());
-            if (_this.annotationEdit != null) {
-              return _this.annotationEdit.setIframeHeight(_this.preview.$el.innerHeight());
+            _this.layerEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+            _this.layerEditor.editor.setIframeWidth(_this.preview.$el.width() - 4);
+            if (_this.annotationEditor != null) {
+              _this.annotationEditor.editor.setIframeHeight(_this.preview.$el.innerHeight());
+              return _this.annotationEditor.editor.setIframeWidth(_this.preview.$el.width() - 4);
             }
           });
         });
@@ -9413,16 +9606,15 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('routers/main',['require','backbone','hilib/managers/view','hilib/managers/history','hilib/managers/pubsub','models/currentUser','hilib/functions/general','models/state','views/login','views/project/main','views/project/settings','views/project/history','views/entry/main'],function(require) {
-    var Backbone, Fn, MainRouter, Models, Pubsub, Views, currentUser, history, viewManager, _ref;
+  define('routers/main',['require','backbone','hilib/managers/view','hilib/managers/history','hilib/managers/pubsub','hilib/functions/general','collections/projects','views/login','views/project/main','views/project/settings','views/project/history','views/entry/main'],function(require) {
+    var Backbone, Collections, Fn, MainRouter, Pubsub, Views, history, viewManager, _ref;
     Backbone = require('backbone');
     viewManager = require('hilib/managers/view');
     history = require('hilib/managers/history');
     Pubsub = require('hilib/managers/pubsub');
-    currentUser = require('models/currentUser');
     Fn = require('hilib/functions/general');
-    Models = {
-      state: require('models/state')
+    Collections = {
+      projects: require('collections/projects')
     };
     Views = {
       Login: require('views/login'),
@@ -9445,47 +9637,9 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         this.on('route', function() {
           return history.update();
         });
-        this.subscribe('authorized', function() {
-          if (history.last() != null) {
-            return _this.navigate(history.last(), {
-              trigger: true
-            });
-          } else {
-            return _this.publish('navigate:project');
-          }
-        });
-        this.subscribe('unauthorized', function() {
-          sessionStorage.clear();
-          if (Backbone.history.fragment !== 'login') {
-            return _this.navigate('login', {
-              trigger: true
-            });
-          }
-        });
-        this.subscribe('navigate:project:settings', function() {
-          return Models.state.getCurrentProjectName(function(name) {
-            return _this.navigate("projects/" + name + "/settings", {
-              trigger: true
-            });
-          });
-        });
-        this.subscribe('navigate:project:history', function() {
-          return Models.state.getCurrentProjectName(function(name) {
-            return _this.navigate("projects/" + name + "/history", {
-              trigger: true
-            });
-          });
-        });
-        this.subscribe('navigate:project', function() {
-          return Models.state.getCurrentProjectName(function(name) {
-            return _this.navigate("projects/" + name, {
-              trigger: true
-            });
-          });
-        });
-        return this.subscribe('navigate:entry', function(entryID) {
-          return Models.state.getCurrentProjectName(function(name) {
-            return _this.navigate("projects/" + name + "/entries/" + entryID, {
+        return Collections.projects.getCurrent(function() {
+          return _this.listenTo(Collections.projects, 'current:change', function(project) {
+            return _this.navigate("projects/" + (project.get('name')), {
               trigger: true
             });
           });
@@ -9493,9 +9647,9 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       };
 
       MainRouter.prototype['routes'] = {
-        '': 'projectSearch',
+        '': 'project',
         'login': 'login',
-        'projects/:name': 'projectSearch',
+        'projects/:name': 'project',
         'projects/:name/settings/:tab': 'projectSettings',
         'projects/:name/settings': 'projectSettings',
         'projects/:name/history': 'projectHistory',
@@ -9504,15 +9658,11 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
       };
 
-      MainRouter.prototype.home = function() {
-        return viewManager.show(Views.Home);
-      };
-
       MainRouter.prototype.login = function() {
         return viewManager.show(Views.Login);
       };
 
-      MainRouter.prototype.projectSearch = function(name) {
+      MainRouter.prototype.project = function(name) {
         return viewManager.show(Views.ProjectMain);
       };
 
@@ -9541,18 +9691,119 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
 
 }).call(this);
 
-define('text!html/ui/header.html',[],function () { return '<div class="main"><div class="row span2"><div class="cell span1 project aligncenter"><img src="/images/logo.elaborate.png"/><ul class="horizontal menu"><li class="thisproject arrowdown"> <span class="projecttitle"><%= state.currentProject.get(\'title\') %></span><ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li></ul></div><div class="cell span1 user alignright"><ul class="horizontal menu"><li>Help</li><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="projects arrowleft">My projects<ul class="vertical menu"><% state.projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li><li class="logout">Logout</li></ul></li></ul><img src="/images/logo.huygens.png"/></div></div></div>';});
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/state',['require','hilib/managers/history','models/base'],function(require) {
+    var Models, State, history, _ref;
+    history = require('hilib/managers/history');
+    Models = {
+      Base: require('models/base')
+    };
+    State = (function(_super) {
+      __extends(State, _super);
+
+      function State() {
+        _ref = State.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      State.prototype.defaults = function() {
+        return {
+          headerRendered: false,
+          currentProject: null
+        };
+      };
+
+      State.prototype.initialize = function() {
+        var _this = this;
+        State.__super__.initialize.apply(this, arguments);
+        return this.subscribe('authorized', function() {
+          return _this.getProjects();
+        });
+      };
+
+      State.prototype._getCurrentProject = function(cb, prop) {
+        var returnProp,
+          _this = this;
+        returnProp = function(model) {
+          var returnVal;
+          returnVal = prop != null ? model.get(prop) : model;
+          return cb(returnVal);
+        };
+        if (this.get('currentProject') != null) {
+          return returnProp(this.get('currentProject'));
+        } else {
+          return this.once('change:currentProject', function(stateModel, projectModel, options) {
+            return returnProp(projectModel);
+          });
+        }
+      };
+
+      State.prototype.getCurrentProjectId = function(cb) {
+        return this._getCurrentProject(cb, 'id');
+      };
+
+      State.prototype.getCurrentProjectName = function(cb) {
+        return this._getCurrentProject(cb, 'name');
+      };
+
+      State.prototype.getCurrentProject = function(cb) {
+        return this._getCurrentProject(cb);
+      };
+
+      State.prototype.setCurrentProject = function(id) {
+        var fragmentPart, project;
+        fragmentPart = history.last() != null ? history.last().split('/') : [];
+        if (id != null) {
+          project = this.get('projects').get(id);
+        } else if (fragmentPart[1] === 'projects') {
+          project = this.get('projects').find(function(p) {
+            return p.get('name') === fragmentPart[2];
+          });
+        } else {
+          project = this.get('projects').first();
+        }
+        return this.set('currentProject', project);
+      };
+
+      State.prototype.onHeaderRendered = function(cb) {
+        if (this.get('headerRendered')) {
+          return cb();
+        } else {
+          return this.subscribe('header:render:complete', function() {
+            cb();
+            return this.set('headerRendered', true);
+          });
+        }
+      };
+
+      State.prototype.getProjects = function() {};
+
+      return State;
+
+    })(Models.Base);
+    return new State();
+  });
+
+}).call(this);
+
+define('text!html/ui/header.html',[],function () { return '<div class="main"><div class="row span3"><div class="cell span1 project aligncenter"><img src="/images/logo.elaborate.png"/><ul class="horizontal menu"><li class="thisproject arrowdown"> <span class="projecttitle"><%= projects.current.get(\'title\') %></span><ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li></ul></div><div class="cell span1"><span class="message"></span></div><div class="cell span1 user alignright"><ul class="horizontal menu"><li>Help</li><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="projects arrowleft">My projects<ul class="vertical menu"><% projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li><li class="logout">Logout</li></ul></li></ul><img src="/images/logo.huygens.png"/></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/ui/header',['require','views/base','models/currentUser','models/state','text!html/ui/header.html'],function(require) {
-    var BaseView, Header, Models, Templates, _ref;
+  define('views/ui/header',['require','views/base','models/currentUser','models/state','collections/projects','text!html/ui/header.html'],function(require) {
+    var BaseView, Collections, Header, Models, Templates, _ref;
     BaseView = require('views/base');
     Models = {
       currentUser: require('models/currentUser'),
       state: require('models/state')
+    };
+    Collections = {
+      projects: require('collections/projects')
     };
     Templates = {
       Header: require('text!html/ui/header.html')
@@ -9574,41 +9825,71 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
           return Models.currentUser.logout();
         },
         'click .user .project': 'setProject',
-        'click .project .projecttitle': function() {
-          return this.publish('navigate:project');
-        },
-        'click .project .settings': function() {
-          return this.publish('navigate:project:settings');
-        },
-        'click .project .search': function() {
-          return this.publish('navigate:project');
-        },
-        'click .project .history': function() {
-          return this.publish('navigate:project:history');
+        'click .project .projecttitle': 'navigateToProject',
+        'click .project .settings': 'navigateToProjectSettings',
+        'click .project .search': 'navigateToProject',
+        'click .project .history': 'navigateToProjectHistory',
+        'click .message': function() {
+          return this.$('.message').removeClass('active');
         }
       };
 
+      Header.prototype.navigateToProject = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')), {
+          trigger: true
+        });
+      };
+
+      Header.prototype.navigateToProjectSettings = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/settings", {
+          trigger: true
+        });
+      };
+
+      Header.prototype.navigateToProjectHistory = function(ev) {
+        return Backbone.history.navigate("projects/" + (this.project.get('name')) + "/history", {
+          trigger: true
+        });
+      };
+
       Header.prototype.initialize = function() {
+        var _this = this;
         Header.__super__.initialize.apply(this, arguments);
-        return this.listenTo(Models.state, 'change:currentProject', this.render);
+        this.listenTo(Collections.projects, 'current:change', function(project) {
+          return _this.render();
+        });
+        Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+        });
+        return this.subscribe('message', this.showMessage, this);
       };
 
       Header.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.Header, {
-          state: Models.state.attributes,
+          projects: Collections.projects,
           user: Models.currentUser.attributes
         });
         this.$el.html(rtpl);
-        this.publish('header:render:complete');
         return this;
       };
 
       Header.prototype.setProject = function(ev) {
         var id;
         id = ev.currentTarget.getAttribute('data-id');
-        Models.state.setCurrentProject(id);
-        return this.publish('navigate:project');
+        return Collections.projects.setCurrent(id);
+      };
+
+      Header.prototype.showMessage = function(msg) {
+        var $message, timer,
+          _this = this;
+        $message = this.$('.message');
+        $message.addClass('active');
+        $message.html(msg);
+        return timer = setTimeout((function() {
+          $message.removeClass('active');
+          return clearTimeout(timer);
+        }), 7000);
       };
 
       return Header;
@@ -9618,79 +9899,18 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
 
 }).call(this);
 
-define('text!html/debug.html',[],function () { return '<ul><li class="current-user">Current User</li><li class="current-project">Current Project</li><li class="state">State</li></ul>';});
-
 (function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/debug',['require','models/state','models/currentUser','views/base','text!html/debug.html'],function(require) {
-    var Debug, Models, Templates, Views, _ref;
-    Models = {
-      state: require('models/state'),
-      currentUser: require('models/currentUser')
-    };
-    Views = {
-      Base: require('views/base')
-    };
-    Templates = {
-      Debug: require('text!html/debug.html')
-    };
-    return Debug = (function(_super) {
-      __extends(Debug, _super);
-
-      function Debug() {
-        _ref = Debug.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      Debug.prototype.id = 'debug';
-
-      Debug.prototype.events = {
-        'click .current-project': function() {
-          return Models.state.getCurrentProject(function(project) {
-            return console.log(project);
-          });
-        },
-        'click .current-user': function() {
-          return console.log(Models.currentUser);
-        },
-        'click .state': function() {
-          return console.log(Models.state);
-        }
-      };
-
-      Debug.prototype.initialize = function() {
-        Debug.__super__.initialize.apply(this, arguments);
-        return this.render();
-      };
-
-      Debug.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Templates.Debug);
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      return Debug;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-(function() {
-  define('app',['require','backbone','routers/main','models/currentUser','models/state','views/ui/header','views/debug'],function(require) {
-    var Backbone, MainRouter, Models, Views;
+  define('app',['require','backbone','hilib/managers/history','routers/main','models/currentUser','collections/projects','views/ui/header'],function(require) {
+    var Backbone, MainRouter, Models, Views, history, projects;
     Backbone = require('backbone');
+    history = require('hilib/managers/history');
     MainRouter = require('routers/main');
     Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
+      currentUser: require('models/currentUser')
     };
+    projects = require('collections/projects');
     Views = {
-      Header: require('views/ui/header'),
-      Debug: require('views/debug')
+      Header: require('views/ui/header')
     };
     /* DEBUG*/
 
@@ -9700,26 +9920,37 @@ define('text!html/debug.html',[],function () { return '<ul><li class="current-us
     Backbone.on('unauthorized', function() {
       return console.log('[debug] unauthorized');
     });
-    Models.state.on('change:currentProject', function() {
-      return console.log('[debug] current project changed');
-    });
     return {
       /* /DEBUG*/
 
       init: function() {
-        var header, mainRouter;
+        var mainRouter,
+          _this = this;
         mainRouter = new MainRouter();
         Backbone.history.start({
           pushState: true
         });
-        header = new Views.Header({
-          managed: false
+        Models.currentUser.authorize({
+          authorized: function() {
+            projects.fetch();
+            return projects.getCurrent(function(current) {
+              var header, url, _ref;
+              header = new Views.Header({
+                managed: false
+              });
+              $('#container').prepend(header.render().$el);
+              url = (_ref = history.last()) != null ? _ref : 'projects/' + projects.current.get('name');
+              return mainRouter.navigate(url, {
+                trigger: true
+              });
+            });
+          },
+          unauthorized: function() {
+            return mainRouter.navigate('login', {
+              trigger: true
+            });
+          }
         });
-        $('#container').prepend(header.$el);
-        $('body').append(new Views.Debug({
-          managed: false
-        }).$el);
-        Models.currentUser.authorize();
         return $(document).on('click', 'a:not([data-bypass])', function(e) {
           var href;
           href = $(this).attr('href');

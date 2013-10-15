@@ -59,6 +59,7 @@ define (require) ->
 			@editSelection = new Views.EditSelection
 				el: @el.querySelector '.editselection-placeholder'
 				model: @project
+			@listenTo @editSelection, 'close', @uncheckCheckboxes
 
 			@facetedSearch = new Views.FacetedSearch
 				el: @$('.faceted-search-placeholder')
@@ -99,9 +100,10 @@ define (require) ->
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
-			'click li[data-key="selectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
-			'click li[data-key="deselectall"]': => Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
+			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
+			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
+			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
 
 		newEntry: (ev) ->
 			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')
@@ -118,6 +120,7 @@ define (require) ->
 				
 				@listenToOnce entries, 'add', (entry) =>
 					modal.close()
+					@publish 'message', 'New entry added to project.'
 					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
 				entries.create {name: modal.$('input[name="name"]').val()}, wait: true
@@ -142,6 +145,8 @@ define (require) ->
 			
 
 		# ### Methods
+
+		uncheckCheckboxes: -> Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
 
 		updateHeader: ->
 			@$('h3.numfound').html @model.get('numFound') + ' letters found'

@@ -1,6 +1,8 @@
 define (require) ->
 
 	Async = require 'hilib/managers/async'
+	ajax = require 'hilib/managers/ajax'
+	token = require 'hilib/managers/token'
 
 	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
 	EntryMetadata = require 'entry.metadata'
@@ -84,6 +86,7 @@ define (require) ->
 			@allusers = new Collections.AllUsers()
 			@allusers.fetch success: (collection) => @renderUserTab collection
 
+		# * TODO: Add to separate view
 		renderUserTab: (collection) ->
 			combolist = new Views.ComboList
 				value: @project.get 'users'
@@ -100,7 +103,11 @@ define (require) ->
 				tpl: Templates.AddUser
 
 			@listenTo form, 'save:success', (model, response, options) =>
-				combolist.addSelected model
+				ajax.token = token.get()
+				jqXHR = ajax.put
+					url: "projects/#{@project.get('name')}/projectusers/#{model.id}"
+					dataType: 'text'
+				jqXHR.done => combolist.addSelected model
 			@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
 
 			@$('div[data-tab="users"] .adduser').append form.el

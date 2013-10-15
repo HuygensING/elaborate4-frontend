@@ -3,8 +3,10 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, _ref;
+    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, ajax, token, _ref;
     Async = require('hilib/managers/async');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     EntryMetadata = require('entry.metadata');
     Views = {
       Base: require('views/base'),
@@ -124,7 +126,15 @@
           tpl: Templates.AddUser
         });
         this.listenTo(form, 'save:success', function(model, response, options) {
-          return combolist.addSelected(model);
+          var jqXHR;
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: "projects/" + (_this.project.get('name')) + "/projectusers/" + model.id,
+            dataType: 'text'
+          });
+          return jqXHR.done(function() {
+            return combolist.addSelected(model);
+          });
         });
         this.listenTo(form, 'save:error', function(a, b, c) {
           return console.log('erro', a, b, c);

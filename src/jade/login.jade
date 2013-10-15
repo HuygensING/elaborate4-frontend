@@ -44,13 +44,13 @@
 
 .cell.span1.alignright
 	.padl5.padr5
-		form.login
-			label Username
-			input#username(type="text", name="username", value="root")
-			//- input#username(type="text", name="username", value="gijsjan_brouwer")
-			br
-			label Password
-			input#password(type="password", name="password", value="toor")
-			//- input#password(type="password", name="password", value="qe9hEtra")
-			br
-			input#submit(type="submit", value="Login")
+		form.login.region
+			ul
+				li
+					label Username
+					input#username(type="text", name="username", value="root")
+				li
+					label Password
+					input#password(type="password", name="password", value="toor")
+				li
+					input#submit(type="submit", value="Login", style="width: 75px")

@@ -34,7 +34,10 @@
 
       EditSelection.prototype.events = function() {
         return {
-          'click button[name="editselection"]': 'saveEditSelection',
+          'click button[name="savemetadata"]': 'saveEditSelection',
+          'click button[name="cancel"]': function() {
+            return this.hide();
+          },
           'keyup input[type="text"]': 'checkInput',
           'change input[type="checkbox"]': 'toggleInactive'
         };
@@ -48,15 +51,18 @@
       };
 
       EditSelection.prototype.toggleInactive = function() {
-        if (this.el.querySelectorAll('input[type=checkbox]:checked').length === 0) {
-          return this.$('button[name="editselection"]').addClass('inactive');
+        var entryCBs, metadataCBs;
+        entryCBs = document.querySelectorAll('.entries input[type="checkbox"]:checked');
+        metadataCBs = this.el.querySelectorAll('input[type=checkbox]:checked');
+        if (entryCBs.length === 0 || metadataCBs.length === 0) {
+          return this.$('button[name="savemetadata"]').addClass('inactive');
         } else {
-          return this.$('button[name="editselection"]').removeClass('inactive');
+          return this.$('button[name="savemetadata"]').removeClass('inactive');
         }
       };
 
       EditSelection.prototype.saveEditSelection = function(ev) {
-        var entryIDs, settings,
+        var entryIDs, jqXHR, settings,
           _this = this;
         ev.preventDefault();
         if (!$(ev.currentTarget).hasClass('inactive')) {
@@ -65,22 +71,38 @@
           });
           settings = {};
           _.each(this.el.querySelectorAll('input[type="checkbox"]:checked'), function(cb) {
-            var name;
-            name = cb.getAttribute('data-name');
-            return settings[name] = _this.el.querySelector("input[name='" + name + "']").value;
+            var key, value;
+            key = cb.getAttribute('data-name');
+            value = _this.el.querySelector("input[name='" + key + "']").value;
+            if (value.trim().length > 0) {
+              return settings[key] = value;
+            }
           });
-          console.log(entryIDs.length);
-          if (entryIDs.length > 0) {
+          if (entryIDs.length > 0 && _.size(settings) > 0) {
             ajax.token = token.get();
-            return ajax.put({
+            jqXHR = ajax.put({
               url: "projects/" + this.model.id + "/multipleentrysettings",
               data: JSON.stringify({
-                projectEntityIds: entryIDs,
+                projectEntryIds: entryIDs,
                 settings: settings
-              })
+              }),
+              dataType: 'text'
+            });
+            jqXHR.done(function() {
+              _this.hide();
+              return _this.publish('message', 'Metadata of multiple entries saved.');
+            });
+            return jqXHR.fail(function(jqXHR, textStatus, errorThrown) {
+              return console.log(jqXHR, textStatus, errorThrown);
             });
           }
         }
+      };
+
+      EditSelection.prototype.hide = function() {
+        this.trigger('close');
+        this.el.querySelector('form').reset();
+        return this.el.style.display = 'none';
       };
 
       return EditSelection;

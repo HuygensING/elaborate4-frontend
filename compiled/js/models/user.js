@@ -28,7 +28,7 @@
           email: '',
           firstName: '',
           lastName: '',
-          role: 'User',
+          role: 'USER',
           password: ''
         };
       };

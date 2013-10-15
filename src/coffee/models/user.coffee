@@ -17,7 +17,7 @@ define (require) ->
 			email: ''
 			firstName: ''
 			lastName: ''
-			role: 'User'
+			role: 'USER'
 			password: ''
 
 		sync: (method, model, options) ->

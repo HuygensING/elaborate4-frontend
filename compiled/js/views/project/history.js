@@ -6,10 +6,11 @@
     var BaseView, Collections, ProjectHistory, Templates, _ref;
     BaseView = require('views/base');
     Collections = {
-      History: require('collections/project/history')
+      History: require('collections/project/history'),
+      projects: require('collections/projects')
     };
     Templates = {
-      History: require('text!html/project/settings/history.html')
+      History: require('text!html/project/history.html')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);
@@ -24,18 +25,22 @@
       ProjectHistory.prototype.initialize = function() {
         var _this = this;
         ProjectHistory.__super__.initialize.apply(this, arguments);
-        this.collection = new Collections.History();
-        return this.collection.fetch({
-          success: function() {
-            return _this.render();
-          }
+        return Collections.projects.getCurrent(function(project) {
+          _this.collection = new Collections.History([], {
+            projectID: project.id
+          });
+          return _this.collection.fetch({
+            success: function() {
+              return _this.render();
+            }
+          });
         });
       };
 
       ProjectHistory.prototype.render = function() {
         var rtpl;
         rtpl = _.template(Templates.History, {
-          collection: this.collection
+          logEntries: this.collection.groupBy('dateString')
         });
         this.$el.html(rtpl);
         return this;

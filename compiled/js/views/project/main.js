@@ -24,8 +24,6 @@
       Results: require('text!html/project/results.html')
     };
     return ProjectSearch = (function(_super) {
-      var _this = this;
-
       __extends(ProjectSearch, _super);
 
       function ProjectSearch() {
@@ -64,6 +62,7 @@
           el: this.el.querySelector('.editselection-placeholder'),
           model: this.project
         });
+        this.listenTo(this.editSelection, 'close', this.uncheckCheckboxes);
         this.facetedSearch = new Views.FacetedSearch({
           el: this.$('.faceted-search-placeholder'),
           baseUrl: config.baseUrl,
@@ -116,17 +115,18 @@
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
         'click li[data-key="selectall"]': function() {
-          return Fn.checkCheckboxes('.entries input[type="checkbox"]', true, ProjectSearch.el);
+          return Fn.checkCheckboxes('.entries input[type="checkbox"]', true, this.el);
         },
-        'click li[data-key="deselectall"]': function() {
-          return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, ProjectSearch.el);
-        },
+        'click li[data-key="deselectall"]': 'uncheckCheckboxes',
         'change #cb_showkeywords': function(ev) {
           if (ev.currentTarget.checked) {
             return this.$('.keywords').show();
           } else {
             return this.$('.keywords').hide();
           }
+        },
+        'change .entry input[type="checkbox"]': function() {
+          return this.editSelection.toggleInactive();
         }
       };
 
@@ -146,6 +146,7 @@
           modal.message('success', 'Creating new entry...');
           _this.listenToOnce(entries, 'add', function(entry) {
             modal.close();
+            _this.publish('message', 'New entry added to project.');
             return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
               trigger: true
             });
@@ -178,6 +179,10 @@
         return this.project.get('entries').setCurrent(entryID);
       };
 
+      ProjectSearch.prototype.uncheckCheckboxes = function() {
+        return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, this.el);
+      };
+
       ProjectSearch.prototype.updateHeader = function() {
         var currentpage, pagecount;
         this.$('h3.numfound').html(this.model.get('numFound') + ' letters found');
@@ -200,7 +205,7 @@
 
       return ProjectSearch;
 
-    }).call(this, Views.Base);
+    })(Views.Base);
   });
 
 }).call(this);

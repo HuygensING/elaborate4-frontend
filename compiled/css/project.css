@@ -46,6 +46,7 @@ div.closebutton{cursor:pointer;position:absolute;padding:2px;margin:4px;backgrou
 
 form ul{list-style:none;}
 form ul li{margin-bottom:8px;}
+form ul li *{vertical-align:middle}
 form ul li label{display:inline-block;width:100px;}
 form ul li label.small{width:40px}
 form ul li label.large{width:160px}
@@ -60,6 +61,9 @@ button.simple.inactive{opacity:.5;cursor:default}
 header.main{white-space:nowrap;z-index:100;}
 header.main .main{position:fixed;left:0;right:0;top:0;background-color:#000;z-index:50;}
 header.main .main .row{margin:0 auto}
+header.main span.message{position:relative;display:inline-block;background:#fbedbf;background:-moz-linear-gradient(top,#fbedbf 0%,#efdd96 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#fbedbf),color-stop(100%,#efdd96));background:-webkit-linear-gradient(top,#fbedbf 0%,#efdd96 100%);background:-o-linear-gradient(top,#fbedbf 0%,#efdd96 100%);background:-ms-linear-gradient(top,#fbedbf 0%,#efdd96 100%);background:linear-gradient(to bottom,#fbedbf 0%,#efdd96 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');font-size:.9em;font-weight:bold;color:#444;line-height:20px;border-radius:4px;padding:2px 30px 2px 12px;margin-top:-50px;-webkit-transition:margin-top 500ms;-moz-transition:margin-top 500ms;-o-transition:margin-top 500ms;transition:margin-top 500ms;box-shadow:1px 1px 2px #ccc;cursor:pointer;}
+header.main span.message:after{content:'x';border:1px solid rgba(128,128,128,0.3);line-height:11px;text-shadow:1px 1px 4px #777;border-radius:2px;position:absolute;padding:0 2px;margin-top:4px;right:5px;color:#666}
+header.main span.message.active{margin-top:11px}
 header.main ul.horizontal.menu{display:inline-block;}
 header.main ul.horizontal.menu li{background-color:#000;overflow:hidden;line-height:48px;}
 header.main ul.horizontal.menu li.thisproject ul.vertical.menu{right:0}
@@ -364,6 +368,8 @@ a:visited{color:#317776}
 div p:first-child{margin-top:0}
 .white,.menu li.username{color:#fff}
 .submenu-menus{display:none}
+form.login{text-align:left}
+.region{background:#f1f1f1;box-shadow:0 0 6px #aaa;padding:12px;border-radius:6px}
 
 @media all and (max-width: 1000px){header.main .row{width:100%}
 }@media all and (max-width: 640px){.row .cell{width:100%;display:block}
@@ -390,6 +396,13 @@ div p:first-child{margin-top:0}
 .menu.vertical{width:200px;text-align:left;}
 .menu.vertical ul{top:-1px;left:210px}
 
+.projecthistory{padding-left:40px;}
+.projecthistory h3{color:#444}
+.projecthistory ul{list-style:none;margin-left:16px;}
+.projecthistory ul span{display:inline-block;overflow-x:hidden;text-overflow:ellipsis;}
+.projecthistory ul span.username{color:#808080}
+
+.projectsearch .submenu{box-shadow:0 12px 12px #fff}
 .projectsearch .resultview header{padding-bottom:12px;border-bottom:1px solid #ddd;}
 .projectsearch .resultview header h3{margin-top:0}
 .projectsearch .resultview header nav{color:#46aaa8;}
@@ -401,7 +414,7 @@ div p:first-child{margin-top:0}
 .projectsearch .resultview header .editselection-placeholder li input[type="checkbox"]{margin-left:6px}
 .projectsearch .resultview header .editselection-placeholder footer{text-align:right;padding:0 8px 8px 0;}
 .projectsearch .resultview header .editselection-placeholder footer *{vertical-align:middle}
-.projectsearch .resultview header .editselection-placeholder footer button.cancel{background:none;border:none;box-shadow:1px 1px 2px #ccc;color:#f66;border-radius:4px}
+.projectsearch .resultview header .editselection-placeholder footer button[name="cancel"]{background:none;border:none;box-shadow:1px 1px 2px #ccc;color:#f66;border-radius:4px}
 .projectsearch .resultview header .editselection-placeholder footer span{margin:0 4px 0 8px}
 .projectsearch .resultview header .pagination-placeholder .pagination{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;display:none;}
 .projectsearch .resultview header .pagination-placeholder .pagination li{color:#46aaa8;padding:4px}
@@ -427,7 +440,7 @@ div p:first-child{margin-top:0}
 .projectsettings div[data-tab] .adduser input[type="submit"]{margin-left:0}
 .projectsettings div[data-tab] ul.selected-annotation-types{padding-left:16px}
 
-.submenu{box-shadow:0 12px 12px #fff;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
+.submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}
 .submenu .cell{line-height:40px;}

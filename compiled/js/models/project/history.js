@@ -15,6 +15,20 @@
         return _ref;
       }
 
+      ProjectHistory.prototype.defaults = function() {
+        return {
+          comment: '',
+          userName: '',
+          createdOn: null,
+          dateString: ''
+        };
+      };
+
+      ProjectHistory.prototype.parse = function(attrs) {
+        attrs.dateString = new Date(attrs.createdOn).toDateString();
+        return attrs;
+      };
+
       return ProjectHistory;
 
     })(Models.Base);

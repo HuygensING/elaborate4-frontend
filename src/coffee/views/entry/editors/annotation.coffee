@@ -83,7 +83,6 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
-			console.log @model
 			annotationMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()

@@ -36,7 +36,7 @@
           html: this.model.get('body'),
           htmlAttribute: 'body',
           model: this.model,
-          width: $el.width() - 20
+          width: this.options.width
         });
         this.listenTo(this.editor, 'save', function() {
           return _this.model.save();
@@ -76,12 +76,10 @@
           oldTextLayer = oldTextLayer.substr(0, index);
         }
         newTextLayer = StringFn.slugify(this.model.get('textLayer'));
-        if (oldTextLayer !== newTextLayer) {
-          newFragment = newFragment + '/transcriptions/' + newTextLayer;
-          return Backbone.history.navigate(newFragment, {
-            replace: true
-          });
-        }
+        newFragment = newFragment + '/transcriptions/' + newTextLayer;
+        return Backbone.history.navigate(newFragment, {
+          replace: true
+        });
       };
 
       return LayerEditor;

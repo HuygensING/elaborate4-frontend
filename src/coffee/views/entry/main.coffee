@@ -19,11 +19,11 @@ define (require) ->
 
 	Views = 
 		Base: require 'views/base'
-		SubMenu: require 'views/ui/entry.submenu'
+		# SubMenu: require 'views/ui/entry.submenu'
 		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview/main'
 		# SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
-		AnnotationMetadata: require 'views/entry/annotation.metadata'
+		# AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EntryMetadata: require 'views/entry/metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
@@ -128,6 +128,7 @@ define (require) ->
 					el: @el.querySelector('.transcription-placeholder')
 					model: @currentTranscription
 					height: @preview.$el.innerHeight()
+					width: @preview.$el.width() - 4
 			else
 				@layerEditor.show @currentTranscription
 
@@ -306,8 +307,13 @@ define (require) ->
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 				@renderFacsimile()
 				@preview.setHeight()
+						
 				@layerEditor.editor.setIframeHeight @preview.$el.innerHeight()
-				@annotationEditor.editor.setIframeHeight @preview.$el.innerHeight() if @annotationEditor?
+				@layerEditor.editor.setIframeWidth @preview.$el.width() - 4
+				
+				if @annotationEditor?
+					@annotationEditor.editor.setIframeHeight @preview.$el.innerHeight()
+					@annotationEditor.editor.setIframeWidth @preview.$el.width() - 4
 
 
 

@@ -6,11 +6,10 @@
     var Collections, Models, ProjectHistory, config, _ref;
     config = require('config');
     Models = {
-      state: require('models/state')
+      History: require('models/project/history')
     };
     Collections = {
-      Base: require('collections/base'),
-      projects: require('collections/projects')
+      Base: require('collections/base')
     };
     return ProjectHistory = (function(_super) {
       __extends(ProjectHistory, _super);
@@ -20,8 +19,15 @@
         return _ref;
       }
 
+      ProjectHistory.prototype.model = Models.History;
+
       ProjectHistory.prototype.url = function() {
-        return "" + config.baseUrl + "projects/" + Collections.projects.current.id + "/logentries";
+        return "" + config.baseUrl + "projects/" + this.projectID + "/logentries";
+      };
+
+      ProjectHistory.prototype.initialize = function(models, options) {
+        ProjectHistory.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectID;
       };
 
       return ProjectHistory;

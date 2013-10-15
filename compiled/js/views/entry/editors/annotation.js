@@ -104,7 +104,6 @@
       AnnotationEditor.prototype.editMetadata = function() {
         var annotationMetadata, modal,
           _this = this;
-        console.log(this.model);
         annotationMetadata = new Views.Form({
           tpl: Templates.Metadata,
           model: this.model.clone(),

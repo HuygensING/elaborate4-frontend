@@ -18,9 +18,9 @@ form
 		li
 			label Role
 			select(name="role")
-				option USER
-				option READER
-				option PROJECTLEADER
-				option ADMIN
+				option(value="USER") USER
+				option(value="READER") READER
+				option(value="PROJECTLEADER") PROJECTLEADER
+				option(value="ADMIN") ADMIN
 		li
 			input(type="submit", name="adduser", value="Add user")

@@ -28,6 +28,6 @@
 				| <% }}); %>
 
 footer
-	button.simple.inactive(name="editselection", tabindex!="<%= entrymetadatafields.length * 2 + 1 %>") Save metadata
+	button.simple.inactive(name="savemetadata", tabindex!="<%= entrymetadatafields.length * 2 + 1 %>") Save metadata
 	span or
-	button.cancel(tabindex!="<%= entrymetadatafields.length * 2 + 2 %>") Cancel
+	button(name="cancel", tabindex!="<%= entrymetadatafields.length * 2 + 2 %>") Cancel

@@ -28,7 +28,8 @@ define (require) ->
 
 		# ### Events
 		events: ->
-			'click button[name="editselection"]': 'saveEditSelection'
+			'click button[name="savemetadata"]': 'saveEditSelection'
+			'click button[name="cancel"]': -> @hide()
 			'keyup input[type="text"]': 'checkInput'
 			'change input[type="checkbox"]': 'toggleInactive'
 
@@ -40,11 +41,14 @@ define (require) ->
 		
 		# Check if there are checkboxes checked, if so, activate the submit button,
 		# if not, deactivate the submit button.
-		toggleInactive: ->	
-			if @el.querySelectorAll('input[type=checkbox]:checked').length is 0
-				@$('button[name="editselection"]').addClass 'inactive' 
+		toggleInactive: ->
+			entryCBs = document.querySelectorAll('.entries input[type="checkbox"]:checked')
+			metadataCBs = @el.querySelectorAll('input[type=checkbox]:checked')
+
+			if entryCBs.length is 0 or metadataCBs.length is 0
+				@$('button[name="savemetadata"]').addClass 'inactive' 
 			else
-				@$('button[name="editselection"]').removeClass 'inactive'
+				@$('button[name="savemetadata"]').removeClass 'inactive'
 
 		saveEditSelection: (ev) ->
 			ev.preventDefault()
@@ -54,31 +58,28 @@ define (require) ->
 				
 				settings = {}
 				_.each @el.querySelectorAll('input[type="checkbox"]:checked'), (cb) =>
-					name = cb.getAttribute 'data-name'
-					settings[name] = @el.querySelector("input[name='#{name}']").value
+					key = cb.getAttribute 'data-name'
+					value = @el.querySelector("input[name='#{key}']").value
+					# Only add the key/value to the settings if the value string is longer than 0 characters.
+					settings[key] = value if value.trim().length > 0
 
-				# TODO add settings.size to if
-				console.log entryIDs.length
-				if entryIDs.length > 0
+				if entryIDs.length > 0 and _.size(settings) > 0
 					ajax.token = token.get()
-					ajax.put
+					jqXHR = ajax.put
 						url: "projects/#{@model.id}/multipleentrysettings"
 						data: JSON.stringify
-							projectEntityIds: entryIDs
+							projectEntryIds: entryIDs
 							settings: settings
-
-
-# PUT /projects/{project_id}/multipleentrysettings
-
-# {
-# "projectEntityIds" : [1,2,3],
-# "settings" : {
-# "Publishable" : false,
-# "field1" : "value1",
-# "field2" : "value2",
-# ....
-# }
-# }
+						dataType: 'text'
+					jqXHR.done => 
+						@hide()
+						@publish 'message', 'Metadata of multiple entries saved.'
+					jqXHR.fail (jqXHR, textStatus, errorThrown) => console.log jqXHR, textStatus, errorThrown
 
 		# ### Methods
+
+		hide: ->
+			@trigger 'close'
+			@el.querySelector('form').reset()
+			@el.style.display = 'none'
 		

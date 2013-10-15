@@ -35,7 +35,10 @@
         'click .project .projecttitle': 'navigateToProject',
         'click .project .settings': 'navigateToProjectSettings',
         'click .project .search': 'navigateToProject',
-        'click .project .history': 'navigateToProjectHistory'
+        'click .project .history': 'navigateToProjectHistory',
+        'click .message': function() {
+          return this.$('.message').removeClass('active');
+        }
       };
 
       Header.prototype.navigateToProject = function(ev) {
@@ -62,9 +65,10 @@
         this.listenTo(Collections.projects, 'current:change', function(project) {
           return _this.render();
         });
-        return Collections.projects.getCurrent(function(project) {
+        Collections.projects.getCurrent(function(project) {
           _this.project = project;
         });
+        return this.subscribe('message', this.showMessage, this);
       };
 
       Header.prototype.render = function() {
@@ -81,6 +85,18 @@
         var id;
         id = ev.currentTarget.getAttribute('data-id');
         return Collections.projects.setCurrent(id);
+      };
+
+      Header.prototype.showMessage = function(msg) {
+        var $message, timer,
+          _this = this;
+        $message = this.$('.message');
+        $message.addClass('active');
+        $message.html(msg);
+        return timer = setTimeout((function() {
+          $message.removeClass('active');
+          return clearTimeout(timer);
+        }), 7000);
       };
 
       return Header;

@@ -2,12 +2,19 @@ define (require) ->
 	config = require 'config'
 
 	Models = 
-		state: require 'models/state'
+		History: require 'models/project/history'
 
 	Collections =
 		Base: require 'collections/base'
-		projects: require 'collections/projects'
+		# projects: require 'collections/projects'
 
 	class ProjectHistory extends Collections.Base
 
-		url: -> "#{config.baseUrl}projects/#{Collections.projects.current.id}/logentries"
+		model: Models.History
+
+		url: -> "#{config.baseUrl}projects/#{@projectID}/logentries"
+
+		initialize: (models, options) ->
+			super
+
+			@projectID = options.projectID

@@ -29,7 +29,7 @@ define (require) ->
 				html:			@model.get 'body'
 				htmlAttribute:	'body'
 				model:			@model
-				width:			$el.width() - 20
+				width: 			@options.width
 			@listenTo @editor, 'save', => @model.save()
 
 			@show()
@@ -66,9 +66,8 @@ define (require) ->
 
 			newTextLayer = StringFn.slugify @model.get 'textLayer' 
 
-			if oldTextLayer isnt newTextLayer
-				# Add the new textLayer to the fragment
-				newFragment = newFragment + '/transcriptions/' + newTextLayer
+			# Add the new textLayer to the fragment
+			newFragment = newFragment + '/transcriptions/' + newTextLayer
 
-				# Navigate to the new newFragment.
-				Backbone.history.navigate newFragment, replace: true
+			# Navigate to the new newFragment.
+			Backbone.history.navigate newFragment, replace: true
