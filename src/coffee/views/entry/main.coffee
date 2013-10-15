@@ -173,18 +173,19 @@ define (require) ->
 			'click .menu li[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
-			'click .menu li.subsub': 'toggleSubsubmenu'
+			'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			# 'click .menu li[data-key="save"]': 'save'
 
-		closeSubsubmenu: -> @$('.subsubmenu').removeClass 'active'
-
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
-		toggleSubsubmenu: do ->
+		subsubmenu: do ->
 			currentMenu = null
 
-			(ev) ->
+			close: -> 
+				$('.subsubmenu').removeClass 'active'
+				currentMenu = null
+			toggle: (ev) ->
 				# The newMenu's name is set as a data-key.
 				newMenu = ev.currentTarget.getAttribute 'data-key'
 
@@ -231,9 +232,9 @@ define (require) ->
 			model = @model.get('facsimiles').get facsimileID
 			@model.get('facsimiles').setCurrent model if model?
 
-		# TODO ev can be ID
 		changeTranscription: (ev) ->
-			transcriptionID = ev.currentTarget.getAttribute 'data-value'
+			# Check if ev is an Event, else assume ev is an ID
+			transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 			newTranscription = @model.get('transcriptions').get transcriptionID
 
 			# If the newTranscription is truly new than set it to be the current transcription.
@@ -294,10 +295,12 @@ define (require) ->
 				@currentFacsimile = current
 				@renderFacsimile()
 			@listenTo @model.get('facsimiles'), 'add', (facsimile) =>
-				@closeSubsubmenu()
+				@subsubmenu.close()
 				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
 				@$('.submenu .facsimiles').append li
-			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => @$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
+			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => 
+				@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
+				@publish 'message', "Removed facsimile \"#{facsimile.get('name')}\"."
 
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
@@ -305,12 +308,14 @@ define (require) ->
 				# the user is not fast enough to click an annotation
 				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
 			@listenTo @model.get('transcriptions'), 'add', (transcription) =>
-				@closeSubsubmenu()
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
 				@$('.submenu .textlayers').append li
+				@subsubmenu.close()
+				@publish 'message', "Added text layer #{transcription.get('textLayer')}."
+				@changeTranscription transcription.id
 			@listenTo @model.get('transcriptions'), 'remove', (transcription) => 
 				@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
-				@publish 'message', "Removed text layer #{transcription.get('textLayer')}."
+				@publish 'message', "Removed text layer \"#{transcription.get('textLayer')}\"."
 
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>

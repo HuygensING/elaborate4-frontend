@@ -186,34 +186,38 @@
           'click .menu li[data-key="next"]': 'nextEntry',
           'click .menu li[data-key="facsimile"]': 'changeFacsimile',
           'click .menu li[data-key="transcription"]': 'changeTranscription',
-          'click .menu li.subsub': 'toggleSubsubmenu',
+          'click .menu li.subsub': function(ev) {
+            return this.subsubmenu.toggle(ev);
+          },
           'click .menu li[data-key="metadata"]': 'editEntryMetadata'
         };
       };
 
-      Entry.prototype.closeSubsubmenu = function() {
-        return this.$('.subsubmenu').removeClass('active');
-      };
-
-      Entry.prototype.toggleSubsubmenu = (function() {
+      Entry.prototype.subsubmenu = (function() {
         var currentMenu;
         currentMenu = null;
-        return function(ev) {
-          var newMenu;
-          newMenu = ev.currentTarget.getAttribute('data-key');
-          if (currentMenu === newMenu) {
-            $(ev.currentTarget).removeClass('rotateup');
+        return {
+          close: function() {
             $('.subsubmenu').removeClass('active');
             return currentMenu = null;
-          } else {
-            if (currentMenu != null) {
-              $('.submenu li[data-key="' + currentMenu + '"]').removeClass('rotateup');
+          },
+          toggle: function(ev) {
+            var newMenu;
+            newMenu = ev.currentTarget.getAttribute('data-key');
+            if (currentMenu === newMenu) {
+              $(ev.currentTarget).removeClass('rotateup');
+              $('.subsubmenu').removeClass('active');
+              return currentMenu = null;
             } else {
-              $('.subsubmenu').addClass('active');
+              if (currentMenu != null) {
+                $('.submenu li[data-key="' + currentMenu + '"]').removeClass('rotateup');
+              } else {
+                $('.subsubmenu').addClass('active');
+              }
+              $('.submenu li[data-key="' + newMenu + '"]').addClass('rotateup');
+              $('.subsubmenu').find('.' + newMenu).show().siblings().hide();
+              return currentMenu = newMenu;
             }
-            $('.submenu li[data-key="' + newMenu + '"]').addClass('rotateup');
-            $('.subsubmenu').find('.' + newMenu).show().siblings().hide();
-            return currentMenu = newMenu;
           }
         };
       })();
@@ -245,7 +249,7 @@
 
       Entry.prototype.changeTranscription = function(ev) {
         var newTranscription, transcriptionID;
-        transcriptionID = ev.currentTarget.getAttribute('data-value');
+        transcriptionID = ev.hasOwnProperty('target') ? ev.currentTarget.getAttribute('data-value') : ev;
         newTranscription = this.model.get('transcriptions').get(transcriptionID);
         if (newTranscription !== this.currentTranscription) {
           return this.model.get('transcriptions').setCurrent(newTranscription);
@@ -303,12 +307,13 @@
         });
         this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
           var li;
-          _this.closeSubsubmenu();
+          _this.subsubmenu.close();
           li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
           return _this.$('.submenu .facsimiles').append(li);
         });
         this.listenTo(this.model.get('facsimiles'), 'remove', function(facsimile) {
-          return _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
+          _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
+          return _this.publish('message', "Removed facsimile \"" + (facsimile.get('name')) + "\".");
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
@@ -318,13 +323,15 @@
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
           var li;
-          _this.closeSubsubmenu();
           li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
-          return _this.$('.submenu .textlayers').append(li);
+          _this.$('.submenu .textlayers').append(li);
+          _this.subsubmenu.close();
+          _this.publish('message', "Added text layer " + (transcription.get('textLayer')) + ".");
+          return _this.changeTranscription(transcription.id);
         });
         this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
           _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
-          return _this.publish('message', "Removed text layer " + (transcription.get('textLayer')) + ".");
+          return _this.publish('message', "Removed text layer \"" + (transcription.get('textLayer')) + "\".");
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {

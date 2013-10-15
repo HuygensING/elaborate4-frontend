@@ -18,12 +18,8 @@
       }
 
       EditTextlayers.prototype.initialize = function() {
-        var _this = this;
         EditTextlayers.__super__.initialize.apply(this, arguments);
-        this.listenTo(this.collection, 'add', function(model) {
-          _this.publish('message', "Added text layer " + (model.get('textLayer')) + ".");
-          return _this.render();
-        });
+        this.listenTo(this.collection, 'add', this.render);
         this.listenTo(this.collection, 'remove', this.render);
         return this.render();
       };

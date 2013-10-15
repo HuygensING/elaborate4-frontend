@@ -14,9 +14,7 @@ define (require) ->
 		initialize: ->
 			super
 
-			@listenTo @collection, 'add', (model) =>
-				@publish 'message', "Added text layer #{model.get('textLayer')}."
-				@render()
+			@listenTo @collection, 'add', @render
 			@listenTo @collection, 'remove', @render
 
 			@render()
