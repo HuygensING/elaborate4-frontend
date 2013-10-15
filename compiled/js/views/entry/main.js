@@ -191,6 +191,10 @@
         };
       };
 
+      Entry.prototype.closeSubsubmenu = function() {
+        return this.$('.subsubmenu').removeClass('active');
+      };
+
       Entry.prototype.toggleSubsubmenu = (function() {
         var currentMenu;
         currentMenu = null;
@@ -269,7 +273,8 @@
           _this.model.get('settings').save();
           jqXHR = _this.model.save();
           return jqXHR.done(function() {
-            return modal.messageAndFade('success', 'Metadata saved!');
+            _this.publish('message', "Saved metadata for entry: " + (_this.model.get('name')) + ".");
+            return modal.close();
           });
         });
       };
@@ -298,6 +303,7 @@
         });
         this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
           var li;
+          _this.closeSubsubmenu();
           li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
           return _this.$('.submenu .facsimiles').append(li);
         });
@@ -312,11 +318,13 @@
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
           var li;
+          _this.closeSubsubmenu();
           li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
           return _this.$('.submenu .textlayers').append(li);
         });
         this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
-          return _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+          _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+          return _this.publish('message', "Removed text layer " + (transcription.get('textLayer')) + ".");
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {

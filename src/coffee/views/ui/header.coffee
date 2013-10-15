@@ -89,4 +89,4 @@ define (require) ->
 			timer = setTimeout (=>
 				$message.removeClass 'active'
 				clearTimeout timer
-			), 7000
+			), 5000

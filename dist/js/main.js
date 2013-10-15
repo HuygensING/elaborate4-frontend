@@ -8232,8 +8232,12 @@ define('text!html/entry/subsubmenu/textlayers.edit.html',[],function () { return
       }
 
       EditTextlayers.prototype.initialize = function() {
+        var _this = this;
         EditTextlayers.__super__.initialize.apply(this, arguments);
-        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'add', function(model) {
+          _this.publish('message', "Added text layer " + (model.get('textLayer')) + ".");
+          return _this.render();
+        });
         this.listenTo(this.collection, 'remove', this.render);
         return this.render();
       };
@@ -8267,9 +8271,10 @@ define('text!html/entry/subsubmenu/textlayers.edit.html',[],function () { return
       };
 
       EditTextlayers.prototype.destroytextlayer = function(ev) {
-        var transcriptionID;
+        var textlayer, transcriptionID;
         transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
-        return this.collection.remove(this.collection.get(transcriptionID));
+        textlayer = this.collection.get(transcriptionID);
+        return this.collection.remove(textlayer);
       };
 
       EditTextlayers.prototype.addtextlayer = function() {
@@ -9156,7 +9161,8 @@ define('text!html/entry/annotation.metadata.html',[],function () { return '<form
           }
           jqXHR = _this.model.save();
           return jqXHR.done(function() {
-            return modal.messageAndFade('success', 'Metadata saved!');
+            _this.publish('message', "Saved metadata for annotation: " + (_this.model.get('annotationNo')) + ".");
+            return modal.close();
           });
         });
       };
@@ -9454,6 +9460,10 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         };
       };
 
+      Entry.prototype.closeSubsubmenu = function() {
+        return this.$('.subsubmenu').removeClass('active');
+      };
+
       Entry.prototype.toggleSubsubmenu = (function() {
         var currentMenu;
         currentMenu = null;
@@ -9532,7 +9542,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           _this.model.get('settings').save();
           jqXHR = _this.model.save();
           return jqXHR.done(function() {
-            return modal.messageAndFade('success', 'Metadata saved!');
+            _this.publish('message', "Saved metadata for entry: " + (_this.model.get('name')) + ".");
+            return modal.close();
           });
         });
       };
@@ -9561,6 +9572,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
         this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
           var li;
+          _this.closeSubsubmenu();
           li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
           return _this.$('.submenu .facsimiles').append(li);
         });
@@ -9575,11 +9587,13 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
         this.listenTo(this.model.get('transcriptions'), 'add', function(transcription) {
           var li;
+          _this.closeSubsubmenu();
           li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
           return _this.$('.submenu .textlayers').append(li);
         });
         this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
-          return _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+          _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+          return _this.publish('message', "Removed text layer " + (transcription.get('textLayer')) + ".");
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {
@@ -9889,7 +9903,7 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
         return timer = setTimeout((function() {
           $message.removeClass('active');
           return clearTimeout(timer);
-        }), 7000);
+        }), 5000);
       };
 
       return Header;

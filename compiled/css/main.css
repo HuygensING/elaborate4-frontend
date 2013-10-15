@@ -847,6 +847,11 @@ form.login{text-align:left}
 .projectsettings div[data-tab] .adduser input[type="submit"]{margin-left:0}
 .projectsettings div[data-tab] ul.selected-annotation-types{padding-left:16px}
 
+.modal button.submit{border:1px solid #ccc;margin-left:100px;box-shadow:1px 1px 2px #ccc;border-radius:4px;color:#333;padding:2px 6px;}
+.modal button.submit.inactive{opacity:.5;cursor:default}
+.modal button.cancel{color:#d10000;border:none;background:none;position:relative;padding-right:16px;}
+.modal button.cancel:after{position:absolute;right:0;color:#444;content:'or'}
+
 .submenu{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#444;position:fixed;left:0;right:0;top:48px;z-index:49;height:40px;}
 .submenu .row{margin:0 auto;}
 .submenu .row *{vertical-align:middle}

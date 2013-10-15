@@ -18,8 +18,12 @@
       }
 
       EditTextlayers.prototype.initialize = function() {
+        var _this = this;
         EditTextlayers.__super__.initialize.apply(this, arguments);
-        this.listenTo(this.collection, 'add', this.render);
+        this.listenTo(this.collection, 'add', function(model) {
+          _this.publish('message', "Added text layer " + (model.get('textLayer')) + ".");
+          return _this.render();
+        });
         this.listenTo(this.collection, 'remove', this.render);
         return this.render();
       };
@@ -53,9 +57,10 @@
       };
 
       EditTextlayers.prototype.destroytextlayer = function(ev) {
-        var transcriptionID;
+        var textlayer, transcriptionID;
         transcriptionID = $(ev.currentTarget).parents('li').attr('data-id');
-        return this.collection.remove(this.collection.get(transcriptionID));
+        textlayer = this.collection.get(transcriptionID);
+        return this.collection.remove(textlayer);
       };
 
       EditTextlayers.prototype.addtextlayer = function() {

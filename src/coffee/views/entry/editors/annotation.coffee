@@ -101,7 +101,9 @@ define (require) ->
 					delete metadata.type
 
 				jqXHR = @model.save()
-				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
+				jqXHR.done => 
+					@publish 'message', "Saved metadata for annotation: #{@model.get('annotationNo')}."
+					modal.close()
 
 
 

@@ -14,7 +14,9 @@ define (require) ->
 		initialize: ->
 			super
 
-			@listenTo @collection, 'add', @render
+			@listenTo @collection, 'add', (model) =>
+				@publish 'message', "Added text layer #{model.get('textLayer')}."
+				@render()
 			@listenTo @collection, 'remove', @render
 
 			@render()
@@ -40,7 +42,8 @@ define (require) ->
 
 		destroytextlayer: (ev) ->
 			transcriptionID = $(ev.currentTarget).parents('li').attr 'data-id'
-			@collection.remove @collection.get transcriptionID
+			textlayer = @collection.get transcriptionID
+			@collection.remove textlayer
 
 		addtextlayer: ->
 			name = @el.querySelector('input[name="name"]').value

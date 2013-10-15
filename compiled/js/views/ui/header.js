@@ -96,7 +96,7 @@
         return timer = setTimeout((function() {
           $message.removeClass('active');
           return clearTimeout(timer);
-        }), 7000);
+        }), 5000);
       };
 
       return Header;

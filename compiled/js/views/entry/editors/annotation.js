@@ -124,7 +124,8 @@
           }
           jqXHR = _this.model.save();
           return jqXHR.done(function() {
-            return modal.messageAndFade('success', 'Metadata saved!');
+            _this.publish('message', "Saved metadata for annotation: " + (_this.model.get('annotationNo')) + ".");
+            return modal.close();
           });
         });
       };

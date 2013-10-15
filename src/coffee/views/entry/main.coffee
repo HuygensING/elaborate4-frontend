@@ -177,6 +177,8 @@ define (require) ->
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			# 'click .menu li[data-key="save"]': 'save'
 
+		closeSubsubmenu: -> @$('.subsubmenu').removeClass 'active'
+
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
 		toggleSubsubmenu: do ->
@@ -229,6 +231,7 @@ define (require) ->
 			model = @model.get('facsimiles').get facsimileID
 			@model.get('facsimiles').setCurrent model if model?
 
+		# TODO ev can be ID
 		changeTranscription: (ev) ->
 			transcriptionID = ev.currentTarget.getAttribute 'data-value'
 			newTranscription = @model.get('transcriptions').get transcriptionID
@@ -259,7 +262,9 @@ define (require) ->
 				@model.get('settings').save()
 
 				jqXHR = @model.save()
-				jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
+				jqXHR.done => 
+					@publish 'message', "Saved metadata for entry: #{@model.get('name')}."
+					modal.close()
 
 
 
@@ -289,6 +294,7 @@ define (require) ->
 				@currentFacsimile = current
 				@renderFacsimile()
 			@listenTo @model.get('facsimiles'), 'add', (facsimile) =>
+				@closeSubsubmenu()
 				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
 				@$('.submenu .facsimiles').append li
 			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => @$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
@@ -298,10 +304,13 @@ define (require) ->
 				# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
 				# the user is not fast enough to click an annotation
 				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
-			@listenTo @model.get('transcriptions'), 'add', (transcription) => 
+			@listenTo @model.get('transcriptions'), 'add', (transcription) =>
+				@closeSubsubmenu()
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
 				@$('.submenu .textlayers').append li
-			@listenTo @model.get('transcriptions'), 'remove', (transcription) => @$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
+			@listenTo @model.get('transcriptions'), 'remove', (transcription) => 
+				@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
+				@publish 'message', "Removed text layer #{transcription.get('textLayer')}."
 
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
