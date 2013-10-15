@@ -49,11 +49,13 @@ define (require) ->
 			formData = new FormData form
 
 			jqXHR = ajax.post
-				url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload'
+				url: 'http://tomcat.tiler01.huygens.knaw.nl/facsimileservice/upload'
 				data: formData
 				cache: false
 				contentType: false
 				processData: false
+			,
+				token: false
 			jqXHR.done (response) =>
 				data =
 					name: @el.querySelector('input[name="name"]').value

@@ -3,8 +3,12 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var BaseView, Collections, Header, Models, Templates, _ref;
+    var BaseView, Collections, Fn, Header, Models, Templates, ajax, config, token, _ref;
     BaseView = require('views/base');
+    config = require('config');
+    Fn = require('hilib/functions/general');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Models = {
       currentUser: require('models/currentUser'),
       state: require('models/state')
@@ -27,6 +31,18 @@
 
       Header.prototype.className = 'main';
 
+      Header.prototype.initialize = function() {
+        var _this = this;
+        Header.__super__.initialize.apply(this, arguments);
+        this.listenTo(Collections.projects, 'current:change', function(project) {
+          return _this.render();
+        });
+        Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+        });
+        return this.subscribe('message', this.showMessage, this);
+      };
+
       Header.prototype.events = {
         'click .user .logout': function() {
           return Models.currentUser.logout();
@@ -36,6 +52,7 @@
         'click .project .settings': 'navigateToProjectSettings',
         'click .project .search': 'navigateToProject',
         'click .project .history': 'navigateToProjectHistory',
+        'click .project .publish': 'publishProject',
         'click .message': function() {
           return this.$('.message').removeClass('active');
         }
@@ -59,16 +76,22 @@
         });
       };
 
-      Header.prototype.initialize = function() {
-        var _this = this;
-        Header.__super__.initialize.apply(this, arguments);
-        this.listenTo(Collections.projects, 'current:change', function(project) {
-          return _this.render();
+      Header.prototype.publishProject = function(ev) {
+        var jqXHR,
+          _this = this;
+        ajax.token = token.get();
+        jqXHR = ajax.post({
+          url: config.baseUrl + ("projects/" + this.project.id + "/publication"),
+          dataType: 'text'
         });
-        Collections.projects.getCurrent(function(project) {
-          _this.project = project;
+        jqXHR.done(function() {
+          return ajax.poll(jqXHR.getResponseHeader('Location'), function(data) {
+            return data.done;
+          });
         });
-        return this.subscribe('message', this.showMessage, this);
+        return jqXHR.fail(function() {
+          return console.log(arguments);
+        });
       };
 
       Header.prototype.render = function() {
@@ -88,15 +111,24 @@
       };
 
       Header.prototype.showMessage = function(msg) {
-        var $message, timer,
+        var $message,
           _this = this;
+        if (msg.trim().length === 0) {
+          return false;
+        }
         $message = this.$('.message');
-        $message.addClass('active');
+        if (!$message.hasClass('active')) {
+          $message.addClass('active');
+        }
         $message.html(msg);
-        return timer = setTimeout((function() {
-          $message.removeClass('active');
-          return clearTimeout(timer);
-        }), 5000);
+        return Fn.timeoutWithReset(5000, (function() {
+          return $message.removeClass('active');
+        }), function() {
+          $message.addClass('pulse');
+          return setTimeout((function() {
+            return $message.removeClass('pulse');
+          }), 1000);
+        });
       };
 
       return Header;

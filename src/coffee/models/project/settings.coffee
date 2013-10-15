@@ -8,6 +8,14 @@ define (require) ->
 
 	class ProjectSettings extends Models.Base
 
+		defaults: ->
+			'Project leader': ''
+			'Project title': ''
+			'projectType': ''
+			'Release date': ''
+			'Start date': ''
+			'Version': ''
+
 		url: -> "#{config.baseUrl}projects/#{@projectID}/settings"
 
 		initialize: (attrs, options) ->

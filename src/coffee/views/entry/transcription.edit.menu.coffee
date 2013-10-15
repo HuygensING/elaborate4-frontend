@@ -1,44 +1,44 @@
-# Description...
-define (require) ->
-	Fn = require 'hilib/functions/general'
+# # Description...
+# define (require) ->
+# 	Fn = require 'hilib/functions/general'
 
-	Views = 
-		Base: require 'views/base'
+# 	Views = 
+# 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/transcription.edit.menu.html'
+# 	Tpl = require 'text!html/entry/transcription.edit.menu.html'
 
-	# ## TranscriptionEditMenu
-	class TranscriptionEditMenu extends Views.Base
+# 	# ## TranscriptionEditMenu
+# 	class TranscriptionEditMenu extends Views.Base
 
-		className: 'transcriptioneditmenu'
+# 		className: 'transcriptioneditmenu'
 
-		# ### Initialize
-		initialize: ->
-			super
+# 		# ### Initialize
+# 		initialize: ->
+# 			super
 
-			@addListeners()
+# 			@addListeners()
 
-			@render()
+# 			@render()
 
-		# ### Render
-		render: ->
-			rtpl = _.template Tpl, @model.toJSON()
-			@$el.html rtpl
+# 		# ### Render
+# 		render: ->
+# 			rtpl = _.template Tpl, @model.toJSON()
+# 			@$el.html rtpl
 
-			@
+# 			@
 
-		# ### Events
-		events: ->
-			'click button.ok': 'save'
+# 		# ### Events
+# 		events: ->
+# 			'click button.ok': 'save'
 
-		save: ->
-			@model.save()
+# 		save: ->
+# 			@model.save()
 
-		# ### Methods
-		setModel: (transcription) ->
-			@model = transcription
-			@addListeners()
+# 		# ### Methods
+# 		setModel: (transcription) ->
+# 			@model = transcription
+# 			@addListeners()
 
-		addListeners: ->
-			@listenTo @model, 'sync', => @el.querySelector('button.ok').disabled = true
-			@listenTo @model, 'change:body', => @el.querySelector('button.ok').disabled = false
+# 		addListeners: ->
+# 			@listenTo @model, 'sync', => @el.querySelector('button.ok').disabled = true
+# 			@listenTo @model, 'change:body', => @el.querySelector('button.ok').disabled = false

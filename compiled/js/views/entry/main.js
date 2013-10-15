@@ -22,8 +22,6 @@
       EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
-      TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
-      AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
       Form: require('hilib/views/form/main'),
       AnnotationEditor: require('views/entry/editors/annotation'),
@@ -161,7 +159,8 @@
             return _this.renderTranscription();
           });
           this.listenTo(this.annotationEditor, 'newannotation:saved', function(annotation) {
-            return _this.currentTranscription.get('annotations').add(annotation);
+            _this.currentTranscription.get('annotations').add(annotation);
+            return _this.publish('message', "New annotation added.");
           });
         } else {
           this.annotationEditor.show(model);
@@ -239,11 +238,11 @@
       };
 
       Entry.prototype.changeFacsimile = function(ev) {
-        var facsimileID, model;
-        facsimileID = ev.currentTarget.getAttribute('data-value');
-        model = this.model.get('facsimiles').get(facsimileID);
-        if (model != null) {
-          return this.model.get('facsimiles').setCurrent(model);
+        var facsimileID, newFacsimile;
+        facsimileID = ev.hasOwnProperty('target') ? ev.currentTarget.getAttribute('data-value') : ev;
+        newFacsimile = this.model.get('facsimiles').get(facsimileID);
+        if (newFacsimile != null) {
+          return this.model.get('facsimiles').setCurrent(newFacsimile);
         }
       };
 
@@ -307,13 +306,15 @@
         });
         this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
           var li;
-          _this.subsubmenu.close();
           li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
-          return _this.$('.submenu .facsimiles').append(li);
+          _this.$('.submenu .facsimiles').append(li);
+          _this.changeFacsimile(facsimile.id);
+          _this.subsubmenu.close();
+          return _this.publish('message', "Added facsimile: \"" + (facsimile.get('name')) + "\".");
         });
         this.listenTo(this.model.get('facsimiles'), 'remove', function(facsimile) {
           _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
-          return _this.publish('message', "Removed facsimile \"" + (facsimile.get('name')) + "\".");
+          return _this.publish('message', "Removed facsimile: \"" + (facsimile.get('name')) + "\".");
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
@@ -325,13 +326,13 @@
           var li;
           li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
           _this.$('.submenu .textlayers').append(li);
+          _this.changeTranscription(transcription.id);
           _this.subsubmenu.close();
-          _this.publish('message', "Added text layer " + (transcription.get('textLayer')) + ".");
-          return _this.changeTranscription(transcription.id);
+          return _this.publish('message', "Added text layer: \"" + (transcription.get('textLayer')) + "\".");
         });
         this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
           _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
-          return _this.publish('message', "Removed text layer \"" + (transcription.get('textLayer')) + "\".");
+          return _this.publish('message', "Removed text layer: \"" + (transcription.get('textLayer')) + "\".");
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {

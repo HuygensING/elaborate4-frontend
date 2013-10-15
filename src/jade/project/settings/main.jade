@@ -16,7 +16,12 @@
 					ul
 						li
 							label(for="type") Type
-							input#type(type="text", name="type", value!="<%= settings.Type %>", data-attr="Type")
+							//- input#type(type="text", name="type", value!="<%= settings.Type %>", data-attr="Type")
+							select(name="projectType", data-attr="projectType")
+								|<% var collectionSelected = (settings['projectType'] === 'collection') ? ' selected' : ''; %>
+								|<% var workSelected = (settings['projectType'] === 'work') ? ' selected' : ''; %>
+								|<option value="collection"<%= collectionSelected %>>Collection</option>
+								|<option value="work"<%= workSelected %>>Work</option>
 						li
 							label(for="title") Project title
 							input#title(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")

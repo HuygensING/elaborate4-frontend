@@ -18,6 +18,17 @@
         return _ref;
       }
 
+      ProjectSettings.prototype.defaults = function() {
+        return {
+          'Project leader': '',
+          'Project title': '',
+          'projectType': '',
+          'Release date': '',
+          'Start date': '',
+          'Version': ''
+        };
+      };
+
       ProjectSettings.prototype.url = function() {
         return "" + config.baseUrl + "projects/" + this.projectID + "/settings";
       };

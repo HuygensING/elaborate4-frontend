@@ -27,8 +27,8 @@ define (require) ->
 		EntryMetadata: require 'views/entry/metadata'
 		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
-		TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
-		AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
+		# TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
+		# AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'
 		AnnotationEditor: require 'views/entry/editors/annotation'
@@ -152,7 +152,9 @@ define (require) ->
 				@listenTo @annotationEditor, 'cancel', =>
 					@preview.removeNewAnnotationTags()
 					@renderTranscription()
-				@listenTo @annotationEditor, 'newannotation:saved', (annotation) => @currentTranscription.get('annotations').add annotation
+				@listenTo @annotationEditor, 'newannotation:saved', (annotation) => 
+					@currentTranscription.get('annotations').add annotation
+					@publish 'message', "New annotation added."
 			else
 				@annotationEditor.show model
 
@@ -227,10 +229,11 @@ define (require) ->
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
 
 		changeFacsimile: (ev) ->
-			facsimileID = ev.currentTarget.getAttribute 'data-value'
+			# Check if ev is an Event, else assume ev is an ID
+			facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
-			model = @model.get('facsimiles').get facsimileID
-			@model.get('facsimiles').setCurrent model if model?
+			newFacsimile = @model.get('facsimiles').get facsimileID
+			@model.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
 		changeTranscription: (ev) ->
 			# Check if ev is an Event, else assume ev is an ID
@@ -295,12 +298,18 @@ define (require) ->
 				@currentFacsimile = current
 				@renderFacsimile()
 			@listenTo @model.get('facsimiles'), 'add', (facsimile) =>
-				@subsubmenu.close()
+				# Add the new facsimile to the menu
 				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
 				@$('.submenu .facsimiles').append li
+
+				# Change the facsimile to the newly added facsimile
+				@changeFacsimile facsimile.id
+				@subsubmenu.close()
+				@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
+
 			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => 
 				@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
-				@publish 'message', "Removed facsimile \"#{facsimile.get('name')}\"."
+				@publish 'message', "Removed facsimile: \"#{facsimile.get('name')}\"."
 
 			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
@@ -308,14 +317,18 @@ define (require) ->
 				# the user is not fast enough to click an annotation
 				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
 			@listenTo @model.get('transcriptions'), 'add', (transcription) =>
+				# Add the new text layer to the submenu
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
 				@$('.submenu .textlayers').append li
-				@subsubmenu.close()
-				@publish 'message', "Added text layer #{transcription.get('textLayer')}."
+				
+				# Change the transcription to the newly added transcription
 				@changeTranscription transcription.id
+				@subsubmenu.close()
+				@publish 'message', "Added text layer: \"#{transcription.get('textLayer')}\"."
+			
 			@listenTo @model.get('transcriptions'), 'remove', (transcription) => 
 				@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
-				@publish 'message', "Removed text layer \"#{transcription.get('textLayer')}\"."
+				@publish 'message', "Removed text layer: \"#{transcription.get('textLayer')}\"."
 
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>

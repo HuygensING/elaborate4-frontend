@@ -1,6 +1,12 @@
 define (require) ->
 	BaseView = require 'views/base'
 
+	config = require 'config'
+
+	Fn = require 'hilib/functions/general'
+	ajax = require 'hilib/managers/ajax'
+	token = require 'hilib/managers/token'
+
 	Models =
 		currentUser: require 'models/currentUser'
 		state: require 'models/state'
@@ -21,23 +27,7 @@ define (require) ->
 
 		className: 'main'
 
-		# ### Events
-		events:
-			'click .user .logout': -> Models.currentUser.logout() 
-			'click .user .project': 'setProject'
-			'click .project .projecttitle': 'navigateToProject'
-			'click .project .settings': 'navigateToProjectSettings'
-			'click .project .search': 'navigateToProject'
-			'click .project .history': 'navigateToProjectHistory'
-			'click .message': -> @$('.message').removeClass 'active'
-
-		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
-		# navigateToProjectSearch: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}"
-		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
-
-			# 'click .sub li': (ev) -> @publish 'header:submenu:'+ev.currentTarget.getAttribute('data-id')
-
+		# ### Initialize
 		initialize: ->
 			super
 			
@@ -46,6 +36,33 @@ define (require) ->
 			Collections.projects.getCurrent (@project) =>
 
 			@subscribe 'message', @showMessage, @
+
+		# ### Events
+		events:
+			'click .user .logout': -> Models.currentUser.logout() 
+			'click .user .project': 'setProject'
+			'click .project .projecttitle': 'navigateToProject'
+			'click .project .settings': 'navigateToProjectSettings'
+			'click .project .search': 'navigateToProject'
+			'click .project .history': 'navigateToProjectHistory'
+			'click .project .publish': 'publishProject'
+			'click .message': -> @$('.message').removeClass 'active'
+
+		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+		# navigateToProjectSearch: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}"
+		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
+
+		publishProject: (ev) ->
+			ajax.token = token.get()
+			jqXHR = ajax.post
+				url: config.baseUrl+"projects/#{@project.id}/publication"
+				dataType: 'text'
+			jqXHR.done => ajax.poll jqXHR.getResponseHeader('Location'), (data) => data.done
+			jqXHR.fail => console.log arguments
+
+
+			# 'click .sub li': (ev) -> @publish 'header:submenu:'+ev.currentTarget.getAttribute('data-id')
 
 		# 	@listenToOnce Models.currentUser, 'authorized', @render
 
@@ -56,6 +73,7 @@ define (require) ->
 		# 	@$('.sub .center').html menus.center
 		# 	@$('.sub .right').html menus.right
 
+		# ### Render
 		render: ->
 			rtpl = _.template Templates.Header, 
 				projects: Collections.projects
@@ -82,11 +100,12 @@ define (require) ->
 			# @publish 'navigate:project'
 
 		showMessage: (msg) ->
+			return false if msg.trim().length is 0
+
 			$message = @$('.message')
-			$message.addClass 'active'
+			$message.addClass 'active' unless $message.hasClass 'active'
 			$message.html msg
 
-			timer = setTimeout (=>
-				$message.removeClass 'active'
-				clearTimeout timer
-			), 5000
+			Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), => 
+				$message.addClass 'pulse'
+				setTimeout (=> $message.removeClass 'pulse'), 1000
