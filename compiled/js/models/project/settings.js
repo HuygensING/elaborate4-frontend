@@ -23,6 +23,7 @@
           'Project leader': '',
           'Project title': '',
           'projectType': '',
+          'publicationURL': '',
           'Release date': '',
           'Start date': '',
           'Version': ''

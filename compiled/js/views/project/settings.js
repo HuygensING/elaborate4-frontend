@@ -46,14 +46,8 @@
         ProjectSettings.__super__.initialize.apply(this, arguments);
         return Collections.projects.getCurrent(function(project) {
           _this.project = project;
-          _this.model = new Models.Settings(null, {
-            projectID: _this.project.id
-          });
-          return _this.model.fetch({
-            success: function() {
-              return _this.render();
-            }
-          });
+          _this.model = _this.project.get('settings');
+          return _this.render();
         });
       };
 

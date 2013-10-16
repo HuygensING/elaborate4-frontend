@@ -41,9 +41,11 @@ define (require) ->
 			super
 
 			Collections.projects.getCurrent (@project) =>
-				@model = new Models.Settings null,
-					projectID: @project.id
-				@model.fetch success: => @render()
+				@model = @project.get 'settings'
+				@render()
+				# @model = new Models.Settings null,
+				# 	projectID: @project.id
+				# @model.fetch success: => @render()
 
 		# ### Render
 		render: ->

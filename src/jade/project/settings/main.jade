@@ -43,7 +43,12 @@
 						li
 							label(for="version") Version
 							input#version(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
+						| <% if (settings.publicationURL.length > 0) { %>
 						li
+							label Publication
+							a(href!="<%= settings.publicationURL %>", data-bypass) link
+						| <% } %>
+						li(style="margin-top: 20px")
 							input.inactive(type="submit", name="savesettings", value="Save settings")
 			.cell.span1
 				h4 Statistics 

@@ -9,7 +9,7 @@ define (require) ->
 
 	Models =
 		currentUser: require 'models/currentUser'
-		state: require 'models/state'
+		# state: require 'models/state'
 
 	Collections =
 		projects: require 'collections/projects'
@@ -54,11 +54,24 @@ define (require) ->
 		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 
 		publishProject: (ev) ->
+			busyText = 'Publishing...'
+			return false if ev.currentTarget.innerHTML is busyText
+			ev.currentTarget.innerHTML = busyText
+			
 			ajax.token = token.get()
 			jqXHR = ajax.post
 				url: config.baseUrl+"projects/#{@project.id}/publication"
 				dataType: 'text'
-			jqXHR.done => ajax.poll jqXHR.getResponseHeader('Location'), (data) => data.done
+			jqXHR.done => ajax.poll
+				url: jqXHR.getResponseHeader('Location')
+				testFn: (data) => data.done
+				done: (data, textStatus, jqXHR) =>
+					settings = @project.get('settings')
+					settings.set 'publicationURL', data.url
+					settings.save null,
+						success: =>
+							ev.currentTarget.innerHTML = 'Publish'
+							@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
 			jqXHR.fail => console.log arguments
 
 

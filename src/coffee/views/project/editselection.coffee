@@ -35,7 +35,6 @@ define (require) ->
 
 		# If the input has a value, the checkbox next to input should be checked
 		checkInput: (ev) ->
-			@publish 'message', ev.currentTarget.value
 			cb = ev.currentTarget.nextSibling
 			cb.checked = ev.currentTarget.value.trim().length > 0
 			@toggleInactive()

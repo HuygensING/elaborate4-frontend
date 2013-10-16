@@ -10,8 +10,7 @@
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
     Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
+      currentUser: require('models/currentUser')
     };
     Collections = {
       projects: require('collections/projects')
@@ -77,16 +76,35 @@
       };
 
       Header.prototype.publishProject = function(ev) {
-        var jqXHR,
+        var busyText, jqXHR,
           _this = this;
+        busyText = 'Publishing...';
+        if (ev.currentTarget.innerHTML === busyText) {
+          return false;
+        }
+        ev.currentTarget.innerHTML = busyText;
         ajax.token = token.get();
         jqXHR = ajax.post({
           url: config.baseUrl + ("projects/" + this.project.id + "/publication"),
           dataType: 'text'
         });
         jqXHR.done(function() {
-          return ajax.poll(jqXHR.getResponseHeader('Location'), function(data) {
-            return data.done;
+          return ajax.poll({
+            url: jqXHR.getResponseHeader('Location'),
+            testFn: function(data) {
+              return data.done;
+            },
+            done: function(data, textStatus, jqXHR) {
+              var settings;
+              settings = _this.project.get('settings');
+              settings.set('publicationURL', data.url);
+              return settings.save(null, {
+                success: function() {
+                  ev.currentTarget.innerHTML = 'Publish';
+                  return _this.publish('message', "Publication <a href='" + data.url + "' target='_blank' data-bypass>ready</a>.");
+                }
+              });
+            }
           });
         });
         return jqXHR.fail(function() {

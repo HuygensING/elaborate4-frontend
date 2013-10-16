@@ -8,6 +8,7 @@ define (require) ->
 
 	Models = 
 		Base: require 'models/base'
+		Settings: require 'models/project/settings'
 
 	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
 	EntryMetadata = require 'entry.metadata'
@@ -32,6 +33,7 @@ define (require) ->
 			modifier: null
 			name: ''
 			projectLeaderId: null
+			settings: null
 			textLayers: []
 			title: ''
 			users: null
@@ -50,22 +52,27 @@ define (require) ->
 
 		load: (cb) ->
 			if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('users') is null
-				async = new Async ['annotationtypes', 'users', 'entrymetadatafields']
+				async = new Async ['annotationtypes', 'users', 'entrymetadatafields', 'settings']
 				async.on 'ready', (data) => cb()
 
 				annotationtypes = new Collections.AnnotationTypes [], projectId: @id
 				annotationtypes.fetch success: (collection) => 
 					@set 'annotationtypes', collection
-					async.called 'annotationtypes', collection
+					async.called 'annotationtypes'
 
 				users = new Collections.ProjectUsers [], projectId: @id
 				users.fetch success: (collection) => 
 					@set 'users', collection
-					async.called 'users', collection
+					async.called 'users'
 
 				new EntryMetadata(@id).fetch (data) =>
 					@set 'entrymetadatafields', data
-					async.called 'entrymetadatafields', data
+					async.called 'entrymetadatafields'
+
+				settings = new Models.Settings null, projectID: @id
+				settings.fetch success: (model) =>
+					@set 'settings', model
+					async.called 'settings'
 			else
 				cb()
 

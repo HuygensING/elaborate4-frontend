@@ -9,7 +9,8 @@
     Async = require('hilib/managers/async');
     config = require('config');
     Models = {
-      Base: require('models/base')
+      Base: require('models/base'),
+      Settings: require('models/project/settings')
     };
     EntryMetadata = require('entry.metadata');
     Collections = {
@@ -39,6 +40,7 @@
           modifier: null,
           name: '',
           projectLeaderId: null,
+          settings: null,
           textLayers: [],
           title: '',
           users: null
@@ -53,10 +55,10 @@
       };
 
       Project.prototype.load = function(cb) {
-        var annotationtypes, async, users,
+        var annotationtypes, async, settings, users,
           _this = this;
         if (this.get('annotationtypes') === null && this.get('entrymetadatafields') === null && this.get('users') === null) {
-          async = new Async(['annotationtypes', 'users', 'entrymetadatafields']);
+          async = new Async(['annotationtypes', 'users', 'entrymetadatafields', 'settings']);
           async.on('ready', function(data) {
             return cb();
           });
@@ -66,7 +68,7 @@
           annotationtypes.fetch({
             success: function(collection) {
               _this.set('annotationtypes', collection);
-              return async.called('annotationtypes', collection);
+              return async.called('annotationtypes');
             }
           });
           users = new Collections.ProjectUsers([], {
@@ -75,12 +77,21 @@
           users.fetch({
             success: function(collection) {
               _this.set('users', collection);
-              return async.called('users', collection);
+              return async.called('users');
             }
           });
-          return new EntryMetadata(this.id).fetch(function(data) {
+          new EntryMetadata(this.id).fetch(function(data) {
             _this.set('entrymetadatafields', data);
-            return async.called('entrymetadatafields', data);
+            return async.called('entrymetadatafields');
+          });
+          settings = new Models.Settings(null, {
+            projectID: this.id
+          });
+          return settings.fetch({
+            success: function(model) {
+              _this.set('settings', model);
+              return async.called('settings');
+            }
           });
         } else {
           return cb();

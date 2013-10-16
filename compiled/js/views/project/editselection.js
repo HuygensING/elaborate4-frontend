@@ -45,7 +45,6 @@
 
       EditSelection.prototype.checkInput = function(ev) {
         var cb;
-        this.publish('message', ev.currentTarget.value);
         cb = ev.currentTarget.nextSibling;
         cb.checked = ev.currentTarget.value.trim().length > 0;
         return this.toggleInactive();
