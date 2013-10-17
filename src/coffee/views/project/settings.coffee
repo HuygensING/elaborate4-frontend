@@ -1,5 +1,6 @@
 define (require) ->
 
+	config = require 'config'
 	Async = require 'hilib/managers/async'
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
@@ -107,7 +108,7 @@ define (require) ->
 			@listenTo form, 'save:success', (model, response, options) =>
 				ajax.token = token.get()
 				jqXHR = ajax.put
-					url: "projects/#{@project.get('name')}/projectusers/#{model.id}"
+					url: config.baseUrl+"projects/#{@project.get('name')}/projectusers/#{model.id}"
 					dataType: 'text'
 				jqXHR.done => combolist.addSelected model
 			@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c

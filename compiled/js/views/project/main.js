@@ -108,9 +108,7 @@
           return this.facetedSearch.reset();
         },
         'click .submenu li[data-key="newentry"]': 'newEntry',
-        'click .submenu li[data-key="editselection"]': function(ev) {
-          return this.$('.editselection-placeholder').toggle();
-        },
+        'click .submenu li[data-key="editselection"]': 'showEditMetadata',
         'click li.entry label': 'changeCurrentEntry',
         'click .pagination li.prev': 'changePage',
         'click .pagination li.next': 'changePage',
@@ -128,6 +126,10 @@
         'change .entry input[type="checkbox"]': function() {
           return this.editSelection.toggleInactive();
         }
+      };
+
+      ProjectSearch.prototype.showEditMetadata = function(ev) {
+        return this.$('.editselection-placeholder').toggle();
       };
 
       ProjectSearch.prototype.newEntry = function(ev) {
@@ -185,10 +187,12 @@
 
       ProjectSearch.prototype.updateHeader = function() {
         var currentpage, pagecount;
+        this.$('.pagination li.next').removeClass('inactive');
         this.$('h3.numfound').html(this.model.get('numFound') + ' letters found');
         currentpage = (this.model.get('start') / this.model.get('rows')) + 1;
         pagecount = Math.ceil(this.model.get('numFound') / this.model.get('rows'));
         if (pagecount > 1) {
+          console.log(this.facetedSearch.hasNext());
           if (!this.facetedSearch.hasPrev()) {
             this.$('.pagination li.prev').addClass('inactive');
           }

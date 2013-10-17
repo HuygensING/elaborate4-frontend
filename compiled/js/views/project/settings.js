@@ -3,7 +3,8 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, ajax, token, _ref;
+    var Async, Collections, EntryMetadata, Models, ProjectSettings, Templates, Views, ajax, config, token, _ref;
+    config = require('config');
     Async = require('hilib/managers/async');
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
@@ -123,7 +124,7 @@
           var jqXHR;
           ajax.token = token.get();
           jqXHR = ajax.put({
-            url: "projects/" + (_this.project.get('name')) + "/projectusers/" + model.id,
+            url: config.baseUrl + ("projects/" + (_this.project.get('name')) + "/projectusers/" + model.id),
             dataType: 'text'
           });
           return jqXHR.done(function() {

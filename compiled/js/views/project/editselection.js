@@ -3,7 +3,8 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
-    var EditSelection, Templates, Views, ajax, token, _ref;
+    var EditSelection, Templates, Views, ajax, config, token, _ref;
+    config = require('config');
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
     Views = {
@@ -81,7 +82,7 @@
           if (entryIDs.length > 0 && _.size(settings) > 0) {
             ajax.token = token.get();
             jqXHR = ajax.put({
-              url: "projects/" + this.model.id + "/multipleentrysettings",
+              url: config.baseUrl + ("projects/" + this.model.id + "/multipleentrysettings"),
               data: JSON.stringify({
                 projectEntryIds: entryIDs,
                 settings: settings

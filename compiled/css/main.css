@@ -848,6 +848,7 @@ form.login{text-align:left}
 .projectsearch .resultview header nav ul li{margin-left:6px;cursor:pointer;display:inline-block;}
 .projectsearch .resultview header nav ul li label{color:#000;cursor:default}
 .projectsearch .resultview header .editselection-placeholder{display:none;background:#f1f1f1;box-shadow:0 0 6px #aaa;margin-bottom:20px;border-radius:6px;}
+.projectsearch .resultview header .editselection-placeholder h3{margin:0;padding:12px}
 .projectsearch .resultview header .editselection-placeholder form{padding:12px}
 .projectsearch .resultview header .editselection-placeholder li *{vertical-align:middle}
 .projectsearch .resultview header .editselection-placeholder li input[type="checkbox"]{margin-left:6px}

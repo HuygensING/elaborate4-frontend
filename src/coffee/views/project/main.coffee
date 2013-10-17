@@ -96,7 +96,7 @@ define (require) ->
 		events:
 			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
-			'click .submenu li[data-key="editselection"]': (ev) -> @$('.editselection-placeholder').toggle()
+			'click .submenu li[data-key="editselection"]': 'showEditMetadata'
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
@@ -104,6 +104,10 @@ define (require) ->
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
+
+		showEditMetadata: (ev) ->
+			# show hide checkboxes
+			@$('.editselection-placeholder').toggle()
 
 		newEntry: (ev) ->
 			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')
@@ -148,13 +152,16 @@ define (require) ->
 
 		uncheckCheckboxes: -> Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
 
+		# * TODO: called several times!
 		updateHeader: ->
+			@$('.pagination li.next').removeClass 'inactive' # TMP!
 			@$('h3.numfound').html @model.get('numFound') + ' letters found'
 				
 			currentpage = (@model.get('start') / @model.get('rows')) + 1
 			pagecount = Math.ceil @model.get('numFound') / @model.get('rows')
 
 			if pagecount > 1
+				console.log @facetedSearch.hasNext()
 				@$('.pagination li.prev').addClass 'inactive' if not @facetedSearch.hasPrev()
 				@$('.pagination li.next').addClass 'inactive' if not @facetedSearch.hasNext()
 

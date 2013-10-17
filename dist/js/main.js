@@ -3675,26 +3675,20 @@ define('domready',[],function () {
         newEmpty = Array.isArray(object) ? [] : {};
         return $.extend(true, newEmpty, object);
       },
-      /*
-      	Starts a timer which resets when it is called again.
-      	
-      	Example: with a scroll event, when a user stops scrolling, the timer ends.
-      	Without the reset, the timer would fire dozens of times.
-      	Can also be handy to avoid double clicks.
-      
-      	Example usage:
-      	div.addEventListener 'scroll', (ev) ->
-      		Fn.timeoutWithReset 200, -> console.log('finished!')
-      	
-      	return Function
-      */
-
       timeoutWithReset: (function() {
         var timer;
-        timer = 0;
-        return function(ms, cb) {
-          clearTimeout(timer);
-          return timer = setTimeout(cb, ms);
+        timer = null;
+        return function(ms, cb, onResetFn) {
+          if (timer != null) {
+            if (onResetFn != null) {
+              onResetFn();
+            }
+            clearTimeout(timer);
+          }
+          return timer = setTimeout((function() {
+            timer = null;
+            return cb();
+          }), ms);
         };
       })(),
       /*
@@ -3952,23 +3946,55 @@ define('domready',[],function () {
 
 (function() {
   define('hilib/managers/ajax',['require','jquery'],function(require) {
-    var $;
+    var $, defaultOptions;
     $ = require('jquery');
     $.support.cors = true;
+    defaultOptions = {
+      token: true
+    };
     return {
       token: null,
-      get: function(args) {
-        return this.fire('get', args);
+      get: function(args, options) {
+        if (options == null) {
+          options = {};
+        }
+        return this.fire('get', args, options);
       },
-      post: function(args) {
-        return this.fire('post', args);
+      post: function(args, options) {
+        if (options == null) {
+          options = {};
+        }
+        return this.fire('post', args, options);
       },
-      put: function(args) {
-        return this.fire('put', args);
+      put: function(args, options) {
+        if (options == null) {
+          options = {};
+        }
+        return this.fire('put', args, options);
       },
-      fire: function(type, args) {
+      poll: function(args) {
+        var done, dopoll, testFn, url,
+          _this = this;
+        url = args.url, testFn = args.testFn, done = args.done;
+        dopoll = function() {
+          var xhr;
+          xhr = _this.get({
+            url: url
+          });
+          return xhr.done(function(data, textStatus, jqXHR) {
+            if (testFn(data)) {
+              return done(data, textStatus, jqXHR);
+            } else {
+              return setTimeout(dopoll, 5000);
+            }
+          });
+        };
+        return dopoll();
+      },
+      fire: function(type, args, options) {
         var ajaxArgs,
           _this = this;
+        options = $.extend({}, defaultOptions, options);
         ajaxArgs = {
           type: type,
           dataType: 'json',
@@ -3976,7 +4002,7 @@ define('domready',[],function () {
           processData: false,
           crossDomain: true
         };
-        if (this.token != null) {
+        if ((this.token != null) && options.token) {
           ajaxArgs.beforeSend = function(xhr) {
             return xhr.setRequestHeader('Authorization', "SimpleAuth " + _this.token);
           };
@@ -4067,6 +4093,74 @@ define('domready',[],function () {
       return Base;
 
     })(Backbone.Model);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/project/settings',['require','config','hilib/managers/token','hilib/managers/ajax','models/base'],function(require) {
+    var Models, ProjectSettings, ajax, config, token, _ref;
+    config = require('config');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
+    Models = {
+      Base: require('models/base')
+    };
+    return ProjectSettings = (function(_super) {
+      __extends(ProjectSettings, _super);
+
+      function ProjectSettings() {
+        _ref = ProjectSettings.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      ProjectSettings.prototype.defaults = function() {
+        return {
+          'Project leader': '',
+          'Project title': '',
+          'projectType': '',
+          'publicationURL': '',
+          'Release date': '',
+          'Start date': '',
+          'Version': ''
+        };
+      };
+
+      ProjectSettings.prototype.url = function() {
+        return "" + config.baseUrl + "projects/" + this.projectID + "/settings";
+      };
+
+      ProjectSettings.prototype.initialize = function(attrs, options) {
+        ProjectSettings.__super__.initialize.apply(this, arguments);
+        return this.projectID = options.projectID;
+      };
+
+      ProjectSettings.prototype.sync = function(method, model, options) {
+        var jqXHR,
+          _this = this;
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify(this)
+          });
+          jqXHR.done(function(response) {
+            return options.success(response);
+          });
+          return jqXHR.fail(function() {
+            return console.error('Saving ProjectSettings failed!');
+          });
+        } else {
+          return ProjectSettings.__super__.sync.call(this, method, model, options);
+        }
+      };
+
+      return ProjectSettings;
+
+    })(Models.Base);
   });
 
 }).call(this);
@@ -4961,14 +5055,15 @@ define('domready',[],function () {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/main',['require','hilib/managers/ajax','hilib/managers/token','hilib/managers/async','config','models/base','entry.metadata','collections/entries','collections/project/annotationtypes','collections/project/users'],function(require) {
+  define('models/project/main',['require','hilib/managers/ajax','hilib/managers/token','hilib/managers/async','config','models/base','models/project/settings','entry.metadata','collections/entries','collections/project/annotationtypes','collections/project/users'],function(require) {
     var Async, Collections, EntryMetadata, Models, Project, ajax, config, token, _ref;
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
     Async = require('hilib/managers/async');
     config = require('config');
     Models = {
-      Base: require('models/base')
+      Base: require('models/base'),
+      Settings: require('models/project/settings')
     };
     EntryMetadata = require('entry.metadata');
     Collections = {
@@ -4998,6 +5093,7 @@ define('domready',[],function () {
           modifier: null,
           name: '',
           projectLeaderId: null,
+          settings: null,
           textLayers: [],
           title: '',
           users: null
@@ -5012,10 +5108,10 @@ define('domready',[],function () {
       };
 
       Project.prototype.load = function(cb) {
-        var annotationtypes, async, users,
+        var annotationtypes, async, settings, users,
           _this = this;
         if (this.get('annotationtypes') === null && this.get('entrymetadatafields') === null && this.get('users') === null) {
-          async = new Async(['annotationtypes', 'users', 'entrymetadatafields']);
+          async = new Async(['annotationtypes', 'users', 'entrymetadatafields', 'settings']);
           async.on('ready', function(data) {
             return cb();
           });
@@ -5025,7 +5121,7 @@ define('domready',[],function () {
           annotationtypes.fetch({
             success: function(collection) {
               _this.set('annotationtypes', collection);
-              return async.called('annotationtypes', collection);
+              return async.called('annotationtypes');
             }
           });
           users = new Collections.ProjectUsers([], {
@@ -5034,12 +5130,21 @@ define('domready',[],function () {
           users.fetch({
             success: function(collection) {
               _this.set('users', collection);
-              return async.called('users', collection);
+              return async.called('users');
             }
           });
-          return new EntryMetadata(this.id).fetch(function(data) {
+          new EntryMetadata(this.id).fetch(function(data) {
             _this.set('entrymetadatafields', data);
-            return async.called('entrymetadatafields', data);
+            return async.called('entrymetadatafields');
+          });
+          settings = new Models.Settings(null, {
+            projectID: this.id
+          });
+          return settings.fetch({
+            success: function(model) {
+              _this.set('settings', model);
+              return async.called('settings');
+            }
           });
         } else {
           return cb();
@@ -7065,62 +7170,6 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/settings',['require','config','hilib/managers/token','hilib/managers/ajax','models/base'],function(require) {
-    var Models, ProjectSettings, ajax, config, token, _ref;
-    config = require('config');
-    token = require('hilib/managers/token');
-    ajax = require('hilib/managers/ajax');
-    Models = {
-      Base: require('models/base')
-    };
-    return ProjectSettings = (function(_super) {
-      __extends(ProjectSettings, _super);
-
-      function ProjectSettings() {
-        _ref = ProjectSettings.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      ProjectSettings.prototype.url = function() {
-        return "" + config.baseUrl + "projects/" + this.projectID + "/settings";
-      };
-
-      ProjectSettings.prototype.initialize = function(attrs, options) {
-        ProjectSettings.__super__.initialize.apply(this, arguments);
-        return this.projectID = options.projectID;
-      };
-
-      ProjectSettings.prototype.sync = function(method, model, options) {
-        var jqXHR,
-          _this = this;
-        if (method === 'create') {
-          ajax.token = token.get();
-          jqXHR = ajax.put({
-            url: this.url(),
-            data: JSON.stringify(this)
-          });
-          jqXHR.done(function(response) {
-            return options.success(response);
-          });
-          return jqXHR.fail(function() {
-            return console.error('Saving ProjectSettings failed!');
-          });
-        } else {
-          return ProjectSettings.__super__.sync.call(this, method, model, options);
-        }
-      };
-
-      return ProjectSettings;
-
-    })(Models.Base);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
   define('models/user',['require','config','hilib/managers/ajax','hilib/managers/token','models/base'],function(require) {
     var Models, User, ajax, config, token, _ref;
     config = require('config');
@@ -7231,7 +7280,7 @@ define('text!hilib/mixins/dropdown/main.html',[],function () { return '<% collec
 
 }).call(this);
 
-define('text!html/project/settings/main.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><input id="type" type="text" name="type" value="<%= settings.Type %>" data-attr="Type"/></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><select name="leader" data-attr="Project leader"><option>-- select member --</option><% projectMembers.each(function(member) { %>\n<% var selected = (member.id === parseInt(settings[\'Project leader\'], 10)) ? \' selected\' : \'\'; %>\n<option value="<%= member.id %>"<%= selected %>><%= member.get(\'title\') %></option>\n<% }); %></select></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><li><input type="submit" name="savesettings" value="Save settings" class="inactive"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Project members</h3></div><div class="cell span2 adduser"><h3>Add new user to project</h3></div></div></div></div>';});
+define('text!html/project/settings/main.html',[],function () { return '<div class="padl5 padr5"><h2>Settings</h2><ul class="horizontal tab menu"><li data-tab="project" class="active">Project</li><li data-tab="metadata-entries">Entry metadata</li><li data-tab="metadata-annotations">Annotation types</li><li data-tab="users">Users</li></ul><div data-tab="project" class="active"><h3>Project</h3><div class="row span2"><div class="cell span1"><form><ul><li><label for="type">Type</label><select name="projectType" data-attr="projectType"><% var collectionSelected = (settings[\'projectType\'] === \'collection\') ? \' selected\' : \'\'; %>\n<% var workSelected = (settings[\'projectType\'] === \'work\') ? \' selected\' : \'\'; %>\n<option value="collection"<%= collectionSelected %>>Collection</option>\n<option value="work"<%= workSelected %>>Work</option></select></li><li><label for="title">Project title</label><input id="title" type="text" name="title" value="<%= settings[\'Project title\'] %>" data-attr="Project title"/></li><li><label for="leader">Project leader</label><select name="leader" data-attr="Project leader"><option>-- select member --</option><% projectMembers.each(function(member) { %>\n<% var selected = (member.id === parseInt(settings[\'Project leader\'], 10)) ? \' selected\' : \'\'; %>\n<option value="<%= member.id %>"<%= selected %>><%= member.get(\'title\') %></option>\n<% }); %></select></li><li><label for="start">Start date</label><input id="start" type="text" name="start" value="<%= settings[\'Start date\'] %>" data-attr="Start date"/></li><li><label for="release">Release date</label><input id="release" type="text" name="release" value="<%= settings[\'Release date\'] %>" data-attr="Release date"/></li><li><label for="version">Version</label><input id="version" type="text" name="version" value="<%= settings.Version %>" data-attr="Version"/></li><% if (settings.publicationURL.length > 0) { %><li><label>Publication</label><a href="<%= settings.publicationURL %>" data-bypass="data-bypass">link</a></li><% } %><li style="margin-top: 20px"><input type="submit" name="savesettings" value="Save settings" class="inactive"/></li></ul></form></div><div class="cell span1"><h4>Statistics </h4><img src="/images/loader.gif" class="loader"/><pre class="statistics"></pre></div></div></div><div data-tab="metadata-entries"><h3>Add entry metadata field</h3></div><div data-tab="metadata-annotations"></div><div data-tab="users"><div class="row span3"><div class="cell span1 userlist"><h3>Project members</h3></div><div class="cell span2 adduser"><h3>Add new user to project</h3></div></div></div></div>';});
 
 define('text!html/project/settings/metadata_annotations.html',[],function () { return '<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type="text" name="annotationname"/></li><li><label>Description</label><input type="text" name="annotationdescription"/></li><li><input type="submit" value="Add annotation type" name="addannotationtype"/></li></ul></form><ul class="selected-annotation-types"><% annotationTypes.each(function(annotationType) { %><li data-id="<%= annotationType.id %>"><%= annotationType.get(\'description\') %></li><% }); %></ul>';});
 
@@ -7285,14 +7334,8 @@ define('text!html/project/settings/adduser.html',[],function () { return '<form>
         ProjectSettings.__super__.initialize.apply(this, arguments);
         return Collections.projects.getCurrent(function(project) {
           _this.project = project;
-          _this.model = new Models.Settings(null, {
-            projectID: _this.project.id
-          });
-          return _this.model.fetch({
-            success: function() {
-              return _this.render();
-            }
-          });
+          _this.model = _this.project.get('settings');
+          return _this.render();
         });
       };
 
@@ -8359,11 +8402,13 @@ define('text!html/entry/subsubmenu/facsimiles.edit.html',[],function () { return
         form = this.el.querySelector('form.addfile');
         formData = new FormData(form);
         jqXHR = ajax.post({
-          url: 'http://tiler01.huygensinstituut.knaw.nl:8080/facsimileservice/upload',
+          url: 'http://tomcat.tiler01.huygens.knaw.nl/facsimileservice/upload',
           data: formData,
           cache: false,
           contentType: false,
           processData: false
+        }, {
+          token: false
         });
         return jqXHR.done(function(response) {
           var data;
@@ -8392,165 +8437,6 @@ define('text!html/entry/subsubmenu/facsimiles.edit.html',[],function () { return
       };
 
       return EditFacsimiles;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/transcription.edit.menu.html',[],function () { return '<button disabled="disabled" class="ok small">Save</button>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/transcription.edit.menu',['require','hilib/functions/general','views/base','text!html/entry/transcription.edit.menu.html'],function(require) {
-    var Fn, Tpl, TranscriptionEditMenu, Views, _ref;
-    Fn = require('hilib/functions/general');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/transcription.edit.menu.html');
-    return TranscriptionEditMenu = (function(_super) {
-      __extends(TranscriptionEditMenu, _super);
-
-      function TranscriptionEditMenu() {
-        _ref = TranscriptionEditMenu.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      TranscriptionEditMenu.prototype.className = 'transcriptioneditmenu';
-
-      TranscriptionEditMenu.prototype.initialize = function() {
-        TranscriptionEditMenu.__super__.initialize.apply(this, arguments);
-        this.addListeners();
-        return this.render();
-      };
-
-      TranscriptionEditMenu.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      TranscriptionEditMenu.prototype.events = function() {
-        return {
-          'click button.ok': 'save'
-        };
-      };
-
-      TranscriptionEditMenu.prototype.save = function() {
-        return this.model.save();
-      };
-
-      TranscriptionEditMenu.prototype.setModel = function(transcription) {
-        this.model = transcription;
-        return this.addListeners();
-      };
-
-      TranscriptionEditMenu.prototype.addListeners = function() {
-        var _this = this;
-        this.listenTo(this.model, 'sync', function() {
-          return _this.el.querySelector('button.ok').disabled = true;
-        });
-        return this.listenTo(this.model, 'change:body', function() {
-          return _this.el.querySelector('button.ok').disabled = false;
-        });
-      };
-
-      return TranscriptionEditMenu;
-
-    })(Views.Base);
-  });
-
-}).call(this);
-
-define('text!html/entry/annotation.edit.menu.html',[],function () { return '<button class="metadata small">Metadata</button><button class="cancel small">Cancel</button><button disabled="disabled" class="ok small">Save</button>';});
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/entry/annotation.edit.menu',['require','hilib/functions/general','config','views/base','text!html/entry/annotation.edit.menu.html'],function(require) {
-    var AnnotationEditMenu, Fn, Tpl, Views, config, _ref;
-    Fn = require('hilib/functions/general');
-    config = require('config');
-    Views = {
-      Base: require('views/base')
-    };
-    Tpl = require('text!html/entry/annotation.edit.menu.html');
-    return AnnotationEditMenu = (function(_super) {
-      __extends(AnnotationEditMenu, _super);
-
-      function AnnotationEditMenu() {
-        _ref = AnnotationEditMenu.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      AnnotationEditMenu.prototype.className = 'annotationeditmenu';
-
-      AnnotationEditMenu.prototype.initialize = function() {
-        AnnotationEditMenu.__super__.initialize.apply(this, arguments);
-        this.addListeners();
-        return this.render();
-      };
-
-      AnnotationEditMenu.prototype.render = function() {
-        var rtpl;
-        rtpl = _.template(Tpl, this.model.toJSON());
-        this.$el.html(rtpl);
-        return this;
-      };
-
-      AnnotationEditMenu.prototype.events = function() {
-        var _this = this;
-        return {
-          'click button.ok': 'save',
-          'click button.cancel': function() {
-            return _this.trigger('cancel', _this.model);
-          },
-          'click button.metadata': function() {
-            return _this.trigger('metadata', _this.model);
-          }
-        };
-      };
-
-      AnnotationEditMenu.prototype.save = function() {
-        var _this = this;
-        if (this.model.isNew()) {
-          this.model.urlRoot = function() {
-            return config.baseUrl + ("projects/" + _this.collection.projectId + "/entries/" + _this.collection.entryId + "/transcriptions/" + _this.collection.transcriptionId + "/annotations");
-          };
-          return this.model.save([], {
-            success: function() {
-              return _this.collection.add(_this.model);
-            },
-            error: function(model, xhr, options) {
-              return console.error('Saving annotation failed!', model, xhr, options);
-            }
-          });
-        } else {
-          return this.model.save();
-        }
-      };
-
-      AnnotationEditMenu.prototype.setModel = function(annotation) {
-        this.model = annotation;
-        return this.addListeners();
-      };
-
-      AnnotationEditMenu.prototype.addListeners = function() {
-        var _this = this;
-        this.listenTo(this.model, 'sync', function(model, resp, options) {
-          return _this.el.querySelector('button.ok').disabled = true;
-        });
-        return this.listenTo(this.model, 'change:body', function() {
-          return _this.el.querySelector('button.ok').disabled = false;
-        });
-      };
-
-      return AnnotationEditMenu;
 
     })(Views.Base);
   });
@@ -9267,7 +9153,7 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/entry','collections/projects','views/base','views/entry/preview/main','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','views/entry/transcription.edit.menu','views/entry/annotation.edit.menu','hilib/views/modal/main','hilib/views/form/main','views/entry/editors/annotation','views/entry/editors/layer','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
+  define('views/entry/main',['require','backbone','config','hilib/functions/general','hilib/functions/string','hilib/functions/jquery.mixin','hilib/managers/async','models/entry','collections/projects','views/base','views/entry/preview/main','views/entry/metadata','views/entry/subsubmenu/textlayers.edit','views/entry/subsubmenu/facsimiles.edit','hilib/views/modal/main','hilib/views/form/main','views/entry/editors/annotation','views/entry/editors/layer','text!html/entry/main.html','text!html/entry/metadata.html'],function(require) {
     var Async, Backbone, Collections, Entry, Fn, Models, StringFn, Templates, Views, config, _ref;
     Backbone = require('backbone');
     config = require('config');
@@ -9287,8 +9173,6 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       EntryMetadata: require('views/entry/metadata'),
       EditTextlayers: require('views/entry/subsubmenu/textlayers.edit'),
       EditFacsimiles: require('views/entry/subsubmenu/facsimiles.edit'),
-      TranscriptionEditMenu: require('views/entry/transcription.edit.menu'),
-      AnnotationEditMenu: require('views/entry/annotation.edit.menu'),
       Modal: require('hilib/views/modal/main'),
       Form: require('hilib/views/form/main'),
       AnnotationEditor: require('views/entry/editors/annotation'),
@@ -9426,7 +9310,8 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
             return _this.renderTranscription();
           });
           this.listenTo(this.annotationEditor, 'newannotation:saved', function(annotation) {
-            return _this.currentTranscription.get('annotations').add(annotation);
+            _this.currentTranscription.get('annotations').add(annotation);
+            return _this.publish('message', "New annotation added.");
           });
         } else {
           this.annotationEditor.show(model);
@@ -9504,11 +9389,11 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
       };
 
       Entry.prototype.changeFacsimile = function(ev) {
-        var facsimileID, model;
-        facsimileID = ev.currentTarget.getAttribute('data-value');
-        model = this.model.get('facsimiles').get(facsimileID);
-        if (model != null) {
-          return this.model.get('facsimiles').setCurrent(model);
+        var facsimileID, newFacsimile;
+        facsimileID = ev.hasOwnProperty('target') ? ev.currentTarget.getAttribute('data-value') : ev;
+        newFacsimile = this.model.get('facsimiles').get(facsimileID);
+        if (newFacsimile != null) {
+          return this.model.get('facsimiles').setCurrent(newFacsimile);
         }
       };
 
@@ -9572,13 +9457,15 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
         });
         this.listenTo(this.model.get('facsimiles'), 'add', function(facsimile) {
           var li;
-          _this.subsubmenu.close();
           li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
-          return _this.$('.submenu .facsimiles').append(li);
+          _this.$('.submenu .facsimiles').append(li);
+          _this.changeFacsimile(facsimile.id);
+          _this.subsubmenu.close();
+          return _this.publish('message', "Added facsimile: \"" + (facsimile.get('name')) + "\".");
         });
         this.listenTo(this.model.get('facsimiles'), 'remove', function(facsimile) {
           _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
-          return _this.publish('message', "Removed facsimile \"" + (facsimile.get('name')) + "\".");
+          return _this.publish('message', "Removed facsimile: \"" + (facsimile.get('name')) + "\".");
         });
         this.listenTo(this.model.get('transcriptions'), 'current:change', function(current) {
           _this.currentTranscription = current;
@@ -9590,13 +9477,13 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
           var li;
           li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
           _this.$('.submenu .textlayers').append(li);
+          _this.changeTranscription(transcription.id);
           _this.subsubmenu.close();
-          _this.publish('message', "Added text layer " + (transcription.get('textLayer')) + ".");
-          return _this.changeTranscription(transcription.id);
+          return _this.publish('message', "Added text layer: \"" + (transcription.get('textLayer')) + "\".");
         });
         this.listenTo(this.model.get('transcriptions'), 'remove', function(transcription) {
           _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
-          return _this.publish('message', "Removed text layer \"" + (transcription.get('textLayer')) + "\".");
+          return _this.publish('message', "Removed text layer: \"" + (transcription.get('textLayer')) + "\".");
         });
         return window.addEventListener('resize', function(ev) {
           return Fn.timeoutWithReset(600, function() {
@@ -9708,116 +9595,21 @@ define('text!html/entry/main.html',[],function () { return '<div class="submenu"
 
 }).call(this);
 
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('models/state',['require','hilib/managers/history','models/base'],function(require) {
-    var Models, State, history, _ref;
-    history = require('hilib/managers/history');
-    Models = {
-      Base: require('models/base')
-    };
-    State = (function(_super) {
-      __extends(State, _super);
-
-      function State() {
-        _ref = State.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      State.prototype.defaults = function() {
-        return {
-          headerRendered: false,
-          currentProject: null
-        };
-      };
-
-      State.prototype.initialize = function() {
-        var _this = this;
-        State.__super__.initialize.apply(this, arguments);
-        return this.subscribe('authorized', function() {
-          return _this.getProjects();
-        });
-      };
-
-      State.prototype._getCurrentProject = function(cb, prop) {
-        var returnProp,
-          _this = this;
-        returnProp = function(model) {
-          var returnVal;
-          returnVal = prop != null ? model.get(prop) : model;
-          return cb(returnVal);
-        };
-        if (this.get('currentProject') != null) {
-          return returnProp(this.get('currentProject'));
-        } else {
-          return this.once('change:currentProject', function(stateModel, projectModel, options) {
-            return returnProp(projectModel);
-          });
-        }
-      };
-
-      State.prototype.getCurrentProjectId = function(cb) {
-        return this._getCurrentProject(cb, 'id');
-      };
-
-      State.prototype.getCurrentProjectName = function(cb) {
-        return this._getCurrentProject(cb, 'name');
-      };
-
-      State.prototype.getCurrentProject = function(cb) {
-        return this._getCurrentProject(cb);
-      };
-
-      State.prototype.setCurrentProject = function(id) {
-        var fragmentPart, project;
-        fragmentPart = history.last() != null ? history.last().split('/') : [];
-        if (id != null) {
-          project = this.get('projects').get(id);
-        } else if (fragmentPart[1] === 'projects') {
-          project = this.get('projects').find(function(p) {
-            return p.get('name') === fragmentPart[2];
-          });
-        } else {
-          project = this.get('projects').first();
-        }
-        return this.set('currentProject', project);
-      };
-
-      State.prototype.onHeaderRendered = function(cb) {
-        if (this.get('headerRendered')) {
-          return cb();
-        } else {
-          return this.subscribe('header:render:complete', function() {
-            cb();
-            return this.set('headerRendered', true);
-          });
-        }
-      };
-
-      State.prototype.getProjects = function() {};
-
-      return State;
-
-    })(Models.Base);
-    return new State();
-  });
-
-}).call(this);
-
 define('text!html/ui/header.html',[],function () { return '<div class="main"><div class="row span3"><div class="cell span1 project aligncenter"><img src="/images/logo.elaborate.png"/><ul class="horizontal menu"><li class="thisproject arrowdown"> <span class="projecttitle"><%= projects.current.get(\'title\') %></span><ul class="vertical menu"><li class="search">Search &amp; overview</li><li class="settings">Project settings</li><li class="history">History</li><li class="publish">Publish</li></ul></li></ul></div><div class="cell span1"><span class="message"></span></div><div class="cell span1 user alignright"><ul class="horizontal menu"><li>Help</li><li class="username arrowdown"><%= user.title %><ul class="vertical menu"><li class="projects arrowleft">My projects<ul class="vertical menu"><% projects.each(function(project) { %><li data-id="<%= project.id %>" class="project"><%= project.get(\'title\') %></li><% }); %></ul></li><li class="logout">Logout</li></ul></li></ul><img src="/images/logo.huygens.png"/></div></div></div>';});
 
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/ui/header',['require','views/base','models/currentUser','models/state','collections/projects','text!html/ui/header.html'],function(require) {
-    var BaseView, Collections, Header, Models, Templates, _ref;
+  define('views/ui/header',['require','views/base','config','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','models/currentUser','collections/projects','text!html/ui/header.html'],function(require) {
+    var BaseView, Collections, Fn, Header, Models, Templates, ajax, config, token, _ref;
     BaseView = require('views/base');
+    config = require('config');
+    Fn = require('hilib/functions/general');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     Models = {
-      currentUser: require('models/currentUser'),
-      state: require('models/state')
+      currentUser: require('models/currentUser')
     };
     Collections = {
       projects: require('collections/projects')
@@ -9837,6 +9629,18 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
 
       Header.prototype.className = 'main';
 
+      Header.prototype.initialize = function() {
+        var _this = this;
+        Header.__super__.initialize.apply(this, arguments);
+        this.listenTo(Collections.projects, 'current:change', function(project) {
+          return _this.render();
+        });
+        Collections.projects.getCurrent(function(project) {
+          _this.project = project;
+        });
+        return this.subscribe('message', this.showMessage, this);
+      };
+
       Header.prototype.events = {
         'click .user .logout': function() {
           return Models.currentUser.logout();
@@ -9846,6 +9650,7 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
         'click .project .settings': 'navigateToProjectSettings',
         'click .project .search': 'navigateToProject',
         'click .project .history': 'navigateToProjectHistory',
+        'click .project .publish': 'publishProject',
         'click .message': function() {
           return this.$('.message').removeClass('active');
         }
@@ -9869,16 +9674,41 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
         });
       };
 
-      Header.prototype.initialize = function() {
-        var _this = this;
-        Header.__super__.initialize.apply(this, arguments);
-        this.listenTo(Collections.projects, 'current:change', function(project) {
-          return _this.render();
+      Header.prototype.publishProject = function(ev) {
+        var busyText, jqXHR,
+          _this = this;
+        busyText = 'Publishing...';
+        if (ev.currentTarget.innerHTML === busyText) {
+          return false;
+        }
+        ev.currentTarget.innerHTML = busyText;
+        ajax.token = token.get();
+        jqXHR = ajax.post({
+          url: config.baseUrl + ("projects/" + this.project.id + "/publication"),
+          dataType: 'text'
         });
-        Collections.projects.getCurrent(function(project) {
-          _this.project = project;
+        jqXHR.done(function() {
+          return ajax.poll({
+            url: jqXHR.getResponseHeader('Location'),
+            testFn: function(data) {
+              return data.done;
+            },
+            done: function(data, textStatus, jqXHR) {
+              var settings;
+              settings = _this.project.get('settings');
+              settings.set('publicationURL', data.url);
+              return settings.save(null, {
+                success: function() {
+                  ev.currentTarget.innerHTML = 'Publish';
+                  return _this.publish('message', "Publication <a href='" + data.url + "' target='_blank' data-bypass>ready</a>.");
+                }
+              });
+            }
+          });
         });
-        return this.subscribe('message', this.showMessage, this);
+        return jqXHR.fail(function() {
+          return console.log(arguments);
+        });
       };
 
       Header.prototype.render = function() {
@@ -9898,15 +9728,24 @@ define('text!html/ui/header.html',[],function () { return '<div class="main"><di
       };
 
       Header.prototype.showMessage = function(msg) {
-        var $message, timer,
+        var $message,
           _this = this;
+        if (msg.trim().length === 0) {
+          return false;
+        }
         $message = this.$('.message');
-        $message.addClass('active');
+        if (!$message.hasClass('active')) {
+          $message.addClass('active');
+        }
         $message.html(msg);
-        return timer = setTimeout((function() {
-          $message.removeClass('active');
-          return clearTimeout(timer);
-        }), 5000);
+        return Fn.timeoutWithReset(5000, (function() {
+          return $message.removeClass('active');
+        }), function() {
+          $message.addClass('pulse');
+          return setTimeout((function() {
+            return $message.removeClass('pulse');
+          }), 1000);
+        });
       };
 
       return Header;

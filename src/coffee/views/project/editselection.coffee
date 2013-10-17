@@ -1,6 +1,8 @@
 # Description...
 define (require) ->
 
+	config = require 'config'
+
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
 
@@ -66,7 +68,7 @@ define (require) ->
 				if entryIDs.length > 0 and _.size(settings) > 0
 					ajax.token = token.get()
 					jqXHR = ajax.put
-						url: "projects/#{@model.id}/multipleentrysettings"
+						url: config.baseUrl+"projects/#{@model.id}/multipleentrysettings"
 						data: JSON.stringify
 							projectEntryIds: entryIDs
 							settings: settings
