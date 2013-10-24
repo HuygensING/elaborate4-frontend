@@ -30,10 +30,10 @@ define (require) ->
 		# ### Initialize
 		initialize: ->
 			super
+
+			@project = @options.project
 			
 			@listenTo Collections.projects, 'current:change', (@project) => @render()
-
-			# Collections.projects.getCurrent (@project) =>
 
 			@subscribe 'message', @showMessage, @
 
@@ -48,7 +48,9 @@ define (require) ->
 			'click .project .publish': 'publishProject'
 			'click .message': -> @$('.message').removeClass 'active'
 
-		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+		navigateToProject: (ev) -> 
+			console.log @project
+			Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
 		navigateToProjectSettings: (ev) -> 
 			console.log @project.get('name')
 			Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true

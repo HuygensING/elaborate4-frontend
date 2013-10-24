@@ -35,12 +35,16 @@ define (require) ->
 			authorized: =>
 				projects.fetch()
 				projects.getCurrent (current) ->
-					header = new Views.Header managed: false
+					# Place header
+					header = new Views.Header
+						project: current
+						managed: false
 					$('#container').prepend header.render().$el
-					# console.log history
+
+					# Route to correct url
 					url = history.last() ? 'projects/'+projects.current.get('name')
 					mainRouter.navigate url, trigger: true
-					# console.log url
+
 			unauthorized: =>
 				mainRouter.navigate 'login', trigger: true
 
