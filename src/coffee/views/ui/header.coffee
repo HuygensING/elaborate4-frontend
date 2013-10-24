@@ -31,9 +31,9 @@ define (require) ->
 		initialize: ->
 			super
 			
-			@listenTo Collections.projects, 'current:change', (project) => @render()
+			@listenTo Collections.projects, 'current:change', (@project) => @render()
 
-			Collections.projects.getCurrent (@project) =>
+			# Collections.projects.getCurrent (@project) =>
 
 			@subscribe 'message', @showMessage, @
 
@@ -49,7 +49,9 @@ define (require) ->
 			'click .message': -> @$('.message').removeClass 'active'
 
 		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+		navigateToProjectSettings: (ev) -> 
+			console.log @project.get('name')
+			Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
 		# navigateToProjectSearch: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}"
 		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 
