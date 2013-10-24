@@ -60,7 +60,12 @@ define (require) ->
 
 			@el.style.display = 'block'
 
-		hide: -> @el.style.display = 'none'
+			@publish 'annotationEditor:show', @model.get 'annotationNo'
+
+		hide: -> 
+			@el.style.display = 'none'
+
+			@publish 'annotationEditor:hide', @model.get 'annotationNo'
 
 		setURLPath: (id) ->
 			# Cut off '/annotations/*' if it exists.

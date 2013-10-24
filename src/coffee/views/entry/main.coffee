@@ -216,13 +216,10 @@ define (require) ->
 
 					currentMenu = newMenu
 
-
-
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
 			entryID = @model.collection.previous().id
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
-
 
 		nextEntry: ->
 			entryID = @model.collection.next().id

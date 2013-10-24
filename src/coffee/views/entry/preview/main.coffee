@@ -23,6 +23,9 @@ define (require) ->
 			# @model is the entry
 			@currentTranscription = @model.get('transcriptions').current
 			
+			@subscribe 'annotationEditor:show', @highlightAnnotation
+			@subscribe 'annotationEditor:hide', @unhighlightAnnotation
+
 			@addListeners()
 
 			@render()
@@ -113,6 +116,30 @@ define (require) ->
 
 
 		# ### Methods
+
+		highlightAnnotation: (annotationNo) ->
+			range = document.createRange()
+			range.setStartAfter @el.querySelector('span[data-id="'+annotationNo+'"]')
+			range.setEndBefore @el.querySelector('sup[data-id="'+annotationNo+'"]')
+
+			el = document.createElement 'span'
+			el.className = 'hilite'
+			el.setAttribute 'data-highlight', ''
+			el.appendChild range.extractContents()
+
+			range.insertNode el
+
+		unhighlightAnnotation: (annotationNo) ->
+			el = @el.querySelector('span[data-highlight]')
+
+			# Move all children from el to a documentFragment
+			docFrag = document.createDocumentFragment()
+			docFrag.appendChild el.firstChild while el.childNodes.length
+
+			# Replace el with the documentFragment
+			el.parentNode.replaceChild docFrag, el
+
+
 
 		# Set the text that is annotated to the annotation model. This is the text between the start (<span>) and end (<sup>) tag.
 		# Text (numbers) from annotations (<sup>s) between de start and end tag are filtered out.
