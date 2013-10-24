@@ -1,4 +1,0 @@
-<form><ul data-model-id="<%= model.cid %>" class="form"><li><label>Type</label><select name="metadata.type"><% collection.each(function(item) { %>
-<% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
-<option value="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
-<% }); %></select></li><% _.each(model.get('annotationMetadataItems'), function(metadata) { %><li> <label title="<%= metadata.annotationTypeMetadataItem.description %>"><%= metadata.annotationTypeMetadataItem.name %></label><input type="text" name="metadata.<%= metadata.annotationTypeMetadataItem.name %>" value="<%= metadata.data %>"/></li><% }); %></ul></form>
