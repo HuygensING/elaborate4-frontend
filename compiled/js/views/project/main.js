@@ -90,7 +90,8 @@
       ProjectSearch.prototype.renderResult = function() {
         var rtpl;
         rtpl = _.template(Templates.Results, {
-          model: this.model
+          model: this.model,
+          generateID: Fn.generateID
         });
         this.$('ul.entries').html(rtpl);
         if ((this.model.queryOptions.term != null) && this.model.queryOptions.term !== '') {
@@ -129,7 +130,20 @@
       };
 
       ProjectSearch.prototype.showEditMetadata = function(ev) {
-        return this.$('.editselection-placeholder').toggle();
+        var cb, checkboxes, display, editmetadataPlaceholder, opacity, visible, _i, _len;
+        editmetadataPlaceholder = this.el.querySelector('.editselection-placeholder');
+        visible = editmetadataPlaceholder.style.display === 'block';
+        display = visible ? 'none' : 'block';
+        opacity = visible ? 0 : 1;
+        editmetadataPlaceholder.style.display = display;
+        checkboxes = this.el.querySelectorAll('ul.entries input[type="checkbox"]');
+        for (_i = 0, _len = checkboxes.length; _i < _len; _i++) {
+          cb = checkboxes[_i];
+          cb.style.opacity = opacity;
+        }
+        if (visible) {
+          return Fn.checkCheckboxes(null, false);
+        }
       };
 
       ProjectSearch.prototype.newEntry = function(ev) {
@@ -177,8 +191,10 @@
 
       ProjectSearch.prototype.changeCurrentEntry = function(ev) {
         var entryID;
-        entryID = ev.currentTarget.getAttribute('data-id');
-        return this.project.get('entries').setCurrent(entryID);
+        if (this.el.querySelector('.editselection-placeholder').style.display !== 'block') {
+          entryID = ev.currentTarget.getAttribute('data-id');
+          return this.project.get('entries').setCurrent(entryID);
+        }
       };
 
       ProjectSearch.prototype.uncheckCheckboxes = function() {
@@ -188,11 +204,10 @@
       ProjectSearch.prototype.updateHeader = function() {
         var currentpage, pagecount;
         this.$('.pagination li.next').removeClass('inactive');
-        this.$('h3.numfound').html(this.model.get('numFound') + ' letters found');
+        this.$('h3.numfound').html(this.model.get('numFound') + ' entries found');
         currentpage = (this.model.get('start') / this.model.get('rows')) + 1;
         pagecount = Math.ceil(this.model.get('numFound') / this.model.get('rows'));
         if (pagecount > 1) {
-          console.log(this.facetedSearch.hasNext());
           if (!this.facetedSearch.hasPrev()) {
             this.$('.pagination li.prev').addClass('inactive');
           }

@@ -80,7 +80,9 @@ define (require) ->
 			@
 
 		renderResult: ->
-			rtpl = _.template Templates.Results, model: @model
+			rtpl = _.template Templates.Results, 
+				model: @model
+				generateID: Fn.generateID
 			@$('ul.entries').html rtpl
 			
 			if @model.queryOptions.term? and @model.queryOptions.term isnt ''
@@ -107,7 +109,21 @@ define (require) ->
 
 		showEditMetadata: (ev) ->
 			# show hide checkboxes
-			@$('.editselection-placeholder').toggle()
+			# @$('.editselection-placeholder').toggle()
+
+			editmetadataPlaceholder = @el.querySelector('.editselection-placeholder')
+
+			visible = editmetadataPlaceholder.style.display is 'block'
+
+			display = if visible then 'none' else 'block'
+			opacity = if visible then 0 else 1
+
+			editmetadataPlaceholder.style.display = display
+			checkboxes = @el.querySelectorAll('ul.entries input[type="checkbox"]')
+			cb.style.opacity = opacity for cb in checkboxes
+
+			# When hiding edit metadata, uncheck all checkboxes
+			Fn.checkCheckboxes null, false if visible
 
 		newEntry: (ev) ->
 			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')
@@ -142,9 +158,11 @@ define (require) ->
 
 
 		changeCurrentEntry: (ev) ->
-			entryID = ev.currentTarget.getAttribute 'data-id'
-			@project.get('entries').setCurrent entryID
-			# id = ev.currentTarget.id.replace 'entry', ''
+			# Only change current entry if the edit metadata isn't active.
+			unless @el.querySelector('.editselection-placeholder').style.display is 'block'
+				entryID = ev.currentTarget.getAttribute 'data-id'
+				@project.get('entries').setCurrent entryID
+				# id = ev.currentTarget.id.replace 'entry', ''
 			
 			
 
@@ -155,13 +173,12 @@ define (require) ->
 		# * TODO: called several times!
 		updateHeader: ->
 			@$('.pagination li.next').removeClass 'inactive' # TMP!
-			@$('h3.numfound').html @model.get('numFound') + ' letters found'
+			@$('h3.numfound').html @model.get('numFound') + ' entries found'
 				
 			currentpage = (@model.get('start') / @model.get('rows')) + 1
 			pagecount = Math.ceil @model.get('numFound') / @model.get('rows')
 
 			if pagecount > 1
-				console.log @facetedSearch.hasNext()
 				@$('.pagination li.prev').addClass 'inactive' if not @facetedSearch.hasPrev()
 				@$('.pagination li.next').addClass 'inactive' if not @facetedSearch.hasNext()
 

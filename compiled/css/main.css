@@ -859,9 +859,9 @@ form.login{text-align:left}
 .projectsearch .resultview header .pagination-placeholder .pagination{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;display:none;}
 .projectsearch .resultview header .pagination-placeholder .pagination li{color:#46aaa8;padding:4px}
 .projectsearch .resultview header .pagination-placeholder .pagination .inactive,.projectsearch .resultview header .pagination-placeholder .pagination .text{color:#bbb;cursor:default}
-.projectsearch .resultview > ul{margin-top:20px;list-style:none;}
+.projectsearch .resultview > ul{margin-top:20px;list-style:square;padding-left:16px;}
 .projectsearch .resultview > ul li{margin-bottom:12px;}
-.projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px}
+.projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px;opacity:0}
 .projectsearch .resultview > ul li label{font-size:1.1rem;cursor:pointer}
 .projectsearch .resultview > ul li .keywords{color:#bbb;display:none;}
 .projectsearch .resultview > ul li .keywords ul{list-style:none;margin-top:4px;}
@@ -975,6 +975,9 @@ form.login{text-align:left}
 .facet.list nav ul li{font-size:.8em;cursor:pointer;display:inline-block;margin-left:2px}
 
 .faceted-search form .search-placeholder .facet.search h3{cursor:default}
+.faceted-search form .search-placeholder .facet.search button{background-color:#eee;color:#bbb;border:0;box-shadow:1px 1px 1px #ddd;border-radius:6px;margin-top:-1px;height:28px;width:100%;min-width:50px;}
+.faceted-search form .search-placeholder .facet.search button.active{background:#ddd;background:-moz-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ddd),color-stop(100%,#f1f1f1));background:-webkit-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-o-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-ms-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:linear-gradient(to bottom,#ddd 0%,#f1f1f1 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');color:#666;cursor:pointer;box-shadow:1px 1px 1px #bdbdbd;}
+.faceted-search form .search-placeholder .facet.search button.active:active{background:#f1f1f1;background:-moz-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#f1f1f1),color-stop(100%,#ddd));background:-webkit-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-o-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-ms-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:linear-gradient(to bottom,#f1f1f1 0%,#ddd 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #bdbdbd}
 
 .row{font-size:0;width:100%;}
 .row *{vertical-align:top}
@@ -1233,54 +1236,24 @@ form.login{text-align:left}
 .faceted-search form input[type=text]{border:1px solid #ddd;border-radius:4px;padding-left:4%;margin:0;width:96%;}
 .faceted-search form input[type=text]#search{height:24px;}
 .faceted-search form input[type=text]#search.loading{background:#fff url("../images/loader.gif") no-repeat;background-position:right 2% center}
-.faceted-search form button{background:#ddd;background:-moz-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ddd),color-stop(100%,#f1f1f1));background:-webkit-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-o-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:-ms-linear-gradient(top,#ddd 0%,#f1f1f1 100%);background:linear-gradient(to bottom,#ddd 0%,#f1f1f1 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');color:#666;border:0;box-shadow:1px 1px 1px #bdbdbd;border-radius:6px;margin-top:-1px;cursor:pointer;height:28px;width:100%;min-width:50px;}
-.faceted-search form button:active{background:#f1f1f1;background:-moz-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#f1f1f1),color-stop(100%,#ddd));background:-webkit-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-o-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:-ms-linear-gradient(top,#f1f1f1 0%,#ddd 100%);background:linear-gradient(to bottom,#f1f1f1 0%,#ddd 100%);filter:unquot('progid:DXImageTransform.Microsoft.gradient(startColorstr="topColor", endColorstr="bottomColor",GradientType=0 )');box-shadow:-1px -1px 1px #bdbdbd}
 .faceted-search form .facets .loader{display:none;text-align:center;padding:30px 0}
 .faceted-search form .align.middle{line-height:24px;}
 .faceted-search form .align.middle *{vertical-align:middle}
 
-.content {
-	width:600px;
-	margin: 0 auto;
-}
-#ta {
-	width: 100%;
-	height: 200px;
-	font-size: 30px;
-	padding: 12px;
-}
-.long-press-popup {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	text-align: center;
-	background: rgba(0, 0, 0, .8);
-	padding-top: 20px;
-	margin:0;
-	font-size: 60px;
-}
-.long-press-popup li {
-	display:inline-block;
-	list-style: none;
-	padding: 10px 34px;
-	margin-right: 20px;
-	margin-bottom: 20px;
-	background: #000000;
-	cursor:pointer;
-	color: white;
-	border: solid 4px black;
-	border-radius: 12px;
-}
-.long-press-popup .selected {
-	border-color: white;
-	-webkit-box-shadow: 0 0 18px rgba(255, 255, 255, 0.75);
-	-moz-box-shadow:    0 0 18px rgba(255, 255, 255, 0.75);
-	box-shadow:         0 0 18px rgba(255, 255, 255, 0.75);
-}
-ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:auto;list-style:none;padding:6px;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;white-space:normal;margin:0 10px;}
-ul.longpress li{display:inline-block;padding:2px 6px;background-color:#000;color:#fff;border-radius:6px;font-weight:bold;font-size:1.5em;margin:3px;border:2px solid #000;}
-ul.longpress li:hover{border:2px solid #fff;box-shadow:0 0 12px #fff;cursor:pointer}
+.autosuggest{position:relative;}
+.autosuggest div.caret{cursor:pointer;position:absolute;top:5px;right:1px;line-height:14px;background:linear-gradient(to right,rgba(255,255,255,0) 0%,#fff 50%);}
+.autosuggest div.caret:after{display:inline-block;width:0;height:0;vertical-align:middle;border-top:4px solid #000;border-right:4px solid rgba(0,0,0,0);border-left:4px solid rgba(0,0,0,0);content:"";margin:0 4px 0 16px}
+.autosuggest ul.selected{display:block;list-style:square;padding-left:16px;}
+.autosuggest ul.selected li{cursor:pointer;line-height:16px;}
+.autosuggest ul.selected li:hover:after{content:'x';font-weight:bold;color:#f00;margin-left:8px;vertical-align:top;font-size:.8em}
+.autosuggest ul.list{white-space:nowrap;max-height:360px;overflow-y:auto;overflow-x:hidden;z-index:1000;display:none;position:absolute;top:24px;left:0;background-color:#fff;list-style:none;margin:0;box-shadow:0 5px 10px rgba(0,0,0,0.2);padding:4px 0;border-radius:4px;border:1px solid #ccc;}
+.autosuggest ul.list li{cursor:pointer;padding:0 24px 0 8px;}
+.autosuggest ul.list li:hover{color:#fff;background-image:linear-gradient(to bottom,#88b1c8,#6291ac)}
+.autosuggest ul.list li.active{color:#fff;background-image:linear-gradient(to bottom,#88b1c8,#6291ac)}
+.autosuggest .input{position:relative;display:inline-block}
+.autosuggest button.add,.autosuggest button.edit{margin-left:4px;background-color:#88b1c8;color:#fff;border-radius:4px;border:0;height:18px;margin:3px 0 3px 4px;display:none;}
+.autosuggest button.add:hover,.autosuggest button.edit:hover{background-color:#5a93b3}
+.autosuggest button.add.visible,.autosuggest button.edit.visible{display:inline-block}
 
 .combolist{position:relative;}
 .combolist .input{position:relative;display:inline-block;width:180px;z-index:2;}
@@ -1302,27 +1275,19 @@ ul.longpress li:hover{border:2px solid #fff;box-shadow:0 0 12px #fff;cursor:poin
 .editablelist ul.selected{display:block;list-style:square;padding-left:16px;}
 .editablelist ul.selected li{cursor:pointer;line-height:16px;}
 .editablelist ul.selected li:hover:after{content:'x';font-weight:bold;color:#f00;margin-left:8px;vertical-align:top;font-size:.8em}
+.editablelist button{margin-left:8px;display:none}
 
 ul.longpress{position:absolute;background-color:rgba(0,0,0,0.5);bottom:0;left:0;right:0;height:auto;list-style:none;padding:6px;text-align:center;border-top-left-radius:12px;border-top-right-radius:12px;white-space:normal;margin:0 10px;}
 ul.longpress li{display:inline-block;padding:2px 6px;background-color:#000;color:#fff;border-radius:6px;font-weight:bold;font-size:1.5em;margin:3px;border:2px solid #000;}
 ul.longpress li:hover{border:2px solid #fff;box-shadow:0 0 12px #fff;cursor:pointer}
 
 .modal .overlay{position:fixed;left:0;top:0;background-color:#000;right:0;bottom:0;opacity:.7}
-.modal .modalbody{position:absolute;left:50vw;top:50vh;width:50vw;height:auto;margin-left:-25vw;background-color:#fff;border-radius:8px;padding:20px;box-shadow:1px 1px 8px #000;}
+.modal .modalbody{position:fixed;left:50vw;top:50vh;width:50vw;height:auto;margin-left:-25vw;background-color:#fff;border-radius:8px;padding:20px;box-shadow:1px 1px 8px #000;}
 .modal .modalbody header h2{margin-top:0;padding-top:0}
 .modal .modalbody header p.message.success{color:#008000}
 .modal .modalbody header p.message.warning{color:#ffa500}
 .modal .modalbody header p.message.error{color:#f00}
-.modal .modalbody .body{margin-bottom:40px}
-.modal .modalbody footer{position:absolute;bottom:20px;right:20px;text-align:right;}
-.modal .modalbody footer button{margin-left:8px}
-
-.modal .overlay{position:fixed;left:0;top:0;background-color:#000;right:0;bottom:0;opacity:.7}
-.modal .modalbody{position:absolute;left:50vw;top:50vh;width:50vw;height:auto;margin-left:-25vw;background-color:#fff;border-radius:8px;padding:20px;}
-.modal .modalbody header h2{margin-top:0;padding-top:0}
-.modal .modalbody header p.message.success{color:#008000}
-.modal .modalbody header p.message.warning{color:#ffa500}
-.modal .modalbody header p.message.error{color:#f00}
+.modal .modalbody .body{margin-bottom:40px;overflow:auto}
 .modal .modalbody footer{position:absolute;bottom:20px;right:20px;text-align:right;}
 .modal .modalbody footer button{margin-left:8px}
 

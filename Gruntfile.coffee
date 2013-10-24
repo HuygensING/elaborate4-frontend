@@ -258,12 +258,12 @@ module.exports = (grunt) ->
 				files: ['src/stylus/**/*.styl']
 				tasks: ['stylus:compile', 'concat:css']
 			html: 
-				files: ['compiled/lib/hilib/compiled/htmltouch']
+				files: ['compiled/lib/hilib/touch/html']
 			css:
-				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/hilib/compiled/csstouch']
+				files: ['compiled/lib/faceted-search/dev/css/main.css', 'compiled/lib/hilib/touch/css']
 				tasks: ['concat:css']
 			js:
-				files: ['compiled/lib/hilib/compiled/jstouch']
+				files: ['compiled/lib/hilib/touch/js']
 
 	#############
 	### TASKS ###

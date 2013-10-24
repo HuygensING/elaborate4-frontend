@@ -1,7 +1,8 @@
 | <% _.each(model.get('results'), function(entry) { %>
-li.entry(id!="entry<%=entry.id %>") 
-	input(type="checkbox", data-id!="<%= entry.id %>")
-	label(data-id!="<%=entry.id%>") <%= entry.name %>
+li.entry(id!="entry<%=entry.id %>")
+	| <% id = generateID() %>
+	input(type="checkbox", data-id!="<%= entry.id %>", id!="<%= id %>")
+	label(data-id!="<%=entry.id%>", for!="<%= id %>") <%= entry.name %>
 	.keywords
 		ul
 			| <% _.each(entry._kwic, function(kwic) { %>

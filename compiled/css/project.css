@@ -452,9 +452,9 @@ form.login{text-align:left}
 .projectsearch .resultview header .pagination-placeholder .pagination{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;display:none;}
 .projectsearch .resultview header .pagination-placeholder .pagination li{color:#46aaa8;padding:4px}
 .projectsearch .resultview header .pagination-placeholder .pagination .inactive,.projectsearch .resultview header .pagination-placeholder .pagination .text{color:#bbb;cursor:default}
-.projectsearch .resultview > ul{margin-top:20px;list-style:none;}
+.projectsearch .resultview > ul{margin-top:20px;list-style:square;padding-left:16px;}
 .projectsearch .resultview > ul li{margin-bottom:12px;}
-.projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px}
+.projectsearch .resultview > ul li input[type="checkbox"]{margin-right:4px;opacity:0}
 .projectsearch .resultview > ul li label{font-size:1.1rem;cursor:pointer}
 .projectsearch .resultview > ul li .keywords{color:#bbb;display:none;}
 .projectsearch .resultview > ul li .keywords ul{list-style:none;margin-top:4px;}
