@@ -6,6 +6,7 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
+		Modal: require 'hilib/views/modal/main'
 
 	# ## LayerEditor
 	class LayerEditor extends Views.Base
@@ -40,16 +41,35 @@ define (require) ->
 		events: ->
 
 		# ### Methods
-		show: (layer) ->
-			@model = layer if layer?
+		show: (textLayer) ->
+			@hide() if @visible()
 
-			@editor.setModel @model
+			if textLayer?
+				@model = textLayer
+				@editor.setModel @model
 
 			@setURLPath()
 
 			@el.style.display = 'block'
 
-		hide: -> @el.style.display = 'none'
+		hide: ->
+			if @model.changedSinceLastSave?
+				modelID = @model.id
+
+				modal = new Views.Modal
+					title: "Unsaved changes"
+					$html: $('<p />').html("There are unsaved changes in the #{@model.get('textLayer')} layer.<br><br>Save changes or press cancel to discard.")
+					submitValue: 'Save changes'
+					width: '320px'
+				modal.on 'cancel', => 
+					@model.collection.get(modelID).cancelChanges()
+				modal.on 'submit', => 
+					model = @model.collection.get(modelID)
+					model.save null,
+						success: => @publish 'message', "Saved changes to #{model.get('textLayer')} layer"
+					modal.close()
+
+			@el.style.display = 'none'
 
 		visible: -> @el.style.display is 'block'
 

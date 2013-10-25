@@ -245,7 +245,8 @@ define (require) ->
 			# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
 			# trigger when the model hasn't changed.
 			else if not @layerEditor.visible()
-				@model.get('transcriptions').trigger 'current:change', @currentTranscription 
+				@layerEditor.show()
+				# @model.get('transcriptions').trigger 'current:change', @currentTranscription 
 
 		editEntryMetadata: (ev) ->
 			entryMetadata = new Views.Form

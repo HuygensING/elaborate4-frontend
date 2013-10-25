@@ -5,6 +5,8 @@ define (require) ->
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
 
+	changedSinceLastSave = require 'hilib/mixins/model.changedsincelastsave'
+
 	Models = 
 		Base: require 'models/base'
 
@@ -19,8 +21,16 @@ define (require) ->
 			title: ''
 			body: ''
 
-		# initialize: ->
-		# 	super
+		# ### Initialize
+		initialize: ->
+			super
+
+			_.extend @, changedSinceLastSave(['body'])
+			@initChangedSinceLastSave()
+
+			# @changedSinceLastSave = null
+			# @on 'change:body', (model, options) => 
+			# 	@changedSinceLastSave = model.previousAttributes().body unless @changedSinceLastSave?
 
 			# @listenToAnnotations()
 
@@ -28,83 +38,12 @@ define (require) ->
 			# We cannot do it silent, because the preview has to be updated.
 			# @on 'change:body', @save, @
 
-		getAnnotations: (cb=->) ->
-			if @get('annotations')?
-				cb @get 'annotations'
-			else
-				annotations = new Collections.Annotations [], 
-					transcriptionId: @id
-					entryId: @collection.entryId
-					projectId: @collection.projectId
+		# ### Overrides
 
-				annotations.fetch
-					success: (collection) =>
-						@set 'annotations', collection
+		# save: ->
+		# 	@changedSinceLastSave = null
 
-						@listenTo collection, 'add', @addAnnotation
-						@listenTo collection, 'remove', @removeAnnotation
-
-						cb collection
-				
-
-
-		# parse: (attrs) ->
-		# 	# attrs.body = attrs.body.trim()
-
-		# 	# Remove potential opening and closing <body> tags
-		# 	# attrs.body = attrs.body.substr(6) if attrs.body.substr(0, 6) is '<body>'
-		# 	# attrs.body = attrs.body.slice(0, -7) if attrs.body.substr(-7) is '</body>'
-
-		# 	# Replace <ab />s (annotation begin) and <ae />s (annotation end) with <span />s and <sup />s
-		# 	# i = 1
-		# 	# attrs.body = attrs.body.replace /<ab id="(.*?)"\/>/g, (match, p1, offset, string) => '<span data-marker="begin" data-id="'+p1+'"></span>'
-		# 	# attrs.body = attrs.body.replace /<ae id="(.*?)"\/>/g, (match, p1, offset, string) => '<sup data-marker="end" data-id="'+p1+'">'+(i++)+'</sup> '
-
-		# 	# Replace newlines with <br>s
-		# 	# attrs.body = attrs.body.replace /\n/g, '<br>'
-
-		# 	attrs
-
-		# listenToAnnotations: ->
-		# 	if @get('annotations')?
-		# 		# Start listening to annotations after the annotations are fetched from the server
-		# 		@listenToOnce @get('annotations'), 'sync', =>
-		# 			@listenTo @get('annotations'), 'add', @addAnnotation
-		# 			@listenTo @get('annotations'), 'remove', @removeAnnotation
-
-		addAnnotation: (model) ->
-			unless model.get('annotationNo')? 
-				console.error 'No annotationNo given!', model.get('annotationNo')
-				return false
-
-			$body = $ "<div>#{@get('body')}</div>"
-
-			# Replace newannotation with the new annotationNo
-			$body.find('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
-
-			@resetAnnotationOrder $body
-
-		removeAnnotation: (model) ->
-			jqXHR = model.destroy()
-			jqXHR.done =>
-				# Add div tags to body string so jQuery can read it
-				$body = $ "<div>#{@get('body')}</div>"
-				
-				# Find and remove the <span> and <sup>
-				$body.find("[data-id='#{model.get('annotationNo')}']").remove()
-
-				@resetAnnotationOrder $body
-
-		resetAnnotationOrder: ($body) ->
-			# Find all sups in $body and update the innerHTML with the new index
-			$body.find('sup[data-marker="end"]').each (index, sup) =>
-				sup.innerHTML = index+1
-
-			# .html() does not include the <div> tags so we can set it immediately.
-			@set 'body', $body.html()
-
-			# Save the transcription to the server.
-			@save()
+		# 	super
 
 		set: (attrs, options) ->
 			if attrs is 'body'
@@ -148,8 +87,68 @@ define (require) ->
 				jqXHR = ajax.put
 					url: @url()
 					data: JSON.stringify body: model.get 'body'
-				jqXHR.done (response) => @trigger 'sync'
+				jqXHR.done (response) => 
+					@trigger 'sync'
+					options.success response
 				jqXHR.fail (response) => console.log 'fail', response
 
 			else
 				super
+
+		# ### Methods
+
+		getAnnotations: (cb=->) ->
+			if @get('annotations')?
+				cb @get 'annotations'
+			else
+				annotations = new Collections.Annotations [], 
+					transcriptionId: @id
+					entryId: @collection.entryId
+					projectId: @collection.projectId
+
+				annotations.fetch
+					success: (collection) =>
+						@set 'annotations', collection
+
+						@listenTo collection, 'add', @addAnnotation
+						@listenTo collection, 'remove', @removeAnnotation
+
+						cb collection
+
+		addAnnotation: (model) ->
+			unless model.get('annotationNo')? 
+				console.error 'No annotationNo given!', model.get('annotationNo')
+				return false
+
+			$body = $ "<div>#{@get('body')}</div>"
+
+			# Replace newannotation with the new annotationNo
+			$body.find('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
+
+			@resetAnnotationOrder $body
+
+		removeAnnotation: (model) ->
+			jqXHR = model.destroy()
+			jqXHR.done =>
+				# Add div tags to body string so jQuery can read it
+				$body = $ "<div>#{@get('body')}</div>"
+				
+				# Find and remove the <span> and <sup>
+				$body.find("[data-id='#{model.get('annotationNo')}']").remove()
+
+				@resetAnnotationOrder $body
+
+		resetAnnotationOrder: ($body) ->
+			# Find all sups in $body and update the innerHTML with the new index
+			$body.find('sup[data-marker="end"]').each (index, sup) =>
+				sup.innerHTML = index+1
+
+			# .html() does not include the <div> tags so we can set it immediately.
+			@set 'body', $body.html()
+
+			# Save the transcription to the server.
+			@save()
+
+		# cancelChanges: ->
+		# 	@set 'body', @changedSinceLastSave
+		# 	@changedSinceLastSave = null
