@@ -129,15 +129,16 @@ define (require) ->
 
 			range.insertNode el
 
-		unhighlightAnnotation: (annotationNo) ->
+		unhighlightAnnotation: ->
 			el = @el.querySelector('span[data-highlight]')
 
-			# Move all children from el to a documentFragment
-			docFrag = document.createDocumentFragment()
-			docFrag.appendChild el.firstChild while el.childNodes.length
+			if el?
+				# Move all children from el to a documentFragment
+				docFrag = document.createDocumentFragment()
+				docFrag.appendChild el.firstChild while el.childNodes.length
 
-			# Replace el with the documentFragment
-			el.parentNode.replaceChild docFrag, el
+				# Replace el with the documentFragment
+				el.parentNode.replaceChild docFrag, el
 
 
 
@@ -210,11 +211,6 @@ define (require) ->
 			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
 			# @trigger 'newAnnotationRemoved'
 
-		# replaceNewAnnotationID: (model) ->
-		# 	@$('[data-id="newannotation"]').attr 'data-id', model.get 'annotationNo'
-
-			# @currentTranscription.set 'body', @$el.html()
-
 		onHover: ->
 
 			supEnter = (ev) =>
@@ -239,6 +235,7 @@ define (require) ->
 		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10
 
 		setModel: (entry) ->
+			@unhighlightAnnotation()
 			@model = entry
 			@currentTranscription = @model.get('transcriptions').current
 			@addListeners()
@@ -248,17 +245,3 @@ define (require) ->
 			# * TODO: Triggers double render??
 			@listenTo @currentTranscription, 'current:change', @render
 			@listenTo @currentTranscription, 'change:body', @render
-
-
-		# scrollByPercentage: (percentage, orientation='vertical') ->
-		# 	clientWidth = @el.clientWidth
-		# 	scrollWidth = @el.scrollWidth
-		# 	clientHeight = @el.clientHeight
-		# 	scrollHeight = @el.scrollHeight
-		# 	top = 0
-		# 	left = 0
-
-		# 	if orientation is 'vertical'
-		# 		@el.scrollTop = (scrollHeight - clientHeight) * percentage/100
-		# 	else
-		# 		@el.scrollLeft = (scrollWidth - clientWidth) * percentage/100
