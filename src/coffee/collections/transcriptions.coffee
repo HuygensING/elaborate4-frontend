@@ -22,7 +22,12 @@ define (require) ->
 				if model?
 					@current = model
 				else
-					@current = @at 0
+					# Default to the Diplomatic text layer
+					@current = @findWhere textLayer: 'Diplomatic'
+
+					# If no Diplomatic text layer was found, get the first in the collection
+					@first() unless @current?
+
 
 				@trigger 'current:change', @current
 
