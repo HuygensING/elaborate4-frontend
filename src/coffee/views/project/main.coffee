@@ -99,6 +99,7 @@ define (require) ->
 			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click .submenu li[data-key="editselection"]': 'showEditMetadata'
+			'click .submenu li[data-key="publish"]': 'publishProject'
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
@@ -106,6 +107,16 @@ define (require) ->
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
+
+		publishProject: (ev) ->
+			busyText = 'Publishing...'
+			return false if ev.currentTarget.innerHTML is busyText
+			ev.currentTarget.innerHTML = busyText
+			ev.currentTarget.classList.add 'active'
+			
+			@project.publicate =>
+				ev.currentTarget.innerHTML = 'Publish'
+				ev.currentTarget.classList.remove 'active'
 
 		showEditMetadata: (ev) ->
 			# show hide checkboxes

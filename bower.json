@@ -6,11 +6,12 @@
     "requirejs": "*",
     "requirejs-text": "*",
     "requirejs-domready": "*",
-    "jquery": "*",
+    "jquery": "1.x",
     "underscore-amd": "*",
-    "backbone-amd": "*",
+    "backbone-amd": "1.0.0",
     "normalize-css": "*",
-    "long-press": "https://github.com/quentint/long-press.git"
+    "classList.js": "https://github.com/eligrey/classList.js.git",
+    "ajaxHooks": "https://github.com/jaubourg/ajaxHooks.git"
   },
   "devDependencies": {
     "mocha": "*",

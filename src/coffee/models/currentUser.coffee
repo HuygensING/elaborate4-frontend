@@ -82,8 +82,8 @@ define (require) ->
 
 					cb()
 
-				jqXHR.fail =>
-					console.log 'herer!'
+				jqXHR.fail (a, b, c) =>
+					console.log a, b, c
 					# @publish 'unauthorized'
 					# @trigger 'unauthorized'
 					@unauthorized()

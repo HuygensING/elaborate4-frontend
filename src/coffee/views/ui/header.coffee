@@ -32,7 +32,7 @@ define (require) ->
 			super
 
 			@project = @options.project
-			
+
 			@listenTo Collections.projects, 'current:change', (@project) => @render()
 
 			@subscribe 'message', @showMessage, @
@@ -45,39 +45,13 @@ define (require) ->
 			'click .project .settings': 'navigateToProjectSettings'
 			'click .project .search': 'navigateToProject'
 			'click .project .history': 'navigateToProjectHistory'
-			'click .project .publish': 'publishProject'
+			# 'click .project .publish': 'publishProject'
 			'click .message': -> @$('.message').removeClass 'active'
 
-		navigateToProject: (ev) -> 
-			console.log @project
-			Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-		navigateToProjectSettings: (ev) -> 
-			console.log @project.get('name')
-			Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
 		# navigateToProjectSearch: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}"
 		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
-
-		publishProject: (ev) ->
-			busyText = 'Publishing...'
-			return false if ev.currentTarget.innerHTML is busyText
-			ev.currentTarget.innerHTML = busyText
-			
-			ajax.token = token.get()
-			jqXHR = ajax.post
-				url: config.baseUrl+"projects/#{@project.id}/publication"
-				dataType: 'text'
-			jqXHR.done => ajax.poll
-				url: jqXHR.getResponseHeader('Location')
-				testFn: (data) => data.done
-				done: (data, textStatus, jqXHR) =>
-					settings = @project.get('settings')
-					settings.set 'publicationURL', data.url
-					settings.save null,
-						success: =>
-							ev.currentTarget.innerHTML = 'Publish'
-							@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
-			jqXHR.fail => console.log arguments
-
 
 			# 'click .sub li': (ev) -> @publish 'header:submenu:'+ev.currentTarget.getAttribute('data-id')
 

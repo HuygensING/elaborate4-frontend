@@ -87,3 +87,21 @@ define (require) ->
 			jqXHR.fail (a, b, c) => 
 				console.log a, b, c
 				console.error 'fetchEntrymetadatafields failed!'
+
+		# Publish is already defined so we have to call the method 'publicate'
+		publicate: (cb) ->
+			ajax.token = token.get()
+			jqXHR = ajax.post
+				url: config.baseUrl+"projects/#{@id}/publication"
+				dataType: 'text'
+			jqXHR.done => ajax.poll
+				url: jqXHR.getResponseHeader('Location')
+				testFn: (data) => data.done
+				done: (data, textStatus, jqXHR) =>
+					settings = @get('settings')
+					settings.set 'publicationURL', data.url
+					settings.save null,
+						success: =>
+							@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
+							cb()
+			jqXHR.fail => console.log arguments
