@@ -4,6 +4,8 @@ define (require) ->
 	token = require 'hilib/managers/token'
 	ajax.token = token.get()
 
+	changedSinceLastSave = require 'hilib/mixins/model.changedsincelastsave'
+
 	config = require 'config'
 
 	Models = 
@@ -12,14 +14,6 @@ define (require) ->
 	class Annotation extends Models.Base
 
 		urlRoot: -> config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
-
-		set: (attrs, options) ->
-			if _.isString(attrs) and attrs.substr(0, 9) is 'metadata.'
-				attr = attrs.substr(9)
-				@attributes['metadata'][attr] = options
-			else
-				super
-
 
 		defaults: ->
 			annotationMetadataItems: []
@@ -33,21 +27,22 @@ define (require) ->
 			modifier: null
 			metadata: {}
 
-		# get: (attr) ->
-		# 	if attr is 'metadata'
-		# 		original = @get 'annotationMetadataItems'
-		# 		edited = @attributes['metadata']
+		# ### Initialize
+		initialize: ->
+			super
 
-		# 		return @attributes['metadata']
-		# 	else	
-		# 		super
+			_.extend @, changedSinceLastSave(['body'])
+			@initChangedSinceLastSave()
 
-		# getMetadata: ->
-		# 	console.log @get 'metadata'
-		# 	console.log @get 'annotationMetadataItems'
+		# ### Overrides
 
-		# 	@get 'metadata'
-
+		set: (attrs, options) ->
+			if _.isString(attrs) and attrs.substr(0, 9) is 'metadata.'
+				attr = attrs.substr(9)
+				@attributes['metadata'][attr] = options
+			else
+				super
+		
 		sync: (method, model, options) ->
 			if method is 'create'
 				jqXHR = ajax.post

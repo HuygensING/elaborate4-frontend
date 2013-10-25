@@ -50,11 +50,14 @@ define (require) ->
 
 		# ### Methods
 		show: (annotation) ->
-			@model = annotation if annotation?
+			@hide() if @visible()
 
-			@editor.setModel @model
+			if annotation?
+				@model = annotation 
 
-			@editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
+				@editor.setModel @model
+
+				@editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
 
 			@setURLPath @model.id
 
@@ -63,9 +66,30 @@ define (require) ->
 			@publish 'annotationEditor:show', @model.get 'annotationNo'
 
 		hide: -> 
+			if @model.changedSinceLastSave?
+				# Save a reference to the old @model.id
+				modelID = @model.id
+
+				modal = new Views.Modal
+					title: "Unsaved changes"
+					$html: $('<p />').html("There are unsaved changes in annotation: #{@model.get('annotationNo')}.<br><br>Save changes or press cancel to discard.")
+					submitValue: 'Save changes'
+					width: '320px'
+				modal.on 'cancel', =>
+					# We have to get the model from the @model's collection, because showing the modal is non-blocking.
+					# Meaning the script will continue to run and @model will change to a new annotation.
+					@model.collection.get(modelID).cancelChanges()
+				modal.on 'submit', => 
+					model = @model.collection.get(modelID)
+					model.save null,
+						success: => @publish 'message', "Saved changes to annotation: #{model.get('annotationNo')}."
+					modal.close()
+
 			@el.style.display = 'none'
 
 			@publish 'annotationEditor:hide', @model.get 'annotationNo'
+
+		visible: -> @el.style.display is 'block'
 
 		setURLPath: (id) ->
 			# Cut off '/annotations/*' if it exists.
