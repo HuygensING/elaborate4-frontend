@@ -219,11 +219,13 @@ define (require) ->
 		previousEntry: ->
 			# @model.collection.previous() returns an entry model
 			entryID = @model.collection.previous().id
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
+			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
+			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
 		nextEntry: ->
 			entryID = @model.collection.next().id
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
+			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
+			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
 		changeFacsimile: (ev) ->
 			# Check if ev is an Event, else assume ev is an ID

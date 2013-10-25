@@ -28,7 +28,7 @@ define (require) ->
 		render: ->
 			@editor = new Views.SuperTinyEditor
 				cssFile:		'/css/main.css'
-				controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
+				controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
 				el:				@$('.annotation-editor')
 				height:			@options.height
 				html: 			@model.get 'body'
@@ -54,10 +54,9 @@ define (require) ->
 
 			if annotation?
 				@model = annotation 
-
 				@editor.setModel @model
 
-				@editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
+			@editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
 
 			@setURLPath @model.id
 
