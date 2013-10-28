@@ -75,12 +75,12 @@
 	
 
 		.right
-			line-height 1.75em
-			// padding 0 10px
-			// padding-top 78px + 6px
+			line-height 2.25em
 			white-space nowrap
 			overflow-y auto
 			margin 76px 10px 0 10px
+			// padding 0 10px
+			// padding-top 78px + 6px
 			// padding-bottom 10px
 			
 			.preview
@@ -112,8 +112,14 @@
 				font-weight bold
 
 			span.hilite
-				vertical-align baseline
-				background-color lighten(#FF9BFB, 80%)
+				background-color lighten(#FFBEFC, 40%)
+
+			span.hilite[data-highlight]
+				background-color #FFBEFC
+				padding 1px 2px
+				border-radius 4px
+				// color white
+				// text-shadow 1px 1px 1px #444
 
 .supertinyeditor
 	.ste-header
@@ -143,7 +149,7 @@
 
 body.ste-iframe-body
 	padding 6px 0 0 0 // Explicitely set the padding-bottom for FF
-	line-height 1.75em
+	line-height 2.25em
 
 	sup[data-marker]
 		display none

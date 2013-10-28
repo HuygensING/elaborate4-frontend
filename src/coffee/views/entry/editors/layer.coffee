@@ -23,7 +23,7 @@ define (require) ->
 		render: ->
 			$el = @$('.transcription-placeholder')
 			@editor = new Views.SuperTinyEditor
-				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'undo', 'redo']
+				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
 				cssFile:		'/css/main.css'
 				el:				@$('.transcription-editor')
 				height:			@options.height
