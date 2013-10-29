@@ -32,7 +32,7 @@ define (require) ->
 
 			@renderTooltips()
 
-			@setHeight()
+			@resize()
 
 		# ### Render
 		render: ->
@@ -232,7 +232,10 @@ define (require) ->
 			# Bind hover (mouseenter, mouseleave)
 			markers.hover supEnter, supLeave
 
-		setHeight: -> @$el.height document.documentElement.clientHeight - 89 - 78 - 10
+		resize: -> 
+			@$el.height document.documentElement.clientHeight - 89 - 78
+
+			@el.style.marginRight = 0 if Fn.hasYScrollBar @el
 
 		setModel: (entry) ->
 			@unhighlightAnnotation()

@@ -333,7 +333,7 @@ define (require) ->
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 				@renderFacsimile()
-				@preview.setHeight()
+				@preview.resize()
 						
 				@layerEditor.editor.setIframeHeight @preview.$el.innerHeight()
 				@layerEditor.editor.setIframeWidth @preview.$el.width() - 4
