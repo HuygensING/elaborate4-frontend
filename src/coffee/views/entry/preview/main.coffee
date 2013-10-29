@@ -9,7 +9,8 @@ define (require) ->
 		AddAnnotationTooltip: require 'views/entry/preview/annotation.add.tooltip'
 		EditAnnotationTooltip: require 'views/entry/preview/annotation.edit.tooltip'
 
-	Tpl = require 'text!html/entry/preview.html'
+	# Tpl = require 'text!html/entry/preview.html'
+	tpls = require 'tpls'
 
 	# ## TranscriptionPreview
 	class TranscriptionPreview extends Views.Base
@@ -40,7 +41,7 @@ define (require) ->
 			brs = @currentTranscription.get('body').match(/<br>/g) ? []
 			data.lineCount = brs.length
 
-			rtpl = _.template Tpl, data
+			rtpl = tpls['entry/preview'] data
 			@$el.html rtpl
 
 			@onHover()

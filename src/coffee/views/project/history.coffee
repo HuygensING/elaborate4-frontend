@@ -10,8 +10,10 @@ define (require) ->
 		History: require 'collections/project/history'
 		projects: require 'collections/projects'
 
-	Templates =
-		History: require 'text!html/project/history.html'
+	# Templates =
+	# 	History: require 'text!html/project/history.html'
+
+	tpls = require 'tpls'
 	
 	class ProjectHistory extends BaseView
 
@@ -25,7 +27,7 @@ define (require) ->
 				@collection.fetch success: => @render()
 
 		render: ->
-			rtpl = _.template Templates.History, logEntries: @collection.groupBy 'dateString'
+			rtpl = tpls['project/history'] logEntries: @collection.groupBy 'dateString'
 			@$el.html rtpl
 
 			@

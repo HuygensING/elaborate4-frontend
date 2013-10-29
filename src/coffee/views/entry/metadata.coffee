@@ -5,7 +5,8 @@ define (require) ->
 	Views = 
 		Form: require 'hilib/views/form/main'
 
-	Tpl = require 'text!html/entry/metadata.html'
+	# Tpl = require 'text!html/entry/metadata.html'
+	tpls = require 'tpls'
 
 	# ## EntryMetadata
 	class EntryMetadata extends Views.Form
@@ -18,7 +19,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Tpl, @model.toJSON()
+			rtpl = tpls['entry/metadata'] @model.toJSON()
 			@$el.html rtpl
 
 			@

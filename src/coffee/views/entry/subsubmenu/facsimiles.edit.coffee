@@ -8,7 +8,8 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/subsubmenu/facsimiles.edit.html'
+	# Tpl = require 'text!html/entry/subsubmenu/facsimiles.edit.html'
+	tpls = require 'tpls'
 
 	# ## EditFacsimiles
 	class EditFacsimiles extends Views.Base
@@ -24,7 +25,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Tpl, facsimiles: @collection
+			rtpl = tpls['entry/subsubmenu/facsimiles.edit'] facsimiles: @collection
 			@$el.html rtpl
 
 			@

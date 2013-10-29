@@ -1,12 +1,9 @@
 h2 History
-
-
-	| <% _.each(logEntries, function(entries, date) { %>
-	h3 <%= date %>
-	ul
-		| <% _.each(entries, function(entry) { %>
-		li
-			span.username <%= entry.get('userName') %>&nbsp;
-			span.comment <%= entry.get('comment') %> 
-		| <% }); %>
-	| <% }); %>
+	each entries, date in logEntries
+		h3= date
+		ul
+			each entry in entries
+				li
+					span.username= entry.get('userName')
+					span &nbsp;
+					span.comment= entry.get('comment')

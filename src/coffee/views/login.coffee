@@ -3,9 +3,10 @@ define (require) ->
 
 	currentUser = require 'models/currentUser'
 
-	Templates =
-		'Login': require 'text!html/login.html'
-	
+	# Templates =
+	# 	'Login': require 'text!html/login.html'
+	tpls = require 'tpls'
+
 	class Login extends BaseView
 
 		className: 'row span3'
@@ -26,7 +27,7 @@ define (require) ->
 			@render()
 
 		render: ->
-			rtpl = _.template Templates.Login
+			rtpl = tpls['login']
 			@$el.html rtpl()
 			
 			@

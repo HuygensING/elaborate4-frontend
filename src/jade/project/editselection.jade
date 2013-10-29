@@ -9,25 +9,24 @@ h3 Edit metadata of multiple entries
 	.cell.span1
 		form
 			ul
-				| <% _.each(entrymetadatafields, function(field, key, list) { %>
-				| <% if (key < list.length/2) { %>
-				li 
-					label <%= field %>
-					input(type="text", name!="<%= field %>", tabindex!="<%= (key * 2 + 1) %>")
-					input(type="checkbox", tabindex!="<%= (key * 2 + 2) %>", data-name!="<%= field %>")
-				| <% }}); %>
+				each field, key in entrymetadatafields
+					if key < entrymetadatafields.length/2
+						li 
+							label= field
+							input(type="text", name=field, tabindex=key * 2 + 1)
+							input(type="checkbox", tabindex=key * 2 + 2, data-name=field)
 	.cell.span1
 		form
 			ul
-				| <% _.each(entrymetadatafields, function(field, key, list) { %>
-				| <% if (key >= list.length/2) { %>
-				li 
-					label <%= field %>
-					input(type="text", name!="<%= field %>", tabindex!="<%= (list.length/2 + key * 2 - 1) %>")
-					input(type="checkbox", tabindex!="<%= (list.length/2 + key * 2) %>")
-				| <% }}); %>
+				each field, key in entrymetadatafields
+					if key >= entrymetadatafields.length/2
+						li 
+							label= field
+							input(type="text", name=field, tabindex=entrymetadatafields.length/2 + key * 2 - 1)
+							input(type="checkbox", tabindex=entrymetadatafields.length/2 + key * 2, data-name=field)
+
 
 footer
-	button.simple.inactive(name="savemetadata", tabindex!="<%= entrymetadatafields.length * 2 + 1 %>") Save metadata
+	button.simple.inactive(name="savemetadata", tabindex=entrymetadatafields.length * 2 + 1) Save metadata
 	span or
-	button(name="cancel", tabindex!="<%= entrymetadatafields.length * 2 + 2 %>") Cancel
+	button(name="cancel", tabindex=entrymetadatafields.length * 2 + 2) Cancel

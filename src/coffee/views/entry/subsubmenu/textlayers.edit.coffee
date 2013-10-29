@@ -1,61 +1,61 @@
-# Description...
-define (require) ->
-	Fn = require 'hilib/functions/general'
+# # Description...
+# define (require) ->
+# 	Fn = require 'hilib/functions/general'
 
-	Views = 
-		Base: require 'views/base'
+# 	Views = 
+# 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/subsubmenu/textlayers.edit.html'
+# 	Tpl = require 'text!html/entry/subsubmenu/textlayers.edit.html'
 
-	# ## AnnotationMetadata
-	class EditTextlayers extends Views.Base
+# 	# ## AnnotationMetadata
+# 	class EditTextlayers extends Views.Base
 
-		# ### Initialize
-		initialize: ->
-			super
+# 		# ### Initialize
+# 		initialize: ->
+# 			super
 
-			@listenTo @collection, 'add', @render
-			@listenTo @collection, 'remove', @render
+# 			@listenTo @collection, 'add', @render
+# 			@listenTo @collection, 'remove', @render
 
-			@render()
+# 			@render()
 
-		# ### Render
-		render: ->
-			rtpl = _.template Tpl, transcriptions: @collection
-			@$el.html rtpl
+# 		# ### Render
+# 		render: ->
+# 			rtpl = _.template Tpl, transcriptions: @collection
+# 			@$el.html rtpl
 
-			@
+# 			@
 
-		# ### Events
-		events: ->
-			'click button.addtextlayer': 'addtextlayer'
-			'click ul.textlayers li': (ev) => $(ev.currentTarget).addClass 'destroy'
-			'click ul.textlayers li.destroy .orcancel': 'cancelRemove'
-			'click ul.textlayers li.destroy .name': 'destroytextlayer'
+# 		# ### Events
+# 		events: ->
+# 			'click button.addtextlayer': 'addtextlayer'
+# 			'click ul.textlayers li': (ev) => $(ev.currentTarget).addClass 'destroy'
+# 			'click ul.textlayers li.destroy .orcancel': 'cancelRemove'
+# 			'click ul.textlayers li.destroy .name': 'destroytextlayer'
 
-		cancelRemove: (ev) ->
-			ev.stopPropagation()
-			parentLi = $(ev.currentTarget).parents('li')
-			parentLi.removeClass 'destroy'
+# 		cancelRemove: (ev) ->
+# 			ev.stopPropagation()
+# 			parentLi = $(ev.currentTarget).parents('li')
+# 			parentLi.removeClass 'destroy'
 
-		destroytextlayer: (ev) ->
-			transcriptionID = $(ev.currentTarget).parents('li').attr 'data-id'
-			textlayer = @collection.get transcriptionID
-			@collection.remove textlayer
+# 		destroytextlayer: (ev) ->
+# 			transcriptionID = $(ev.currentTarget).parents('li').attr 'data-id'
+# 			textlayer = @collection.get transcriptionID
+# 			@collection.remove textlayer
 
-		addtextlayer: ->
-			name = @el.querySelector('input[name="name"]').value
-			text = @el.querySelector('textarea[name="text"]').value
+# 		addtextlayer: ->
+# 			name = @el.querySelector('input[name="name"]').value
+# 			text = @el.querySelector('textarea[name="text"]').value
 
-			unless name is ''
-				data = 
-					textLayer: name
-					body: text
-				@collection.create data, wait: true
+# 			unless name is ''
+# 				data = 
+# 					textLayer: name
+# 					body: text
+# 				@collection.create data, wait: true
 
-		# selectChanged: (ev) ->
-		# 	annotationTypeID = ev.currentTarget.options[ev.currentTarget.selectedIndex].getAttribute 'data-id'
-		# 	@model.set 'annotationType', @collection.get annotationTypeID
-		# 	console.log @model
+# 		# selectChanged: (ev) ->
+# 		# 	annotationTypeID = ev.currentTarget.options[ev.currentTarget.selectedIndex].getAttribute 'data-id'
+# 		# 	@model.set 'annotationType', @collection.get annotationTypeID
+# 		# 	console.log @model
 
-		# ### Methods
+# 		# ### Methods

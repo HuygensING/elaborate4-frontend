@@ -1,0 +1,7 @@
+node_modules
+compiled
+.svn
+oud
+cruise_config.rb
+build_and_test.sh
+pom.xml

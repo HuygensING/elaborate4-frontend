@@ -1,8 +1,10 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
 	BaseView = require 'views/base'
-	Templates =
-		Tooltip: require 'text!html/ui/tooltip.html'
+	# Templates =
+	# 	Tooltip: require 'text!html/ui/tooltip.html'
+
+	tpls = require 'tpls'
 
 	class Tooltip extends BaseView
 
@@ -21,8 +23,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Tooltip
-			@$el.html rtpl
+			@$el.html tpls['ui/tooltip']()
 
 			# There can be only one!
 			$('#editannotationtooltip').remove() 

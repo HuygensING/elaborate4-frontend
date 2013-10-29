@@ -20,9 +20,11 @@ define (require) ->
 		Modal: require 'hilib/views/modal/main'
 		EditSelection: require 'views/project/editselection'
 
-	Templates =
-		Search: require 'text!html/project/main.html'
-		Results: require 'text!html/project/results.html'
+	# Templates =
+	# 	Search: require 'text!html/project/main.html'
+	# 	Results: require 'text!html/project/results.html'
+
+	tpls = require 'tpls'
 
 	class ProjectSearch extends Views.Base
 
@@ -51,8 +53,8 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Search, @project.attributes
-			@$el.html rtpl
+			rtpl = tpls['project/main']
+			@$el.html rtpl()
 
 			# Render the EditSelection view. Is toggled in the menu and can be used
 			# to edit the metadata of multiple entries at once.
@@ -80,7 +82,7 @@ define (require) ->
 			@
 
 		renderResult: ->
-			rtpl = _.template Templates.Results, 
+			rtpl = tpls['project/results']
 				model: @model
 				generateID: Fn.generateID
 			@$('ul.entries').html rtpl

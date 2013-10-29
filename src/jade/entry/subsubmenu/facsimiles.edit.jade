@@ -3,13 +3,12 @@
 		.pad2
 			h3 Facsimiles
 			ul.facsimiles
-				| <% facsimiles.each(function(facs) { %>
-				li.facsimile(data-id!="<%= facs.id %>")
-					span.name
-						img(src="/images/icon.bin.png", width="14px", height="14px")
-						label <%= facs.get('name') %>
-					span.orcancel or Cancel
-				| <% }); %>
+				each facsimile in facsimiles.models
+					li.facsimile(data-id=facsimile.id)
+						span.name
+							img(src="/images/icon.bin.png", width="14px", height="14px")
+							label= facsimile.get('name')
+						span.orcancel or Cancel
 	.cell.span2
 		.pad2
 			h3 Upload new facsimile

@@ -9,7 +9,8 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Tpl = require 'text!html/entry/annotation.metadata.html'
+	# Tpl = require 'text!html/entry/annotation.metadata.html'
+	tpls = require 'tpls'
 
 	# ## AnnotationMetadata
 	class AnnotationMetadata extends Views.Base
@@ -22,8 +23,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			console.log @model, @collection.toJSON()
-			rtpl = _.template Tpl, 
+			rtpl = tpls['entry/annotation.metadata']
 				model: @model
 				collection: @collection
 			@$el.html rtpl

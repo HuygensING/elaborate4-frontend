@@ -4,8 +4,10 @@ define (require) ->
 
 	Annotation = require 'models/annotation'
 
-	Templates =
-		Tooltip: require 'text!html/entry/tooltip.add.annotation.html'
+	# Templates =
+	# 	Tooltip: require 'text!html/entry/tooltip.add.annotation.html'
+
+	tpls = require 'tpls'
 
 	class AddAnnotationTooltip extends BaseView
 
@@ -29,8 +31,7 @@ define (require) ->
 			@render()
 
 		render: ->
-			rtpl = _.template Templates.Tooltip, {}
-			@$el.html rtpl
+			@$el.html tpls['entry/tooltip.add.annotation']()
 
 			# There can be only one!
 			$('#addannotationtooltip').remove()

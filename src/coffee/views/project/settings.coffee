@@ -10,7 +10,7 @@ define (require) ->
 
 	Views =
 		Base: require 'views/base'
-		SubMenu: require 'views/ui/settings.submenu'
+		# SubMenu: require 'views/ui/settings.submenu'
 		EditableList: require 'hilib/views/form/editablelist/main'
 		ComboList: require 'hilib/views/form/combolist/main'
 		Form: require 'hilib/views/form/main'
@@ -30,11 +30,13 @@ define (require) ->
 
 	ProjectUserIDs = require 'project.user.ids'
 
-	Templates =
-		Settings: require 'text!html/project/settings/main.html'
-		# EntryMetadata: require 'text!html/project/metadata_entries.html'
-		AnnotationTypes: require 'text!html/project/settings/metadata_annotations.html'
-		AddUser: require 'text!html/project/settings/adduser.html'
+	# Templates =
+	# 	Settings: require 'text!html/project/settings/main.html'
+	# 	# EntryMetadata: require 'text!html/project/metadata_entries.html'
+	# 	AnnotationTypes: require 'text!html/project/settings/metadata_annotations.html'
+	# 	AddUser: require 'text!html/project/settings/adduser.html'
+
+	tpls = require 'tpls'
 	
 	class ProjectSettings extends Views.Base
 
@@ -58,12 +60,12 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Settings, 
+			rtpl = tpls['project/settings/main']
 				settings: @model.attributes
 				projectMembers: @project.get('members')
 			@$el.html rtpl
 
-			@renderSubMenu()
+			# @renderSubMenu()
 
 			@renderTabs()
 			@renderUserTab()
@@ -74,11 +76,11 @@ define (require) ->
 
 			@
 
-		renderSubMenu: ->
-			subMenu = new Views.SubMenu()
-			@$el.prepend subMenu.$el
+		# renderSubMenu: ->
+		# 	subMenu = new Views.SubMenu()
+		# 	@$el.prepend subMenu.$el
 
-			@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
+		# 	@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
 			# @listenTo subMenu, 'clicked', (menuItem) =>
 			# 	if menuItem.key is 'save'
 			# 		@model.save()
@@ -127,7 +129,7 @@ define (require) ->
 			@$('div[data-tab="metadata-entries"]').append EntryMetadataList.el
 
 			# Annotation types
-			rtpl = _.template Templates.AnnotationTypes, annotationTypes: @project.get('annotationtypes')
+			rtpl = tpls['project/settings/metadata_annotations'] annotationTypes: @project.get('annotationtypes')
 			@$('div[data-tab="metadata-annotations"]').html rtpl
 
 		# * TODO: Add to separate view
@@ -156,7 +158,7 @@ define (require) ->
 
 			form = new Views.Form
 				Model: Models.User
-				tpl: Templates.AddUser
+				tpl: tpls['project/settings/adduser']
 
 			@listenTo form, 'save:success', (model, response, options) =>
 				ajax.token = token.get()

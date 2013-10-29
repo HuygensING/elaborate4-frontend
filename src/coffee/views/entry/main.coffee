@@ -25,7 +25,7 @@ define (require) ->
 		# SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
 		# AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EntryMetadata: require 'views/entry/metadata'
-		EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
+		# EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
 		# TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
 		# AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
@@ -34,9 +34,11 @@ define (require) ->
 		AnnotationEditor: require 'views/entry/editors/annotation'
 		LayerEditor: require 'views/entry/editors/layer'
 
-	Templates =
-		Entry: require 'text!html/entry/main.html'
-		Metadata: require 'text!html/entry/metadata.html'
+	# Templates =
+	# 	# Entry: require 'text!html/entry/main.html'
+	# 	Metadata: require 'text!html/entry/metadata.html'
+
+	tpls = require 'tpls'
 
 	# ## Entry
 	class Entry extends Views.Base
@@ -85,7 +87,8 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Entry, @model.toJSON()
+			# console.log tpls
+			rtpl = tpls['entry/main'] @model.toJSON()
 			@$el.html rtpl
 
 			@renderFacsimile()
@@ -161,9 +164,9 @@ define (require) ->
 			@layerEditor.hide()
 
 		renderSubsubmenu: ->
-			@subviews.textlayersEdit = new Views.EditTextlayers
-				collection: @model.get 'transcriptions'
-				el: @$('.subsubmenu .edittextlayers')
+			# @subviews.textlayersEdit = new Views.EditTextlayers
+			# 	collection: @model.get 'transcriptions'
+			# 	el: @$('.subsubmenu .edittextlayers')
 
 			@subviews.facsimileEdit = new Views.EditFacsimiles
 				collection: @model.get 'facsimiles'
@@ -254,10 +257,8 @@ define (require) ->
 				@model.get('transcriptions').trigger 'current:change', @currentTranscription 
 
 		editEntryMetadata: (ev) ->
-			console.log @model.clone().attributes
-			console.log @model.attributes
 			entryMetadata = new Views.Form
-				tpl: Templates.Metadata
+				tpl: tpls['entry/metadata']
 				model: @model.clone()
 
 			modal = new Views.Modal

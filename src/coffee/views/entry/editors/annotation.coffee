@@ -10,8 +10,9 @@ define (require) ->
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'
 
-	Templates =
-		Metadata: require 'text!html/entry/annotation.metadata.html'
+	# Templates =
+	# 	Metadata: require 'text!html/entry/annotation.metadata.html'
+	tpls = require 'tpls'
 
 	# ## AnnotationEditor
 	class AnnotationEditor extends Views.Base
@@ -112,7 +113,7 @@ define (require) ->
 
 		editMetadata: ->
 			annotationMetadata = new Views.Form
-				tpl: Templates.Metadata
+				tpl: tpls['entry/annotation.metadata']
 				model: @model.clone()
 				collection: @project.get('annotationtypes')
 

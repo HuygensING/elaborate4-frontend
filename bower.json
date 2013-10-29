@@ -10,6 +10,7 @@
     "underscore-amd": "*",
     "backbone-amd": "1.0.0",
     "normalize-css": "*",
+    "jade": "*",
     "classList.js": "https://github.com/eligrey/classList.js.git",
     "ajaxHooks": "https://github.com/jaubourg/ajaxHooks.git"
   },

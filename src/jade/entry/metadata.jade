@@ -1,15 +1,14 @@
 form
-	ul(data-model-id!="<%= model.cid %>")
+	ul(data-model-id=model.cid)
 		li
 			label Name
-			input(type="text", name="name", value!="<%= model.get('name') %>")
-		| <% _.each(model.get('settings').attributes, function(value, key) { %>
-		li
-			label <%= key %>
-			input(type="text", name!="<%= key %>", value!="<%= value %>")
-		| <% }); %>
+			input(type="text", name="name", value=model.get('name'))
+		each value, key in model.get('settings').attributes
+			li
+				label= key
+				input(type="text", name=key, value=value)
 		li
 			label Publishable
-			| <input type="checkbox" name="publishable"<% if (model.get('publishable')) {%> checked<% } %>>
+			input(type="checkbox", name="publishable", checked=model.get('publishable'))
 br
-small The last modification of <%= model.get('name') %> was <%= new Date(model.get('modifiedOn')).toDateString() %> by <%= model.get('modifier').title %>.
+small The last modification of #{model.get('name')} was #{new Date(model.get('modifiedOn')).toDateString()} by #{model.get('modifier').title}.

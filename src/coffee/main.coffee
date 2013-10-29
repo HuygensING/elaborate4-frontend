@@ -11,6 +11,8 @@ require.config
 		'faceted-search': '../lib/faceted-search/stage/js/main'
 		'hilib': '../lib/hilib/compiled'
 		'html': '../html'
+		'tpls': '../templates'
+		'jade': '../lib/jade/jade'
 
 	shim:
 		'underscore':

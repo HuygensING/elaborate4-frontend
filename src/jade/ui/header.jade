@@ -5,7 +5,7 @@
 			//- span.white.projecttitle <%= project.get('title') %>
 			ul.horizontal.menu
 				li.thisproject.arrowdown 
-					span.projecttitle <%= projects.current.get('title') %>
+					span.projecttitle= projects.current.get('title')
 					ul.vertical.menu
 						//- li.spacer
 						li.search Entry overview
@@ -17,14 +17,13 @@
 		.cell.span1.user.alignright
 			ul.horizontal.menu
 				li Help
-				li.username.arrowdown <%= user.title %>
+				li.username.arrowdown= user.title
 					ul.vertical.menu
 						//- li.spacer
 						li.projects.arrowleft My projects
 							ul.vertical.menu
-								| <% projects.each(function(project) { %>
-								li.project(data-id!="<%= project.id %>") <%= project.get('title') %>
-								| <% }); %>
+								each project in projects.models
+									li.project(data-id=project.id)= project.get('title')
 						li.logout Logout
 			img(src="/images/logo.huygens.png")
 				

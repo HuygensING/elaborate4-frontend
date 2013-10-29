@@ -18,8 +18,8 @@ define (require) ->
 	# 	ProjectNav: require 'views/ui/nav.project'
 	# 	UserNav: require 'views/ui/nav.user'
 
-	Templates =
-		Header: require 'text!html/ui/header.html'
+	# console.log require 'tpl'
+	tpls = require 'tpls'
 	
 	class Header extends BaseView
 
@@ -66,7 +66,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.Header, 
+			console.log 
+			rtpl = tpls['ui/header']
+				_: _
 				projects: Collections.projects
 				user: Models.currentUser.attributes
 			@$el.html rtpl

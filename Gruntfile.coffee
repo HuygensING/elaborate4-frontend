@@ -129,20 +129,32 @@ module.exports = (grunt) ->
 		### HTML ###
 
 		jade:
-			init:
-				files: [
-					expand: true
-					cwd: 'src/jade'
-					src: '**/*.jade'
-					dest: 'compiled/html'
-					rename: (dest, src) -> 
-						dest + '/' + src.replace(/.jade/, '.html') # Use rename to preserve multiple dots in filenames (nav.user.coffee => nav.user.js)
-				,
-					'compiled/index.html': 'src/index.jade'
-				]
+			index:
+				files: 'compiled/index.html': 'src/index.jade'
 			compile:
+				files: 'compiled/templates.js': 'src/jade/**/*.jade'
 				options:
-					pretty: false
+					compileDebug: false
+					client: true
+					amd: true
+					processName: (filename) -> filename.substring(9, filename.length-5)
+
+
+		# jade:
+		# 	init:
+		# 		files: [
+		# 			expand: true
+		# 			cwd: 'src/jade'
+		# 			src: '**/*.jade'
+		# 			dest: 'compiled/html'
+		# 			rename: (dest, src) -> 
+		# 				dest + '/' + src.replace(/.jade/, '.html') # Use rename to preserve multiple dots in filenames (nav.user.coffee => nav.user.js)
+		# 		,
+		# 			'compiled/index.html': 'src/index.jade'
+		# 		]
+		# 	compile:
+		# 		options:
+		# 			pretty: false
 
 
 		replace:
@@ -253,7 +265,7 @@ module.exports = (grunt) ->
 				tasks: 'coffee:compile'
 			jade:
 				files: ['src/index.jade', 'src/jade/**/*.jade']
-				tasks: 'jade:compile'
+				tasks: ['jade:index', 'jade:compile']
 			stylus:
 				files: ['src/stylus/**/*.styl']
 				tasks: ['stylus:compile', 'concat:css']
@@ -293,7 +305,8 @@ module.exports = (grunt) ->
 		'shell:bowerinstall' # Get dependencies first, cuz css needs to be included (and maybe images?)
 		'createSymlinks:compiled'
 		'coffee:init'
-		'jade:init'
+		'jade:index'
+		'jade:compile'
 		'stylus:compile'
 		'concat:css'
 	]
@@ -340,22 +353,16 @@ module.exports = (grunt) ->
 			src = process.cwd() + '/' + src if src[0] isnt '/'
 			dest = process.cwd() + '/' + dest if dest[0] isnt '/'
 
-
-
-
-			# src = if config.src[0] isnt '/' then process.cwd() + '/' + config.src else config.src
-			# dest = if config.dest[0] isnt '/' then process.cwd() + '/' + config.dest else config.dest
-			# console.log src
-
 			grunt.log.writeln 'ERROR: source dir does not exist!' if not fs.existsSync(src) # Without a source, all is lost.
 
-			if fs.existsSync(dest)
+			# We have to put lstatSync in a try, because it gives an error when dest isn't found. We can use fs.lstat, but
+			# we would have to change the for loop to a function call.			
+			try 
 				stats = fs.lstatSync dest
-				
-				if stats? and stats.isSymbolicLink()
-					fs.unlinkSync dest
+				fs.unlinkSync(dest) if stats.isSymbolicLink()
 
 			fs.symlinkSync src, dest
+
 
 
 
@@ -367,14 +374,14 @@ module.exports = (grunt) ->
 	grunt.event.on 'watch', (action, srcPath) ->
 		if srcPath.substr(0, 3) is 'src' # Make sure file comes from src/		
 			type = 'coffee' if srcPath.substr(-7) is '.coffee'
-			type = 'jade' if srcPath.substr(-5) is '.jade'
+			# type = 'jade' if srcPath.substr(-5) is '.jade'
 
 			if type is 'coffee'
 				testDestPath = srcPath.replace 'src/coffee', 'test'
 				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'js').substr 3
 
-			if type is 'jade'
-				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'html').substr 3
+			# if type is 'jade'
+			# 	destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'html').substr 3
 
 			if type? and action is 'changed' or action is 'added'
 				data = {}

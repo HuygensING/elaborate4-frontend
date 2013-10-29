@@ -17,38 +17,32 @@
 					ul
 						li
 							label(for="type") Type
-							//- input#type(type="text", name="type", value!="<%= settings.Type %>", data-attr="Type")
 							select(name="projectType", data-attr="projectType")
-								|<% var collectionSelected = (settings['projectType'] === 'collection') ? ' selected' : ''; %>
-								|<% var workSelected = (settings['projectType'] === 'work') ? ' selected' : ''; %>
-								|<option value="collection"<%= collectionSelected %>>Collection</option>
-								|<option value="work"<%= workSelected %>>Work</option>
+								option(value="collection", selected=settings['projectType']==='collection') Collection
+								option(value="work", selected=settings['projectType']==='work') Work
 						li
 							label(for="title") Project title
-							input(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")
+							input(type="text", name="title", value=settings['Project title'], data-attr="Project title")
 						li
 							label(for="leader") Project leader
 							select(name="leader", data-attr="Project leader")
 								option -- select member --
-								| <% projectMembers.each(function(member) { %>
-								|<% var selected = (member.id === parseInt(settings['Project leader'], 10)) ? ' selected' : ''; %>
-								|<option value="<%= member.id %>"<%= selected %>><%= member.get('title') %></option>
-								| <% }); %>
-							//- input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
+								each member in projectMembers.models
+									sel = member.id === parseInt(settings['Project leader'], 10)
+									option(value=member.id, selected=sel)= member.get('title')
 						li
 							label(for="start") Start date
-							input(type="text", name="start", value!="<%= settings['Start date'] %>", data-attr="Start date")
+							input(type="text", name="start", value=settings['Start date'], data-attr="Start date")
 						li
 							label(for="release") Release date
-							input(type="text", name="release", value!="<%= settings['Release date'] %>", data-attr="Release date")
+							input(type="text", name="release", value=settings['Release date'], data-attr="Release date")
 						li
 							label(for="version") Version
-							input(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
-						| <% if (settings.publicationURL.length > 0) { %>
-						li
-							label Publication
-							a(href!="<%= settings.publicationURL %>", data-bypass) link
-						| <% } %>
+							input(type="text", name="version", value=settings.Version, data-attr="Version")
+						if settings.publicationURL.length > 0
+							li
+								label Publication
+								a(href=settings.publicationURL, data-bypass) link
 						li(style="margin-top: 20px")
 							input.inactive(type="submit", name="savesettings", value="Save settings")
 			.cell.span1

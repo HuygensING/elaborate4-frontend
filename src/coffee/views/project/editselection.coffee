@@ -9,8 +9,10 @@ define (require) ->
 	Views = 
 		Base: require 'views/base'
 
-	Templates =
-		EditSelection: require 'text!html/project/editselection.html'
+	# Templates =
+	# 	EditSelection: require 'text!html/project/editselection.html'
+
+	tpls = require 'tpls'
 
 	# ## EditSelection
 	class EditSelection extends Views.Base
@@ -23,7 +25,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = _.template Templates.EditSelection, @model.attributes
+			rtpl = tpls['project/editselection'] @model.attributes
 			@$el.html rtpl
 
 			@
