@@ -212,6 +212,9 @@ define (require) ->
 					$('.submenu li[data-key="'+newMenu+'"]').addClass 'rotateup'
 
 					# Show the newMenu and hide all others (siblings)
+					$('.subsubmenu').find('.'+newMenu).appendCloseButton
+						corner: 'bottomright'
+						close: => @close()
 					$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
 
 					currentMenu = newMenu
