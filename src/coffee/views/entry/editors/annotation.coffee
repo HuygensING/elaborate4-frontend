@@ -111,10 +111,20 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
+			console.log @model
+			# console.log @project.get('annotationtypes').findWhere name: 'versregel'
+			# console.log @model
 			annotationMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()
 				collection: @project.get('annotationtypes')
+
+			annotationMetadata.model.on 'change:metadata:type', (annotationTypeID) =>
+				annotationMetadata.model.set 'metadata', {}
+				annotationMetadata.model.set 'annotationType', @project.get('annotationtypes').get(annotationTypeID).attributes
+				# console.log annotationMetadata.model
+			# 	# console.log @project.get('annotationtypes').get(annotationTypeID)
+				annotationMetadata.render()
 
 			modal = new Views.Modal
 				title: "Edit annotation metadata"
@@ -122,11 +132,10 @@ define (require) ->
 				submitValue: 'Save metadata'
 				width: '300px'
 			modal.on 'submit', =>
-				metadata = annotationMetadata.model.get 'metadata'
+				# metadata = annotationMetadata.model.get 'metadata'
 
-				if metadata.type?
-					@model.set 'annotationType', @project.get('annotationtypes').get(metadata.type)
-					delete metadata.type
+				# console.log metadata
+				@model.updateFromClone annotationMetadata.model
 
 				jqXHR = @model.save()
 				jqXHR.done => 
@@ -135,7 +144,6 @@ define (require) ->
 
 
 
-				# @model.updateFromClone entryMetadata.model
 
 				# @model.get('settings').save()
 

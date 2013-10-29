@@ -7,8 +7,10 @@ form
 				| <% var selected = (item.id === model.get('annotationType').id) ? ' selected' : ''; %>
 				| <option value="<%= item.id %>"<%= selected %>><%= item.get('description') %> (<%= item.get('name') %>)</option>
 				| <% }); %>
-		| <% _.each(model.get('annotationMetadataItems'), function(metadata) { %>
+		//- | <% console.log(model.get('annotationType')) %>
+		//- | <% console.log(model.get('annotationType').annotationTypeMetadataItems) %>
+		| <% _.each(model.get('annotationType').annotationTypeMetadataItems, function(metadata) { %>
 		li 
-			label(title!="<%= metadata.annotationTypeMetadataItem.description %>") <%= metadata.annotationTypeMetadataItem.name %>
-			input(type="text", name!="metadata.<%= metadata.annotationTypeMetadataItem.name %>", value!="<%= metadata.data %>")
+			label(title!="<%= metadata.description %>") <%= metadata.name %>
+			input(type="text", name!="metadata.<%= metadata.name %>", value!="<%= model.get('metadata')[metadata.name] %>")
 		| <% }); %>

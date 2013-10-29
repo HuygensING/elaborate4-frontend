@@ -49,7 +49,7 @@ define (require) ->
 
 				@allusers = new Collections.Users()
 				@allusers.fetch success: (collection) =>
-					@project.set 'members', new Backbone.Collection collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
+					@project.set 'members', new Collections.Users collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
 					@render()
 
 				# @model = new Models.Settings null,
@@ -138,7 +138,19 @@ define (require) ->
 					data: @allusers
 					settings:
 						placeholder: 'Add member'
-			@listenTo combolist, 'change', (changes) => new ProjectUserIDs(@project.id).save changes.values
+			@listenTo combolist, 'change', (changes) =>
+				id = if changes.added? then changes.added else changes.removed
+
+				name = @allusers.get(id).get('firstName')
+				name = @allusers.get(id).get('lastName') if name.length is 0
+				name = 'user' if name.length is 0
+
+				message = if changes.added? then "Added #{name} to #{@project.get('title')}." else	"Removed #{name} from #{@project.get('title')}."
+
+				new ProjectUserIDs(@project.id).save changes.values,
+					success: => @publish 'message', message
+						
+
 
 			@$('div[data-tab="users"] .userlist').append combolist.el
 

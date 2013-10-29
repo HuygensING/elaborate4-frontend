@@ -23,7 +23,7 @@ define (require) ->
 
 			jqXHR.done (data) -> cb data
 
-		save: (newValues, options) ->
+		save: (newValues, options={}) ->
 			ajax.token = token.get()
 			jqXHR = ajax.put
 				url: url

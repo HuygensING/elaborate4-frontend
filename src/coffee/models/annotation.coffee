@@ -36,10 +36,30 @@ define (require) ->
 
 		# ### Overrides
 
+		# The annotation metadata is send from the server in nested objects. We create a new object (metadata)
+		# and popuplate it with metadata like so: {key: value, key2: value2, ...}
+		parse: (attrs) ->
+			if attrs?
+				attrs.metadata = {}
+				# Loop all the annotation metadata (this object does not contain the values)
+				for metadataItem in attrs.annotationType.annotationTypeMetadataItems
+					key = metadataItem.name
+
+					# Find the value corresponding to the key in the annotationMetadataItems object
+					item = _.find attrs.annotationMetadataItems, (item) -> item.annotationTypeMetadataItem.name is key
+					value = if item? then item.data else ''
+
+					attrs.metadata[key] = value
+
+				attrs
+
 		set: (attrs, options) ->
 			if _.isString(attrs) and attrs.substr(0, 9) is 'metadata.'
 				attr = attrs.substr(9)
-				@attributes['metadata'][attr] = options
+				if attr is 'type'
+					@trigger('change:metadata:type', parseInt(options, 10)) if attr is 'type'
+				else
+					@attributes['metadata'][attr] = options
 			else
 				super
 		
@@ -74,3 +94,8 @@ define (require) ->
 
 			else
 				super
+
+		# ### Methods
+		updateFromClone: (clone) ->
+			@set 'annotationType', clone.get 'annotationType'
+			@set 'metadata', clone.get 'metadata'

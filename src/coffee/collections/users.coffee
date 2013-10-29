@@ -7,3 +7,5 @@ define (require) ->
 	class Users extends Collections.Base
 
 		url: ->	"#{config.baseUrl}users"
+
+		comparator: 'title'
