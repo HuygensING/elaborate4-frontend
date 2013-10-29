@@ -5,8 +5,8 @@ define (require) ->
 	token = require 'hilib/managers/token'
 	ajax = require 'hilib/managers/ajax'
 
-	# ## EntryMetadata
-	class EntryMetadata
+	# ## ProjectUserIDs
+	class ProjectUserIDs
 
 		# ### Private vars
 		url = null
@@ -14,7 +14,7 @@ define (require) ->
 		# ### Contstructor
 		# Set the url based on the projectID
 		constructor: (projectID) -> 
-			url = "#{config.baseUrl}projects/#{projectID}/entrymetadatafields"
+			url = "#{config.baseUrl}projects/#{projectID}/projectusers"
 
 		# ### Public methods
 		fetch: (cb) ->

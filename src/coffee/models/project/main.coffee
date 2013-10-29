@@ -5,18 +5,19 @@ define (require) ->
 	Async = require 'hilib/managers/async'
 
 	config = require 'config'
-
+		
 	Models = 
 		Base: require 'models/base'
 		Settings: require 'models/project/settings'
 
 	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
 	EntryMetadata = require 'entry.metadata'
+	ProjectUserIDs = require 'project.user.ids'
 
 	Collections =
 		Entries: require 'collections/entries'
 		AnnotationTypes: require 'collections/project/annotationtypes'
-		ProjectUsers: require 'collections/project/users'
+		# Users: require 'collections/users'
 
 	class Project extends Models.Base
 
@@ -36,7 +37,7 @@ define (require) ->
 			settings: null
 			textLayers: []
 			title: ''
-			users: null
+			userIDs: []
 
 		# initialize: ->
 		# 	super
@@ -51,8 +52,8 @@ define (require) ->
 			attrs
 
 		load: (cb) ->
-			if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('users') is null
-				async = new Async ['annotationtypes', 'users', 'entrymetadatafields', 'settings']
+			if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0
+				async = new Async ['annotationtypes', 'userIDs', 'entrymetadatafields', 'settings']
 				async.on 'ready', (data) => cb()
 
 				annotationtypes = new Collections.AnnotationTypes [], projectId: @id
@@ -60,10 +61,16 @@ define (require) ->
 					@set 'annotationtypes', collection
 					async.called 'annotationtypes'
 
-				users = new Collections.ProjectUsers [], projectId: @id
-				users.fetch success: (collection) => 
-					@set 'users', collection
-					async.called 'users'
+				# users = new Collections.ProjectUsers [], projectId: @id
+				# users.fetch success: (collection) => 
+				# 	@set 'users', collection
+				# 	async.called 'users'
+
+				# Users
+
+				new ProjectUserIDs(@id).fetch (data) =>
+					@set 'userIDs', data
+					async.called 'userIDs'
 
 				new EntryMetadata(@id).fetch (data) =>
 					@set 'entrymetadatafields', data

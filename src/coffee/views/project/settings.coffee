@@ -14,6 +14,7 @@ define (require) ->
 		EditableList: require 'hilib/views/form/editablelist/main'
 		ComboList: require 'hilib/views/form/combolist/main'
 		Form: require 'hilib/views/form/main'
+		Modal: require 'hilib/views/modal/main'
 
 	Models =
 		Statistics: require 'models/project/statistics'
@@ -25,7 +26,9 @@ define (require) ->
 		projects: require 'collections/projects'
 		AnnotationTypes: require 'collections/project/annotationtypes'
 		ProjectUsers: require 'collections/project/users'
-		AllUsers: require 'collections/users'
+		Users: require 'collections/users'
+
+	ProjectUserIDs = require 'project.user.ids'
 
 	Templates =
 		Settings: require 'text!html/project/settings/main.html'
@@ -43,7 +46,12 @@ define (require) ->
 
 			Collections.projects.getCurrent (@project) =>
 				@model = @project.get 'settings'
-				@render()
+
+				@allusers = new Collections.Users()
+				@allusers.fetch success: (collection) =>
+					@project.set 'members', new Backbone.Collection collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
+					@render()
+
 				# @model = new Models.Settings null,
 				# 	projectID: @project.id
 				# @model.fetch success: => @render()
@@ -52,12 +60,14 @@ define (require) ->
 		render: ->
 			rtpl = _.template Templates.Settings, 
 				settings: @model.attributes
-				projectMembers: @project.get('users')
+				projectMembers: @project.get('members')
 			@$el.html rtpl
 
 			@renderSubMenu()
 
 			@renderTabs()
+			@renderUserTab()
+
 			@loadStatistics()
 
 			@showTab @options.tabName if @options.tabName
@@ -75,29 +85,60 @@ define (require) ->
 			# 		subMenu.setState 'save', 'inactive'
 
 		renderTabs: ->
+			# Text layers
+			textLayerList = new Views.EditableList
+				value: @project.get('textLayers')
+				config:
+					settings:
+						placeholder: 'Add layer'
+						confirmRemove: true
+			@listenTo textLayerList, 'confirmRemove', (id, confirm) =>
+				modal = new Views.Modal
+					$html: 'You are about to delete the '+id+' layer'
+					submitValue: 'Remove '+id+' layer'
+					width: 'auto'
+				modal.on 'submit', => 
+					modal.close()
+					confirm()
+			@listenTo textLayerList, 'change', (values) =>
+				@project.set 'textLayers', values
+				@project.save null,
+					success: @publish 'message', 'Text layers updated.'
+			@$('div[data-tab="textlayers"]').append textLayerList.el
+
 			# Entry metadata
-			list = new Views.EditableList
+			EntryMetadataList = new Views.EditableList
 				value: @project.get('entrymetadatafields')
-			@listenTo list, 'change', (values) => new EntryMetadata(@project.id).save values
-			@$('div[data-tab="metadata-entries"]').append list.el
+				config:
+					settings:
+						placeholder: 'Add field'
+						confirmRemove: true
+			@listenTo EntryMetadataList, 'confirmRemove', (fieldName, confirm) =>
+				modal = new Views.Modal
+					$html: 'You are about to delete entry metadata field: '+fieldName
+					submitValue: 'Remove field '+fieldName
+					width: 'auto'
+				modal.on 'submit', => 
+					modal.close()
+					confirm()
+			@listenTo EntryMetadataList, 'change', (values) => 
+				new EntryMetadata(@project.id).save values,
+					success: => @publish 'message', 'Entry metadata fields updated.'
+			@$('div[data-tab="metadata-entries"]').append EntryMetadataList.el
 
 			# Annotation types
 			rtpl = _.template Templates.AnnotationTypes, annotationTypes: @project.get('annotationtypes')
 			@$('div[data-tab="metadata-annotations"]').html rtpl
 
-			# Users
-			@allusers = new Collections.AllUsers()
-			@allusers.fetch success: (collection) => @renderUserTab collection
-
 		# * TODO: Add to separate view
-		renderUserTab: (collection) ->
+		renderUserTab: ->
 			combolist = new Views.ComboList
-				value: @project.get 'users'
+				value: @project.get 'members'
 				config:
-					data: collection
+					data: @allusers
 					settings:
-						placeholder: 'Add new member'
-			@listenTo combolist, 'change', (userIDs) => console.log userIDs
+						placeholder: 'Add member'
+			@listenTo combolist, 'change', (changes) => new ProjectUserIDs(@project.id).save changes.values
 
 			@$('div[data-tab="users"] .userlist').append combolist.el
 

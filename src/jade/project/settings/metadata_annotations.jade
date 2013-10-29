@@ -14,5 +14,8 @@ form
 
 ul.selected-annotation-types
 	| <% annotationTypes.each(function(annotationType) { %>
-	li(data-id!="<%= annotationType.id %>") <%= annotationType.get('description') %>
+	li(data-id!="<%= annotationType.id %>")
+		span.name <%= annotationType.get('name') %>
+		br
+		span.description <%= annotationType.get('description') %>
 	| <% }); %>

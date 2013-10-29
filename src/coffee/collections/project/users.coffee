@@ -1,14 +1,28 @@
-define (require) ->
-	config = require 'config'
+# # GET "#{config.baseUrl}projects/#{@projectID}/users" => get's full users
+# # GET "#{config.baseUrl}projects/#{@projectID}/projectusers" => get's user IDs
 
-	Collections =
-		Base: require 'collections/base'
+# define (require) ->
+# 	config = require 'config'
 
-	class ProjectUsers extends Collections.Base
+# 	ajax = require 'hilib/managers/ajax'
+# 	token = require 'hilib/managers/token'
 
-		initialize: (models, options) ->
-			super
+# 	Collections =
+# 		Base: require 'collections/base'
 
-			@projectID = options.projectId
+# 	class ProjectUsers extends Collections.Base
 
-		url: -> "#{config.baseUrl}projects/#{@projectID}/users"
+# 		initialize: (models, options) ->
+# 			super
+
+# 			@projectID = options.projectId
+
+# 		url: -> "#{config.baseUrl}projects/#{@projectID}/projectusers"
+
+# 		save: (IDs) ->
+# 			ajax.token = token.get()
+# 			jqXHR = ajax.put
+# 				url: "#{config.baseUrl}projects/#{@projectID}/projectusers"
+# 				data: JSON.stringify IDs
+
+# 		

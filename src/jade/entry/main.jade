@@ -21,7 +21,6 @@
 				li.arrowdown(data-key="layer") Layer
 					ul.vertical.menu.textlayers
 						li.spacer &nbsp;
-						li.subsub(data-key="edittextlayers") Edit...
 						| <% transcriptions.each(function(trans) { %>
 						li(data-key="transcription", data-value!="<%= trans.id %>") <%= trans.get('textLayer') %> layer
 						| <% }); %>

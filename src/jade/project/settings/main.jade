@@ -3,6 +3,7 @@
 
 	ul.horizontal.tab.menu
 		li.active(data-tab="project") Project
+		li(data-tab="textlayers") Text layers
 		li(data-tab="metadata-entries") Entry metadata
 		li(data-tab="metadata-annotations") Annotation types
 		li(data-tab="users") Users
@@ -24,7 +25,7 @@
 								|<option value="work"<%= workSelected %>>Work</option>
 						li
 							label(for="title") Project title
-							input#title(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")
+							input(type="text", name="title", value!="<%= settings['Project title'] %>", data-attr="Project title")
 						li
 							label(for="leader") Project leader
 							select(name="leader", data-attr="Project leader")
@@ -36,13 +37,13 @@
 							//- input#leader(type="text", name="leader", value!="<%= settings['Project leader'] %>", data-attr="Project leader")
 						li
 							label(for="start") Start date
-							input#start(type="text", name="start", value!="<%= settings['Start date'] %>", data-attr="Start date")
+							input(type="text", name="start", value!="<%= settings['Start date'] %>", data-attr="Start date")
 						li
 							label(for="release") Release date
-							input#release(type="text", name="release", value!="<%= settings['Release date'] %>", data-attr="Release date")
+							input(type="text", name="release", value!="<%= settings['Release date'] %>", data-attr="Release date")
 						li
 							label(for="version") Version
-							input#version(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
+							input(type="text", name="version", value!="<%= settings.Version %>", data-attr="Version")
 						| <% if (settings.publicationURL.length > 0) { %>
 						li
 							label Publication
@@ -55,8 +56,11 @@
 				img.loader(src="/images/loader.gif")
 				pre.statistics
 
+	div(data-tab="textlayers")
+		h3 Edit text layers
+
 	div(data-tab="metadata-entries")
-		h3 Add entry metadata field
+		h3 Edit entry metadata fields
 		
 		
 	div(data-tab="metadata-annotations")
