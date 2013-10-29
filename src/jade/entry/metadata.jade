@@ -11,3 +11,5 @@ form
 		li
 			label Publishable
 			| <input type="checkbox" name="publishable"<% if (model.get('publishable')) {%> checked<% } %>>
+br
+small The last modification of <%= model.get('name') %> was <%= new Date(model.get('modifiedOn')).toDateString() %> by <%= model.get('modifier').title %>.

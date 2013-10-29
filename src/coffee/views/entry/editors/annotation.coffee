@@ -111,9 +111,6 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
-			console.log @model
-			# console.log @project.get('annotationtypes').findWhere name: 'versregel'
-			# console.log @model
 			annotationMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()

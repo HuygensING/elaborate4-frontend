@@ -114,7 +114,7 @@ define (require) ->
 			ev.currentTarget.innerHTML = busyText
 			ev.currentTarget.classList.add 'active'
 			
-			@project.publicate =>
+			@project.createDraft =>
 				ev.currentTarget.innerHTML = 'Publish'
 				ev.currentTarget.classList.remove 'active'
 

@@ -38,6 +38,8 @@ define (require) ->
 			newObj = new @constructor
 				name: @get 'name'
 				publishable: @get 'publishable'
+				modifier: @get 'modifier'
+				modifiedOn: @get 'modifiedOn'
 
 			newObj.set 'settings', new Models.Settings @get('settings').toJSON(),
 				projectId: @collection.projectId

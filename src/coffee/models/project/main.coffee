@@ -94,12 +94,11 @@ define (require) ->
 			jqXHR.fail (a, b, c) => 
 				console.log a, b, c
 				console.error 'fetchEntrymetadatafields failed!'
-
-		# Publish is already defined so we have to call the method 'publicate'
-		publicate: (cb) ->
+				
+		createDraft: (cb) ->
 			ajax.token = token.get()
 			jqXHR = ajax.post
-				url: config.baseUrl+"projects/#{@id}/publication"
+				url: config.baseUrl+"projects/#{@id}/draft"
 				dataType: 'text'
 			jqXHR.done => ajax.poll
 				url: jqXHR.getResponseHeader('Location')

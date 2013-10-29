@@ -254,6 +254,8 @@ define (require) ->
 				@model.get('transcriptions').trigger 'current:change', @currentTranscription 
 
 		editEntryMetadata: (ev) ->
+			console.log @model.clone().attributes
+			console.log @model.attributes
 			entryMetadata = new Views.Form
 				tpl: Templates.Metadata
 				model: @model.clone()
