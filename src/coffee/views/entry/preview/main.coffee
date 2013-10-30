@@ -19,6 +19,8 @@ define (require) ->
 		initialize: ->
 			super
 
+			@autoscroll = false
+
 			@highlighter = Fn.highlighter()
 
 			# @model is the entry
@@ -72,7 +74,8 @@ define (require) ->
 			'scroll': 'onScroll'
 
 		onScroll: (ev) ->
-			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
+			if @autoscroll = !@autoscroll
+				Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id')
@@ -118,6 +121,11 @@ define (require) ->
 
 		# ### Methods
 
+		setScroll: (percentages) ->
+			@autoscroll = true
+			# Use setTimeout to wait for other events to finish first
+			setTimeout => Fn.setScrollPercentage @el, percentages
+
 		highlightAnnotation: (annotationNo) ->
 			range = document.createRange()
 			range.setStartAfter @el.querySelector('span[data-id="'+annotationNo+'"]')
@@ -140,8 +148,6 @@ define (require) ->
 
 				# Replace el with the documentFragment
 				el.parentNode.replaceChild docFrag, el
-
-
 
 		# Set the text that is annotated to the annotation model. This is the text between the start (<span>) and end (<sup>) tag.
 		# Text (numbers) from annotations (<sup>s) between de start and end tag are filtered out.

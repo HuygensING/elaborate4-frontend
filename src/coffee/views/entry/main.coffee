@@ -321,7 +321,7 @@ define (require) ->
 			@listenTo @preview, 'annotation:removed', @renderTranscription
 			# layerEditor cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
-			@listenTo @layerEditor.editor, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
+			@listenTo @layerEditor.editor, 'scrolled', (percentages) => @preview.setScroll percentages
 
 
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
