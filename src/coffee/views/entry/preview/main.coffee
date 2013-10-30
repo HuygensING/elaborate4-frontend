@@ -40,8 +40,14 @@ define (require) ->
 		# ### Render
 		render: ->
 			data = @currentTranscription.toJSON()
-			brs = @currentTranscription.get('body').match(/<br>/g) ? []
-			data.lineCount = brs.length
+
+			body = @currentTranscription.get('body')
+			# Count all the <br>s in the body string. Match returns null if no breaks are found.
+			lineCount = (body.match(/<br>/g) ? []).length
+			# If the body string does not end with a <br> that means there is
+			# some text after the last <br> and we have to add a linenumber.
+			lineCount++ if body.substr(-4) isnt '<br>'
+			data.lineCount = lineCount
 
 			rtpl = tpls['entry/preview'] data
 			@$el.html rtpl

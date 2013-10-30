@@ -56,6 +56,7 @@ define (require) ->
 				# * TODO: Test in IE
 				options = options.replace /<div><br><\/div>/g, '<br>'
 				options = options.replace /<div>(.*?)<\/div>/g, (match, p1, offset, string) => '<br>'+p1
+				options.trim()
 				# options = options.replace /<span (.*?)>(.*?)<\/span>/g, (match, p1, p2, offset, string) => p2
 
 			super
