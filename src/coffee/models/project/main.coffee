@@ -111,3 +111,11 @@ define (require) ->
 							@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
 							cb()
 			jqXHR.fail => console.log arguments
+
+		saveTextlayers: (done) ->
+			ajax.token = token.get()
+			jqXHR = ajax.put
+				url: config.baseUrl+"projects/#{@id}/textlayers"
+				data: JSON.stringify @get 'textLayers'
+			jqXHR.done => done()
+

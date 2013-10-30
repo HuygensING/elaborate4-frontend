@@ -1,23 +1,43 @@
+preview()
+	position relative
+
+	.linenumbers
+		position absolute
+		text-align right
+		list-style none
+		top 6px
+		color #BBB
+		font-size 0.9em
+
+	.body
+		padding 6px 0 0 24px
+
+		sup[data-marker]
+			select_none()
+			color #FFF
+			font-size 0.75em
+			padding 0px 1px
+			cursor pointer
+			border-radius 2px
+			box-shadow 1px 1px 2px #888
+			text-shadow 1px 1px 1px rgba(100, 100, 100, 0.6)
+			margin 0 3px
+			background-color #FFBEFC
+			font-weight bold
+
+		span.hilite
+			background-color lighten(#FFBEFC, 40%)
+
+		span.hilite[data-highlight]
+			background-color #FFBEFC
+			padding 1px 2px
+			border-radius 4px
+
+#printpreview
+	display none
+
 .entry
-	// .transcription
-
-	// .minimalfacsimile, .minimaltranscription, .minimalpreview
-	// 	width 20px
-	// 	height 200px
-	// 	display inline-block
-
-	// .minimalfacsimile
-	// 	background-color gray
-	// .minimaltranscription
-	// 	background-color lighten(gray, 10%)
-	// .minimalpreview
-	// 	background-color lighten(gray, 20%)
-
-	// .facsimile, .preview, .transcription
-	// 	position relative
-
 	.container
-
 		.middle
 			.entrymetadata-placeholder
 				padding 0 10px
@@ -70,56 +90,16 @@
 				left 15px
 				color #DDD
 				font-size 1.5em
-				
-
-	
 
 		.right
 			line-height 2.25em
 			white-space nowrap
 			overflow-y auto
 			margin 76px 10px 0 10px
-			// padding 0 10px
-			// padding-top 78px + 6px
-			// padding-bottom 10px
-			
+
 			.preview
-				position relative
-
-				.linenumbers
-					position absolute
-					text-align right
-					list-style none
-					top 6px
-					color #BBB
-					font-size 0.9em
-
-				.body
-					padding 6px 0 0 24px
-
-			
-			sup[data-marker]
-				select_none()
-				color #FFF
-				font-size 0.75em
-				padding 0px 1px
-				cursor pointer
-				border-radius 2px
-				box-shadow 1px 1px 2px #888
-				text-shadow 1px 1px 1px rgba(100, 100, 100, 0.6)
-				margin 0 3px
-				background-color #FFBEFC
-				font-weight bold
-
-			span.hilite
-				background-color lighten(#FFBEFC, 40%)
-
-			span.hilite[data-highlight]
-				background-color #FFBEFC
-				padding 1px 2px
-				border-radius 4px
-				// color white
-				// text-shadow 1px 1px 1px #444
+				preview()
+					
 
 .supertinyeditor
 	.ste-header
@@ -165,3 +145,33 @@ div.closebutton
 	img
 		vertical-align middle
 	// opacity 0
+
+@media print
+	header.main
+		display none
+
+	#printpreview
+		display block
+		line-height 2.25em
+		
+
+		.preview
+			preview()
+
+			.body
+				sup[data-marker]
+					color black
+					background none
+					text-shadow none
+					box-shadow none
+
+			.linenumbers
+				color #777
+
+		h2
+			color black
+
+
+
+	#container
+		display none

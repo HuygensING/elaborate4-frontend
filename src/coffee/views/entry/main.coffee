@@ -7,11 +7,8 @@ define (require) ->
 	StringFn = require 'hilib/functions/string'
 	require 'hilib/functions/jquery.mixin'
 	Async = require 'hilib/managers/async'
-	# console.log require 'supertinyeditor'
-	# SuperTinyEditor = require 'supertinyeditor'
 
 	Models =
-		# state: require 'models/state'
 		Entry: require 'models/entry'
 
 	Collections =
@@ -19,24 +16,13 @@ define (require) ->
 
 	Views = 
 		Base: require 'views/base'
-		# SubMenu: require 'views/ui/entry.submenu'
-		# AddAnnotationTooltip: require 'views/entry/tooltip.add.annotation'
 		Preview: require 'views/entry/preview/main'
-		# SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
-		# AnnotationMetadata: require 'views/entry/annotation.metadata'
 		EntryMetadata: require 'views/entry/metadata'
-		# EditTextlayers: require 'views/entry/subsubmenu/textlayers.edit'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
-		# TranscriptionEditMenu: require 'views/entry/transcription.edit.menu'
-		# AnnotationEditMenu: require 'views/entry/annotation.edit.menu'
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'
 		AnnotationEditor: require 'views/entry/editors/annotation'
 		LayerEditor: require 'views/entry/editors/layer'
-
-	# Templates =
-	# 	# Entry: require 'text!html/entry/main.html'
-	# 	Metadata: require 'text!html/entry/metadata.html'
 
 	tpls = require 'tpls'
 
@@ -179,11 +165,52 @@ define (require) ->
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
+			'click .menu li[data-key="print"]': 'printEntry'
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			# 'click .menu li[data-key="save"]': 'save'
 
+		# When the user wants to print we create a div#printpreview directly under <body> and show
+		# a clone of the preview body and an ordered list of the annotations.
+		printEntry: (ev) ->
+			pp = document.querySelector('#printpreview')
+			pp.parentNode.removeChild pp if pp?
+
+			annotations = @currentTranscription.get('annotations')
+
+			mainDiv = document.createElement('div')
+			mainDiv.id = 'printpreview'
+
+			h2 = document.createElement('h2')
+			h2.innerHTML = 'Preview'
+
+			mainDiv.appendChild h2
+			mainDiv.appendChild @el.querySelector('.preview').cloneNode true
+
+			ol = document.createElement('ol')
+			ol.className = 'annotations'
+			
+			sups = @el.querySelectorAll('sup[data-marker="end"]')
+			_.each sups, (sup) =>
+				annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
+				
+				li = document.createElement('li')
+				li.innerHTML = annotation.get('body')
+				
+				ol.appendChild li
+
+			h2 = document.createElement('h2')
+			h2.innerHTML = 'Annotations'
+
+			mainDiv.appendChild h2
+			mainDiv.appendChild ol
+
+			document.body.appendChild mainDiv
+
+			window.print()
+
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
+		# OBSOLETE
 		subsubmenu: do ->
 			currentMenu = null
 
@@ -291,14 +318,11 @@ define (require) ->
 
 		addListeners: ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotation
-			# @listenTo @preview, 'addAnnotation', @renderAnnotation
 			@listenTo @preview, 'annotation:removed', @renderTranscription
-			# transcriptionEdit cannot use the general Fn.setScrollPercentage function, so it implements it's own.
+			# layerEditor cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
 			@listenTo @layerEditor.editor, 'scrolled', (percentages) => Fn.setScrollPercentage @preview.el, percentages
-			# @listenTo @transcriptionEdit, 'change', (cmd, doc) => 
-			# 	console.log 'achgne!'
-			# 	@currentTranscription.set 'body', doc
+
 
 			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
@@ -347,70 +371,3 @@ define (require) ->
 				if @annotationEditor?
 					@annotationEditor.editor.setIframeHeight @preview.$el.innerHeight()
 					@annotationEditor.editor.setIframeWidth @preview.$el.width() - 4
-
-
-
-		# toggleEditPane: (viewName) ->
-		# 	if viewName is 'transcription'
-		# 		@transcriptionEdit.show()
-
-		# 		if @annotationEditor?
-		# 			@preview.removeNewAnnotationTags()
-		# 			@annotationEditor.hide() 
-		# 	else if viewName is 'annotation'
-		# 		@annotationEditor.show()
-		# 		@transcriptionEdit.hide()
-
-			# view = switch viewName
-			# 	when 'transcription' then @transcriptionEdit
-			# 	when 'annotation' then @annotationEdit
-			# 	# when 'annotationmetadata' then @annotationMetadata
-			# @currentViewInEditPane = view
-			# view.$el.parent().siblings().hide()
-			# view.$el.parent().show()
-
-		# navigateToTranscription: ->
-		# 	# Cut off '/transcriptions/*' if it exists
-		# 	index = Backbone.history.fragment.indexOf '/transcriptions/'
-		# 	Backbone.history.fragment = Backbone.history.fragment.substr 0, index if index isnt -1
-
-		# 	# Navigate to the new fragement
-		# 	Backbone.history.navigate Backbone.history.fragment + '/transcriptions/' + StringFn.slugify(@currentTranscription.get('textLayer')), replace: true
-
-		# save: (ev) ->
-		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
-		# 		annotations = @model.get('transcriptions').current.get('annotations')	
-
-		# 		# Create on a collection will save the model and add it to the collection.
-		# 		# Pass wait:true to wait for the server response, because we need the ID from the server
-		# 		annotations.create @annotationEdit.model.attributes, 
-		# 			wait: true
-		# 			success: => @renderTranscription()
-
-		# metadata: (ev) ->
-		# 	if @annotationEdit? and @annotationEdit.$el.is(':visible')
-		# 		@annotationMetadata = new Views.AnnotationMetadata
-		# 			model: @annotationEdit.model
-		# 			collection: @project.get 'annotationtypes'
-		# 			el: @el.querySelector('.container .middle .annotationmetadata')
-		# 		@toggleEditPane 'annotationmetadata'
-
-		# menuItemClicked: (ev) ->
-		# 	key = ev.currentTarget.getAttribute 'data-key'
-
-
-		# edittextlayers: (ev) ->
-		# 	subsubmenu = @$('.subsubmenu')
-		# 	textlayers = subsubmenu.find('.textlayers')
-
-		# 	@$('li[data-key="edittextlayers"]').toggleClass 'rotateup'
-		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-		# 	textlayers.show().siblings().hide()
-
-		# editfacsimiles: (ev) ->
-		# 	subsubmenu = @$('.subsubmenu')
-		# 	facsimiles = subsubmenu.find('.facsimiles')
-
-		# 	@$('li[data-key="editfacsimiles"]').toggleClass 'rotateup'
-		# 	subsubmenu.addClass 'active' unless subsubmenu.hasClass 'active'
-		# 	facsimiles.show().siblings().hide()

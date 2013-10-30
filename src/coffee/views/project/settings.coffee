@@ -104,8 +104,9 @@ define (require) ->
 					confirm()
 			@listenTo textLayerList, 'change', (values) =>
 				@project.set 'textLayers', values
-				@project.save null,
-					success: @publish 'message', 'Text layers updated.'
+				@project.saveTextlayers => @publish 'message', 'Text layers updated.'
+				# @project.save null,
+				# 	success: @publish 'message', 'Text layers updated.'
 			@$('div[data-tab="textlayers"]').append textLayerList.el
 
 			# Entry metadata
