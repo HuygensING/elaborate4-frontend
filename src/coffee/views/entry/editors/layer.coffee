@@ -31,7 +31,8 @@ define (require) ->
 				htmlAttribute:	'body'
 				model:			@model
 				width: 			@options.width
-			@listenTo @editor, 'save', => @model.save()
+			@listenTo @editor, 'save', => 
+				@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
 			@show()
 

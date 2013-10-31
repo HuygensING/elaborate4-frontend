@@ -73,7 +73,7 @@ define (require) ->
 					searchInAnnotations: true
 					searchInTranscriptions: true
 				queryOptions:
-					resultRows: 12
+					resultRows: 50
 			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
 			@listenTo @facetedSearch, 'results:change', (response, queryOptions) => 
 				@model.queryOptions = queryOptions

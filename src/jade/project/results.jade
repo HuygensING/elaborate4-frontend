@@ -7,4 +7,4 @@ each entry in model.get('results')
 			ul
 				each kwic in entry._kwic
 					each row in kwic
-						li= row
+						li!= row
