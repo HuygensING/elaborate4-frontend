@@ -1,9 +1,9 @@
-h2 History
-	each entries, date in logEntries
-		h3= date
-		ul
-			each entry in entries
-				li
-					span.username= entry.get('userName')
-					span &nbsp;
-					span.comment= entry.get('comment')
+//- h2 History
+each entries, date in logEntries
+	h3= date
+	ul
+		each entry in entries
+			li
+				span.username= entry.userName
+				span &nbsp;
+				span.comment= entry.comment

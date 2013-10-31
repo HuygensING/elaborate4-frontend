@@ -25,7 +25,10 @@ define (require) ->
 
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
 			Collections.projects.getCurrent =>
-				@listenTo Collections.projects, 'current:change', (project) => @navigate "projects/#{project.get('name')}", trigger: true
+				@listenTo Collections.projects, 'current:change', (project) =>
+					# Clear cache when we switch project
+					viewManager.clearCache()
+					@navigate "projects/#{project.get('name')}", trigger: true
 
 		manageView: (View, options) -> viewManager.show 'div#main', View, options
 
