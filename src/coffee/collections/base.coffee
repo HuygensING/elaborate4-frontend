@@ -2,7 +2,7 @@ define (require) ->
 	Backbone = require 'backbone'
 
 	token = require 'hilib/managers/token'
-	Pubsub = require 'hilib/managers/pubsub'
+	Pubsub = require 'hilib/mixins/pubsub'
 
 	class Base extends Backbone.Collection
 

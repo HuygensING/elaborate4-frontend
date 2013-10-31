@@ -38,7 +38,6 @@ define (require) ->
 					# Place header
 					header = new Views.Header
 						project: current
-						managed: false
 					$('#container').prepend header.render().$el
 
 					# Route to correct url

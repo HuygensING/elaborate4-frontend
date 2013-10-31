@@ -3,7 +3,7 @@ define (require) ->
 
 	viewManager = require 'hilib/managers/view'
 	history = require 'hilib/managers/history'
-	Pubsub = require 'hilib/managers/pubsub'
+	Pubsub = require 'hilib/mixins/pubsub'
 	Fn = require 'hilib/functions/general'
 
 	Collections =
@@ -27,6 +27,8 @@ define (require) ->
 			Collections.projects.getCurrent =>
 				@listenTo Collections.projects, 'current:change', (project) => @navigate "projects/#{project.get('name')}", trigger: true
 
+		manageView: (View, options) -> viewManager.show 'div#main', View, options
+
 		'routes':
 			'': 'project'
 			'login': 'login'
@@ -39,23 +41,22 @@ define (require) ->
 			'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
 
 		# home: ->
-		# 	viewManager.show Views.Home
+		# 	view = new Views.Home
 
 		login: ->
-			viewManager.show Views.Login
+			@manageView Views.Login
 
 		project: (name) ->
-			viewManager.show Views.ProjectMain
+			@manageView Views.ProjectMain
 
 		projectSettings: (name, tab) ->
-			viewManager.show Views.ProjectSettings,
-				tabName: tab
+			@manageView Views.ProjectSettings, tabName: tab
 
 		projectHistory: (name) ->
-			viewManager.show Views.ProjectHistory
+			@manageView Views.ProjectHistory
 
 		entry: (projectName, entryID, transcriptionName, annotationID) ->
-			viewManager.show Views.Entry, 
+			@manageView Views.Entry,
 				entryId: entryID
 				transcriptionName: transcriptionName
 				annotationID: annotationID
