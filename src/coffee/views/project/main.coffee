@@ -34,6 +34,8 @@ define (require) ->
 		initialize: ->
 			super
 
+			@resultRows = 50
+
 			Collections.projects.getCurrent (@project) => @render()
 
 		# ### Render
@@ -58,7 +60,7 @@ define (require) ->
 					searchInAnnotations: true
 					searchInTranscriptions: true
 				queryOptions:
-					resultRows: 50
+					resultRows: @resultRows
 			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
 			@listenTo @facetedSearch, 'results:change', (responseModel, queryOptions) =>
 				@project.get('entries').set responseModel.get 'results'
@@ -70,12 +72,11 @@ define (require) ->
 
 			@
 
-
 		renderHeader: (responseModel) ->
 			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + ' entries found'
 				
-			currentpage = (responseModel.get('start') / responseModel.get('rows')) + 1
-			pagecount = Math.ceil responseModel.get('numFound') / responseModel.get('rows')
+			currentpage = (responseModel.get('start') / @resultRows) + 1
+			pagecount = Math.ceil responseModel.get('numFound') / @resultRows
 
 			if pagecount > 1
 				@$('.pagination li.prev').addClass 'inactive' unless @facetedSearch.hasPrev()
