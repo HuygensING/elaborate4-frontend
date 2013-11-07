@@ -1,5 +1,6 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
+	dom = require 'hilib/functions/dom'
 	BaseView = require 'views/base'
 	# Templates =
 	# 	Tooltip: require 'text!html/ui/tooltip.html'
@@ -10,14 +11,13 @@ define (require) ->
 
 		className: 'tooltip editannotation'
 
-		id: "editannotationtooltip"
+		id: "annotationtooltip"
 
 		# ### Initialize
 		initialize: ->
 			super
 
-			@container = @options.container || document.querySelector 'body'
-			@boundingBox = Fn.boundingBox @container
+			@container = @options.container ? document.querySelector 'body'
 
 			@render()
 
@@ -26,9 +26,11 @@ define (require) ->
 			@$el.html tpls['ui/tooltip']()
 
 			# There can be only one!
-			$('#editannotationtooltip').remove() 
+			# $('#annotationtooltip').remove() 
+			tooltip = document.getElementById('annotationtooltip')
+			tooltip.remove() if tooltip?
 
-			$('body').prepend @$el
+			dom(@container).prepend @el
 
 		# ### Events
 		events: ->
@@ -61,12 +63,16 @@ define (require) ->
 				@$el.removeClass 'newannotation'
 
 				# Add body of the model to the tooltip
-				@$('.body').html @model.get 'body'
+				@$('.tooltip-body').html @model.get 'body'
 			else
 				@$el.addClass 'newannotation'
 			
+			# console.log $el.offset()
+			# console.log $el.position()
+
 			# Calculate and set the absolute position
-			@setPosition $el.offset()
+
+			if @options.container? then	@setRelativePosition(dom($el[0]).position(@container)) else @setAbsolutePosition($el.offset())
 
 			# Show the tooltip
 			@$el.fadeIn 'fast'
@@ -75,23 +81,59 @@ define (require) ->
 			@el.removeAttribute 'data-id'
 			@el.style.display = 'none'
 
-		setPosition: (position) ->
+		setRelativePosition: (position) ->
+			boundingBox = Fn.boundingBox @container
+
 			@$el.removeClass 'tipright tipleft tipbottom'
 
 			left = position.left - @$el.width() / 2
 			top = position.top + 30
 
-			if @boundingBox.left > left
-				left = @boundingBox.left + 10
+			if left < 10
+				left = 10
 				@$el.addClass 'tipleft'
 
-			if @boundingBox.right < (left + @$el.width())
-				left = @boundingBox.right - @$el.width() - 10
+			# console.log boundingBox.width < left + @$el.width()
+			# console.log boundingBox.width, left, @$el.width()
+
+			if boundingBox.width < (left + @$el.width())
+				left = boundingBox.width - @$el.width() - 10
 				@$el.addClass 'tipright'
 
-			if @boundingBox.bottom < top + @$el.height()
+			console.log boundingBox.height, @container.scrollHeight, @container.scrollTop
+			# console.log boundingBox.height - (@container.scrollHeight - @container.clientHeight)  < top + @$el.height()
+			# console.log boundingBox.height - (@container.scrollHeight - @container.clientHeight), top + @$el.height()
+
+			# if boundingBox.height - (@container.scrollHeight - @container.clientHeight)  < top + @$el.height()
+			# 	top = top - 60 - @$el.height()
+			# 	@$el.addClass 'tipbottom'
+
+			# console.log top, left
+
+			@$el.css 'left', left
+			@$el.css 'top', top
+
+		setAbsolutePosition: (position) ->
+			boundingBox = Fn.boundingBox @container
+
+			@$el.removeClass 'tipright tipleft tipbottom'
+
+			left = position.left - @$el.width() / 2
+			top = position.top + 30
+
+			if boundingBox.left > left
+				left = boundingBox.left + 10
+				@$el.addClass 'tipleft'
+
+			if boundingBox.right < (left + @$el.width())
+				left = boundingBox.right - @$el.width() - 10
+				@$el.addClass 'tipright'
+
+			if boundingBox.bottom < top + @$el.height()
 				top = top - 60 - @$el.height()
 				@$el.addClass 'tipbottom'
+
+			console.log top, left
 
 			@$el.css 'left', left
 			@$el.css 'top', top

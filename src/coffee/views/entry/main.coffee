@@ -100,10 +100,10 @@ define (require) ->
 			# Only load the iframe with the current facsimile if there is a current facsimile
 			if @model.get('facsimiles').current?
 				url = @model.get('facsimiles').current.get 'zoomableUrl'
-				@$('.left iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id='+ url
+				@$('.left-pane iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id='+ url
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
-				@$('.left iframe').height document.documentElement.clientHeight - 89
+				@$('.left-pane iframe').height document.documentElement.clientHeight - 89
 
 		# * TODO: How many times is renderTranscription called on init?
 		renderTranscription: ->
@@ -129,7 +129,7 @@ define (require) ->
 			else
 				@preview = new Views.Preview
 					model: @model
-					el: @$('.container .right')
+					el: @$('.container .right-pane')
 
 		renderAnnotation: (model) ->
 			unless @annotationEditor

@@ -1,5 +1,6 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
+	dom = require 'hilib/functions/dom'
 	BaseView = require 'views/base'
 
 	Annotation = require 'models/annotation'
@@ -11,7 +12,7 @@ define (require) ->
 
 	class AddAnnotationTooltip extends BaseView
 
-		id: 'addannotationtooltip'
+		id: 'annotationtooltip'
 
 		className: "tooltip addannotation"
 
@@ -25,7 +26,7 @@ define (require) ->
 		initialize: ->
 			super
 
-			@container = @options.container || document.querySelector 'body'
+			@container = @options.container ? document.querySelector 'body'
 			@boundingBox = Fn.boundingBox @container
 
 			@render()
@@ -34,12 +35,16 @@ define (require) ->
 			@$el.html tpls['entry/tooltip.add.annotation']()
 
 			# There can be only one!
-			$('#addannotationtooltip').remove()
+			tooltip = document.getElementById('annotationtooltip')
+			tooltip.remove() if tooltip?
+
+			# console.log @container
+			dom(@container).prepend @el
 
 			# Native prepend
 			# @container.insertBefore @el, @container.firstChild
 
-			$('body').prepend @$el
+			# $('body').prepend @$el
 
 			@
 

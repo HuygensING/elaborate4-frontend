@@ -34,11 +34,11 @@
 
 .row.span7.container
 	.cell.span3
-		.left
+		.left-pane
 			if facsimiles.length
 				iframe#viewer_iframe(name="viewer_iframe", scrolling="no", width="100%", frameborder="0")
 	.cell.span2
-		.middle
+		.middle-pane
 			.transcription-placeholder
 				.transcription-editor
 			.annotation-placeholder
@@ -47,4 +47,4 @@
 				.annotationmetadata
 	.cell.span2.preview-placeholder
 		h2 Preview
-		.right
+		.right-pane

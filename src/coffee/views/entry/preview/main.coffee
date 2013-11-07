@@ -33,7 +33,6 @@ define (require) ->
 
 			@render()
 
-			@renderTooltips()
 
 			@resize()
 
@@ -52,14 +51,18 @@ define (require) ->
 			rtpl = tpls['entry/preview'] data
 			@$el.html rtpl
 
+			@renderTooltips()
+
 			@onHover()
 
 			@
 
 		renderTooltips: ->
-			@addAnnotationTooltip = new Views.AddAnnotationTooltip container: @el
+			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
+			@addAnnotationTooltip = new Views.AddAnnotationTooltip container: @el.querySelector('.preview')
 
-			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el
+			@editAnnotationTooltip.remove() if @editAnnotationTooltip?
+			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el.querySelector('.preview')
 			@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
 			@listenTo @editAnnotationTooltip, 'delete', (model) =>
 				if model.get('annotationNo') is 'newannotation'
