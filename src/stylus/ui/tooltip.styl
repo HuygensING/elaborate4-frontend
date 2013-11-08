@@ -1,9 +1,20 @@
 teak = #f1e8e1
 
 #tooltip, .tooltip
-
+	position absolute
+	padding 0
+	z-index 1000
+	background teak
+	border-radius 10px
+	box-shadow 1px 1px 5px #969696
+	min-width 72px
+	max-width 200px
 	line-height 1em
 	white-space normal
+	opacity 0
+
+	&.active
+		opacity 1
 
 	&.addannotation
 		button
@@ -37,15 +48,6 @@ teak = #f1e8e1
 			&.right
 				display none
 
-	display none
-	position absolute
-	padding 0
-	z-index 1000
-	background teak
-	border-radius 10px
-	box-shadow 1px 1px 5px #969696
-	min-width 72px
-	max-width 200px
 
 	.horizontal.menu
 		border-top-left-radius 10px

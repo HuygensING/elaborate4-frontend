@@ -88,6 +88,7 @@ define (require) ->
 
 		supClicked: (ev) ->
 			id = ev.currentTarget.getAttribute('data-id')
+			console.log @currentTranscription.get('annotations')
 			annotation = if id is 'newannotation' then @newAnnotation else @currentTranscription.get('annotations').findWhere annotationNo: id >> 0
 		
 			@setAnnotatedText annotation

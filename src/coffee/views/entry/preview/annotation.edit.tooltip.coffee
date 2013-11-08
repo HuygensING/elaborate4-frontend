@@ -48,6 +48,14 @@ define (require) ->
 		show: (args) ->
 			{$el, @model} = args
 
+			@pointedEl = $el[0]
+
+			@el.style.left = 0
+			@el.style.top = 0
+			@$('.tooltip-body').html ''
+
+			# console.log 'show', @el.offsetWidth
+
 			# If there is no annotationNo (in case of a new annotation) we give the tooltip the contentId of -1
 			contentId = if @model? and @model.get('annotationNo')? then @model.get('annotationNo') else -1
 
@@ -62,6 +70,7 @@ define (require) ->
 			if @model?
 				@$el.removeClass 'newannotation'
 
+
 				# Add body of the model to the tooltip
 				@$('.tooltip-body').html @model.get 'body'
 			else
@@ -72,47 +81,50 @@ define (require) ->
 
 			# Calculate and set the absolute position
 
-			if @options.container? then	@setRelativePosition(dom($el[0]).position(@container)) else @setAbsolutePosition($el.offset())
 
+			if @options.container? then	@setRelativePosition(dom(@pointedEl).position(@container)) else @setAbsolutePosition($el.offset())
+
+			@el.classList.add 'active'
 			# Show the tooltip
-			@$el.fadeIn 'fast'
+			# @$el.fadeIn 'fast', =>
 
-		hide: -> 
+		hide: ->
 			@el.removeAttribute 'data-id'
-			@el.style.display = 'none'
+			@el.classList.remove 'active'
 
 		setRelativePosition: (position) ->
 			boundingBox = Fn.boundingBox @container
 
 			@$el.removeClass 'tipright tipleft tipbottom'
 
-			left = position.left - @$el.width() / 2
+			console.log 'setPos', @el.offsetWidth
+
+			# left = half of the element pointed to PLUS the left position of the element pointed to MINUS half the width of the tooltip
+			left = (@pointedEl.offsetWidth/2) + position.left - (@$el.width()/2)
+			# top = top position of the element pointed to PLUS an arbitrary offset/margin
 			top = position.top + 30
+
 
 			if left < 10
 				left = 10
 				@$el.addClass 'tipleft'
 
-			# console.log boundingBox.width < left + @$el.width()
-			# console.log boundingBox.width, left, @$el.width()
-
 			if boundingBox.width < (left + @$el.width())
 				left = boundingBox.width - @$el.width() - 10
 				@$el.addClass 'tipright'
 
-			console.log boundingBox.height, @container.scrollHeight, @container.scrollTop
-			# console.log boundingBox.height - (@container.scrollHeight - @container.clientHeight)  < top + @$el.height()
-			# console.log boundingBox.height - (@container.scrollHeight - @container.clientHeight), top + @$el.height()
+			tooltipBottomPos = top + @$el.height()
+			pane = document.querySelector('.container .right-pane')
+			scrollBottomPos = pane.scrollTop + pane.clientHeight
 
-			# if boundingBox.height - (@container.scrollHeight - @container.clientHeight)  < top + @$el.height()
-			# 	top = top - 60 - @$el.height()
-			# 	@$el.addClass 'tipbottom'
-
-			# console.log top, left
+			if tooltipBottomPos > scrollBottomPos
+				top = top - 48 - @$el.height()
+				@$el.addClass 'tipbottom'
 
 			@$el.css 'left', left
 			@$el.css 'top', top
 
+		# * FIX
 		setAbsolutePosition: (position) ->
 			boundingBox = Fn.boundingBox @container
 

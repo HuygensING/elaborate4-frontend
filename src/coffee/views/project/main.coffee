@@ -11,6 +11,9 @@ define (require) ->
 	# 	Search: require 'models/project/search'
 		# state: require 'models/state'
 
+
+	# Tplzz = require 'text!hilib/views/modal/main.html'
+
 	Collections = 
 		projects: require 'collections/projects'
 

@@ -229,6 +229,7 @@ module.exports = (grunt) ->
 					baseUrl: "compiled/js"
 					name: '../lib/almond/almond'
 					include: 'main'
+					exclude: ['text']
 					preserveLicenseComments: false
 					out: "dist/js/main.js"
 					optimize: 'none'
@@ -239,6 +240,8 @@ module.exports = (grunt) ->
 						# 'text': '../lib/requirejs-text/text'
 						'domready': '../lib/requirejs-domready/domReady'
 						'faceted-search': '../lib/faceted-search/stage/js/main'
+						'jade': '../lib/jade/runtime'
+						'classList': '../lib/classList.js/classList'
 						# 'supertinyeditor': '../lib/supertinyeditor/main'
 						# 'views2': '../lib/views/compiled'
 						# 'managers': '../lib/managers/dev'
@@ -248,6 +251,7 @@ module.exports = (grunt) ->
 						# 'html': '../html'
 						# 'viewshtml': '../lib/views2/compiled'
 						'hilib': '../lib/hilib/compiled'
+						'tpls': '../templates'
 					wrap: true
 					# wrap:
 					# 	startFile: 'wrap.start.js'
@@ -318,7 +322,7 @@ module.exports = (grunt) ->
 		'replace:html' # Copy and replace index.html
 		'cssmin:dist'
 		'requirejs:compile' # Run r.js
-		'shell:rsync' # Rsync to test server
+		# 'shell:rsync' # Rsync to test server
 	]
 
 	grunt.registerTask 's', 'server'
