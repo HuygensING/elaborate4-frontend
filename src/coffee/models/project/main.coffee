@@ -13,6 +13,7 @@ define (require) ->
 	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
 	EntryMetadata = require 'entry.metadata'
 	ProjectUserIDs = require 'project.user.ids'
+	ProjectAnnotationTypeIDs = require 'project.annotationtype.ids'
 
 	Collections =
 		Entries: require 'collections/entries'
@@ -51,20 +52,26 @@ define (require) ->
 
 			attrs
 
+		addAnnotationType: (annotationType) ->
+			annotationTypes = @get('annotationtypes')
+			ids = annotationTypes.pluck 'id'
+			ids.push annotationType.id
+
+			@projectAnnotationTypeIDs.save ids,
+				success: => annotationTypes.add annotationType
+
 		load: (cb) ->
 			if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0
 				async = new Async ['annotationtypes', 'userIDs', 'entrymetadatafields', 'settings']
 				async.on 'ready', (data) => cb()
 
-				annotationtypes = new Collections.AnnotationTypes [], projectId: @id
-				annotationtypes.fetch success: (collection) => 
-					@set 'annotationtypes', collection
-					async.called 'annotationtypes'
-
-				# users = new Collections.ProjectUsers [], projectId: @id
-				# users.fetch success: (collection) => 
-				# 	@set 'users', collection
-				# 	async.called 'users'
+				new Collections.AnnotationTypes().fetch
+					success: (collection, response, options) =>
+						@projectAnnotationTypeIDs = new ProjectAnnotationTypeIDs(@id)
+						@projectAnnotationTypeIDs.fetch (data) =>
+							models = collection.filter (model) -> data.indexOf(model.id) > -1
+							@set 'annotationtypes', new Collections.AnnotationTypes models
+							async.called 'annotationtypes'
 
 				# Users
 

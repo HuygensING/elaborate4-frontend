@@ -97,7 +97,7 @@ define (require) ->
 
 			@$el.removeClass 'tipright tipleft tipbottom'
 
-			console.log 'setPos', @el.offsetWidth
+			# console.log 'setPos', @el.offsetWidth
 
 			# left = half of the element pointed to PLUS the left position of the element pointed to MINUS half the width of the tooltip
 			left = (@pointedEl.offsetWidth/2) + position.left - (@$el.width()/2)

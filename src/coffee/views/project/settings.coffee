@@ -21,6 +21,7 @@ define (require) ->
 		Settings: require 'models/project/settings'
 		# state: require 'models/state'
 		User: require 'models/user'
+		Annotationtype: require 'models/project/annotationtype'
 
 	Collections =
 		projects: require 'collections/projects'
@@ -49,10 +50,18 @@ define (require) ->
 			Collections.projects.getCurrent (@project) =>
 				@model = @project.get 'settings'
 
+				async = new Async ['annotationtypes', 'users']
+				async.on 'ready', => @render()
+
+				@allannotationtypes = new Collections.AnnotationTypes()
+				@allannotationtypes.fetch
+					success: (collection) => async.called 'annotationtypes'
+
 				@allusers = new Collections.Users()
-				@allusers.fetch success: (collection) =>
-					@project.set 'members', new Collections.Users collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
-					@render()
+				@allusers.fetch 
+					success: (collection) =>
+						@project.set 'members', new Collections.Users collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
+						async.called 'users'
 
 				# @model = new Models.Settings null,
 				# 	projectID: @project.id
@@ -68,6 +77,7 @@ define (require) ->
 			# @renderSubMenu()
 
 			@renderTabs()
+			@renderAnnotationtypeTab()
 			@renderUserTab()
 
 			@loadStatistics()
@@ -129,9 +139,34 @@ define (require) ->
 					success: => @publish 'message', 'Entry metadata fields updated.'
 			@$('div[data-tab="metadata-entries"]').append EntryMetadataList.el
 
-			# Annotation types
-			rtpl = tpls['project/settings/metadata_annotations'] annotationTypes: @project.get('annotationtypes')
-			@$('div[data-tab="metadata-annotations"]').html rtpl
+			# # Annotation types
+			# rtpl = tpls['project/settings/metadata_annotations'] annotationTypes: @project.get('annotationtypes')
+			# @$('div[data-tab="metadata-annotations"]').html rtpl
+
+		# * TODO: Add to separate view
+		renderAnnotationtypeTab: ->
+			annotationTypes = @project.get 'annotationtypes'
+
+			combolist = new Views.ComboList
+				value: annotationTypes
+				config:
+					data: @allannotationtypes
+					settings:
+						placeholder: 'Add annotation type'
+			@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
+
+			form = new Views.Form
+				Model: Models.Annotationtype
+				tpl: tpls['project/settings/addannotationtype']
+			@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
+
+
+			@listenTo combolist, 'change', (changes) =>
+				if changes.added?
+					@publish 'message', "Added #{annotationTypes.get(changes.added).get('name')} to #{@project.get('title')}."
+				
+			@listenTo form, 'save:success', (model) =>
+				@project.addAnnotationType model
 
 		# * TODO: Add to separate view
 		renderUserTab: ->
@@ -141,6 +176,13 @@ define (require) ->
 					data: @allusers
 					settings:
 						placeholder: 'Add member'
+			@$('div[data-tab="users"] .userlist').append combolist.el
+
+			form = new Views.Form
+				Model: Models.User
+				tpl: tpls['project/settings/adduser']
+			@$('div[data-tab="users"] .adduser').append form.el
+
 			@listenTo combolist, 'change', (changes) =>
 				id = if changes.added? then changes.added else changes.removed
 
@@ -150,30 +192,23 @@ define (require) ->
 
 				message = if changes.added? then "Added #{name} to #{@project.get('title')}." else	"Removed #{name} from #{@project.get('title')}."
 
+				# MOVE TO @PROJECT.ADDUSER
 				new ProjectUserIDs(@project.id).save changes.values,
 					success: => @publish 'message', message
-						
-
-
-			@$('div[data-tab="users"] .userlist').append combolist.el
-
-			form = new Views.Form
-				Model: Models.User
-				tpl: tpls['project/settings/adduser']
 
 			@listenTo form, 'save:success', (model, response, options) =>
-				ajax.token = token.get()
-				jqXHR = ajax.put
-					url: config.baseUrl+"projects/#{@project.get('name')}/projectusers/#{model.id}"
-					dataType: 'text'
-				jqXHR.done => combolist.addSelected model
-			@listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
+				# ajax.token = token.get()
+				# jqXHR = ajax.put
+				# 	url: config.baseUrl+"projects/#{@project.get('name')}/projectusers/#{model.id}"
+				# 	dataType: 'text'
+				# jqXHR.done => combolist.addSelected model
 
-			@$('div[data-tab="users"] .adduser').append form.el
+			# @listenTo form, 'save:error', (a, b, c) => console.log 'erro', a, b, c
+
 
 		# ### Events
 		events:
-			'click input[name="addannotationtype"]': 'addAnnotationType'
+			# 'click input[name="addannotationtype"]': 'addAnnotationType'
 			'click li[data-tab]': 'showTab'
 			'change div[data-tab="project"] input': 'updateModel'
 			'change div[data-tab="project"] select': 'updateModel'
@@ -202,10 +237,18 @@ define (require) ->
 			@$("[data-tab='#{tabName}']").addClass 'active'
 
 
-		addAnnotationType: (ev) ->
-			ev.preventDefault()
+		# addAnnotationType: (ev) ->
+		# 	ev.preventDefault()
 
-			console.log 'NOT IMPLEMENTED'
+		# 	name = @el.querySelector('input[name="annotationname"]').value
+		# 	description = @el.querySelector('input[name="annotationdescription"]').value
+		# 	if name? and name isnt ''
+		# 		ajax.token = token.get()
+		# 		jqXHR = ajax.post
+		# 			url: config.baseUrl+"annotationtypes"
+		# 			# dataType: 'text'
+		# 		jqXHR.done =>
+		# 			console.log 'done!'
 
 
 		# ### Methods

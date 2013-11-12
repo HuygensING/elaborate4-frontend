@@ -42,7 +42,8 @@ define (require) ->
 			if attrs?
 				attrs.metadata = {}
 				# Loop all the annotation metadata (this object does not contain the values)
-				for metadataItem in attrs.annotationType.annotationTypeMetadataItems
+				# console.log attrs.annotationType
+				for metadataItem in attrs.annotationType.metadataItems
 					key = metadataItem.name
 
 					# Find the value corresponding to the key in the annotationMetadataItems object
@@ -62,38 +63,45 @@ define (require) ->
 					@attributes['metadata'][attr] = options
 			else
 				super
-		
+
 		sync: (method, model, options) ->
-			if method is 'create'
-				jqXHR = ajax.post
-					url: @url()
-					data: JSON.stringify
-						body: @get 'body'
-						typeId: @get('annotationType').id
-						metadata: @get 'metadata'
-					dataType: 'text'
-
-				jqXHR.done (data, textStatus, jqXHR) =>
-					if jqXHR.status is 201
-						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
-						xhr.done (data, textStatus, jqXHR) =>
-							options.success data
-
-				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
-
-			else if method is 'update'
-				ajax.token = token.get()
-				jqXHR = ajax.put
-					url: @url()
-					data: JSON.stringify
-						body: @get 'body'
-						typeId: @get('annotationType').id
-						metadata: @get 'metadata'
-				jqXHR.done (response) => options.success response
-				jqXHR.fail (response) => console.log 'fail', response
-
+			if method is 'create' or method is 'update'
+				options.attributes = ['body', 'typeId', 'metadata']
+				@syncOverride method, model, options
 			else
 				super
+		
+		# sync: (method, model, options) ->
+		# 	if method is 'create'
+		# 		jqXHR = ajax.post
+		# 			url: @url()
+		# 			data: JSON.stringify
+		# 				body: @get 'body'
+		# 				typeId: @get('annotationType').id
+		# 				metadata: @get 'metadata'
+		# 			dataType: 'text'
+
+		# 		jqXHR.done (data, textStatus, jqXHR) =>
+		# 			if jqXHR.status is 201
+		# 				xhr = ajax.get url: jqXHR.getResponseHeader('Location')
+		# 				xhr.done (data, textStatus, jqXHR) =>
+		# 					options.success data
+
+		# 		jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+
+		# 	else if method is 'update'
+		# 		ajax.token = token.get()
+		# 		jqXHR = ajax.put
+		# 			url: @url()
+		# 			data: JSON.stringify
+		# 				body: @get 'body'
+		# 				typeId: @get('annotationType').id
+		# 				metadata: @get 'metadata'
+		# 		jqXHR.done (response) => options.success response
+		# 		jqXHR.fail (response) => console.log 'fail', response
+
+		# 	else
+		# 		super
 
 		# ### Methods
 		updateFromClone: (clone) ->

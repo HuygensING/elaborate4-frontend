@@ -87,8 +87,10 @@ define (require) ->
 				Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
 		supClicked: (ev) ->
+			return console.error 'No annotations found!' unless @currentTranscription.get('annotations')?
+
 			id = ev.currentTarget.getAttribute('data-id')
-			console.log @currentTranscription.get('annotations')
+
 			annotation = if id is 'newannotation' then @newAnnotation else @currentTranscription.get('annotations').findWhere annotationNo: id >> 0
 		
 			@setAnnotatedText annotation
