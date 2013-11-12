@@ -66,11 +66,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			console.log 
 			rtpl = tpls['ui/header']
-				_: _
 				projects: Collections.projects
-				user: Models.currentUser.attributes
+				user: Models.currentUser
 			@$el.html rtpl
 
 			# projectNav = new Views.ProjectNav

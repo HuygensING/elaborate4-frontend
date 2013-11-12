@@ -9,7 +9,8 @@
 					ul.vertical.menu
 						//- li.spacer
 						li.search Entry overview
-						li.settings Project settings
+						if user.get('role') === 'ADMIN'
+							li.settings Project settings
 						li.history History
 						//- li.publish Publish
 		.cell.span1
@@ -17,7 +18,7 @@
 		.cell.span1.user.alignright
 			ul.horizontal.menu
 				li Help
-				li.username.arrowdown= user.title
+				li.username.arrowdown= user.get('title')
 					ul.vertical.menu
 						//- li.spacer
 						li.projects.arrowleft My projects
@@ -26,9 +27,3 @@
 									li.project(data-id=project.id)= project.get('title')
 						li.logout Logout
 			img(src="/images/logo.huygens.png")
-				
-//- .sub
-//- 	.row.span9
-//- 		.cell.span3.left
-//- 		.cell.span3.center
-//- 		.cell.span3.right

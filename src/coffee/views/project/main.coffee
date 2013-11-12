@@ -10,7 +10,7 @@ define (require) ->
 	# Models =
 	# 	Search: require 'models/project/search'
 		# state: require 'models/state'
-
+	currentUser = require 'models/currentUser'
 
 	# Tplzz = require 'text!hilib/views/modal/main.html'
 
@@ -43,8 +43,8 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = tpls['project/main']
-			@$el.html rtpl()
+			rtpl = tpls['project/main'] user: currentUser
+			@$el.html rtpl
 
 			# Render the EditSelection view. Is toggled in the menu and can be used
 			# to edit the metadata of multiple entries at once.
