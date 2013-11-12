@@ -9,11 +9,11 @@ define (require) ->
 
 		model: Models.AnnotationType
 
-		initialize: (models, options) ->
-			super
+		# initialize: (models, options) ->
+		# 	super
 
-			@projectId = options.projectId
+		# 	@projectId = options.projectId
 		
-		url: -> config.baseUrl + "projects/#{@projectId}/annotationtypes"
+		url: -> config.baseUrl + "annotationtypes"
 
 		comparator: (annotationType) -> annotationType.get 'description'

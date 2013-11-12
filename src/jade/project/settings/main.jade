@@ -5,8 +5,9 @@
 		li.active(data-tab="project") Project
 		li(data-tab="textlayers") Text layers
 		li(data-tab="metadata-entries") Entry metadata
-		li(data-tab="metadata-annotations") Annotation types
-		li(data-tab="users") Users
+		//- li(data-tab="metadata-annotations") Annotation types
+		li(data-tab="annotationtypes") Annotation types
+		li(data-tab="users") Users 
 
 	.active(data-tab="project")
 		h3 Project
@@ -57,11 +58,18 @@
 		h3 Edit entry metadata fields
 		
 		
-	div(data-tab="metadata-annotations")
+	//- div(data-tab="metadata-annotations")
+
+	div(data-tab="annotationtypes")
+		.row.span3
+			.cell.span1.annotationtypelist
+				h3 Annotation types
+			.cell.span2.addannotationtype
+				h3 Add annotation type to project
 		
 	div(data-tab="users")
 		.row.span3
 			.cell.span1.userlist
 				h3 Project members
 			.cell.span2.adduser
-				h3 Add new user to project
+				h3 Add user to project

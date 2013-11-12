@@ -20,6 +20,13 @@ define (require) ->
 			role: 'USER'
 			password: ''
 
+		getShortName: ->
+			name = @get('lastName')
+			name ?= @get('firstName')
+			name ?= 'user'
+
+			name
+
 		sync: (method, model, options) ->
 			
 			if method is 'create'
@@ -38,7 +45,7 @@ define (require) ->
 							@trigger 'sync'
 							options.success data
 
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => options.error response
 
 			else if method is 'update'
 				ajax.token = token.get()
@@ -46,7 +53,7 @@ define (require) ->
 					url: @url()
 					data: JSON.stringify model.toJSON()
 				jqXHR.done (response) => @trigger 'sync'
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => options.error response
 
 			else
 				super
