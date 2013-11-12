@@ -184,7 +184,7 @@ module.exports = (grunt) ->
 				src: [
 					'compiled/lib/normalize-css/normalize.css'
 					'compiled/css/project.css'
-					'compiled/lib/faceted-search/dev/css/main.css'
+					'compiled/lib/faceted-search/stage/css/main.css'
 					# 'compiled/lib/supertinyeditor/main.css'
 					'compiled/lib/hilib/compiled/**/*.css'
 					# '!compiled/lib/hilib/compiled/lib/**/*.css'
