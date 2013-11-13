@@ -106,7 +106,8 @@ define (require) ->
 		save: ->
 			if @model.isNew()
 				@model.save [],
-					success: (model) => @trigger 'newannotation:saved', model
+					success: (model) => 
+						@trigger 'newannotation:saved', model
 					error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
 			else
 				@model.save()

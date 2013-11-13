@@ -37,6 +37,8 @@ define (require) ->
 
 			@subscribe 'message', @showMessage, @
 
+			@render()
+
 		# ### Events
 		events:
 			'click .user .logout': -> Models.currentUser.logout() 
@@ -100,3 +102,7 @@ define (require) ->
 			Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), => 
 				$message.addClass 'pulse'
 				setTimeout (=> $message.removeClass 'pulse'), 1000
+
+		remove: ->
+			console.log 'removing header'
+			super

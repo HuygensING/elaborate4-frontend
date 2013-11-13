@@ -110,7 +110,7 @@ define (require) ->
 			# If there is no range to get (for example when using the scrollbar)
 			# or
 			# When the user clicked a sup
-			if sel.rangeCount is 0 or ev.target.tagName is 'SUP'
+			if sel.rangeCount is 0 or ev.target.tagName is 'SUP' or ev.target.tagName is 'BUTTON'
 				# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
 				@addAnnotationTooltip.hide()
 				return false
@@ -124,7 +124,8 @@ define (require) ->
 			# if not range.collapsed and not startIsSup and not endIsSup
 			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
 				# Listen once to the click on the (to be shown) add annotation tooltip.
-				@listenToOnce @addAnnotationTooltip, 'clicked', (model) => @addNewAnnotation model, range
+				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
+					@addNewAnnotation model, range
 				# Show the add annotation tooltip.
 				@addAnnotationTooltip.show
 					left: ev.pageX

@@ -3769,7 +3769,8 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
       removeFromArray: function(arr, item) {
         var index;
         index = arr.indexOf(item);
-        return arr.splice(index, 1);
+        arr.splice(index, 1);
+        return arr;
       },
       /* Escape a regular expression*/
 
@@ -3938,8 +3939,8 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
 (function() {
   define('config',['require'],function(require) {
     return {
-      'baseUrl': 'http://demo7.huygens.knaw.nl/elab4testBE/',
-      'baseURL': 'http://demo7.huygens.knaw.nl/elab4testBE/'
+      'baseUrl': 'http://rest.elaborate.huygens.knaw.nl/',
+      'baseURL': 'http://rest.elaborate.huygens.knaw.nl/'
     };
   });
 
@@ -4370,13 +4371,64 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
 }).call(this);
 
 (function() {
+  define('project.annotationtype.ids',['require','config','hilib/managers/token','hilib/managers/ajax'],function(require) {
+    var AnnotationTypeIDs, ajax, config, token;
+    config = require('config');
+    token = require('hilib/managers/token');
+    ajax = require('hilib/managers/ajax');
+    return AnnotationTypeIDs = (function() {
+      var url;
+
+      url = null;
+
+      function AnnotationTypeIDs(projectID) {
+        url = "" + config.baseUrl + "projects/" + projectID + "/annotationtypes";
+      }
+
+      AnnotationTypeIDs.prototype.fetch = function(cb) {
+        var jqXHR;
+        ajax.token = token.get();
+        jqXHR = ajax.get({
+          url: url
+        });
+        return jqXHR.done(function(data) {
+          return cb(data);
+        });
+      };
+
+      AnnotationTypeIDs.prototype.save = function(newValues, options) {
+        var jqXHR,
+          _this = this;
+        if (options == null) {
+          options = {};
+        }
+        ajax.token = token.get();
+        jqXHR = ajax.put({
+          url: url,
+          data: JSON.stringify(newValues)
+        });
+        return jqXHR.done(function() {
+          if (options.success != null) {
+            return options.success();
+          }
+        });
+      };
+
+      return AnnotationTypeIDs;
+
+    })();
+  });
+
+}).call(this);
+
+(function() {
   define('hilib/mixins/model.sync',['require','hilib/managers/ajax','hilib/managers/token'],function(require) {
     var ajax, token;
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
     return {
       syncOverride: function(method, model, options) {
-        var data, defaults, jqXHR, name, obj, settings, _i, _len, _ref,
+        var data, defaults, jqXHR, name, obj, _i, _len, _ref,
           _this = this;
         if (options.attributes != null) {
           obj = {};
@@ -4394,10 +4446,10 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
           dataType: 'text',
           data: data
         };
-        settings = $.extend(defaults, options);
+        options = $.extend(defaults, options);
         if (method === 'create') {
           ajax.token = token.get();
-          jqXHR = ajax.post(settings);
+          jqXHR = ajax.post(options);
           jqXHR.done(function(data, textStatus, jqXHR) {
             var xhr;
             if (jqXHR.status === 201) {
@@ -4405,9 +4457,8 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
                 url: jqXHR.getResponseHeader('Location')
               });
               return xhr.done(function(data, textStatus, jqXHR) {
-                console.log('done after url loc');
                 _this.trigger('sync');
-                return settings.success(data);
+                return options.success(data);
               });
             }
           });
@@ -4416,7 +4467,7 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
           });
         } else if (method === 'update') {
           ajax.token = token.get();
-          jqXHR = ajax.put(settings);
+          jqXHR = ajax.put(options);
           jqXHR.done(function(response) {
             return _this.trigger('sync');
           });
@@ -4559,7 +4610,7 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
         var item, key, metadataItem, value, _i, _len, _ref1;
         if (attrs != null) {
           attrs.metadata = {};
-          _ref1 = attrs.annotationType.annotationTypeMetadataItems;
+          _ref1 = attrs.annotationType.metadataItems;
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
             metadataItem = _ref1[_i];
             key = metadataItem.name;
@@ -4608,8 +4659,12 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
               xhr = ajax.get({
                 url: jqXHR.getResponseHeader('Location')
               });
-              return xhr.done(function(data, textStatus, jqXHR) {
+              xhr.done(function(data, textStatus, jqXHR) {
+                console.log('done!');
                 return options.success(data);
+              });
+              return xhr.fail(function() {
+                return console.log(arguments);
               });
             }
           });
@@ -5034,9 +5089,11 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/entry',['require','config','hilib/mixins/model.sync','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
-    var Collections, Entry, Models, config, syncOverride, _ref;
+  define('models/entry',['require','config','hilib/managers/ajax','hilib/managers/token','hilib/mixins/model.sync','models/base','models/entry.settings','collections/transcriptions','collections/facsimiles'],function(require) {
+    var Collections, Entry, Models, ajax, config, syncOverride, token, _ref;
     config = require('config');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
     syncOverride = require('hilib/mixins/model.sync');
     Models = {
       Base: require('models/base'),
@@ -5054,6 +5111,10 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
         return _ref;
       }
 
+      Entry.prototype.urlRoot = function() {
+        return config.baseUrl + ("projects/" + this.projectID + "/entries");
+      };
+
       Entry.prototype.defaults = function() {
         return {
           name: '',
@@ -5061,8 +5122,14 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
         };
       };
 
-      Entry.prototype.initialize = function() {
+      Entry.prototype.initialize = function(attrs, options) {
+        if (options == null) {
+          options = {};
+        }
         Entry.__super__.initialize.apply(this, arguments);
+        if (options.projectID != null) {
+          this.projectID = options.projectID;
+        }
         return _.extend(this, syncOverride);
       };
 
@@ -5099,25 +5166,65 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
       };
 
       Entry.prototype.parse = function(attrs) {
-        attrs.transcriptions = new Collections.Transcriptions([], {
-          projectId: this.collection.projectId,
-          entryId: attrs.id
-        });
-        attrs.settings = new Models.Settings([], {
-          projectId: this.collection.projectId,
-          entryId: attrs.id
-        });
-        attrs.facsimiles = new Collections.Facsimiles([], {
-          projectId: this.collection.projectId,
-          entryId: attrs.id
-        });
+        if (this.collection != null) {
+          attrs.transcriptions = new Collections.Transcriptions([], {
+            projectId: this.collection.projectId,
+            entryId: attrs.id
+          });
+          attrs.settings = new Models.Settings([], {
+            projectId: this.collection.projectId,
+            entryId: attrs.id
+          });
+          attrs.facsimiles = new Collections.Facsimiles([], {
+            projectId: this.collection.projectId,
+            entryId: attrs.id
+          });
+        }
         return attrs;
       };
 
       Entry.prototype.sync = function(method, model, options) {
-        if (method === 'create' || method === 'update') {
-          options.attributes = ['name', 'publishable'];
-          return this.syncOverride(method, model, options);
+        var data, jqXHR,
+          _this = this;
+        data = JSON.stringify({
+          name: this.get('name'),
+          publishable: this.get('publishable')
+        });
+        if (method === 'create') {
+          jqXHR = ajax.post({
+            url: this.url(),
+            data: data,
+            dataType: 'text'
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var xhr;
+            if (jqXHR.status === 201) {
+              xhr = ajax.get({
+                url: jqXHR.getResponseHeader('Location')
+              });
+              xhr.done(function(data, textStatus, jqXHR) {
+                return options.success(data);
+              });
+              return xhr.fail(function() {
+                return console.log(arguments);
+              });
+            }
+          });
+          return jqXHR.fail(function(a, b, c) {
+            return console.log('fail', a, b, c);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: data
+          });
+          jqXHR.done(function(response) {
+            return options.success(response);
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
         } else {
           return Entry.__super__.sync.apply(this, arguments);
         }
@@ -5193,8 +5300,12 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/annotationtype',['require','models/base'],function(require) {
-    var AnnotationType, Models, _ref;
+  define('models/project/annotationtype',['require','config','hilib/managers/ajax','hilib/managers/token','hilib/mixins/model.sync','models/base'],function(require) {
+    var AnnotationType, Models, ajax, config, syncOverride, token, _ref;
+    config = require('config');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
+    syncOverride = require('hilib/mixins/model.sync');
     Models = {
       Base: require('models/base')
     };
@@ -5206,6 +5317,10 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
         return _ref;
       }
 
+      AnnotationType.prototype.urlRoot = function() {
+        return config.baseUrl + "annotationtypes";
+      };
+
       AnnotationType.prototype.defaults = function() {
         return {
           creator: null,
@@ -5216,6 +5331,63 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
           createdOn: '',
           modifiedOn: ''
         };
+      };
+
+      AnnotationType.prototype.initialize = function() {
+        AnnotationType.__super__.initialize.apply(this, arguments);
+        return _.extend(this, syncOverride);
+      };
+
+      AnnotationType.prototype.parse = function(attrs) {
+        attrs.title = attrs.name;
+        return attrs;
+      };
+
+      AnnotationType.prototype.sync = function(method, model, options) {
+        var jqXHR,
+          _this = this;
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.post({
+            url: this.url(),
+            dataType: 'text',
+            data: JSON.stringify({
+              name: model.get('name'),
+              description: model.get('description')
+            })
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var xhr;
+            if (jqXHR.status === 201) {
+              xhr = ajax.get({
+                url: jqXHR.getResponseHeader('Location')
+              });
+              return xhr.done(function(data, textStatus, jqXHR) {
+                return options.success(data);
+              });
+            }
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify({
+              name: model.get('name'),
+              description: model.get('description')
+            })
+          });
+          jqXHR.done(function(response) {
+            return _this.trigger('sync');
+          });
+          return jqXHR.fail(function(response) {
+            return console.log('fail', response);
+          });
+        } else {
+          return AnnotationType.__super__.sync.apply(this, arguments);
+        }
       };
 
       return AnnotationType;
@@ -5246,13 +5418,8 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
 
       AnnotationTypes.prototype.model = Models.AnnotationType;
 
-      AnnotationTypes.prototype.initialize = function(models, options) {
-        AnnotationTypes.__super__.initialize.apply(this, arguments);
-        return this.projectId = options.projectId;
-      };
-
       AnnotationTypes.prototype.url = function() {
-        return config.baseUrl + ("projects/" + this.projectId + "/annotationtypes");
+        return config.baseUrl + "annotationtypes";
       };
 
       AnnotationTypes.prototype.comparator = function(annotationType) {
@@ -5270,8 +5437,140 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('models/project/main',['require','hilib/managers/ajax','hilib/managers/token','hilib/managers/async','config','models/base','models/project/settings','entry.metadata','project.user.ids','collections/entries','collections/project/annotationtypes'],function(require) {
-    var Async, Collections, EntryMetadata, Models, Project, ProjectUserIDs, ajax, config, token, _ref;
+  define('models/user',['require','config','hilib/managers/ajax','hilib/managers/token','models/base'],function(require) {
+    var Models, User, ajax, config, token, _ref;
+    config = require('config');
+    ajax = require('hilib/managers/ajax');
+    token = require('hilib/managers/token');
+    Models = {
+      Base: require('models/base')
+    };
+    return User = (function(_super) {
+      __extends(User, _super);
+
+      function User() {
+        _ref = User.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      User.prototype.urlRoot = function() {
+        return config.baseUrl + "users";
+      };
+
+      User.prototype.defaults = function() {
+        return {
+          username: '',
+          email: '',
+          firstName: '',
+          lastName: '',
+          role: 'USER',
+          password: ''
+        };
+      };
+
+      User.prototype.getShortName = function() {
+        var name;
+        name = this.get('lastName');
+        if (name == null) {
+          name = this.get('firstName');
+        }
+        if (name == null) {
+          name = 'user';
+        }
+        return name;
+      };
+
+      User.prototype.sync = function(method, model, options) {
+        var jqXHR,
+          _this = this;
+        if (method === 'create') {
+          ajax.token = token.get();
+          jqXHR = ajax.post({
+            url: this.url(),
+            dataType: 'text',
+            data: JSON.stringify(model.toJSON())
+          });
+          jqXHR.done(function(data, textStatus, jqXHR) {
+            var url, xhr;
+            if (jqXHR.status === 201) {
+              url = jqXHR.getResponseHeader('Location');
+              xhr = ajax.get({
+                url: url
+              });
+              return xhr.done(function(data, textStatus, jqXHR) {
+                _this.trigger('sync');
+                return options.success(data);
+              });
+            }
+          });
+          return jqXHR.fail(function(response) {
+            return options.error(response);
+          });
+        } else if (method === 'update') {
+          ajax.token = token.get();
+          jqXHR = ajax.put({
+            url: this.url(),
+            data: JSON.stringify(model.toJSON())
+          });
+          jqXHR.done(function(response) {
+            return _this.trigger('sync');
+          });
+          return jqXHR.fail(function(response) {
+            return options.error(response);
+          });
+        } else {
+          return User.__super__.sync.apply(this, arguments);
+        }
+      };
+
+      return User;
+
+    })(Models.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('collections/users',['require','config','models/user','collections/base'],function(require) {
+    var Collections, User, Users, config, _ref;
+    config = require('config');
+    User = require('models/user');
+    Collections = {
+      Base: require('collections/base')
+    };
+    return Users = (function(_super) {
+      __extends(Users, _super);
+
+      function Users() {
+        _ref = Users.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      Users.prototype.model = User;
+
+      Users.prototype.url = function() {
+        return "" + config.baseUrl + "users";
+      };
+
+      Users.prototype.comparator = 'title';
+
+      return Users;
+
+    })(Collections.Base);
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('models/project/main',['require','hilib/functions/general','hilib/managers/ajax','hilib/managers/token','hilib/managers/async','config','models/base','models/project/settings','entry.metadata','project.user.ids','project.annotationtype.ids','collections/entries','collections/project/annotationtypes','collections/users'],function(require) {
+    var Async, Collections, EntryMetadata, Fn, Models, Project, ProjectAnnotationTypeIDs, ProjectUserIDs, ajax, config, token, _ref;
+    Fn = require('hilib/functions/general');
     ajax = require('hilib/managers/ajax');
     token = require('hilib/managers/token');
     Async = require('hilib/managers/async');
@@ -5282,9 +5581,11 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
     };
     EntryMetadata = require('entry.metadata');
     ProjectUserIDs = require('project.user.ids');
+    ProjectAnnotationTypeIDs = require('project.annotationtype.ids');
     Collections = {
       Entries: require('collections/entries'),
-      AnnotationTypes: require('collections/project/annotationtypes')
+      AnnotationTypes: require('collections/project/annotationtypes'),
+      Users: require('collections/users')
     };
     return Project = (function(_super) {
       __extends(Project, _super);
@@ -5322,26 +5623,85 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
         return attrs;
       };
 
+      Project.prototype.addAnnotationType = function(annotationType, done) {
+        var ids,
+          _this = this;
+        ids = this.get('annotationtypeIDs');
+        ids.push(annotationType.id);
+        return this.projectAnnotationTypeIDs.save(ids, {
+          success: function() {
+            _this.allannotationtypes.add(annotationType);
+            return done();
+          }
+        });
+      };
+
+      Project.prototype.removeAnnotationType = function(id, done) {
+        var _this = this;
+        return this.projectAnnotationTypeIDs.save(Fn.removeFromArray(this.get('annotationtypeIDs'), id), {
+          success: function() {
+            _this.allannotationtypes.remove(id);
+            return done();
+          }
+        });
+      };
+
+      Project.prototype.addUser = function(user, done) {
+        var userIDs,
+          _this = this;
+        userIDs = this.get('userIDs');
+        userIDs.push(user.id);
+        return this.projectUserIDs.save(userIDs, {
+          success: function() {
+            _this.allusers.add(user);
+            return done();
+          }
+        });
+      };
+
+      Project.prototype.removeUser = function(id, done) {
+        var _this = this;
+        return this.projectUserIDs.save(Fn.removeFromArray(this.get('userIDs'), id), {
+          success: function() {
+            _this.allusers.remove(id);
+            return done();
+          }
+        });
+      };
+
       Project.prototype.load = function(cb) {
-        var annotationtypes, async, settings,
+        var async, settings,
           _this = this;
         if (this.get('annotationtypes') === null && this.get('entrymetadatafields') === null && this.get('userIDs').length === 0) {
-          async = new Async(['annotationtypes', 'userIDs', 'entrymetadatafields', 'settings']);
+          async = new Async(['annotationtypes', 'users', 'entrymetadatafields', 'settings']);
           async.on('ready', function(data) {
             return cb();
           });
-          annotationtypes = new Collections.AnnotationTypes([], {
-            projectId: this.id
-          });
-          annotationtypes.fetch({
-            success: function(collection) {
-              _this.set('annotationtypes', collection);
-              return async.called('annotationtypes');
+          new Collections.AnnotationTypes().fetch({
+            success: function(collection, response, options) {
+              _this.allannotationtypes = collection;
+              _this.projectAnnotationTypeIDs = new ProjectAnnotationTypeIDs(_this.id);
+              return _this.projectAnnotationTypeIDs.fetch(function(data) {
+                _this.set('annotationtypeIDs', data);
+                _this.set('annotationtypes', new Collections.AnnotationTypes(collection.filter(function(model) {
+                  return data.indexOf(model.id) > -1;
+                })));
+                return async.called('annotationtypes');
+              });
             }
           });
-          new ProjectUserIDs(this.id).fetch(function(data) {
-            _this.set('userIDs', data);
-            return async.called('userIDs');
+          new Collections.Users().fetch({
+            success: function(collection) {
+              _this.allusers = collection;
+              _this.projectUserIDs = new ProjectUserIDs(_this.id);
+              return _this.projectUserIDs.fetch(function(data) {
+                _this.set('userIDs', data);
+                _this.set('members', new Collections.Users(collection.filter(function(model) {
+                  return data.indexOf(model.id) > -1;
+                })));
+                return async.called('users');
+              });
+            }
           });
           new EntryMetadata(this.id).fetch(function(data) {
             _this.set('entrymetadatafields', data);
@@ -6294,7 +6654,12 @@ return buf.join("");
 this["JST"]["project/main"] = function anonymous(locals) {
 var buf = [];
 with (locals || {}) {
-buf.push("<div class=\"submenu\"><div class=\"row span3\"><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li></ul></div><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">New entry</li><li data-key=\"editselection\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\"><li data-key=\"publish\">Publish</li></ul></div></div></div><div style=\"margin: 20px 0\" class=\"row span3\"><div class=\"cell span1\"><div class=\"padl4\"><div class=\"faceted-search-placeholder\"></div></div></div><div class=\"cell span2\"><div class=\"padr4 resultview\"><header><div class=\"editselection-placeholder\"></div><div class=\"row span2 numfound-placeholder\"><div class=\"cell span1\"> <h3 class=\"numfound\"></h3></div><div class=\"cell span1 alignright\"><nav><ul><li> <input id=\"cb_showkeywords\" type=\"checkbox\"/><label for=\"cb_showkeywords\">Display keywords</label></li><li data-key=\"selectall\">Select all</li><li data-key=\"deselectall\">Deselect all</li></ul></nav></div></div><div class=\"row span2 pagination-placeholder\"><div class=\"cell span1\"> <ul class=\"horizontal menu pagination\"><li class=\"prev inactive\">&lt;</li><li class=\"currentpage text\"></li><li class=\"text\">of</li><li class=\"pagecount text\"></li><li class=\"next\">&gt;</li></ul></div><div class=\"cell span1 alignright\">\t\t</div></div></header><ul class=\"entries\"></ul></div></div></div>");
+buf.push("<div class=\"submenu\"><div class=\"row span3\"><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li></ul></div>");
+if ( user.get('role') === 'ADMIN')
+{
+buf.push("<div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">New entry</li><li data-key=\"editselection\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\"><li data-key=\"publish\">Publish</li></ul></div>");
+}
+buf.push("</div></div><div style=\"margin: 20px 0\" class=\"row span3\"><div class=\"cell span1\"><div class=\"padl4\"><div class=\"faceted-search-placeholder\"></div></div></div><div class=\"cell span2\"><div class=\"padr4 resultview\"><header><div class=\"editselection-placeholder\"></div><div class=\"row span2 numfound-placeholder\"><div class=\"cell span1\"> <h3 class=\"numfound\"></h3></div><div class=\"cell span1 alignright\"><nav><ul><li> <input id=\"cb_showkeywords\" type=\"checkbox\"/><label for=\"cb_showkeywords\">Display keywords</label></li><li data-key=\"selectall\">Select all</li><li data-key=\"deselectall\">Deselect all</li></ul></nav></div></div><div class=\"row span2 pagination-placeholder\"><div class=\"cell span1\"> <ul class=\"horizontal menu pagination\"><li class=\"prev inactive\">&lt;</li><li class=\"currentpage text\"></li><li class=\"text\">of</li><li class=\"pagecount text\"></li><li class=\"next\">&gt;</li></ul></div><div class=\"cell span1 alignright\">\t\t</div></div></header><ul class=\"entries\"></ul></div></div></div>");
 }
 return buf.join("");
 };
@@ -6476,6 +6841,14 @@ buf.push("</ul></div></li>");
 return buf.join("");
 };
 
+this["JST"]["project/settings/addannotationtype"] = function anonymous(locals) {
+var buf = [];
+with (locals || {}) {
+buf.push("<form><ul data-model-id=\"<%= model.cid %>\"><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><label>Description</label><input type=\"text\" name=\"description\"/></li><li><input type=\"submit\" value=\"Add annotation type\"/></li></ul></form>");
+}
+return buf.join("");
+};
+
 this["JST"]["project/settings/adduser"] = function anonymous(locals) {
 var buf = [];
 with (locals || {}) {
@@ -6487,7 +6860,7 @@ return buf.join("");
 this["JST"]["project/settings/main"] = function anonymous(locals) {
 var buf = [];
 with (locals || {}) {
-buf.push("<div class=\"padl5 padr5\"><h2>Settings</h2><ul class=\"horizontal tab menu\"><li data-tab=\"project\" class=\"active\">Project</li><li data-tab=\"textlayers\">Text layers</li><li data-tab=\"metadata-entries\">Entry metadata</li><li data-tab=\"metadata-annotations\">Annotation types</li><li data-tab=\"users\">Users</li></ul><div data-tab=\"project\" class=\"active\"><h3>Project</h3><div class=\"row span2\"><div class=\"cell span1\"><form><ul><li><label for=\"type\">Type</label><select name=\"projectType\" data-attr=\"projectType\"><option" + (jade.attrs({ 'value':("collection"), 'selected':(settings['projectType']==='collection') }, {"value":true,"selected":true})) + ">Collection</option><option" + (jade.attrs({ 'value':("work"), 'selected':(settings['projectType']==='work') }, {"value":true,"selected":true})) + ">Work</option></select></li><li><label for=\"title\">Project title</label><input" + (jade.attrs({ 'type':("text"), 'name':("title"), 'value':(settings['Project title']), 'data-attr':("Project title") }, {"type":true,"name":true,"value":true,"data-attr":true})) + "/></li><li><label for=\"leader\">Project leader</label><select name=\"leader\" data-attr=\"Project leader\"><option>-- select member --</option>");
+buf.push("<div class=\"padl5 padr5\"><h2>Settings</h2><ul class=\"horizontal tab menu\"><li data-tab=\"project\" class=\"active\">Project</li><li data-tab=\"textlayers\">Text layers</li><li data-tab=\"metadata-entries\">Entry metadata</li><li data-tab=\"annotationtypes\">Annotation types</li><li data-tab=\"users\">Users </li></ul><div data-tab=\"project\" class=\"active\"><h3>Project</h3><div class=\"row span2\"><div class=\"cell span1\"><form><ul><li><label for=\"type\">Type</label><select name=\"projectType\" data-attr=\"projectType\"><option" + (jade.attrs({ 'value':("collection"), 'selected':(settings['projectType']==='collection') }, {"value":true,"selected":true})) + ">Collection</option><option" + (jade.attrs({ 'value':("work"), 'selected':(settings['projectType']==='work') }, {"value":true,"selected":true})) + ">Work</option></select></li><li><label for=\"title\">Project title</label><input" + (jade.attrs({ 'type':("text"), 'name':("title"), 'value':(settings['Project title']), 'data-attr':("Project title") }, {"type":true,"name":true,"value":true,"data-attr":true})) + "/></li><li><label for=\"leader\">Project leader</label><select name=\"leader\" data-attr=\"Project leader\"><option>-- select member --</option>");
 // iterate projectMembers.models
 ;(function(){
   var $$obj = projectMembers.models;
@@ -6519,40 +6892,7 @@ if ( settings.publicationURL.length > 0)
 {
 buf.push("<li><label>Publication</label><a" + (jade.attrs({ 'href':(settings.publicationURL), 'data-bypass':(true) }, {"href":true,"data-bypass":true})) + ">link</a></li>");
 }
-buf.push("<li style=\"margin-top: 20px\"><input type=\"submit\" name=\"savesettings\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div><div class=\"cell span1\"><h4>Statistics </h4><img src=\"/images/loader.gif\" class=\"loader\"/><pre class=\"statistics\"></pre></div></div></div><div data-tab=\"textlayers\"><h3>Edit text layers</h3></div><div data-tab=\"metadata-entries\"><h3>Edit entry metadata fields</h3></div><div data-tab=\"metadata-annotations\"></div><div data-tab=\"users\"><div class=\"row span3\"><div class=\"cell span1 userlist\"><h3>Project members</h3></div><div class=\"cell span2 adduser\"><h3>Add new user to project</h3></div></div></div></div>");
-}
-return buf.join("");
-};
-
-this["JST"]["project/settings/metadata_annotations"] = function anonymous(locals) {
-var buf = [];
-with (locals || {}) {
-buf.push("<h3>Add annotation type</h3><form><ul><li><label>Name</label><input type=\"text\" name=\"annotationname\"/></li><li><label>Description</label><input type=\"text\" name=\"annotationdescription\"/></li><li><input type=\"submit\" value=\"Add annotation type\" name=\"addannotationtype\"/></li></ul></form><ul class=\"selected-annotation-types\">");
-// iterate annotationTypes.models
-;(function(){
-  var $$obj = annotationTypes.models;
-  if ('number' == typeof $$obj.length) {
-
-    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
-      var type = $$obj[$index];
-
-buf.push("<li" + (jade.attrs({ 'data-id':(type.id) }, {"data-id":true})) + "><span class=\"name\">" + (jade.escape(null == (jade.interp = type.get('name')) ? "" : jade.interp)) + "</span><br/><span class=\"description\">" + (jade.escape(null == (jade.interp = type.get('description')) ? "" : jade.interp)) + "</span></li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var $index in $$obj) {
-      $$l++;      if ($$obj.hasOwnProperty($index)){      var type = $$obj[$index];
-
-buf.push("<li" + (jade.attrs({ 'data-id':(type.id) }, {"data-id":true})) + "><span class=\"name\">" + (jade.escape(null == (jade.interp = type.get('name')) ? "" : jade.interp)) + "</span><br/><span class=\"description\">" + (jade.escape(null == (jade.interp = type.get('description')) ? "" : jade.interp)) + "</span></li>");
-      }
-
-    }
-
-  }
-}).call(this);
-
-buf.push("</ul>");
+buf.push("<li style=\"margin-top: 20px\"><input type=\"submit\" name=\"savesettings\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div><div class=\"cell span1\"><h4>Statistics </h4><img src=\"/images/loader.gif\" class=\"loader\"/><pre class=\"statistics\"></pre></div></div></div><div data-tab=\"textlayers\"><h3>Edit text layers</h3></div><div data-tab=\"metadata-entries\"><h3>Edit entry metadata fields</h3></div><div data-tab=\"annotationtypes\"><div class=\"row span3\"><div class=\"cell span1 annotationtypelist\"><h3>Annotation types</h3></div><div class=\"cell span2 addannotationtype\"><h3>Add annotation type to project</h3></div></div></div><div data-tab=\"users\"><div class=\"row span3\"><div class=\"cell span1 userlist\"><h3>Project members</h3></div><div class=\"cell span2 adduser\"><h3>Add user to project</h3></div></div></div></div>");
 }
 return buf.join("");
 };
@@ -6560,7 +6900,12 @@ return buf.join("");
 this["JST"]["ui/header"] = function anonymous(locals) {
 var buf = [];
 with (locals || {}) {
-buf.push("<div class=\"main\"><div class=\"row span3\"><div class=\"cell span1 project aligncenter\"><img src=\"/images/logo.elaborate.png\"/><ul class=\"horizontal menu\"><li class=\"thisproject arrowdown\"> <span class=\"projecttitle\">" + (jade.escape(null == (jade.interp = projects.current.get('title')) ? "" : jade.interp)) + "</span><ul class=\"vertical menu\"><li class=\"search\">Entry overview</li><li class=\"settings\">Project settings</li><li class=\"history\">History</li></ul></li></ul></div><div class=\"cell span1\"><span class=\"message\"></span></div><div class=\"cell span1 user alignright\"><ul class=\"horizontal menu\"><li>Help</li><li class=\"username arrowdown\">" + (jade.escape(null == (jade.interp = user.title) ? "" : jade.interp)) + "<ul class=\"vertical menu\"><li class=\"projects arrowleft\">My projects<ul class=\"vertical menu\">");
+buf.push("<div class=\"main\"><div class=\"row span3\"><div class=\"cell span1 project aligncenter\"><img src=\"/images/logo.elaborate.png\"/><ul class=\"horizontal menu\"><li class=\"thisproject arrowdown\"> <span class=\"projecttitle\">" + (jade.escape(null == (jade.interp = projects.current.get('title')) ? "" : jade.interp)) + "</span><ul class=\"vertical menu\"><li class=\"search\">Entry overview</li>");
+if ( user.get('role') === 'ADMIN')
+{
+buf.push("<li class=\"settings\">Project settings</li>");
+}
+buf.push("<li class=\"history\">History</li></ul></li></ul></div><div class=\"cell span1\"><span class=\"message\"></span></div><div class=\"cell span1 user alignright\"><ul class=\"horizontal menu\"><li>Help</li><li class=\"username arrowdown\">" + (jade.escape(null == (jade.interp = user.get('title')) ? "" : jade.interp)) + "<ul class=\"vertical menu\"><li class=\"projects arrowleft\">My projects<ul class=\"vertical menu\">");
 // iterate projects.models
 ;(function(){
   var $$obj = projects.models;
@@ -6648,7 +6993,7 @@ return this["JST"];
 
 }).call(this);
 
-(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(r){var i;return i=r("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},i.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=null,function(t,n,r){return e!=null&&(r!=null&&r(),clearTimeout(e)),e=setTimeout(function(){return e=null,n()},t)}}(),highlighter:function(e){var t,n,r;return e==null&&(e={}),t=e.className,r=e.tagName,t==null&&(t="hilite"),r==null&&(r="span"),n=null,{on:function(e){var i,s,o;return o=e.startNode,i=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(i),n=document.createElement(r),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return i(n).replaceWith(function(){return i(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=i(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(r,i,s){var o,u;i==null&&(i={}),s==null&&(s="");for(o in r){if(!e.call(r,o))continue;u=r[o],!(t.isObject(u)&&!t.isArray(u)&&!t.isFunction(u))||u instanceof n.Model||u instanceof n.Collection?i[s+o]=u:this.flattenObject(u,i,s+o+".")}return i},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;e==null&&(e='input[type="checkbox"]'),t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e,t){var n,r,i;i=t!=null?t:window,t==null&&(t=e),t.focus(),n=document.createRange(),n.selectNodeContents(e),n.collapse(!1),r=i.getSelection();if(r!=null)return r.removeAllRanges(),r.addRange(n)},arraySum:function(e){return e.length===0?0:e.reduce(function(e,t){return t+e})},getAspectRatio:function(e,t,n,r){var i,s;return s=n/e,i=r/t,Math.min(s,i)}}})}.call(this),function(){s("hilib/mixins/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),function(e){if("function"==typeof bootstrap)bootstrap("jade",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof s&&s.amd)s("jade",e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeJade=e}else"undefined"!=typeof window?window.jade=e():global.jade=e()}(function(){var e,t,n,r,s;return function o(e,t,n){function r(u,a){if(!t[u]){if(!e[u]){var f=typeof i=="function"&&i;if(!a&&f)return f(u,!0);if(s)return s(u,!0);throw new Error("Cannot find module '"+u+"'")}var l=t[u]={exports:{}};e[u][0].call(l.exports,function(t){var n=e[u][1][t];return r(n?n:t)},l,l.exports,o,e,t,n)}return t[u].exports}var s=typeof i=="function"&&i;for(var u=0;u<n.length;u++)r(n[u]);return r}({1:[function(e,t,n){function r(e){return e!=null&&e!==""}function i(e){return Array.isArray(e)?e.map(i).filter(r).join(" "):e}Array.isArray||(Array.isArray=function(e){return"[object Array]"==Object.prototype.toString.call(e)}),Object.keys||(Object.keys=function(e){var t=[];for(var n in e)e.hasOwnProperty(n)&&t.push(n);return t}),n.merge=function(t,n){var i=t["class"],s=n["class"];if(i||s)i=i||[],s=s||[],Array.isArray(i)||(i=[i]),Array.isArray(s)||(s=[s]),t["class"]=i.concat(s).filter(r);for(var o in n)o!="class"&&(t[o]=n[o]);return t},n.attrs=function(t,r){var s=[],o=t.terse;delete t.terse;var u=Object.keys(t),a=u.length;if(a){s.push("");for(var f=0;f<a;++f){var l=u[f],c=t[l];"boolean"==typeof c||null==c?c&&(o?s.push(l):s.push(l+'="'+l+'"')):0==l.indexOf("data")&&"string"!=typeof c?s.push(l+"='"+JSON.stringify(c)+"'"):"class"==l?r&&r[l]?(c=n.escape(i(c)))&&s.push(l+'="'+c+'"'):(c=i(c))&&s.push(l+'="'+c+'"'):r&&r[l]?s.push(l+'="'+n.escape(c)+'"'):s.push(l+'="'+c+'"')}}return s.join(" ")},n.escape=function(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")},n.rethrow=function s(t,n,r,i){if(t instanceof Error){if((typeof window!="undefined"||!n)&&!i)throw t.message+=" on line "+r,t;try{i=i||e("fs").readFileSync(n,"utf8")}catch(o){s(t,null,r)}var u=3,a=i.split("\n"),f=Math.max(r-u,0),l=Math.min(a.length,r+u),u=a.slice(f,l).map(function(e,t){var n=t+f+1;return(n==r?"  > ":"    ")+n+"| "+e}).join("\n");throw t.path=n,t.message=(n||"Jade")+":"+r+"\n"+u+"\n\n"+t.message,t}throw t}},{fs:2}],2:[function(e,t,n){},{}]},{},[1])(1)}),s("tpls",["jade"],function(e){return e&&e.runtime!==undefined&&(e=e.runtime),this.JST=this.JST||{},this.JST["faceted-search/facets/boolean.body"]=function(n){var r=[],i=n||{},s=i.options,o=i.name,u=i.ucfirst;return r.push('<div class="options"><ul>'),function(){var t=s;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var a=t[n];r.push('<li class="option"><div class="row span6"><div class="cell span5"><input'+e.attrs({id:o+"_"+a.name,name:o+"_"+a.name,type:"checkbox","data-value":a.name},{id:!0,name:!0,type:!0,"data-value":!0})+"/><label"+e.attrs({"for":o+"_"+a.name},{"for":!0})+">"+e.escape(null==(e.interp=u(a.name))?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=a.count)?"":e.interp)+"</div></div></div></li>")}else{var i=0;for(var n in t){i++;var a=t[n];r.push('<li class="option"><div class="row span6"><div class="cell span5"><input'+e.attrs({id:o+"_"+a.name,name:o+"_"+a.name,type:"checkbox","data-value":a.name},{id:!0,name:!0,type:!0,"data-value":!0})+"/><label"+e.attrs({"for":o+"_"+a.name},{"for":!0})+">"+e.escape(null==(e.interp=u(a.name))?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=a.count)?"":e.interp)+"</div></div></div></li>")}}}.call(this),r.push("</ul></div>"),r.join("")},this.JST["faceted-search/facets/date"]=function(n){var r=[],i=n||{},s=i.name,o=i.title,u=i.options;return r.push("<header><h3"+e.attrs({"data-name":s},{"data-name":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+'</h3></header><div class="body"><label>From:</label><select>'),function(){var t=u;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}else{var i=0;for(var n in t){i++;var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}}}.call(this),r.push("</select><label>To:</label><select>"),function(){var t=u.reverse();if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}else{var i=0;for(var n in t){i++;var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}}}.call(this),r.push("</select></div>"),r.join("")},this.JST["faceted-search/facets/list.body"]=function(t){var n=[];return n.push('<div class="options"><ul></ul></div>'),n.join("")},this.JST["faceted-search/facets/list.menu"]=function(t){var n=[];return n.push('<div class="row span4 align middle"><div class="cell span2"><input type="text" name="listsearch" class="listsearch"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'),n.join("")},this.JST["faceted-search/facets/list.options"]=function(n){var r=[],i=n||{},s=i.options,o=i.generateID;return r.push("<ul>"),function(){var t=s;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var u=t[n];randomId=o(),r.push('<li class="option"><div'+e.attrs({"data-count":u.get("count"),"class":["row","span6"]},{"data-count":!0})+'><div class="cell span5"><input'+e.attrs({id:randomId,name:randomId,type:"checkbox","data-value":u.id,checked:u.get("checked")?!0:!1},{id:!0,name:!0,type:!0,"data-value":!0,checked:!0})+"/><label"+e.attrs({"for":randomId},{"for":!0})+">"+(null==(e.interp=u.id===":empty"?"<i>(empty)</i>":u.id)?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=u.get("count")===0?u.get("total"):u.get("count"))?"":e.interp)+"</div></div></div></li>")}else{var i=0;for(var n in t){i++;var u=t[n];randomId=o(),r.push('<li class="option"><div'+e.attrs({"data-count":u.get("count"),"class":["row","span6"]},{"data-count":!0})+'><div class="cell span5"><input'+e.attrs({id:randomId,name:randomId,type:"checkbox","data-value":u.id,checked:u.get("checked")?!0:!1},{id:!0,name:!0,type:!0,"data-value":!0,checked:!0})+"/><label"+e.attrs({"for":randomId},{"for":!0})+">"+(null==(e.interp=u.id===":empty"?"<i>(empty)</i>":u.id)?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=u.get("count")===0?u.get("total"):u.get("count"))?"":e.interp)+"</div></div></div></li>")}}}.call(this),r.push("</ul>"),r.join("")},this.JST["faceted-search/facets/main"]=function(n){var r=[],i=n||{},s=i.name,o=i.title;return r.push('<div class="placeholder pad4"><header><h3'+e.attrs({"data-name":s},{"data-name":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+'</h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'),r.join("")},this.JST["faceted-search/facets/search.body"]=function(t){var n=[];return n.push('<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input id="search" type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'),n.join("")},this.JST["faceted-search/facets/search.menu"]=function(n){var r=[],i=n||{},s=i.searchOptions;r.push('<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-prop="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div>');if(s.hasOwnProperty("searchInAnnotations")||s.hasOwnProperty("searchInTranscriptions"))r.push('<div class="row span1"><div class="cell span1"><h4>Search in</h4><ul class="searchins">'),s.hasOwnProperty("searchInAnnotations")&&r.push('<li class="searchin"><input'+e.attrs({id:"cb_searchin_annotations",type:"checkbox","data-prop":"searchInAnnotations",checked:s.searchInAnnotations?!0:!1},{id:!0,type:!0,"data-prop":!0,checked:!0})+'/><label for="cb_searchin_annotations">Annotations</label></li>'),s.hasOwnProperty("searchInTranscriptions")&&r.push('<li class="searchin"><input'+e.attrs({id:"cb_searchin_transcriptions",type:"checkbox","data-prop":"searchInTranscriptions",checked:s.searchInTranscriptions?!0:!1},{id:!0,type:!0,"data-prop":!0,checked:!0})+'/><label for="cb_searchin_transcriptions">Transcriptions</label></li>'),r.push("</ul></div></div>");return s.hasOwnProperty("textLayers")&&(r.push('<div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers">'),function(){var t=s.textLayers;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var o=t[n];r.push('<li class="textlayer"><input'+e.attrs({id:"cb_textlayer"+o,type:"checkbox","data-proparr":"textLayers"},{id:!0,type:!0,"data-proparr":!0})+"/><label"+e.attrs({"for":"cb_textlayer"+o},{"for":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+"</label></li>")}else{var i=0;for(var n in t){i++;var o=t[n];r.push('<li class="textlayer"><input'+e.attrs({id:"cb_textlayer"+o,type:"checkbox","data-proparr":"textLayers"},{id:!0,type:!0,"data-proparr":!0})+"/><label"+e.attrs({"for":"cb_textlayer"+o},{"for":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+"</label></li>")}}}.call(this),r.push("</ul></div></div>")),r.join("")},this.JST["faceted-search/main"]=function(t){var n=[];return n.push('<div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'),n.join("")},this.JST}),function(){var t={}.hasOwnProperty,n=function(e,n){function i(){this.constructor=e}for(var r in n)t.call(n,r)&&(e[r]=n[r]);return i.prototype=n.prototype,e.prototype=new i,e.__super__=n.prototype,e};s("views/facet",["require","views/base","tpls"],function(t){var r,i,s,o;return i={Base:t("views/base")},s=t("tpls"),r=function(t){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,t),r.prototype.initialize=function(){return r.__super__.initialize.apply(this,arguments)},r.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},r.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$(".options .listsearch").focus()},r.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},r.prototype.render=function(){var e;return e=s["faceted-search/facets/main"](this.model.attributes),this.$el.html(e),this},r.prototype.update=function(e){},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facet","tpls"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},o={Facet:e("views/facet")},u=e("tpls"),r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=u["faceted-search/facets/boolean.body"](t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r.prototype.reset=function(){return this.render()},r}(o.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facet","tpls"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},o={Facet:e("views/facet")},u=e("tpls"),r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=u["faceted-search/facets/date"](t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r.prototype.reset=function(){},r}(o.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.parse=function(e){return e},r.prototype.comparator=function(e){return-1*parseInt(e.get("count"),10)},r.prototype.revert=function(){var e=this;return this.each(function(e){return e.set("checked",!1,{silent:!0})}),this.trigger("change")},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0,{silent:!0})}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count,{silent:!0})}),this.sort()},r}(r.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","tpls"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),o={Base:e("views/base")},s={List:e("models/list")},u=e("tpls"),i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.listenTo(this.collection,"change",this.render),this.render()},i.prototype.render=function(){var e,t;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,t=u["faceted-search/facets/list.options"]({options:e,generateID:r.generateID}),this.$el.html(t)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(o.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facet","views/facets/list.options","tpls"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},u={Facet:e("views/facet"),Options:e("views/facets/list.options")},a=e("tpls"),s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll","keyup input.listsearch":function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return this.options=e,i.__super__.initialize.apply(this,arguments),this.model=new o.List(this.options.attrs,{parse:!0}),this.render()},i.prototype.render=function(){var e,t,n,s=this;return i.__super__.render.apply(this,arguments),t=a["faceted-search/facets/list.menu"](this.model.attributes),e=a["faceted-search/facets/list.body"](this.model.attributes),this.$(".options").html(t),this.$(".body").html(e),n=new r.Options(this.options.attrs.options,{parse:!0}),this.optionsView=new u.Options({el:this.$(".body .options"),collection:n,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return s.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$("header .options .listsearch").addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$("header .options .listsearch").removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.optionsView.collection.updateOptions(e)},i.prototype.reset=function(){return this.optionsView.collection.revert()},i}(u.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t,n;return t=e("jquery"),t.support.cors=!0,n={token:!0},{token:null,get:function(e,t){return t==null&&(t={}),this.fire("get",e,t)},post:function(e,t){return t==null&&(t={}),this.fire("post",e,t)},put:function(e,t){return t==null&&(t={}),this.fire("put",e,t)},poll:function(e){var t,n,r,i,s=this;return i=e.url,r=e.testFn,t=e.done,n=function(){var e;return e=s.get({url:i}),e.done(function(e,i,s){return r(e)?t(e,i,s):setTimeout(n,5e3)})},n()},fire:function(e,r,i){var s,o=this;return i=t.extend({},n,i),s={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&i.token&&(s.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+o.token)}),t.ajax(t.extend(s,r))}}})}.call(this),function(){s("hilib/managers/token",["require","backbone","underscore","hilib/managers/pubsub"],function(e){var t,n,r,i;return t=e("backbone"),i=e("underscore"),n=e("hilib/managers/pubsub"),r=function(){function e(){i.extend(this,t.Events),i.extend(this,n)}return e.prototype.token=null,e.prototype.set=function(e){return this.token=e,sessionStorage.setItem("huygens_token",e)},e.prototype.get=function(){return this.token==null&&(this.token=sessionStorage.getItem("huygens_token")),this.token==null?!1:this.token},e.prototype.clear=function(){return sessionStorage.removeItem("huygens_token")},e}(),new r})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/searchresult",["require","hilib/managers/ajax","hilib/managers/token","config","models/base"],function(e){var n,r,i,s,o,u;return i=e("hilib/managers/ajax"),o=e("hilib/managers/token"),s=e("config"),n={Base:e("models/base")},r=function(e){function n(){return u=n.__super__.constructor.apply(this,arguments),u}return t(n,e),n.prototype.defaults=function(){return{_next:null,_prev:null,ids:[],numFound:null,results:[],rows:null,solrquery:"",sortableFields:[],start:null,term:""}},n.prototype.sync=function(e,t,n){var r,o=this;if(e==="read")return n.url!=null?this.getResults(n.url,n.success):(i.token=s.token,r=i.post({url:s.baseUrl+s.searchPath,data:n.data,dataType:"text"}),r.done(function(e,t,r){var i;if(r.status===201)return i=r.getResponseHeader("Location"),o.resultRows!=null&&(i+="?rows="+o.resultRows),o.getResults(i,n.success)}),r.fail(function(e,t,n){if(e.status===401)return o.publish("unauthorized")}))},n.prototype.getResults=function(e,t){var n,r=this;return i.token=s.token,n=i.get({url:e}),n.done(function(e,n,r){return t(e)}),n.fail(function(){return console.error("Failed getting FacetedSearch results from the server!")})},n}(n.Base)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/searchresults",["require","hilib/mixins/pubsub","models/searchresult"],function(e){var i,s,o,u;return o=e("hilib/mixins/pubsub"),i=e("models/searchresult"),s=function(e){function n(){return u=n.__super__.constructor.apply(this,arguments),u}return r(n,e),n.prototype.model=i,n.prototype.initialize=function(){return t.extend(this,o),this.currentQueryOptions=null,this.cachedModels={},this.on("add",this.setCurrent,this)},n.prototype.setCurrent=function(e){return this.current=e,this.publish("change:results",e,this.currentQueryOptions)},n.prototype.runQuery=function(e){var t,n,r,s=this;return this.currentQueryOptions=e,this.currentQueryOptions.hasOwnProperty("resultRows")&&(n=this.currentQueryOptions.resultRows,delete this.currentQueryOptions.resultRows),t=JSON.stringify(this.currentQueryOptions),this.cachedModels.hasOwnProperty(t)?this.setCurrent(this.cachedModels[t]):(r=new i,n!=null&&(r.resultRows=n),r.fetch({data:t,success:function(e,n,r){return s.cachedModels[t]=e,s.add(e)}}))},n.prototype.moveCursor=function(e){var t,n,r=this;if(n=this.current.get(e))return this.cachedModels.hasOwnProperty(n)?this.setCurrent(this.cachedModels[n]):(t=new i,t.fetch({url:n,success:function(e,t,i){return r.cachedModels[n]=e,r.add(e)}}))},n}(n.Collection)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","collections/searchresults"],function(e){var i,s,o;return s=e("collections/searchresults"),i=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return r(n,e),n.prototype.defaults=function(){return{facetValues:[]}},n.prototype.initialize=function(e,t){var n=this;return this.queryOptions=e,this.searchResults=new s,this.on("change",function(e,t){return n.searchResults.runQuery(n.attributes)}),this.trigger("change")},n.prototype.set=function(e,r){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),n.__super__.set.call(this,e,r)},n.prototype.reset=function(){return this.clear({silent:!0}),this.set(this.defaults(),{silent:!0}),this.set(this.queryOptions,{silent:!0}),this.trigger("change")},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{searchOptions:{term:"*",caseSensitive:!1}}},n}(n.Base)})}.call(this),function(){var n={}.hasOwnProperty,r=function(e,t){function i(){this.constructor=e}for(var r in t)n.call(t,r)&&(e[r]=t[r]);return i.prototype=t.prototype,e.prototype=new i,e.__super__=t.prototype,e};s("views/search",["require","config","models/search","views/facet","tpls"],function(n){var i,s,o,u,a,f;return u=n("config"),i={Search:n("models/search")},o={Facet:n("views/facet")},a=n("tpls"),s=function(n){function s(){return f=s.__super__.constructor.apply(this,arguments),f}return r(s,n),s.prototype.className="facet search",s.prototype.initialize=function(e){return s.__super__.initialize.apply(this,arguments),this.currentSearchText=null,this.model=new i.Search({searchOptions:u.textSearchOptions,title:"Text search",name:"text_search"}),this.render()},s.prototype.render=function(){var n,r,i,o=this;return s.__super__.render.apply(this,arguments),i=a["faceted-search/facets/search.menu"](this.model.attributes),n=a["faceted-search/facets/search.body"](this.model.attributes),this.$(".options").html(i),this.$(".body").html(n),r=this.$(":checkbox"),r.change(function(n){return t.each(r,function(t){var n,r;r=t.getAttribute("data-prop");if(r!=null)return n=e(t).attr("checked")==="checked"?!0:!1,o.model.set(r,n)})}),this},s.prototype.events=function(){return t.extend({},s.__super__.events.apply(this,arguments),{"click button":function(e){return e.preventDefault()},"click button.active":"search","keyup input":"onKeyup"})},s.prototype.onKeyup=function(e){return e.currentTarget.value.length>1&&this.currentSearchText!==e.currentTarget.value?this.$("button").addClass("active"):this.$("button").removeClass("active")},s.prototype.search=function(e){var t;return e.preventDefault(),this.$("button").removeClass("active"),t=this.$("#search"),t.addClass("loading"),this.currentSearchText=t.val(),this.trigger("change",{term:this.currentSearchText})},s.prototype.update=function(){return this.$("#search").removeClass("loading")},s}(o.Facet)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};i.config({baseUrl:"compiled/js",paths:{tpls:"../templates",jade:"../lib/jade/runtime"}}),s("main",["require","hilib/functions/general","hilib/mixins/pubsub","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","tpls"],function(i){var s,o,u,a,f,l,c,h,p;return o=i("hilib/functions/general"),c=i("hilib/mixins/pubsub"),f=i("config"),l=i("facetviewmap"),u={FacetedSearch:i("models/main")},a={Base:i("views/base"),TextSearch:i("views/search"),Facets:{List:i("views/facets/list"),Boolean:i("views/facets/boolean"),Date:i("views/facets/date")}},h=i("tpls"),s=function(n){function i(){return p=i.__super__.constructor.apply(this,arguments),p}return r(i,n),i.prototype.initialize=function(e){var n,r=this;return this.facetViews={},t.extend(this,c),t.extend(l,e.facetViewMap),delete e.facetViewMap,t.extend(f.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(f,e),n=t.extend(f.queryOptions,f.textSearchOptions),this.render(),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("change:results",function(e,t){return r.renderFacets(),r.trigger("results:change",e,t)}),this.model=new u.FacetedSearch(n)},i.prototype.render=function(){var e,t,n=this;return e=h["faceted-search/main"](),this.$el.html(e),this.$(".loader").fadeIn("slow"),f.search&&(t=new a.TextSearch,this.$(".search-placeholder").html(t.$el),this.listenTo(t,"change",function(e){return n.model.set(e)}),this.facetViews.textSearch=t),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a,f=this;this.$(".loader").hide();if(this.model.searchResults.length===1){i=document.createDocumentFragment(),o=this.model.searchResults.last().get("facets");for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in l?(n=l[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",function(e){return f.model.set(e)}),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}this.facetViews.hasOwnProperty("textSearch")&&this.facetViews.textSearch.update(),u=this.model.searchResults.facets,a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.next=function(){return this.model.searchResults.moveCursor("_next")},i.prototype.prev=function(){return this.model.searchResults.moveCursor("_prev")},i.prototype.hasNext=function(){return this.model.searchResults.current.has("_next")},i.prototype.hasPrev=function(){return this.model.searchResults.current.has("_prev")},i.prototype.reset=function(){var t,n,r;r=this.model.searchResults.last().get("facets");for(n in r){if(!e.call(r,n))continue;t=r[n],this.facetViews[t.name].reset&&this.facetViews[t.name].reset()}return this.model.reset()},i}(n.View)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
+(function(e,t){typeof define=="function"&&define.amd?define('faceted-search',["jquery","underscore","backbone"],t):e.facetedsearch=t()})(this,function(e,t,n){var r,i,s;return function(e){function d(e,t){return h.call(e,t)}function v(e,t){var n,r,i,s,o,u,a,f,c,h,p=t&&t.split("/"),d=l.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(f=0;f<e.length;f+=1){h=e[f];if(h===".")e.splice(f,1),f-=1;else if(h===".."){if(f===1&&(e[2]===".."||e[0]===".."))break;f>0&&(e.splice(f-1,2),f-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(f=n.length;f>0;f-=1){r=n.slice(0,f).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=f;break}}}if(s)break;!u&&v&&v[r]&&(u=v[r],a=f)}!s&&u&&(s=u,o=a),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function m(t,r){return function(){return n.apply(e,p.call(arguments,0).concat([t,r]))}}function g(e){return function(t){return v(t,e)}}function y(e){return function(t){a[e]=t}}function b(n){if(d(f,n)){var r=f[n];delete f[n],c[n]=!0,t.apply(e,r)}if(!d(a,n)&&!d(c,n))throw new Error("No "+n);return a[n]}function w(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function E(e){return function(){return l&&l.config&&l.config[e]||{}}}var t,n,o,u,a={},f={},l={},c={},h=Object.prototype.hasOwnProperty,p=[].slice;o=function(e,t){var n,r=w(e),i=r[0];return e=r[1],i&&(i=v(i,t),n=b(i)),i?n&&n.normalize?e=n.normalize(e,g(t)):e=v(e,t):(e=v(e,t),r=w(e),i=r[0],e=r[1],i&&(n=b(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},u={require:function(e){return m(e)},exports:function(e){var t=a[e];return typeof t!="undefined"?t:a[e]={}},module:function(e){return{id:e,uri:"",exports:a[e],config:E(e)}}},t=function(t,n,r,i){var s,l,h,p,v,g=[],w;i=i||t;if(typeof r=="function"){n=!n.length&&r.length?["require","exports","module"]:n;for(v=0;v<n.length;v+=1){p=o(n[v],i),l=p.f;if(l==="require")g[v]=u.require(t);else if(l==="exports")g[v]=u.exports(t),w=!0;else if(l==="module")s=g[v]=u.module(t);else if(d(a,l)||d(f,l)||d(c,l))g[v]=b(l);else{if(!p.p)throw new Error(t+" missing "+l);p.p.load(p.n,m(i,!0),y(l),{}),g[v]=a[l]}}h=r.apply(a[t],g);if(t)if(s&&s.exports!==e&&s.exports!==a[t])a[t]=s.exports;else if(h!==e||!w)a[t]=h}else t&&(a[t]=r)},r=i=n=function(r,i,s,a,f){return typeof r=="string"?u[r]?u[r](i):b(o(r,i).f):(r.splice||(l=r,i.splice?(r=i,i=s,s=null):r=e),i=i||function(){},typeof s=="function"&&(s=a,a=f),a?t(e,r,i,s):setTimeout(function(){t(e,r,i,s)},4),n)},n.config=function(e){return l=e,l.deps&&n(l.deps,l.callback),n},r._defined=a,s=function(e,t,n){t.splice||(n=t,t=[]),!d(a,e)&&!d(f,e)&&(f[e]=[e,t,n])},s.amd={jQuery:!0}}(),s("../lib/almond/almond",function(){}),function(){var e={}.hasOwnProperty;s("hilib/functions/general",["require","jquery"],function(r){var i;return i=r("jquery"),{generateID:function(e){var t,n;e=e!=null&&e>0?e-1:7,t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",n=t.charAt(Math.floor(Math.random()*52));while(e--)n+=t.charAt(Math.floor(Math.random()*t.length));return n},deepCopy:function(e){var t;return t=Array.isArray(e)?[]:{},i.extend(!0,t,e)},timeoutWithReset:function(){var e;return e=null,function(t,n,r){return e!=null&&(r!=null&&r(),clearTimeout(e)),e=setTimeout(function(){return e=null,n()},t)}}(),highlighter:function(e){var t,n,r;return e==null&&(e={}),t=e.className,r=e.tagName,t==null&&(t="hilite"),r==null&&(r="span"),n=null,{on:function(e){var i,s,o;return o=e.startNode,i=e.endNode,s=document.createRange(),s.setStartAfter(o),s.setEndBefore(i),n=document.createElement(r),n.className=t,n.appendChild(s.extractContents()),s.insertNode(n)},off:function(){return i(n).replaceWith(function(){return i(this).contents()})}}},position:function(e,t){var n,r;n=0,r=0;while(e!==t)n+=e.offsetLeft,r+=e.offsetTop,e=e.offsetParent;return{left:n,top:r}},boundingBox:function(e){var t;return t=i(e).offset(),t.width=e.clientWidth,t.height=e.clientHeight,t.right=t.left+t.width,t.bottom=t.top+t.height,t},isDescendant:function(e,t){var n;n=t.parentNode;while(n!=null){if(n===e)return!0;n=n.parentNode}return!1},removeFromArray:function(e,t){var n;return n=e.indexOf(t),e.splice(n,1)},escapeRegExp:function(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")},flattenObject:function(r,i,s){var o,u;i==null&&(i={}),s==null&&(s="");for(o in r){if(!e.call(r,o))continue;u=r[o],!(t.isObject(u)&&!t.isArray(u)&&!t.isFunction(u))||u instanceof n.Model||u instanceof n.Collection?i[s+o]=u:this.flattenObject(u,i,s+o+".")}return i},compareJSON:function(n,r){var i,s,o;s={};for(i in n){if(!e.call(n,i))continue;o=n[i],r.hasOwnProperty(i)||(s[i]="removed")}for(i in r){if(!e.call(r,i))continue;o=r[i],n.hasOwnProperty(i)?t.isArray(o)||this.isObjectLiteral(o)?t.isEqual(n[i],r[i])||(s[i]=r[i]):n[i]!==r[i]&&(s[i]=r[i]):s[i]="added"}return s},isObjectLiteral:function(e){var t;if(e==null||typeof e!="object")return!1;t=e;while(Object.getPrototypeOf(t=Object.getPrototypeOf(t))!==null)0;return Object.getPrototypeOf(e)===t},getScrollPercentage:function(e){var t,n,r,i;return n=e.scrollTop,i=e.scrollHeight-e.clientHeight,t=e.scrollLeft,r=e.scrollWidth-e.clientWidth,{top:Math.floor(n/i*100),left:Math.floor(t/r*100)}},setScrollPercentage:function(e,t){var n,r,i,s;return r=e.clientWidth,s=e.scrollWidth,n=e.clientHeight,i=e.scrollHeight,e.scrollTop=(i-n)*t.top/100,e.scrollLeft=(s-r)*t.left/100},checkCheckboxes:function(e,t,n){var r,i,s,o,u;e==null&&(e='input[type="checkbox"]'),t==null&&(t=!0),n==null&&(n=document),i=n.querySelectorAll(e),u=[];for(s=0,o=i.length;s<o;s++)r=i[s],u.push(r.checked=t);return u},setCursorToEnd:function(e,t){var n,r,i;i=t!=null?t:window,t==null&&(t=e),t.focus(),n=document.createRange(),n.selectNodeContents(e),n.collapse(!1),r=i.getSelection();if(r!=null)return r.removeAllRanges(),r.addRange(n)},arraySum:function(e){return e.length===0?0:e.reduce(function(e,t){return t+e})},getAspectRatio:function(e,t,n,r){var i,s;return s=n/e,i=r/t,Math.min(s,i)}}})}.call(this),function(){s("hilib/mixins/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){s("config",["require"],function(e){return{baseUrl:"",searchPath:"",search:!0,token:null,queryOptions:{},facetNameMap:{}}})}.call(this),function(){s("hilib/functions/string",["require","jquery"],function(e){var t;return t=e("jquery"),{ucfirst:function(e){return e.charAt(0).toUpperCase()+e.slice(1)},slugify:function(e){var t,n,r,i;t="àáäâèéëêìíïîòóöôùúüûñç·/_:;",i="aaaaeeeeiiiioooouuuunc-----",e=e.trim().toLowerCase(),r=e.length;while(r--)n=t.indexOf(e[r]),n!==-1&&(e=e.substr(0,r)+i[n]+e.substr(r+1));return e.replace(/[^a-z0-9 -]/g,"").replace(/\s+|\-+/g,"-").replace(/^\-+|\-+$/g,"")},stripTags:function(e){return t("<span />").html(e).text()},onlyNumbers:function(e){return e.replace(/[^\d.]/g,"")}}})}.call(this),function(){s("hilib/managers/pubsub",["require","backbone"],function(e){var t;return t=e("backbone"),{subscribe:function(e,n){return this.listenTo(t,e,n)},publish:function(){return t.trigger.apply(t,arguments)}}})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/facet",["require","config","models/base"],function(e){var r,i,s,o;return s=e("config"),i={Base:e("models/base")},r=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return t(n,e),n.prototype.idAttribute="name",n.prototype.parse=function(e){if(e.title==null||e.title===""&&s.facetNameMap[e.name]!=null)e.title=s.facetNameMap[e.name];return e},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/boolean",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.set=function(e,t){return e==="options"?t=this.parseOptions(t):e.options!=null&&(e.options=this.parseOptions(e.options)),n.__super__.set.call(this,e,t)},n.prototype.parseOptions=function(e){return e.length===1&&e.push({name:(!JSON.parse(e[0].name)).toString(),count:0}),e},n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/base",["require","backbone","hilib/managers/pubsub"],function(e){var r,i,s,o;return r=e("backbone"),s=e("hilib/managers/pubsub"),i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.initialize=function(){return t.extend(this,s)},r}(r.View)})}.call(this),function(e){if("function"==typeof bootstrap)bootstrap("jade",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof s&&s.amd)s("jade",e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeJade=e}else"undefined"!=typeof window?window.jade=e():global.jade=e()}(function(){var e,t,n,r,s;return function o(e,t,n){function r(u,a){if(!t[u]){if(!e[u]){var f=typeof i=="function"&&i;if(!a&&f)return f(u,!0);if(s)return s(u,!0);throw new Error("Cannot find module '"+u+"'")}var l=t[u]={exports:{}};e[u][0].call(l.exports,function(t){var n=e[u][1][t];return r(n?n:t)},l,l.exports,o,e,t,n)}return t[u].exports}var s=typeof i=="function"&&i;for(var u=0;u<n.length;u++)r(n[u]);return r}({1:[function(e,t,n){function r(e){return e!=null&&e!==""}function i(e){return Array.isArray(e)?e.map(i).filter(r).join(" "):e}Array.isArray||(Array.isArray=function(e){return"[object Array]"==Object.prototype.toString.call(e)}),Object.keys||(Object.keys=function(e){var t=[];for(var n in e)e.hasOwnProperty(n)&&t.push(n);return t}),n.merge=function(t,n){var i=t["class"],s=n["class"];if(i||s)i=i||[],s=s||[],Array.isArray(i)||(i=[i]),Array.isArray(s)||(s=[s]),t["class"]=i.concat(s).filter(r);for(var o in n)o!="class"&&(t[o]=n[o]);return t},n.attrs=function(t,r){var s=[],o=t.terse;delete t.terse;var u=Object.keys(t),a=u.length;if(a){s.push("");for(var f=0;f<a;++f){var l=u[f],c=t[l];"boolean"==typeof c||null==c?c&&(o?s.push(l):s.push(l+'="'+l+'"')):0==l.indexOf("data")&&"string"!=typeof c?s.push(l+"='"+JSON.stringify(c)+"'"):"class"==l?r&&r[l]?(c=n.escape(i(c)))&&s.push(l+'="'+c+'"'):(c=i(c))&&s.push(l+'="'+c+'"'):r&&r[l]?s.push(l+'="'+n.escape(c)+'"'):s.push(l+'="'+c+'"')}}return s.join(" ")},n.escape=function(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")},n.rethrow=function s(t,n,r,i){if(t instanceof Error){if((typeof window!="undefined"||!n)&&!i)throw t.message+=" on line "+r,t;try{i=i||e("fs").readFileSync(n,"utf8")}catch(o){s(t,null,r)}var u=3,a=i.split("\n"),f=Math.max(r-u,0),l=Math.min(a.length,r+u),u=a.slice(f,l).map(function(e,t){var n=t+f+1;return(n==r?"  > ":"    ")+n+"| "+e}).join("\n");throw t.path=n,t.message=(n||"Jade")+":"+r+"\n"+u+"\n\n"+t.message,t}throw t}},{fs:2}],2:[function(e,t,n){},{}]},{},[1])(1)}),s("tpls",["jade"],function(e){return e&&e.runtime!==undefined&&(e=e.runtime),this.JST=this.JST||{},this.JST["faceted-search/facets/boolean.body"]=function(n){var r=[],i=n||{},s=i.options,o=i.name,u=i.ucfirst;return r.push("<ul>"),function(){var t=s;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var a=t[n];r.push('<li><div class="row span6"><div class="cell span5"><input'+e.attrs({id:o+"_"+a.name,name:o+"_"+a.name,type:"checkbox","data-value":a.name},{id:!0,name:!0,type:!0,"data-value":!0})+"/><label"+e.attrs({"for":o+"_"+a.name},{"for":!0})+">"+e.escape(null==(e.interp=u(a.name))?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=a.count)?"":e.interp)+"</div></div></div></li>")}else{var i=0;for(var n in t){i++;var a=t[n];r.push('<li><div class="row span6"><div class="cell span5"><input'+e.attrs({id:o+"_"+a.name,name:o+"_"+a.name,type:"checkbox","data-value":a.name},{id:!0,name:!0,type:!0,"data-value":!0})+"/><label"+e.attrs({"for":o+"_"+a.name},{"for":!0})+">"+e.escape(null==(e.interp=u(a.name))?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=a.count)?"":e.interp)+"</div></div></div></li>")}}}.call(this),r.push("</ul>"),r.join("")},this.JST["faceted-search/facets/date"]=function(n){var r=[],i=n||{},s=i.name,o=i.title,u=i.options;return r.push("<header><h3"+e.attrs({"data-name":s},{"data-name":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+'</h3></header><div class="body"><label>From:</label><select>'),function(){var t=u;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}else{var i=0;for(var n in t){i++;var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}}}.call(this),r.push("</select><label>To:</label><select>"),function(){var t=u.reverse();if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}else{var i=0;for(var n in t){i++;var s=t[n];r.push("<option>"+e.escape(null==(e.interp=s)?"":e.interp)+"</option>")}}}.call(this),r.push("</select></div>"),r.join("")},this.JST["faceted-search/facets/list.body"]=function(t){var n=[];return n.push("<ul></ul>"),n.join("")},this.JST["faceted-search/facets/list.menu"]=function(t){var n=[];return n.push('<div class="row span4 align middle"><div class="cell span2"><input type="text" name="filter"/></div><div class="cell span1"><small class="optioncount"></small></div><div class="cell span1 alignright"><nav><ul><li class="all">All </li><li class="none">None</li></ul></nav></div></div>'),n.join("")},this.JST["faceted-search/facets/list.options"]=function(n){var r=[],i=n||{},s=i.options,o=i.generateID;return function(){var t=s;if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var u=t[n];randomId=o(),r.push("<li><div"+e.attrs({"data-count":u.get("count"),"class":["row","span6"]},{"data-count":!0})+'><div class="cell span5"><input'+e.attrs({id:randomId,name:randomId,type:"checkbox","data-value":u.id,checked:u.get("checked")?!0:!1},{id:!0,name:!0,type:!0,"data-value":!0,checked:!0})+"/><label"+e.attrs({"for":randomId},{"for":!0})+">"+(null==(e.interp=u.id===":empty"?"<i>(empty)</i>":u.id)?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=u.get("count")===0?u.get("total"):u.get("count"))?"":e.interp)+"</div></div></div></li>")}else{var i=0;for(var n in t){i++;var u=t[n];randomId=o(),r.push("<li><div"+e.attrs({"data-count":u.get("count"),"class":["row","span6"]},{"data-count":!0})+'><div class="cell span5"><input'+e.attrs({id:randomId,name:randomId,type:"checkbox","data-value":u.id,checked:u.get("checked")?!0:!1},{id:!0,name:!0,type:!0,"data-value":!0,checked:!0})+"/><label"+e.attrs({"for":randomId},{"for":!0})+">"+(null==(e.interp=u.id===":empty"?"<i>(empty)</i>":u.id)?"":e.interp)+'</label></div><div class="cell span1 alignright"><div class="count">'+e.escape(null==(e.interp=u.get("count")===0?u.get("total"):u.get("count"))?"":e.interp)+"</div></div></div></li>")}}}.call(this),r.join("")},this.JST["faceted-search/facets/main"]=function(n){var r=[],i=n||{},s=i.name,o=i.title;return r.push('<div class="placeholder pad4"><header><h3'+e.attrs({"data-name":s},{"data-name":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+'</h3><small>&#8711;</small><div class="options"></div></header><div class="body"></div></div>'),r.join("")},this.JST["faceted-search/facets/search.body"]=function(t){var n=[];return n.push('<div class="row span4 align middle"><div class="cell span3"><div class="padr4"><input type="text" name="search"/></div></div><div class="cell span1"><button class="search">Search</button></div></div>'),n.join("")},this.JST["faceted-search/facets/search.menu"]=function(n){var r=[],i=n||{},s=i.model;r.push('<div class="row span1 align middle"><div class="cell span1 casesensitive"><input id="cb_casesensitive" type="checkbox" name="cb_casesensitive" data-attr="caseSensitive"/><label for="cb_casesensitive">Match case</label></div></div>');if(s.has("searchInAnnotations")||s.has("searchInTranscriptions"))r.push('<div class="row span1"><div class="cell span1"><h4>Search</h4><ul class="searchins">'),s.has("searchInAnnotations")&&r.push('<li class="searchin"><input'+e.attrs({id:"cb_searchin_annotations",type:"checkbox","data-attr":"searchInAnnotations",checked:s.get("searchInAnnotations")},{id:!0,type:!0,"data-attr":!0,checked:!0})+'/><label for="cb_searchin_annotations">Annotations</label></li>'),s.has("searchInTranscriptions")&&r.push('<li class="searchin"><input'+e.attrs({id:"cb_searchin_transcriptions",type:"checkbox","data-attr":"searchInTranscriptions",checked:s.get("searchInTranscriptions")},{id:!0,type:!0,"data-attr":!0,checked:!0})+'/><label for="cb_searchin_transcriptions">Transcriptions</label></li>'),r.push("</ul></div></div>");return s.has("textLayers")&&(r.push('<div class="row span1"><div class="cell span1"><h4>Text layers</h4><ul class="textlayers">'),function(){var t=s.get("textLayers");if("number"==typeof t.length)for(var n=0,i=t.length;n<i;n++){var o=t[n];r.push('<li class="textlayer"><input'+e.attrs({id:"cb_textlayer"+o,type:"checkbox","data-attr-array":"textLayers","data-value":o},{id:!0,type:!0,"data-attr-array":!0,"data-value":!0})+"/><label"+e.attrs({"for":"cb_textlayer"+o},{"for":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+"</label></li>")}else{var i=0;for(var n in t){i++;var o=t[n];r.push('<li class="textlayer"><input'+e.attrs({id:"cb_textlayer"+o,type:"checkbox","data-attr-array":"textLayers","data-value":o},{id:!0,type:!0,"data-attr-array":!0,"data-value":!0})+"/><label"+e.attrs({"for":"cb_textlayer"+o},{"for":!0})+">"+e.escape(null==(e.interp=o)?"":e.interp)+"</label></li>")}}}.call(this),r.push("</ul></div></div>")),r.join("")},this.JST["faceted-search/main"]=function(t){var n=[];return n.push('<div class="overlay"></div><div class="faceted-search"><form><div class="search-placeholder"></div><div class="facets"><div class="loader"><h4>Loading facets...</h4><br/><img src="../images/faceted-search/loader.gif"/></div></div></form></div>'),n.join("")},this.JST}),function(){var t={}.hasOwnProperty,n=function(e,n){function i(){this.constructor=e}for(var r in n)t.call(n,r)&&(e[r]=n[r]);return i.prototype=n.prototype,e.prototype=new i,e.__super__=n.prototype,e};s("views/facets/main",["require","views/base","tpls"],function(t){var r,i,s,o;return i={Base:t("views/base")},s=t("tpls"),r=function(t){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,t),r.prototype.initialize=function(){return r.__super__.initialize.apply(this,arguments)},r.prototype.events=function(){return{"click h3":"toggleBody","click header small":"toggleOptions"}},r.prototype.toggleOptions=function(e){return this.$("header small").toggleClass("active"),this.$("header .options").slideToggle(),this.$('header .options input[name="filter"]').focus()},r.prototype.toggleBody=function(t){return e(t.currentTarget).parents(".facet").find(".body").slideToggle()},r.prototype.render=function(){var e;return e=s["faceted-search/facets/main"](this.model.attributes),this.$el.html(e),this},r.prototype.update=function(e){},r}(i.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/boolean",["require","hilib/functions/string","models/boolean","views/facets/main","tpls"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Boolean:e("models/boolean")},o={Facet:e("views/facets/main")},u=e("tpls"),r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet boolean",r.prototype.events=function(){return t.extend({},r.__super__.events.apply(this,arguments),{'change input[type="checkbox"]':"checkChanged"})},r.prototype.checkChanged=function(e){return this.trigger("change",{facetValue:{name:this.model.get("name"),values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Boolean(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=u["faceted-search/facets/boolean.body"](t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".body").html(e),this.$("header small").hide(),this},r.prototype.update=function(e){return this.model.set("options",e)},r.prototype.reset=function(){return this.render()},r}(o.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/date",["require","models/facet"],function(e){var r,i,s;return i={Facet:e("models/facet")},r=function(e){function r(){return s=r.__super__.constructor.apply(this,arguments),s}return n(r,e),r.prototype.parse=function(e){return e.options=t.map(t.pluck(e.options,"name"),function(e){return e.substr(0,4)}),e.options=t.unique(e.options),e.options.sort(),e},r}(i.Facet)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/date",["require","hilib/functions/string","models/date","views/facets/main","tpls"],function(e){var r,i,s,o,u,a;return s=e("hilib/functions/string"),i={Date:e("models/date")},o={Facet:e("views/facets/main")},u=e("tpls"),r=function(e){function r(){return a=r.__super__.constructor.apply(this,arguments),a}return n(r,e),r.prototype.className="facet date",r.prototype.initialize=function(e){return r.__super__.initialize.apply(this,arguments),this.model=new i.Date(e.attrs,{parse:!0}),this.listenTo(this.model,"change:options",this.render),this.render()},r.prototype.render=function(){var e;return r.__super__.render.apply(this,arguments),e=u["faceted-search/facets/date"](t.extend(this.model.attributes,{ucfirst:s.ucfirst})),this.$(".placeholder").html(e),this},r.prototype.update=function(e){},r.prototype.reset=function(){},r}(o.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list",["require","models/facet"],function(e){var n,r,i;return r={Facet:e("models/facet")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n}(r.Facet)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/list.option",["require","models/base"],function(e){var n,r,i;return r={Base:e("models/base")},n=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.idAttribute="name",n.prototype.defaults=function(){return{name:"",count:0,total:0,checked:!1}},n.prototype.parse=function(e){return e.total=e.count,e},n}(r.Base)})}.call(this),function(){s("collections/base",["require","backbone"],function(e){var t;return t=e("backbone"),t.Collection})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/list.options",["require","models/list.option","collections/base"],function(e){var r,i,s,o;return s={Option:e("models/list.option")},r={Base:e("collections/base")},i=function(e){function r(){return o=r.__super__.constructor.apply(this,arguments),o}return n(r,e),r.prototype.model=s.Option,r.prototype.comparator=function(e){return-1*+e.get("count")},r.prototype.revert=function(){var e=this;return this.each(function(e){return e.set("checked",!1,{silent:!0})}),this.trigger("change")},r.prototype.updateOptions=function(e){var n=this;return e==null&&(e=[]),this.each(function(e){return e.set("count",0,{silent:!0})}),t.each(e,function(e){var t;return t=n.get(e.name),t.set("count",e.count,{silent:!0})}),this.sort()},r}(r.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list.options",["require","hilib/functions/general","views/base","models/list","tpls"],function(e){var r,i,s,o,u,a;return r=e("hilib/functions/general"),o={Base:e("views/base")},s={List:e("models/list")},u=e("tpls"),i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.filtered_items=[],i.prototype.events=function(){return{'change input[type="checkbox"]':"checkChanged"}},i.prototype.checkChanged=function(e){var n;return n=e.currentTarget.getAttribute("data-value"),this.collection.get(n).set("checked",e.currentTarget.checked),this.trigger("change",{facetValue:{name:this.options.facetName,values:t.map(this.$("input:checked"),function(e){return e.getAttribute("data-value")})}})},i.prototype.initialize=function(){return i.__super__.initialize.apply(this,arguments),this.listenTo(this.collection,"sort",this.render),this.listenTo(this.collection,"change",this.render),this.render()},i.prototype.render=function(){var e,t;return e=this.filtered_items.length>0?this.filtered_items:this.collection.models,t=u["faceted-search/facets/list.options"]({options:e,generateID:r.generateID}),this.$el.html(t)},i.prototype.filterOptions=function(e){var t;return t=new RegExp(e,"i"),this.filtered_items=this.collection.filter(function(e){return t.test(e.id)}),this.trigger("filter:finished"),this.render()},i}(o.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/facets/list",["require","hilib/functions/general","models/list","collections/list.options","views/facets/main","views/facets/list.options","tpls"],function(e){var r,i,s,o,u,a,f;return i=e("hilib/functions/general"),o={List:e("models/list")},r={Options:e("collections/list.options")},u={Facet:e("views/facets/main"),Options:e("views/facets/list.options")},a=e("tpls"),s=function(e){function i(){return f=i.__super__.constructor.apply(this,arguments),f}return n(i,e),i.prototype.checked=[],i.prototype.filtered_items=[],i.prototype.className="facet list",i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click li.all":"selectAll","click li.none":"deselectAll",'keyup input[name="filter"]':function(e){return this.optionsView.filterOptions(e.currentTarget.value)}})},i.prototype.selectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!0);return i},i.prototype.deselectAll=function(){var e,t,n,r,i;t=this.el.querySelectorAll('input[type="checkbox"]'),i=[];for(n=0,r=t.length;n<r;n++)e=t[n],i.push(e.checked=!1);return i},i.prototype.initialize=function(e){return this.options=e,i.__super__.initialize.apply(this,arguments),this.model=new o.List(this.options.attrs,{parse:!0}),this.render()},i.prototype.render=function(){var e,t,n,s=this;return i.__super__.render.apply(this,arguments),t=a["faceted-search/facets/list.menu"](this.model.attributes),e=a["faceted-search/facets/list.body"](this.model.attributes),this.el.querySelector("header .options").innerHTML=t,this.el.querySelector(".body").innerHTML=e,n=new r.Options(this.options.attrs.options,{parse:!0}),this.optionsView=new u.Options({el:this.el.querySelector(".body ul"),collection:n,facetName:this.model.get("name")}),this.listenTo(this.optionsView,"filter:finished",this.renderFilteredOptionCount),this.listenTo(this.optionsView,"change",function(e){return s.trigger("change",e)}),this},i.prototype.renderFilteredOptionCount=function(){var e,t;return t=this.optionsView.filtered_items.length,e=this.optionsView.collection.length,t===0||t===e?(this.$('header .options input[name="filter"]').addClass("nonefound"),this.$("header small.optioncount").html("")):(this.$('header .options input[name="filter"]').removeClass("nonefound"),this.$("header small.optioncount").html(t+" of "+e)),this},i.prototype.update=function(e){return this.optionsView.collection.updateOptions(e)},i.prototype.reset=function(){return this.optionsView.collection.revert()},i}(u.Facet)})}.call(this),function(){s("facetviewmap",["require","views/facets/boolean","views/facets/date","views/facets/list"],function(e){return{BOOLEAN:e("views/facets/boolean"),DATE:e("views/facets/date"),LIST:e("views/facets/list")}})}.call(this),function(){s("hilib/managers/ajax",["require","jquery"],function(e){var t,n;return t=e("jquery"),t.support.cors=!0,n={token:!0},{token:null,get:function(e,t){return t==null&&(t={}),this.fire("get",e,t)},post:function(e,t){return t==null&&(t={}),this.fire("post",e,t)},put:function(e,t){return t==null&&(t={}),this.fire("put",e,t)},poll:function(e){var t,n,r,i,s=this;return i=e.url,r=e.testFn,t=e.done,n=function(){var e;return e=s.get({url:i}),e.done(function(e,i,s){return r(e)?t(e,i,s):setTimeout(n,5e3)})},n()},fire:function(e,r,i){var s,o=this;return i=t.extend({},n,i),s={type:e,dataType:"json",contentType:"application/json; charset=utf-8",processData:!1,crossDomain:!0},this.token!=null&&i.token&&(s.beforeSend=function(e){return e.setRequestHeader("Authorization","SimpleAuth "+o.token)}),t.ajax(t.extend(s,r))}}})}.call(this),function(){s("hilib/managers/token",["require","backbone","underscore","hilib/managers/pubsub"],function(e){var t,n,r,i;return t=e("backbone"),i=e("underscore"),n=e("hilib/managers/pubsub"),r=function(){function e(){i.extend(this,t.Events),i.extend(this,n)}return e.prototype.token=null,e.prototype.set=function(e){return this.token=e,sessionStorage.setItem("huygens_token",e)},e.prototype.get=function(){return this.token==null&&(this.token=sessionStorage.getItem("huygens_token")),this.token==null?!1:this.token},e.prototype.clear=function(){return sessionStorage.removeItem("huygens_token")},e}(),new r})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/searchresult",["require","hilib/managers/ajax","hilib/managers/token","config","models/base"],function(e){var n,r,i,s,o,u;return i=e("hilib/managers/ajax"),o=e("hilib/managers/token"),s=e("config"),n={Base:e("models/base")},r=function(e){function n(){return u=n.__super__.constructor.apply(this,arguments),u}return t(n,e),n.prototype.defaults=function(){return{_next:null,_prev:null,ids:[],numFound:null,results:[],rows:null,solrquery:"",sortableFields:[],start:null,term:""}},n.prototype.sync=function(e,t,n){var r,o=this;if(e==="read")return n.url!=null?this.getResults(n.url,n.success):(i.token=s.token,r=i.post({url:s.baseUrl+s.searchPath,data:n.data,dataType:"text"}),r.done(function(e,t,r){var i;if(r.status===201)return i=r.getResponseHeader("Location"),o.resultRows!=null&&(i+="?rows="+o.resultRows),o.getResults(i,n.success)}),r.fail(function(e,t,n){if(e.status===401)return o.publish("unauthorized")}))},n.prototype.getResults=function(e,t){var n,r=this;return i.token=s.token,n=i.get({url:e}),n.done(function(e,n,r){return t(e)}),n.fail(function(){return console.error("Failed getting FacetedSearch results from the server!")})},n}(n.Base)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("collections/searchresults",["require","hilib/mixins/pubsub","models/searchresult"],function(e){var i,s,o,u;return o=e("hilib/mixins/pubsub"),i=e("models/searchresult"),s=function(e){function n(){return u=n.__super__.constructor.apply(this,arguments),u}return r(n,e),n.prototype.model=i,n.prototype.initialize=function(){return t.extend(this,o),this.currentQueryOptions=null,this.cachedModels={},this.on("add",this.setCurrent,this)},n.prototype.setCurrent=function(e){return this.current=e,this.publish("change:results",e,this.currentQueryOptions)},n.prototype.runQuery=function(e){var t,n,r,s=this;return this.currentQueryOptions=e,this.currentQueryOptions.hasOwnProperty("resultRows")&&(n=this.currentQueryOptions.resultRows,delete this.currentQueryOptions.resultRows),t=JSON.stringify(this.currentQueryOptions),this.cachedModels.hasOwnProperty(t)?this.setCurrent(this.cachedModels[t]):(this.trigger("request"),r=new i,n!=null&&(r.resultRows=n),r.fetch({data:t,success:function(e,n,r){return s.cachedModels[t]=e,s.add(e)}}))},n.prototype.moveCursor=function(e){var t,n,r=this;if(n=this.current.get(e))return this.cachedModels.hasOwnProperty(n)?this.setCurrent(this.cachedModels[n]):(this.trigger("request"),t=new i,t.fetch({url:n,success:function(e,t,i){return r.cachedModels[n]=e,r.add(e)}}))},n}(n.Collection)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/main",["require","collections/searchresults"],function(e){var i,s,o;return s=e("collections/searchresults"),i=function(e){function n(){return o=n.__super__.constructor.apply(this,arguments),o}return r(n,e),n.prototype.defaults=function(){return{facetValues:[]}},n.prototype.initialize=function(e,t){var n=this;return this.queryOptions=e,this.searchResults=new s,this.on("change",function(e,t){return n.searchResults.runQuery(n.attributes)}),this.trigger("change")},n.prototype.set=function(e,r){var i;return e.facetValue!=null&&(i=t.reject(this.get("facetValues"),function(t){return t.name===e.facetValue.name}),e.facetValue.values.length&&i.push(e.facetValue),e.facetValues=i,delete e.facetValue),n.__super__.set.call(this,e,r)},n.prototype.reset=function(){return this.clear({silent:!0}),this.set(this.defaults(),{silent:!0}),this.set(this.queryOptions,{silent:!0}),this.trigger("change")},n}(n.Model)})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("models/search",["require","models/base"],function(e){var n,r,i;return n={Base:e("models/base")},r=function(e){function n(){return i=n.__super__.constructor.apply(this,arguments),i}return t(n,e),n.prototype.defaults=function(){return{term:"*",caseSensitive:!1,title:"Text search",name:"text_search"}},n.prototype.queryData=function(){var e;return e=this.attributes,delete e.name,delete e.title,e},n}(n.Base)})}.call(this),function(){var e={}.hasOwnProperty,n=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};s("views/search",["require","config","models/search","views/facets/main","tpls"],function(e){var r,i,s,o,u,a;return o=e("config"),r={Search:e("models/search")},s={Facet:e("views/facets/main")},u=e("tpls"),i=function(e){function i(){return a=i.__super__.constructor.apply(this,arguments),a}return n(i,e),i.prototype.className="facet search",i.prototype.initialize=function(e){var t=this;return i.__super__.initialize.apply(this,arguments),this.model=new r.Search(o.textSearchOptions),this.listenTo(this.model,"change",function(){return t.trigger("change",t.model.queryData())}),this.render()},i.prototype.render=function(){var e,t;return i.__super__.render.apply(this,arguments),t=u["faceted-search/facets/search.menu"]({model:this.model}),e=u["faceted-search/facets/search.body"]({model:this.model}),this.$(".options").html(t),this.$(".body").html(e),this},i.prototype.events=function(){return t.extend({},i.__super__.events.apply(this,arguments),{"click button":function(e){return e.preventDefault()},"click button.active":"search","keyup input":"activateSearchButton",'change input[type="checkbox"]':"checkboxChanged"})},i.prototype.checkboxChanged=function(e){var t,n,r,i,s,o;if(t=e.currentTarget.getAttribute("data-attr"))this.model.set(t,e.currentTarget.checked);else if(t=e.currentTarget.getAttribute("data-attr-array")){r=[],o=this.el.querySelectorAll('[data-attr-array="'+t+'"]');for(i=0,s=o.length;i<s;i++)n=o[i],n.checked&&r.push(n.getAttribute("data-value"));this.model.set(t,r)}return this.activateSearchButton(!0)},i.prototype.activateSearchButton=function(e){var t;return e==null&&(e=!1),e.hasOwnProperty("target")&&(e=!1),t=this.el.querySelector('input[name="search"]').value,t.length>1&&(this.model.get("term")!==t||e)?this.$("button").addClass("active"):this.$("button").removeClass("active")},i.prototype.search=function(e){var t,n;return e.preventDefault(),this.$("button").removeClass("active"),t=this.$('input[name="search"]'),t.addClass("loading"),n=this.el.querySelector('input[name="search"]').value,this.model.set("term",n)},i.prototype.update=function(){return this.$('input[name="search"]').removeClass("loading")},i}(s.Facet)})}.call(this),function(){var e={}.hasOwnProperty,r=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};i.config({baseUrl:"compiled/js",paths:{tpls:"../templates",jade:"../lib/jade/runtime"}}),s("main",["require","hilib/functions/general","hilib/mixins/pubsub","config","facetviewmap","models/main","views/base","views/search","views/facets/list","views/facets/boolean","views/facets/date","tpls"],function(i){var s,o,u,a,f,l,c,h,p;return o=i("hilib/functions/general"),c=i("hilib/mixins/pubsub"),f=i("config"),l=i("facetviewmap"),u={FacetedSearch:i("models/main")},a={Base:i("views/base"),TextSearch:i("views/search"),Facets:{List:i("views/facets/list"),Boolean:i("views/facets/boolean"),Date:i("views/facets/date")}},h=i("tpls"),s=function(n){function i(){return p=i.__super__.constructor.apply(this,arguments),p}return r(i,n),i.prototype.initialize=function(e){var n,r=this;return this.facetViews={},t.extend(this,c),t.extend(l,e.facetViewMap),delete e.facetViewMap,t.extend(f.facetNameMap,e.facetNameMap),delete e.facetNameMap,t.extend(f,e),n=t.extend(f.queryOptions,f.textSearchOptions),this.render(),this.subscribe("unauthorized",function(){return r.trigger("unauthorized")}),this.subscribe("change:results",function(e,t){return r.renderFacets(),r.trigger("results:change",e,t)}),this.model=new u.FacetedSearch(n),this.listenTo(this.model.searchResults,"request",function(){var e,t;return t=r.el.querySelector(".faceted-search"),e=r.el.querySelector(".overlay"),e.style.width=t.clientWidth+"px",e.style.height=t.clientHeight+"px",e.style.display="block"}),this.listenTo(this.model.searchResults,"sync",function(){var e;return e=r.el.querySelector(".overlay"),e.style.display="none"})},i.prototype.render=function(){var e,t,n=this;return e=h["faceted-search/main"](),this.$el.html(e),this.$(".loader").fadeIn("slow"),f.search&&(t=new a.TextSearch,this.$(".search-placeholder").html(t.$el),this.listenTo(t,"change",function(e){return n.model.set(e)}),this.facetViews.textSearch=t),this},i.prototype.renderFacets=function(t){var n,r,i,s,o,u,a,f=this;this.$(".loader").hide();if(this.model.searchResults.length===1){i=document.createDocumentFragment(),o=this.model.searchResults.current.get("facets");for(s in o){if(!e.call(o,s))continue;r=o[s],r.type in l?(n=l[r.type],this.facetViews[r.name]=new n({attrs:r}),this.listenTo(this.facetViews[r.name],"change",function(e){return f.model.set(e)}),i.appendChild(this.facetViews[r.name].el)):console.error("Unknown facetView",r.type)}return this.$(".facets").html(i)}this.facetViews.hasOwnProperty("textSearch")&&this.facetViews.textSearch.update(),u=this.model.searchResults.current.get("facets"),a=[];for(s in u){if(!e.call(u,s))continue;t=u[s],a.push(this.facetViews[t.name].update(t.options))}return a},i.prototype.next=function(){return this.model.searchResults.moveCursor("_next")},i.prototype.prev=function(){return this.model.searchResults.moveCursor("_prev")},i.prototype.hasNext=function(){return this.model.searchResults.current.has("_next")},i.prototype.hasPrev=function(){return this.model.searchResults.current.has("_prev")},i.prototype.reset=function(){var t,n,r;r=this.model.searchResults.last().get("facets");for(n in r){if(!e.call(r,n))continue;t=r[n],this.facetViews[t.name].reset&&this.facetViews[t.name].reset()}return this.model.reset()},i}(n.View)})}.call(this),s("jquery",function(){return e}),s("underscore",function(){return t}),s("backbone",function(){return n}),i("main")});
 define('hilib/templates',['jade'], function(jade) { if(jade && jade['runtime'] !== undefined) { jade = jade.runtime; }
 
 this["JST"] = this["JST"] || {};
@@ -6762,7 +7107,6 @@ if ( (title !== ''))
 buf.push("<h2>" + (jade.escape(null == (jade.interp = title) ? "" : jade.interp)) + "</h2>");
 }
 buf.push("<p class=\"message\"></p></header><div class=\"body\"></div>");
-console.log(title)
 if ( (cancelAndSubmit))
 {
 buf.push("<footer><button class=\"cancel\">" + (jade.escape(null == (jade.interp = cancelValue) ? "" : jade.interp)) + "</button><button class=\"submit\">" + (jade.escape(null == (jade.interp = submitValue) ? "" : jade.interp)) + "</button></footer>");
@@ -6920,6 +7264,12 @@ return this["JST"];
         },
         "click .overlay": function() {
           return this.cancel();
+        },
+        "keydown input": function(ev) {
+          if (ev.keyCode === 13) {
+            ev.preventDefault();
+            return this.trigger('submit');
+          }
         }
       };
 
@@ -7083,11 +7433,13 @@ return this["JST"];
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','collections/projects','views/base','faceted-search','hilib/views/modal/main','views/project/editselection','tpls'],function(require) {
-    var Collections, Fn, ProjectSearch, Views, config, token, tpls, _ref;
+  define('views/project/main',['require','hilib/functions/general','config','hilib/managers/token','models/currentUser','models/entry','collections/projects','views/base','faceted-search','hilib/views/modal/main','views/project/editselection','tpls'],function(require) {
+    var Collections, Entry, Fn, ProjectSearch, Views, config, currentUser, token, tpls, _ref;
     Fn = require('hilib/functions/general');
     config = require('config');
     token = require('hilib/managers/token');
+    currentUser = require('models/currentUser');
+    Entry = require('models/entry');
     Collections = {
       projects: require('collections/projects')
     };
@@ -7121,8 +7473,10 @@ return this["JST"];
       ProjectSearch.prototype.render = function() {
         var rtpl,
           _this = this;
-        rtpl = tpls['project/main'];
-        this.$el.html(rtpl());
+        rtpl = tpls['project/main']({
+          user: currentUser
+        });
+        this.$el.html(rtpl);
         this.editSelection = new Views.EditSelection({
           el: this.el.querySelector('.editselection-placeholder'),
           model: this.project
@@ -7264,20 +7618,23 @@ return this["JST"];
           width: '300px'
         });
         return modal.on('submit', function() {
-          var entries;
-          entries = _this.project.get('entries');
+          var entry;
           modal.message('success', 'Creating new entry...');
-          _this.listenToOnce(entries, 'add', function(entry) {
-            modal.close();
-            _this.publish('message', 'New entry added to project.');
-            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
-              trigger: true
-            });
-          });
-          return entries.create({
+          entry = new Entry({
             name: modal.$('input[name="name"]').val()
           }, {
-            wait: true
+            projectID: _this.project.id
+          });
+          return entry.save([], {
+            success: function(model) {
+              _this.stopListening();
+              _this.project.get('entries').add(model);
+              modal.close();
+              _this.publish('message', 'New entry added to project.');
+              return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+                trigger: true
+              });
+            }
           });
         });
       };
@@ -7735,7 +8092,7 @@ return this["JST"];
           options.removed = null;
         }
         return this.trigger('change', {
-          values: this.selected.pluck('id'),
+          collection: this.selected,
           added: options.added,
           removed: options.removed
         });
@@ -8179,91 +8536,6 @@ return this["JST"];
 }).call(this);
 
 (function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('models/user',['require','config','hilib/managers/ajax','hilib/managers/token','models/base'],function(require) {
-    var Models, User, ajax, config, token, _ref;
-    config = require('config');
-    ajax = require('hilib/managers/ajax');
-    token = require('hilib/managers/token');
-    Models = {
-      Base: require('models/base')
-    };
-    return User = (function(_super) {
-      __extends(User, _super);
-
-      function User() {
-        _ref = User.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      User.prototype.urlRoot = function() {
-        return config.baseUrl + "users";
-      };
-
-      User.prototype.defaults = function() {
-        return {
-          username: '',
-          email: '',
-          firstName: '',
-          lastName: '',
-          role: 'USER',
-          password: ''
-        };
-      };
-
-      User.prototype.sync = function(method, model, options) {
-        var jqXHR,
-          _this = this;
-        if (method === 'create') {
-          ajax.token = token.get();
-          jqXHR = ajax.post({
-            url: this.url(),
-            dataType: 'text',
-            data: JSON.stringify(model.toJSON())
-          });
-          jqXHR.done(function(data, textStatus, jqXHR) {
-            var url, xhr;
-            if (jqXHR.status === 201) {
-              url = jqXHR.getResponseHeader('Location');
-              xhr = ajax.get({
-                url: url
-              });
-              return xhr.done(function(data, textStatus, jqXHR) {
-                _this.trigger('sync');
-                return options.success(data);
-              });
-            }
-          });
-          return jqXHR.fail(function(response) {
-            return console.log('fail', response);
-          });
-        } else if (method === 'update') {
-          ajax.token = token.get();
-          jqXHR = ajax.put({
-            url: this.url(),
-            data: JSON.stringify(model.toJSON())
-          });
-          jqXHR.done(function(response) {
-            return _this.trigger('sync');
-          });
-          return jqXHR.fail(function(response) {
-            return console.log('fail', response);
-          });
-        } else {
-          return User.__super__.sync.apply(this, arguments);
-        }
-      };
-
-      return User;
-
-    })(Models.Base);
-  });
-
-}).call(this);
-
-(function() {
 
 
 }).call(this);
@@ -8274,38 +8546,7 @@ define("collections/project/users", function(){});
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define('collections/users',['require','config','collections/base'],function(require) {
-    var Collections, Users, config, _ref;
-    config = require('config');
-    Collections = {
-      Base: require('collections/base')
-    };
-    return Users = (function(_super) {
-      __extends(Users, _super);
-
-      function Users() {
-        _ref = Users.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      Users.prototype.url = function() {
-        return "" + config.baseUrl + "users";
-      };
-
-      Users.prototype.comparator = 'title';
-
-      return Users;
-
-    })(Collections.Base);
-  });
-
-}).call(this);
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  define('views/project/settings',['require','config','hilib/managers/async','hilib/managers/ajax','hilib/managers/token','entry.metadata','views/base','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','hilib/views/modal/main','models/project/statistics','models/project/settings','models/user','collections/projects','collections/project/annotationtypes','collections/project/users','collections/users','project.user.ids','tpls'],function(require) {
+  define('views/project/settings',['require','config','hilib/managers/async','hilib/managers/ajax','hilib/managers/token','entry.metadata','views/base','hilib/views/form/editablelist/main','hilib/views/form/combolist/main','hilib/views/form/main','hilib/views/modal/main','models/project/statistics','models/project/settings','models/user','models/project/annotationtype','collections/projects','collections/project/annotationtypes','collections/project/users','collections/users','project.user.ids','tpls'],function(require) {
     var Async, Collections, EntryMetadata, Models, ProjectSettings, ProjectUserIDs, Views, ajax, config, token, tpls, _ref;
     config = require('config');
     Async = require('hilib/managers/async');
@@ -8322,7 +8563,8 @@ define("collections/project/users", function(){});
     Models = {
       Statistics: require('models/project/statistics'),
       Settings: require('models/project/settings'),
-      User: require('models/user')
+      User: require('models/user'),
+      Annotationtype: require('models/project/annotationtype')
     };
     Collections = {
       projects: require('collections/projects'),
@@ -8348,15 +8590,7 @@ define("collections/project/users", function(){});
         return Collections.projects.getCurrent(function(project) {
           _this.project = project;
           _this.model = _this.project.get('settings');
-          _this.allusers = new Collections.Users();
-          return _this.allusers.fetch({
-            success: function(collection) {
-              _this.project.set('members', new Collections.Users(collection.filter(function(model) {
-                return _this.project.get('userIDs').indexOf(model.id) > -1;
-              })));
-              return _this.render();
-            }
-          });
+          return _this.render();
         });
       };
 
@@ -8368,6 +8602,7 @@ define("collections/project/users", function(){});
         });
         this.$el.html(rtpl);
         this.renderTabs();
+        this.renderAnnotationtypeTab();
         this.renderUserTab();
         this.loadStatistics();
         if (this.options.tabName) {
@@ -8377,7 +8612,7 @@ define("collections/project/users", function(){});
       };
 
       ProjectSettings.prototype.renderTabs = function() {
-        var EntryMetadataList, rtpl, textLayerList,
+        var EntryMetadataList, textLayerList,
           _this = this;
         textLayerList = new Views.EditableList({
           value: this.project.get('textLayers'),
@@ -8435,66 +8670,93 @@ define("collections/project/users", function(){});
             }
           });
         });
-        this.$('div[data-tab="metadata-entries"]').append(EntryMetadataList.el);
-        rtpl = tpls['project/settings/metadata_annotations']({
-          annotationTypes: this.project.get('annotationtypes')
+        return this.$('div[data-tab="metadata-entries"]').append(EntryMetadataList.el);
+      };
+
+      ProjectSettings.prototype.renderAnnotationtypeTab = function() {
+        var annotationTypes, combolist, form,
+          _this = this;
+        annotationTypes = this.project.get('annotationtypes');
+        combolist = new Views.ComboList({
+          value: annotationTypes,
+          config: {
+            data: this.project.allannotationtypes,
+            settings: {
+              placeholder: 'Add annotation type'
+            }
+          }
         });
-        return this.$('div[data-tab="metadata-annotations"]').html(rtpl);
+        this.$('div[data-tab="annotationtypes"] .annotationtypelist').append(combolist.el);
+        form = new Views.Form({
+          Model: Models.Annotationtype,
+          tpl: tpls['project/settings/addannotationtype']
+        });
+        this.$('div[data-tab="annotationtypes"] .addannotationtype').append(form.el);
+        this.listenTo(combolist, 'change', function(changes) {
+          var annotationType, name;
+          if (changes.added != null) {
+            annotationType = changes.collection.get(changes.added);
+            return _this.project.addAnnotationType(annotationType, function() {
+              return _this.publish('message', "Added " + (annotationType.get('name')) + " to " + (_this.project.get('title')) + ".");
+            });
+          } else if (changes.removed != null) {
+            name = _this.project.allannotationtypes.get(changes.removed).get('name');
+            return _this.project.removeAnnotationType(changes.removed, function() {
+              return _this.publish('message', "Removed " + name + " from " + (_this.project.get('title')) + ".");
+            });
+          }
+        });
+        this.listenTo(form, 'save:success', function(model) {
+          return _this.project.get('annotationtypes').add(model);
+        });
+        return this.listenTo(form, 'save:error', function(model, xhr, options) {
+          return _this.publish('message', xhr.responseText);
+        });
       };
 
       ProjectSettings.prototype.renderUserTab = function() {
-        var combolist, form,
+        var combolist, form, members,
           _this = this;
+        members = this.project.get('members');
         combolist = new Views.ComboList({
-          value: this.project.get('members'),
+          value: members,
           config: {
-            data: this.allusers,
+            data: this.project.allusers,
             settings: {
               placeholder: 'Add member'
             }
           }
-        });
-        this.listenTo(combolist, 'change', function(changes) {
-          var id, message, name;
-          id = changes.added != null ? changes.added : changes.removed;
-          name = _this.allusers.get(id).get('firstName');
-          if (name.length === 0) {
-            name = _this.allusers.get(id).get('lastName');
-          }
-          if (name.length === 0) {
-            name = 'user';
-          }
-          message = changes.added != null ? "Added " + name + " to " + (_this.project.get('title')) + "." : "Removed " + name + " from " + (_this.project.get('title')) + ".";
-          return new ProjectUserIDs(_this.project.id).save(changes.values, {
-            success: function() {
-              return _this.publish('message', message);
-            }
-          });
         });
         this.$('div[data-tab="users"] .userlist').append(combolist.el);
         form = new Views.Form({
           Model: Models.User,
           tpl: tpls['project/settings/adduser']
         });
-        this.listenTo(form, 'save:success', function(model, response, options) {
-          var jqXHR;
-          ajax.token = token.get();
-          jqXHR = ajax.put({
-            url: config.baseUrl + ("projects/" + (_this.project.get('name')) + "/projectusers/" + model.id),
-            dataType: 'text'
-          });
-          return jqXHR.done(function() {
-            return combolist.addSelected(model);
-          });
+        this.$('div[data-tab="users"] .adduser').append(form.el);
+        this.listenTo(combolist, 'change', function(changes) {
+          var shortName, user;
+          if (changes.added != null) {
+            user = changes.collection.get(changes.added);
+            return _this.project.addUser(user, function() {
+              return _this.publish('message', "Added " + (user.getShortName()) + " to " + (_this.project.get('title')) + ".");
+            });
+          } else if (changes.removed != null) {
+            user = _this.project.allusers.get(changes.removed);
+            shortName = user.getShortName();
+            return _this.project.removeUser(changes.removed, function() {
+              return _this.publish('message', "Removed " + shortName + " from " + (_this.project.get('title')) + ".");
+            });
+          }
         });
-        this.listenTo(form, 'save:error', function(a, b, c) {
-          return console.log('erro', a, b, c);
+        this.listenTo(form, 'save:success', function(model) {
+          return _this.project.get('members').add(model);
         });
-        return this.$('div[data-tab="users"] .adduser').append(form.el);
+        return this.listenTo(form, 'save:error', function(model, xhr, options) {
+          return _this.publish('message', xhr.responseText);
+        });
       };
 
       ProjectSettings.prototype.events = {
-        'click input[name="addannotationtype"]': 'addAnnotationType',
         'click li[data-tab]': 'showTab',
         'change div[data-tab="project"] input': 'updateModel',
         'change div[data-tab="project"] select': 'updateModel',
@@ -8529,11 +8791,6 @@ define("collections/project/users", function(){});
         Backbone.history.navigate(Backbone.history.fragment.substr(0, index) + '/settings/' + tabName);
         this.$(".active[data-tab]").removeClass('active');
         return this.$("[data-tab='" + tabName + "']").addClass('active');
-      };
-
-      ProjectSettings.prototype.addAnnotationType = function(ev) {
-        ev.preventDefault();
-        return console.log('NOT IMPLEMENTED');
       };
 
       ProjectSettings.prototype.loadStatistics = function() {
@@ -8791,8 +9048,6 @@ define("collections/project/users", function(){});
         return _ref;
       }
 
-      AddAnnotationTooltip.prototype.id = 'annotationtooltip';
-
       AddAnnotationTooltip.prototype.className = "tooltip addannotation";
 
       AddAnnotationTooltip.prototype.events = function() {
@@ -8810,14 +9065,13 @@ define("collections/project/users", function(){});
         var _ref1;
         AddAnnotationTooltip.__super__.initialize.apply(this, arguments);
         this.container = (_ref1 = this.options.container) != null ? _ref1 : document.querySelector('body');
-        this.boundingBox = Fn.boundingBox(this.container);
         return this.render();
       };
 
       AddAnnotationTooltip.prototype.render = function() {
         var tooltip;
         this.$el.html(tpls['entry/tooltip.add.annotation']());
-        tooltip = document.getElementById('annotationtooltip');
+        tooltip = tooltip = document.querySelector('.tooltip.addannotation');
         if (tooltip != null) {
           tooltip.remove();
         }
@@ -8827,29 +9081,28 @@ define("collections/project/users", function(){});
 
       AddAnnotationTooltip.prototype.show = function(position) {
         this.setPosition(position);
-        return this.$el.fadeIn('fast');
+        return this.el.classList.add('active');
       };
 
       AddAnnotationTooltip.prototype.hide = function() {
-        return this.el.style.display = 'none';
+        return this.el.classList.remove('active');
       };
 
       AddAnnotationTooltip.prototype.setPosition = function(position) {
-        var left, top;
+        var boundingBox, left, top;
+        boundingBox = Fn.boundingBox(this.container);
+        position.left = position.left - boundingBox.left;
+        position.top = position.top - boundingBox.top;
         this.$el.removeClass('tipright tipleft tipbottom');
         left = position.left - this.$el.width() / 2;
         top = position.top + 30;
-        if (this.boundingBox.left > left) {
-          left = this.boundingBox.left + 10;
+        if (left < 10) {
+          left = 10;
           this.$el.addClass('tipleft');
         }
-        if (this.boundingBox.right < (left + this.$el.width())) {
-          left = this.boundingBox.right - this.$el.width() - 10;
+        if (boundingBox.width < (left + this.$el.width())) {
+          left = boundingBox.width - this.$el.width() - 10;
           this.$el.addClass('tipright');
-        }
-        if (this.boundingBox.bottom < top + this.$el.height()) {
-          top = top - 60 - this.$el.height();
-          this.$el.addClass('tipbottom');
         }
         this.$el.css('left', left);
         return this.$el.css('top', top);
@@ -8886,8 +9139,6 @@ define("collections/project/users", function(){});
 
       Tooltip.prototype.className = 'tooltip editannotation';
 
-      Tooltip.prototype.id = "annotationtooltip";
-
       Tooltip.prototype.initialize = function() {
         var _ref1;
         Tooltip.__super__.initialize.apply(this, arguments);
@@ -8898,7 +9149,7 @@ define("collections/project/users", function(){});
       Tooltip.prototype.render = function() {
         var tooltip;
         this.$el.html(tpls['ui/tooltip']());
-        tooltip = document.getElementById('annotationtooltip');
+        tooltip = document.querySelector('.tooltip.editannotation');
         if (tooltip != null) {
           tooltip.remove();
         }
@@ -8961,7 +9212,6 @@ define("collections/project/users", function(){});
         var boundingBox, left, pane, scrollBottomPos, tooltipBottomPos, top;
         boundingBox = Fn.boundingBox(this.container);
         this.$el.removeClass('tipright tipleft tipbottom');
-        console.log('setPos', this.el.offsetWidth);
         left = (this.pointedEl.offsetWidth / 2) + position.left - (this.$el.width() / 2);
         top = position.top + 30;
         if (left < 10) {
@@ -9114,8 +9364,10 @@ define("collections/project/users", function(){});
 
       TranscriptionPreview.prototype.supClicked = function(ev) {
         var annotation, id;
+        if (this.currentTranscription.get('annotations') == null) {
+          return console.error('No annotations found!');
+        }
         id = ev.currentTarget.getAttribute('data-id');
-        console.log(this.currentTranscription.get('annotations'));
         annotation = id === 'newannotation' ? this.newAnnotation : this.currentTranscription.get('annotations').findWhere({
           annotationNo: id >> 0
         });
@@ -9137,7 +9389,7 @@ define("collections/project/users", function(){});
         var isInsideMarker, range, sel,
           _this = this;
         sel = document.getSelection();
-        if (sel.rangeCount === 0 || ev.target.tagName === 'SUP') {
+        if (sel.rangeCount === 0 || ev.target.tagName === 'SUP' || ev.target.tagName === 'BUTTON') {
           this.addAnnotationTooltip.hide();
           return false;
         }
@@ -10799,11 +11051,9 @@ define("collections/project/users", function(){});
 
       Header.prototype.render = function() {
         var rtpl;
-        console.log;
         rtpl = tpls['ui/header']({
-          _: _,
           projects: Collections.projects,
-          user: Models.currentUser.attributes
+          user: Models.currentUser
         });
         this.$el.html(rtpl);
         return this;
@@ -11094,7 +11344,6 @@ define("classList", function(){});
   require.config({
     paths: {
       'jquery': '../lib/jquery/jquery',
-      'text': '../lib/requirejs-text/text',
       'underscore': '../lib/underscore-amd/underscore',
       'backbone': '../lib/backbone-amd/backbone',
       'domready': '../lib/requirejs-domready/domReady',
@@ -11114,7 +11363,7 @@ define("classList", function(){});
         exports: 'Backbone'
       },
       'faceted-search': {
-        deps: ['backbone', 'text']
+        deps: ['backbone']
       }
     }
   });

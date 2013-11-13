@@ -40,7 +40,6 @@ define (require) ->
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
 			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes']
 			@listenToOnce async, 'ready', => @render()
-				
 
 			Collections.projects.getCurrent (@project) => 
 				@project.get('entries').fetch
@@ -141,7 +140,7 @@ define (require) ->
 				@listenTo @annotationEditor, 'cancel', =>
 					@preview.removeNewAnnotationTags()
 					@renderTranscription()
-				@listenTo @annotationEditor, 'newannotation:saved', (annotation) => 
+				@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
 					@currentTranscription.get('annotations').add annotation
 					@publish 'message', "New annotation added."
 			else

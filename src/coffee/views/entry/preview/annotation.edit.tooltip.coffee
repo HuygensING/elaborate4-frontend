@@ -11,7 +11,7 @@ define (require) ->
 
 		className: 'tooltip editannotation'
 
-		id: "annotationtooltip"
+		# id: "annotationtooltip"
 
 		# ### Initialize
 		initialize: ->
@@ -27,7 +27,7 @@ define (require) ->
 
 			# There can be only one!
 			# $('#annotationtooltip').remove() 
-			tooltip = document.getElementById('annotationtooltip')
+			tooltip = document.querySelector('.tooltip.editannotation')
 			tooltip.remove() if tooltip?
 
 			dom(@container).prepend @el

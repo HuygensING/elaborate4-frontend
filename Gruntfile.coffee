@@ -237,7 +237,7 @@ module.exports = (grunt) ->
 						'jquery': '../lib/jquery/jquery.min'
 						'underscore': '../lib/underscore-amd/underscore'
 						'backbone': '../lib/backbone-amd/backbone'
-						# 'text': '../lib/requirejs-text/text'
+						'text': '../lib/requirejs-text/text'
 						'domready': '../lib/requirejs-domready/domReady'
 						'faceted-search': '../lib/faceted-search/stage/js/main'
 						'jade': '../lib/jade/runtime'
@@ -322,7 +322,7 @@ module.exports = (grunt) ->
 		'replace:html' # Copy and replace index.html
 		'cssmin:dist'
 		'requirejs:compile' # Run r.js
-		# 'shell:rsync' # Rsync to test server
+		'shell:rsync' # Rsync to test server
 	]
 
 	grunt.registerTask 's', 'server'

@@ -36,9 +36,9 @@ define (require) ->
 				projects.fetch()
 				projects.getCurrent (current) ->
 					# Place header
-					header = new Views.Header
-						project: current
-					$('#container').prepend header.render().$el
+					# header = new Views.Header
+					# 	project: current
+					# 	el: document.querySelector('#container > header')
 
 					# Route to correct url
 					url = history.last() ? 'projects/'+projects.current.get('name')

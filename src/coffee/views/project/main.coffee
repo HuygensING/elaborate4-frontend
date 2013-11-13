@@ -14,6 +14,8 @@ define (require) ->
 
 	# Tplzz = require 'text!hilib/views/modal/main.html'
 
+	Entry = require 'models/entry'
+
 	Collections = 
 		projects: require 'collections/projects'
 
@@ -158,16 +160,26 @@ define (require) ->
 				submitValue: 'Create entry'
 				width: '300px'
 			modal.on 'submit', =>
-				entries = @project.get('entries')
-				
 				modal.message 'success', 'Creating new entry...'
 				
-				@listenToOnce entries, 'add', (entry) =>
-					modal.close()
-					@publish 'message', 'New entry added to project.'
-					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
+				# @listenToOnce entries, 'add', (entry) =>
 
-				entries.create {name: modal.$('input[name="name"]').val()}, wait: true
+				entry = new Entry
+					name: modal.$('input[name="name"]').val()
+				,
+					projectID: @project.id
+
+				entry.save [], 
+					success: (model) =>
+						# When we navigate, the current enty will change. This view listens to entries current:change and navigates
+						# so we have to stop listening before we navigate and change the current entry.
+						@stopListening()
+						@project.get('entries').add model
+						modal.close()
+						@publish 'message', 'New entry added to project.'
+						Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
+
+				# entries.create {name: modal.$('input[name="name"]').val()}, wait: true
 
 		changePage: (ev) ->
 			cl = ev.currentTarget.classList
@@ -194,3 +206,8 @@ define (require) ->
 		# ### Methods
 
 		uncheckCheckboxes: -> Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
+
+		destroy: ->
+			console.log 'destroy'
+			@facetedSearch.remove()
+			@remove()

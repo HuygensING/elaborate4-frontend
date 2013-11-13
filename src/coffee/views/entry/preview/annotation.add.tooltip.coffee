@@ -12,14 +12,14 @@ define (require) ->
 
 	class AddAnnotationTooltip extends BaseView
 
-		id: 'annotationtooltip'
+		# id: 'annotationtooltip'
 
 		className: "tooltip addannotation"
 
 		events: ->
 			'click button': 'buttonClicked'
 
-		buttonClicked: (ev) -> 
+		buttonClicked: (ev) ->
 			@hide()
 			@trigger 'clicked', new Annotation()
 
@@ -27,7 +27,7 @@ define (require) ->
 			super
 
 			@container = @options.container ? document.querySelector 'body'
-			@boundingBox = Fn.boundingBox @container
+			# @boundingBox = Fn.boundingBox @container
 
 			@render()
 
@@ -35,7 +35,7 @@ define (require) ->
 			@$el.html tpls['entry/tooltip.add.annotation']()
 
 			# There can be only one!
-			tooltip = document.getElementById('annotationtooltip')
+			tooltip = tooltip = document.querySelector('.tooltip.addannotation')
 			tooltip.remove() if tooltip?
 
 			# console.log @container
@@ -52,28 +52,65 @@ define (require) ->
 		show: (position) ->
 			@setPosition position
 
-			@$el.fadeIn 'fast'
+			@el.classList.add 'active'
 
 		# Hide the tooltip
-		hide: -> @el.style.display = 'none'
+		hide: -> @el.classList.remove 'active'
+
+		# setPosition: (position) ->
+		# 	boundingBox = Fn.boundingBox @container
+
+		# 	@$el.removeClass 'tipright tipleft tipbottom'
+
+		# 	# console.log 'setPos', @el.offsetWidth
+
+		# 	# left = half of the element pointed to PLUS the left position of the element pointed to MINUS half the width of the tooltip
+		# 	left = (@pointedEl.offsetWidth/2) + position.left - (@$el.width()/2)
+		# 	# top = top position of the element pointed to PLUS an arbitrary offset/margin
+		# 	top = position.top + 30
+
+
+		# 	if left < 10
+		# 		left = 10
+		# 		@$el.addClass 'tipleft'
+
+		# 	if boundingBox.width < (left + @$el.width())
+		# 		left = boundingBox.width - @$el.width() - 10
+		# 		@$el.addClass 'tipright'
+
+		# 	tooltipBottomPos = top + @$el.height()
+		# 	pane = document.querySelector('.container .right-pane')
+		# 	scrollBottomPos = pane.scrollTop + pane.clientHeight
+
+		# 	if tooltipBottomPos > scrollBottomPos
+		# 		top = top - 48 - @$el.height()
+		# 		@$el.addClass 'tipbottom'
+
+		# 	@$el.css 'left', left
+		# 	@$el.css 'top', top
 
 		setPosition: (position) ->
+			boundingBox = Fn.boundingBox @container
+
+			position.left = position.left - boundingBox.left
+			position.top = position.top - boundingBox.top
+
 			@$el.removeClass 'tipright tipleft tipbottom'
 
 			left = position.left - @$el.width() / 2
 			top = position.top + 30
 
-			if @boundingBox.left > left
-				left = @boundingBox.left + 10
+			if left < 10
+				left = 10
 				@$el.addClass 'tipleft'
 
-			if @boundingBox.right < (left + @$el.width())
-				left = @boundingBox.right - @$el.width() - 10
+			if boundingBox.width < (left + @$el.width())
+				left = boundingBox.width - @$el.width() - 10
 				@$el.addClass 'tipright'
 
-			if @boundingBox.bottom < top + @$el.height()
-				top = top - 60 - @$el.height()
-				@$el.addClass 'tipbottom'
+			# if boundingBox.bottom < top + @$el.height()
+			# 	top = top - 60 - @$el.height()
+			# 	@$el.addClass 'tipbottom'
 
 			@$el.css 'left', left
 			@$el.css 'top', top

@@ -2,8 +2,8 @@ define (require) ->
 
 	config = require 'config'
 
-	# ajax = require 'hilib/managers/ajax'
-	# token = require 'hilib/managers/token'
+	ajax = require 'hilib/managers/ajax'
+	token = require 'hilib/managers/token'
 
 	syncOverride = require 'hilib/mixins/model.sync'
 
@@ -17,13 +17,15 @@ define (require) ->
 
 	class Entry extends Models.Base
 
+		urlRoot: -> config.baseUrl + "projects/#{@projectID}/entries"
+
 		defaults: ->
 			name: ''
 			publishable: false
 
-		initialize: ->
+		initialize: (attrs, options={}) ->
 			super
-
+			@projectID = options.projectID if options.projectID?
 			_.extend @, syncOverride
 
 		set: (attrs, options) ->
@@ -53,23 +55,55 @@ define (require) ->
 			@get('settings').set clone.get('settings').toJSON()
 
 		parse: (attrs) ->
-			attrs.transcriptions = new Collections.Transcriptions [], 
-				projectId: @collection.projectId
-				entryId: attrs.id
-				
-			attrs.settings = new Models.Settings [], 
-				projectId: @collection.projectId
-				entryId: attrs.id
+			if @collection?
+				attrs.transcriptions = new Collections.Transcriptions [], 
+					projectId: @collection.projectId
+					entryId: attrs.id
+					
+				attrs.settings = new Models.Settings [], 
+					projectId: @collection.projectId
+					entryId: attrs.id
 
-			attrs.facsimiles = new Collections.Facsimiles [], 
-				projectId: @collection.projectId
-				entryId: attrs.id
+				attrs.facsimiles = new Collections.Facsimiles [], 
+					projectId: @collection.projectId
+					entryId: attrs.id
 
 			attrs
 
+		# sync: (method, model, options) ->
+		# 	if method is 'create' or method is 'update'
+		# 		options.attributes = ['name', 'publishable']
+		# 		@syncOverride method, model, options
+		# 	else
+		# 		super
+
 		sync: (method, model, options) ->
-			if method is 'create' or method is 'update'
-				options.attributes = ['name', 'publishable']
-				@syncOverride method, model, options
+			data = JSON.stringify
+				name: @get 'name'
+				publishable: @get 'publishable'
+
+			if method is 'create'
+				jqXHR = ajax.post
+					url: @url()
+					data: data
+					dataType: 'text'
+
+				jqXHR.done (data, textStatus, jqXHR) =>
+					if jqXHR.status is 201
+						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
+						xhr.done (data, textStatus, jqXHR) =>
+							options.success data
+						xhr.fail => console.log arguments
+
+				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+
+			else if method is 'update'
+				ajax.token = token.get()
+				jqXHR = ajax.put
+					url: @url()
+					data: data
+				jqXHR.done (response) => options.success response
+				jqXHR.fail (response) => console.log 'fail', response
+
 			else
 				super

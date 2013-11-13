@@ -15,27 +15,42 @@ define (require) ->
 		ProjectSettings: require 'views/project/settings'
 		ProjectHistory: require 'views/project/history'
 		Entry: require 'views/entry/main'
+		Header: require 'views/ui/header'
 
 	class MainRouter extends Backbone.Router
 
 		initialize: ->
 			_.extend @, Pubsub
 
-			@on 'route', -> history.update()
+			@on 'route', =>
+				# @renderHeader() if @project?
+				history.update()
 
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
-			Collections.projects.getCurrent =>
-				@listenTo Collections.projects, 'current:change', (project) =>
+			Collections.projects.getCurrent (@project) =>
+				viewManager.show 'header.main', Views.Header,
+					project: @project
+					prepend: true
+					persist: true
+				
+				@listenTo Collections.projects, 'current:change', (@project) =>
 					# Clear cache when we switch project
 					viewManager.clearCache()
-					@navigate "projects/#{project.get('name')}", trigger: true
+					# @renderHeader()
+					@navigate "projects/#{@project.get('name')}", trigger: true
 
 		manageView: (View, options) -> viewManager.show 'div#main', View, options
 
-		'routes':
-			'': 'project'
+		# renderHeader: ->
+			# console.log document.querySelector('#container > header')
+			# header = new Views.Header
+
+
+
+		routes:
+			'': 'projectMain'
 			'login': 'login'
-			'projects/:name': 'project'
+			'projects/:name': 'projectMain'
 			'projects/:name/settings/:tab': 'projectSettings'
 			'projects/:name/settings': 'projectSettings'
 			'projects/:name/history': 'projectHistory'
@@ -49,7 +64,7 @@ define (require) ->
 		login: ->
 			@manageView Views.Login
 
-		project: (name) ->
+		projectMain: (name) ->
 			@manageView Views.ProjectMain
 
 		projectSettings: (name, tab) ->
