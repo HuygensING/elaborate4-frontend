@@ -208,6 +208,5 @@ define (require) ->
 		uncheckCheckboxes: -> Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
 
 		destroy: ->
-			console.log 'destroy'
 			@facetedSearch.remove()
 			@remove()
