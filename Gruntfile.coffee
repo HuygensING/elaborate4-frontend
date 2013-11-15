@@ -61,7 +61,7 @@ module.exports = (grunt) ->
 			bowerinstall:
 				command: 'bower install'
 			groc:
-				command: 'groc "src/coffee/**/*.coffee" --out=compiled/docs'
+				command: 'groc'
 
 		createSymlinks:
 			compiled: [
@@ -222,6 +222,10 @@ module.exports = (grunt) ->
 					bare: false # UglyHack: set a property to its default value to be able to call coffee:compile
 
 		### OTHER ###
+		
+		plato:
+			run:
+				files: 'compiled/plato': ['compiled/js/**/*.js']
 
 		requirejs:
 			compile:
@@ -296,12 +300,14 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-concat'
 	grunt.loadNpmTasks 'grunt-contrib-connect'
 	grunt.loadNpmTasks 'grunt-shell'
+	grunt.loadNpmTasks 'grunt-plato'
 	grunt.loadNpmTasks 'grunt-text-replace'
 
-	grunt.registerTask('default', ['shell:mocha']);
+	grunt.registerTask 'default', ['shell:mocha']
 
 	# Generate docs
 	grunt.registerTask 'd', ['shell:groc']
+	grunt.registerTask 'docs', ['shell:groc']
 
 	grunt.registerTask 'c', 'compile'
 	grunt.registerTask 'compile', [
@@ -313,6 +319,8 @@ module.exports = (grunt) ->
 		'jade:compile'
 		'stylus:compile'
 		'concat:css'
+		'docs'
+		'plato'
 	]
 
 	grunt.registerTask 'b', 'build'
