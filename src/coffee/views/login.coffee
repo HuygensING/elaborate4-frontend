@@ -17,9 +17,10 @@ define (require) ->
 		submit: (ev) ->
 			ev.preventDefault()
 
-			currentUser.login @$('#username').val(), @$('#password').val()
+			@el.querySelector('li.login').style.display = 'none'
+			@el.querySelector('li.loggingin').style.display = 'inline-block'
 
-			# @publish 'navigate:project'
+			currentUser.login @$('#username').val(), @$('#password').val()
 
 		initialize: ->
 			super

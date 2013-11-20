@@ -137,22 +137,31 @@ define (require) ->
 				console.log a, b, c
 				console.error 'fetchEntrymetadatafields failed!'
 				
-		createDraft: (cb) ->
+		publishDraft: (cb) ->
 			ajax.token = token.get()
 			jqXHR = ajax.post
 				url: config.baseUrl+"projects/#{@id}/draft"
 				dataType: 'text'
-			jqXHR.done => ajax.poll
-				url: jqXHR.getResponseHeader('Location')
+			jqXHR.done =>
+				locationUrl = jqXHR.getResponseHeader('Location')
+				localStorage.setItem 'publishDraftLocation', locationUrl
+				@pollDraft locationUrl, cb
+			jqXHR.fail => console.log arguments
+
+		pollDraft: (url, done) ->
+			ajax.poll
+				url: url
 				testFn: (data) => data.done
 				done: (data, textStatus, jqXHR) =>
-					settings = @get('settings')
-					settings.set 'publicationURL', data.url
-					settings.save null,
-						success: =>
-							@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
-							cb()
-			jqXHR.fail => console.log arguments
+					localStorage.removeItem 'publishDraftLocation'
+					@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
+					done()
+					# # TODO: Move setting of publicationURL to server. If user leaves the page while publishing,
+					# # the publicationURL isnt stored.
+					# settings = @get('settings')
+					# settings.set 'publicationURL', data.url
+					# settings.save null,
+					# 	success: =>
 
 		saveTextlayers: (done) ->
 			ajax.token = token.get()

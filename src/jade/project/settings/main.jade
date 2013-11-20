@@ -4,9 +4,9 @@
 	ul.horizontal.tab.menu
 		li.active(data-tab="project") Project
 		li(data-tab="textlayers") Text layers
-		li(data-tab="metadata-entries") Entry metadata
+		li(data-tab="metadata-entries") Entries
 		//- li(data-tab="metadata-annotations") Annotation types
-		li(data-tab="annotationtypes") Annotation types
+		li(data-tab="annotationtypes") Annotations
 		li(data-tab="users") Users 
 
 	.active(data-tab="project")
@@ -41,9 +41,22 @@
 							label(for="version") Version
 							input(type="text", name="version", value=settings.Version, data-attr="Version")
 						if settings.publicationURL.length > 0
+							li(style="margin-top: 20px")
+								strong Publication
 							li
-								label Publication
+								label URL
 								a(href=settings.publicationURL, data-bypass) link
+							li
+								label Title
+								input(type="text", value=settings['publication.title'], name="publication.title", data-attr="publication.title")
+							li
+								label(for="text.font") Font
+								select(name="text.font", data-attr="text.font")
+									option(value="junicode", selected=settings['text.font']=='junicode') Junicode
+									option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
+									option(value="gentium", selected=settings['text.font']=='gentium') Gentium
+									option(value="alexander", selected=settings['text.font']=='alexander') Alexander
+									option(value="newathena", selected=settings['text.font']=='newathena') New Athena
 						li(style="margin-top: 20px")
 							input.inactive(type="submit", name="savesettings", value="Save settings")
 			.cell.span1
@@ -55,7 +68,21 @@
 		h3 Edit text layers
 
 	div(data-tab="metadata-entries")
-		h3 Edit entry metadata fields
+		.row.span2
+			.cell.span1.entrylist
+				h3 Edit entry metadata fields
+			.cell.span1.setnames
+					h3 Set entry name
+					form
+						ul
+							li
+								label Singular
+								input(type="text", name="entry.term_singular", value=settings['entry.term_singular'], placeholder="entry")
+							li
+								label Plural
+								input(type="text", name="entry.term_plural", value=settings['entry.term_plural'], placeholder="entries")
+							li
+								input.inactive(type="submit", value="Save settings")
 		
 		
 	//- div(data-tab="metadata-annotations")
@@ -64,8 +91,46 @@
 		.row.span3
 			.cell.span1.annotationtypelist
 				h3 Annotation types
-			.cell.span2.addannotationtype
+			.cell.span1.addannotationtype
 				h3 Add annotation type to project
+			.cell.span1.setnames
+				h3 Set custom names for tags
+				form
+					ul
+						li
+							b Bold
+						li
+							label Name
+							input(type="text", name="annotationType.b.name", value=settings['annotationType.b.name'])
+						li.description
+							label Description
+							input(type="text", name="annotationType.b.description", value=settings['annotationType.b.description'])
+						li
+							b Italic
+						li
+							label Name
+							input(type="text", name="annotationType.i.name", value=settings['annotationType.i.name'])
+						li.description
+							label Description
+							input(type="text", name="annotationType.i.description", value=settings['annotationType.i.description'])
+						li
+							b Underline
+						li
+							label Name
+							input(type="text", name="annotationType.u.name", value=settings['annotationType.u.name'])
+						li.description
+							label Description
+							input(type="text", name="annotationType.u.description", value=settings['annotationType.u.description'])
+						li
+							b Strikethrough
+						li
+							label Name
+							input(type="text", name="annotationType.strike.name", value=settings['annotationType.strike.name'])
+						li.description
+							label Description
+							input(type="text", name="annotationType.strike.description", value=settings['annotationType.strike.description'])
+						li
+							input.inactive(type="submit", value="Save settings")
 		
 	div(data-tab="users")
 		.row.span3

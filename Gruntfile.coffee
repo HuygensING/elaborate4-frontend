@@ -1,42 +1,8 @@
-fs = require 'fs'
-path = require 'path'
-
-connect_middleware = (connect, options) ->
-	[
-		(req, res, next) ->
-			contentTypeMap =
-				'.html': 'text/html'
-				'.css': 'text/css'
-				'.js': 'application/javascript'
-				'.map': 'application/javascript' # js source maps
-				'.gif': 'image/gif'
-				'.jpg': 'image/jpeg'
-				'.jpeg': 'image/jpeg'
-				'.png': 'image/png'
-				'.ico': 'image/x-icon'
-			
-			sendFile = (reqUrl) ->
-				filePath = path.join options.base, reqUrl
-				
-				res.writeHead 200,
-					'Content-Type': contentTypeMap[extName] || 'text/html'
-					'Content-Length': fs.statSync(filePath).size
-
-				readStream = fs.createReadStream filePath
-				readStream.pipe res
-			
-			extName = path.extname req.url
-
-			# If request is a file and it doesnt exist, pass req to connect
-			if contentTypeMap[extName]? and not fs.existsSync(options.base + req.url)
-				next()
-			else if contentTypeMap[extName]?
-				sendFile req.url
-			else
-				sendFile 'index.html'
-	]
+connect_middleware = require 'my-grunt-modules/connect-middleware'
 
 module.exports = (grunt) ->
+	require('load-grunt-tasks') grunt
+	require('my-grunt-modules/create-symlinks') grunt
 
 	##############
 	### CONFIG ###
@@ -73,28 +39,12 @@ module.exports = (grunt) ->
 			,
 				src: '~/Projects/faceted-search/images'
 				dest: 'images/faceted-search'
-			# ,
-			# 	src: '~/Projects/supertinyeditor'
-			# 	dest: 'compiled/lib/supertinyeditor'
-			# ,
-			# 	src: '~/Projects/helpers'
-			# 	dest: 'compiled/lib/helpers2'
-			# ,
-			# 	src: '~/Projects/managers'
-			# 	dest: 'compiled/lib/managers2'
-			# ,
-			# 	src: '~/Projects/views'
-			# 	dest: 'compiled/lib/views2'
 			,
 				src: '~/Projects/hilib'
 				dest: 'compiled/lib/hilib'
-			# ,
 			,
 				src: 'compiled/lib/hilib/images/views/supertinyeditor'
 				dest: 'images/supertinyeditor'
-			# ,
-			# 	src: '~/Projects/helpers'
-			# 	dest: 'compiled/lib/helpers2'
 			]
 			dist: [{
 				src: 'images'
@@ -185,9 +135,7 @@ module.exports = (grunt) ->
 					'compiled/lib/normalize-css/normalize.css'
 					'compiled/css/project.css'
 					'compiled/lib/faceted-search/stage/css/main.css'
-					# 'compiled/lib/supertinyeditor/main.css'
 					'compiled/lib/hilib/compiled/**/*.css'
-					# '!compiled/lib/hilib/compiled/lib/**/*.css'
 				]
 				dest:
 					'compiled/css/main.css'
@@ -200,7 +148,7 @@ module.exports = (grunt) ->
 		### JS ###
 
 		coffee:
-			init:
+			compile:
 				files: [
 					expand: true
 					cwd: 'src/coffee'
@@ -217,11 +165,12 @@ module.exports = (grunt) ->
 					join: true
 				files: 
 					'.test/tests.js': ['.test/head.coffee', 'test/**/*.coffee']
-			compile:
-				options:
-					bare: false # UglyHack: set a property to its default value to be able to call coffee:compile
 
 		### OTHER ###
+
+		concurrent:
+			compile: ['coffee:compile', 'jade:index', 'jade', 'stylus']
+			documentation: ['shell:groc', 'plato']
 		
 		plato:
 			run:
@@ -246,20 +195,10 @@ module.exports = (grunt) ->
 						'faceted-search': '../lib/faceted-search/stage/js/main'
 						'jade': '../lib/jade/runtime'
 						'classList': '../lib/classList.js/classList'
-						# 'supertinyeditor': '../lib/supertinyeditor/main'
-						# 'views2': '../lib/views/compiled'
-						# 'managers': '../lib/managers/dev'
-						# 'managers2': '../lib/managers2/dev'
-						# 'helpers': '../lib/helpers/dev'
-						# 'helpers2': '../lib/helpers2/dev'
-						# 'html': '../html'
-						# 'viewshtml': '../lib/views2/compiled'
+						'dom': '../lib/dom'
 						'hilib': '../lib/hilib/compiled'
 						'tpls': '../templates'
 					wrap: true
-					# wrap:
-					# 	startFile: 'wrap.start.js'
-					# 	endFile: 'wrap.end.js'
 
 		watch:
 			options:
@@ -270,13 +209,13 @@ module.exports = (grunt) ->
 				tasks: ['coffee:test', 'shell:mocha']
 			coffee:
 				files: 'src/coffee/**/*.coffee'
-				tasks: 'coffee:compile'
+				tasks: 'newer:coffee:compile'
 			jade:
 				files: ['src/index.jade', 'src/jade/**/*.jade']
-				tasks: ['jade:index', 'jade:compile']
+				tasks: 'newer:jade'
 			stylus:
 				files: ['src/stylus/**/*.styl']
-				tasks: ['stylus:compile', 'concat:css']
+				tasks: ['newer:stylus', 'concat:css']
 			html: 
 				files: ['compiled/lib/hilib/touch/html']
 			css:
@@ -289,41 +228,22 @@ module.exports = (grunt) ->
 	### TASKS ###
 	#############
 
-	grunt.loadNpmTasks 'grunt-contrib-coffee'
-	grunt.loadNpmTasks 'grunt-contrib-stylus'
-	grunt.loadNpmTasks 'grunt-contrib-jade'
-	grunt.loadNpmTasks 'grunt-contrib-watch'
-	grunt.loadNpmTasks 'grunt-contrib-requirejs'
-	grunt.loadNpmTasks 'grunt-contrib-copy'
-	grunt.loadNpmTasks 'grunt-contrib-uglify'
-	grunt.loadNpmTasks 'grunt-contrib-cssmin'
-	grunt.loadNpmTasks 'grunt-contrib-concat'
-	grunt.loadNpmTasks 'grunt-contrib-connect'
-	grunt.loadNpmTasks 'grunt-shell'
-	grunt.loadNpmTasks 'grunt-plato'
-	grunt.loadNpmTasks 'grunt-text-replace'
-
 	grunt.registerTask 'default', ['shell:mocha']
 
 	# Generate docs
-	grunt.registerTask 'd', ['shell:groc']
-	grunt.registerTask 'docs', ['shell:groc']
+	grunt.registerTask 'docs', 'concurrent:documentation'
+	grunt.registerTask 'd', 'docs'
 
-	grunt.registerTask 'c', 'compile'
 	grunt.registerTask 'compile', [
 		'shell:emptycompiled' # rm -rf compiled/
 		'shell:bowerinstall' # Get dependencies first, cuz css needs to be included (and maybe images?)
 		'createSymlinks:compiled'
-		'coffee:init'
-		'jade:index'
-		'jade:compile'
-		'stylus:compile'
+		'concurrent:compile'
 		'concat:css'
-		'docs'
-		'plato'
+		'concurrent:documentation'
 	]
+	grunt.registerTask 'c', 'compile'
 
-	grunt.registerTask 'b', 'build'
 	grunt.registerTask 'build', [
 		'shell:emptydist'
 		'createSymlinks:dist'
@@ -332,6 +252,7 @@ module.exports = (grunt) ->
 		'requirejs:compile' # Run r.js
 		'shell:rsync' # Rsync to test server
 	]
+	grunt.registerTask 'b', 'build'
 
 	grunt.registerTask 's', 'server'
 	grunt.registerTask 'server', [
@@ -350,61 +271,3 @@ module.exports = (grunt) ->
 		'build'
 		'sw'
 	]
-
-
-
-	grunt.registerMultiTask 'createSymlinks', 'Creates a symlink', ->
-		for own index, config of this.data
-
-			src = config.src
-			dest = config.dest
-
-			src = process.env.HOME + src.substr(1) if src[0] is '~'
-			dest = process.env.HOME + dest.substr(1) if dest[0] is '~'
-
-			src = process.cwd() + '/' + src if src[0] isnt '/'
-			dest = process.cwd() + '/' + dest if dest[0] isnt '/'
-
-			grunt.log.writeln 'ERROR: source dir does not exist!' if not fs.existsSync(src) # Without a source, all is lost.
-
-			# We have to put lstatSync in a try, because it gives an error when dest isn't found. We can use fs.lstat, but
-			# we would have to change the for loop to a function call.			
-			try 
-				stats = fs.lstatSync dest
-				fs.unlinkSync(dest) if stats.isSymbolicLink()
-
-			fs.symlinkSync src, dest
-
-
-
-
-
-	##############
-	### EVENTS ###
-	##############
-
-	grunt.event.on 'watch', (action, srcPath) ->
-		if srcPath.substr(0, 3) is 'src' # Make sure file comes from src/		
-			type = 'coffee' if srcPath.substr(-7) is '.coffee'
-			# type = 'jade' if srcPath.substr(-5) is '.jade'
-
-			if type is 'coffee'
-				testDestPath = srcPath.replace 'src/coffee', 'test'
-				destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'js').substr 3
-
-			# if type is 'jade'
-			# 	destPath = 'compiled'+srcPath.replace(new RegExp(type, 'g'), 'html').substr 3
-
-			if type? and action is 'changed' or action is 'added'
-				data = {}
-				data[destPath] = srcPath
-
-				grunt.config [type, 'compile', 'files'], data
-				grunt.file.copy '.test/template.coffee', testDestPath if testDestPath? and not grunt.file.exists(testDestPath)
-
-			if type? and action is 'deleted'
-				grunt.file.delete destPath
-				grunt.file.delete testDestPath
-
-		if srcPath.substr(0, 4) is 'test' and action is 'added'
-			return false

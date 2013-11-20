@@ -77,7 +77,7 @@ define (require) ->
 			# @renderSubMenu()
 
 			@renderTabs()
-			@renderAnnotationtypeTab()
+			@renderAnnotationsTab()
 			@renderUserTab()
 
 			@loadStatistics()
@@ -90,7 +90,7 @@ define (require) ->
 		# 	subMenu = new Views.SubMenu()
 		# 	@$el.prepend subMenu.$el
 
-		# 	@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
+			@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
 			# @listenTo subMenu, 'clicked', (menuItem) =>
 			# 	if menuItem.key is 'save'
 			# 		@model.save()
@@ -137,14 +137,14 @@ define (require) ->
 			@listenTo EntryMetadataList, 'change', (values) => 
 				new EntryMetadata(@project.id).save values,
 					success: => @publish 'message', 'Entry metadata fields updated.'
-			@$('div[data-tab="metadata-entries"]').append EntryMetadataList.el
+			@$('div[data-tab="metadata-entries"] .entrylist').append EntryMetadataList.el
 
 			# # Annotation types
 			# rtpl = tpls['project/settings/metadata_annotations'] annotationTypes: @project.get('annotationtypes')
 			# @$('div[data-tab="metadata-annotations"]').html rtpl
 
 		# * TODO: Add to separate view
-		renderAnnotationtypeTab: ->
+		renderAnnotationsTab: ->
 			annotationTypes = @project.get 'annotationtypes'
 
 			combolist = new Views.ComboList
@@ -159,7 +159,6 @@ define (require) ->
 				Model: Models.Annotationtype
 				tpl: tpls['project/settings/addannotationtype']
 			@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
-
 
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?
@@ -212,6 +211,14 @@ define (require) ->
 			'change div[data-tab="project"] input': 'updateModel'
 			'change div[data-tab="project"] select': 'updateModel'
 			'click input[name="savesettings"]': 'saveSettings'
+			'click .setnames form input[type="submit"]': 'submitSetCustomNames'
+			'change .setnames form input[type="text"]': (ev) ->	@$('.setnames form input[type="submit"]').removeClass 'inactive'
+
+		submitSetCustomNames: (ev) ->
+			ev.preventDefault()
+
+			@model.set input.name, input.value for input in @el.querySelectorAll('.setnames form input[type="text"]')
+			@saveSettings ev
 
 		saveSettings: (ev) -> 
 			ev.preventDefault()

@@ -1,9 +1,6 @@
 require.config 
 	paths:
 		'jquery': '../lib/jquery/jquery'
-		# 'ajaxHooks': '../lib/ajaxHooks/src'
-		# 'long-press': '../lib/long-press/jquery.longpress'
-		# 'text': '../lib/requirejs-text/text' # Dep for faceted-search
 		'underscore': '../lib/underscore-amd/underscore'
 		'backbone': '../lib/backbone-amd/backbone'
 		'domready': '../lib/requirejs-domready/domReady'
@@ -22,8 +19,6 @@ require.config
 			exports: 'Backbone'
 		'faceted-search':
 			deps: ['backbone']
-		# 'ajaxHooks/xdr':
-		# 	deps: ['jquery']
 
 # classList is a polyfill for IE8,9
 require ['domready', 'app', 'underscore', 'classList'], (domready, app, _) ->

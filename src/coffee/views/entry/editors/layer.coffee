@@ -59,8 +59,9 @@ define (require) ->
 
 				modal = new Views.Modal
 					title: "Unsaved changes"
-					$html: $('<p />').html("There are unsaved changes in the #{@model.get('textLayer')} layer.<br><br>Save changes or press cancel to discard.")
+					$html: $('<p />').html("There are unsaved changes in the #{@model.get('textLayer')} layer.<br><br>")
 					submitValue: 'Save changes'
+					cancelValue: 'Discard changes'
 					width: '320px'
 				modal.on 'cancel', => 
 					@model.collection.get(modelID).cancelChanges()
@@ -92,3 +93,7 @@ define (require) ->
 
 			# Navigate to the new newFragment.
 			Backbone.history.navigate newFragment, replace: true
+
+		remove: ->
+			@editor.remove()
+			super

@@ -75,6 +75,9 @@ define (require) ->
 				@renderHeader responseModel
 				@renderResults responseModel, queryOptions
 
+			# Check if a draft is in the process of being published.
+			@pollDraft()
+
 			@
 
 		renderHeader: (responseModel) ->
@@ -114,7 +117,7 @@ define (require) ->
 			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click .submenu li[data-key="editselection"]': 'showEditMetadata'
-			'click .submenu li[data-key="publish"]': 'publishProject'
+			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
@@ -122,16 +125,6 @@ define (require) ->
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
-
-		publishProject: (ev) ->
-			busyText = 'Publishing...'
-			return false if ev.currentTarget.innerHTML is busyText
-			ev.currentTarget.innerHTML = busyText
-			ev.currentTarget.classList.add 'active'
-			
-			@project.createDraft =>
-				ev.currentTarget.innerHTML = 'Publish'
-				ev.currentTarget.classList.remove 'active'
 
 		showEditMetadata: (ev) ->
 			# show hide checkboxes
@@ -195,10 +188,14 @@ define (require) ->
 
 
 		changeCurrentEntry: (ev) ->
+			placeholder = @el.querySelector('.editselection-placeholder')
 			# Only change current entry if the edit metadata isn't active.
-			unless @el.querySelector('.editselection-placeholder').style.display is 'block'
-				entryID = ev.currentTarget.getAttribute 'data-id'
-				@project.get('entries').setCurrent entryID
+			# console.log placeholder?
+			# console.log placeholder.style.display isnt 'block'
+			return if placeholder? and placeholder.style.display is 'block'
+
+			entryID = ev.currentTarget.getAttribute 'data-id'
+			@project.get('entries').setCurrent entryID
 				# id = ev.currentTarget.id.replace 'entry', ''
 			
 			
@@ -210,3 +207,30 @@ define (require) ->
 		destroy: ->
 			@facetedSearch.remove()
 			@remove()
+
+		activatePublishDraftButton: ->
+			busyText = 'Publishing draft...'
+			button = @el.querySelector('li[data-key="publish"]')
+			
+			return false if button.innerHTML is busyText
+
+			button.innerHTML = busyText
+			button.classList.add 'active'
+
+		deactivatePublishDraftButton: ->
+			button = @el.querySelector('li[data-key="publish"]')
+			button.innerHTML = 'Publish draft'
+			button.classList.remove 'active'
+			
+		publishDraft: (ev) ->
+			@activatePublishDraftButton()
+			@project.publishDraft => @deactivatePublishDraftButton()
+
+		# pollDraft is used to start polling when a draft is in the process of being published.
+		# This can happen when a user refreshes the browser while the draft is not finished.
+		pollDraft: ->
+			locationUrl = localStorage.getItem 'publishDraftLocation'
+
+			if locationUrl?
+				@activatePublishDraftButton()
+				@project.pollDraft locationUrl, => @deactivatePublishDraftButton()

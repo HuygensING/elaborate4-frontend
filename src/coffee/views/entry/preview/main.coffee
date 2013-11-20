@@ -33,7 +33,6 @@ define (require) ->
 
 			@render()
 
-
 			@resize()
 
 		# ### Render

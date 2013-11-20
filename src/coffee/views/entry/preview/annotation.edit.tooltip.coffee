@@ -1,7 +1,9 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
-	dom = require 'hilib/functions/dom'
+	dom = require 'hilib/functions/DOM'
 	BaseView = require 'views/base'
+
+	# console.log dom
 	# Templates =
 	# 	Tooltip: require 'text!html/ui/tooltip.html'
 

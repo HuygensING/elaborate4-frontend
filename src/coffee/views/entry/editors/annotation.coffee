@@ -72,8 +72,9 @@ define (require) ->
 
 				modal = new Views.Modal
 					title: "Unsaved changes"
-					$html: $('<p />').html("There are unsaved changes in annotation: #{@model.get('annotationNo')}.<br><br>Save changes or press cancel to discard.")
+					$html: $('<p />').html("There are unsaved changes in annotation: #{@model.get('annotationNo')}.<br><br>")
 					submitValue: 'Save changes'
+					cancelValue: 'Discard changes'
 					width: '320px'
 				modal.on 'cancel', =>
 					# We have to get the model from the @model's collection, because showing the modal is non-blocking.

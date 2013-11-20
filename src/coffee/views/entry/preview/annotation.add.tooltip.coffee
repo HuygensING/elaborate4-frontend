@@ -1,6 +1,6 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
-	dom = require 'hilib/functions/dom'
+	dom = require 'hilib/functions/DOM'
 	BaseView = require 'views/base'
 
 	Annotation = require 'models/annotation'
