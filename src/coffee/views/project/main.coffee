@@ -3,6 +3,7 @@
 define (require) ->
 
 	Fn = require 'hilib/functions/general'
+	viewManager = require 'hilib/managers/view'
 
 	config = require 'config'
 	token = require 'hilib/managers/token'
@@ -50,13 +51,12 @@ define (require) ->
 
 			# Render the EditSelection view. Is toggled in the menu and can be used
 			# to edit the metadata of multiple entries at once.
-			@editSelection = new Views.EditSelection
-				el: @el.querySelector '.editselection-placeholder'
+			@editSelection = viewManager.show @el.querySelector('.editselection-placeholder'),  Views.EditSelection,
 				model: @project
-			@listenTo @editSelection, 'close', @uncheckCheckboxes
+			@listenTo @editSelection, 'close', @toggleEditMultipleMetadata
 
-			@facetedSearch = new Views.FacetedSearch
-				el: @$('.faceted-search-placeholder')
+			# @facetedSearch = new Views.FacetedSearch
+			@facetedSearch = viewManager.show @el.querySelector('.faceted-search-placeholder'), Views.FacetedSearch,
 				baseUrl: config.baseUrl
 				searchPath: 'projects/'+@project.id+'/search'
 				token: token.get()
@@ -66,6 +66,7 @@ define (require) ->
 					searchInTranscriptions: true
 				queryOptions:
 					resultRows: @resultRows
+
 			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
 			@listenTo @facetedSearch, 'results:change', (responseModel, queryOptions) =>
 				@project.get('entries').set responseModel.get 'results'
@@ -116,7 +117,7 @@ define (require) ->
 		events:
 			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
-			'click .submenu li[data-key="editselection"]': 'showEditMetadata'
+			'click .submenu li[data-key="editselection"]': 'toggleEditMultipleMetadata'
 			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
 			'click li.entry label': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
@@ -126,10 +127,7 @@ define (require) ->
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
 
-		showEditMetadata: (ev) ->
-			# show hide checkboxes
-			# @$('.editselection-placeholder').toggle()
-
+		toggleEditMultipleMetadata: (ev) ->
 			editmetadataPlaceholder = @el.querySelector('.editselection-placeholder')
 
 			visible = editmetadataPlaceholder.style.display is 'block'

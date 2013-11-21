@@ -137,9 +137,9 @@ define (require) ->
 				# Find and remove the <span> and <sup>
 				$body.find("[data-id='#{model.get('annotationNo')}']").remove()
 
-				@resetAnnotationOrder $body
+				@resetAnnotationOrder $body, false
 
-		resetAnnotationOrder: ($body) ->
+		resetAnnotationOrder: ($body, add=true) ->
 			# Find all sups in $body and update the innerHTML with the new index
 			$body.find('sup[data-marker="end"]').each (index, sup) =>
 				sup.innerHTML = index+1
@@ -148,7 +148,10 @@ define (require) ->
 			@set 'body', $body.html()
 
 			# Save the transcription to the server.
-			@save()
+			@save null, 
+				success: => 
+					message = if add then "New annotation added." else "Annotation removed."
+					@publish 'message', message
 
 		# cancelChanges: ->
 		# 	@set 'body', @changedSinceLastSave

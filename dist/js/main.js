@@ -4904,17 +4904,26 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
           var $body;
           $body = $("<div>" + (_this.get('body')) + "</div>");
           $body.find("[data-id='" + (model.get('annotationNo')) + "']").remove();
-          return _this.resetAnnotationOrder($body);
+          return _this.resetAnnotationOrder($body, false);
         });
       };
 
-      Transcription.prototype.resetAnnotationOrder = function($body) {
+      Transcription.prototype.resetAnnotationOrder = function($body, add) {
         var _this = this;
+        if (add == null) {
+          add = true;
+        }
         $body.find('sup[data-marker="end"]').each(function(index, sup) {
           return sup.innerHTML = index + 1;
         });
         this.set('body', $body.html());
-        return this.save();
+        return this.save(null, {
+          success: function() {
+            var message;
+            message = add ? "New annotation added." : "Annotation removed.";
+            return _this.publish('message', message);
+          }
+        });
       };
 
       return Transcription;
@@ -5916,6 +5925,10 @@ u[o]&&(delete u[o],c?delete n[l]:typeof n.removeAttribute!==i?n.removeAttribute(
       }
 
       BaseView.prototype.initialize = function() {
+        var _base;
+        if ((_base = this.options).cache == null) {
+          _base.cache = true;
+        }
         viewManager.register(this);
         return _.extend(this, Pubsub);
       };
@@ -6912,7 +6925,7 @@ buf.push("<option" + (jade.attrs({ 'value':(member.id), 'selected':(sel) }, {"va
 buf.push("</select></li><li><label for=\"start\">Start date</label><input" + (jade.attrs({ 'type':("text"), 'name':("start"), 'value':(settings['Start date']), 'data-attr':("Start date") }, {"type":true,"name":true,"value":true,"data-attr":true})) + "/></li><li><label for=\"release\">Release date</label><input" + (jade.attrs({ 'type':("text"), 'name':("release"), 'value':(settings['Release date']), 'data-attr':("Release date") }, {"type":true,"name":true,"value":true,"data-attr":true})) + "/></li><li><label for=\"version\">Version</label><input" + (jade.attrs({ 'type':("text"), 'name':("version"), 'value':(settings.Version), 'data-attr':("Version") }, {"type":true,"name":true,"value":true,"data-attr":true})) + "/></li>");
 if ( settings.publicationURL.length > 0)
 {
-buf.push("<li style=\"margin-top: 20px\"><strong>Publication</strong></li><li><label>URL</label><a" + (jade.attrs({ 'href':(settings.publicationURL), 'data-bypass':(true) }, {"href":true,"data-bypass":true})) + ">link</a></li><li><label>Title</label><input" + (jade.attrs({ 'type':("text"), 'value':(settings['publication.title']), 'name':("publication.title"), 'data-attr':("publication.title") }, {"type":true,"value":true,"name":true,"data-attr":true})) + "/></li><li><label for=\"text.font\">Font</label><select name=\"text.font\" data-attr=\"text.font\"><option" + (jade.attrs({ 'value':("junicode"), 'selected':(settings['text.font']=='junicode') }, {"value":true,"selected":true})) + ">Junicode</option><option" + (jade.attrs({ 'value':("dejavu"), 'selected':(settings['text.font']=='dejavu') }, {"value":true,"selected":true})) + ">DejaVu</option><option" + (jade.attrs({ 'value':("gentium"), 'selected':(settings['text.font']=='gentium') }, {"value":true,"selected":true})) + ">Gentium</option><option" + (jade.attrs({ 'value':("alexander"), 'selected':(settings['text.font']=='alexander') }, {"value":true,"selected":true})) + ">Alexander</option><option" + (jade.attrs({ 'value':("newathena"), 'selected':(settings['text.font']=='newathena') }, {"value":true,"selected":true})) + ">New Athena</option></select></li>");
+buf.push("<li style=\"margin-top: 20px\"><strong>Publication</strong></li><li><label>URL</label><a" + (jade.attrs({ 'href':(settings.publicationURL), 'data-bypass':(true) }, {"href":true,"data-bypass":true})) + ">link</a></li><li><label>Title</label><input" + (jade.attrs({ 'type':("text"), 'value':(settings['publication.title']), 'name':("publication.title"), 'data-attr':("publication.title") }, {"type":true,"value":true,"name":true,"data-attr":true})) + "/></li>");
 }
 buf.push("<li style=\"margin-top: 20px\"><input type=\"submit\" name=\"savesettings\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div><div class=\"cell span1\"><h4>Statistics </h4><img src=\"/images/loader.gif\" class=\"loader\"/><pre class=\"statistics\"></pre></div></div></div><div data-tab=\"textlayers\"><h3>Edit text layers</h3></div><div data-tab=\"metadata-entries\"><div class=\"row span2\"><div class=\"cell span1 entrylist\"><h3>Edit entry metadata fields</h3></div><div class=\"cell span1 setnames\"><h3>Set entry name</h3><form><ul><li><label>Singular</label><input" + (jade.attrs({ 'type':("text"), 'name':("entry.term_singular"), 'value':(settings['entry.term_singular']), 'placeholder':("entry") }, {"type":true,"name":true,"value":true,"placeholder":true})) + "/></li><li><label>Plural</label><input" + (jade.attrs({ 'type':("text"), 'name':("entry.term_plural"), 'value':(settings['entry.term_plural']), 'placeholder':("entries") }, {"type":true,"name":true,"value":true,"placeholder":true})) + "/></li><li><input type=\"submit\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div></div></div><div data-tab=\"annotationtypes\"><div class=\"row span3\"><div class=\"cell span1 annotationtypelist\"><h3>Annotation types</h3></div><div class=\"cell span1 addannotationtype\"><h3>Add annotation type to project</h3></div><div class=\"cell span1 setnames\"><h3>Set custom names for tags</h3><form><ul><li><b>Bold</b></li><li><label>Name</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.b.name"), 'value':(settings['annotationType.b.name']) }, {"type":true,"name":true,"value":true})) + "/></li><li class=\"description\"><label>Description</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.b.description"), 'value':(settings['annotationType.b.description']) }, {"type":true,"name":true,"value":true})) + "/></li><li><b>Italic</b></li><li><label>Name</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.i.name"), 'value':(settings['annotationType.i.name']) }, {"type":true,"name":true,"value":true})) + "/></li><li class=\"description\"><label>Description</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.i.description"), 'value':(settings['annotationType.i.description']) }, {"type":true,"name":true,"value":true})) + "/></li><li><b>Underline</b></li><li><label>Name</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.u.name"), 'value':(settings['annotationType.u.name']) }, {"type":true,"name":true,"value":true})) + "/></li><li class=\"description\"><label>Description</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.u.description"), 'value':(settings['annotationType.u.description']) }, {"type":true,"name":true,"value":true})) + "/></li><li><b>Strikethrough</b></li><li><label>Name</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.strike.name"), 'value':(settings['annotationType.strike.name']) }, {"type":true,"name":true,"value":true})) + "/></li><li class=\"description\"><label>Description</label><input" + (jade.attrs({ 'type':("text"), 'name':("annotationType.strike.description"), 'value':(settings['annotationType.strike.description']) }, {"type":true,"name":true,"value":true})) + "/></li><li><input type=\"submit\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div></div></div><div data-tab=\"users\"><div class=\"row span3\"><div class=\"cell span1 userlist\"><h3>Project members</h3></div><div class=\"cell span2 adduser\"><h3>Add user to project</h3></div></div></div></div>");
 }
@@ -7031,7 +7044,7 @@ return this["JST"];
 }(this, function ($, _, Backbone) {
 
 /**
- * almond 0.2.6 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
+ * almond 0.2.7 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/almond for details
  */
@@ -7291,14 +7304,14 @@ var requirejs, require, define;
     main = function (name, deps, callback, relName) {
         var cjsModule, depName, ret, map, i,
             args = [],
+            callbackType = typeof callback,
             usingExports;
 
         //Use name if no relName
         relName = relName || name;
 
         //Call the callback to define the module, if necessary.
-        if (typeof callback === 'function') {
-
+        if (callbackType === 'undefined' || callbackType === 'function') {
             //Pull out the defined dependencies and pass the ordered
             //values to the callback.
             //Default to [require, exports, module] if no deps
@@ -7329,7 +7342,7 @@ var requirejs, require, define;
                 }
             }
 
-            ret = callback.apply(defined[name], args);
+            ret = callback ? callback.apply(defined[name], args) : undefined;
 
             if (name) {
                 //If setting exports via "module" is in play,
@@ -8456,7 +8469,8 @@ buf.push("<div class=\"row span4 align middle\"><div class=\"cell span2\"><input
 
 this["JST"]["faceted-search/facets/list.options"] = function anonymous(locals) {
 var buf = [];
-var locals_ = (locals || {}),options = locals_.options,generateID = locals_.generateID;// iterate options
+var locals_ = (locals || {}),options = locals_.options,generateID = locals_.generateID;buf.push("<ul>");
+// iterate options
 ;(function(){
   var $$obj = options;
   if ('number' == typeof $$obj.length) {
@@ -8479,7 +8493,8 @@ buf.push("<li><div" + (jade.attrs({ 'data-count':(option.get('count')), "class":
 
   }
 }).call(this);
-;return buf.join("");
+
+buf.push("</ul>");;return buf.join("");
 };
 
 this["JST"]["faceted-search/facets/main"] = function anonymous(locals) {
@@ -9067,7 +9082,7 @@ return this["JST"];
           parse: true
         });
         this.optionsView = new Views.Options({
-          el: this.el.querySelector('.body ul'),
+          el: this.el.querySelector('.body'),
           collection: options,
           facetName: this.model.get('name')
         });
@@ -9744,7 +9759,7 @@ return this["JST"];
               console.error('Unknown facetView', facetData.type);
             }
           }
-          return this.$('.facets').html(fragment);
+          return this.el.querySelector('.facets').appendChild(fragment);
         } else {
           if (this.facetViews.hasOwnProperty('textSearch')) {
             this.facetViews['textSearch'].update();
@@ -10222,8 +10237,8 @@ return this["JST"];
               dataType: 'text'
             });
             jqXHR.done(function() {
-              _this.hide();
-              return _this.publish('message', 'Metadata of multiple entries saved.');
+              _this.publish('message', 'Metadata of multiple entries saved.');
+              return _this.hide();
             });
             return jqXHR.fail(function(jqXHR, textStatus, errorThrown) {
               return console.log(jqXHR, textStatus, errorThrown);
@@ -10297,7 +10312,7 @@ return this["JST"];
           el: this.el.querySelector('.editselection-placeholder'),
           model: this.project
         });
-        this.listenTo(this.editSelection, 'close', this.uncheckCheckboxes);
+        this.listenTo(this.editSelection, 'close', this.showEditMetadata);
         this.facetedSearch = new Views.FacetedSearch({
           el: this.$('.faceted-search-placeholder'),
           baseUrl: config.baseUrl,
@@ -12390,6 +12405,7 @@ define("collections/project/users", function(){});
       TranscriptionPreview.prototype.addNewAnnotation = function(newAnnotation, range) {
         var annotations,
           _this = this;
+        this.unhighlightAnnotation();
         this.newAnnotation = newAnnotation;
         this.addNewAnnotationTags(range);
         annotations = this.currentTranscription.get('annotations');
@@ -13199,8 +13215,9 @@ define("collections/project/users", function(){});
           modelID = this.model.id;
           modal = new Views.Modal({
             title: "Unsaved changes",
-            $html: $('<p />').html("There are unsaved changes in annotation: " + (this.model.get('annotationNo')) + ".<br><br>Save changes or press cancel to discard."),
+            $html: $('<p />').html("There are unsaved changes in annotation: " + (this.model.get('annotationNo')) + ".<br><br>"),
             submitValue: 'Save changes',
+            cancelValue: 'Discard changes',
             width: '320px'
           });
           modal.on('cancel', function() {
@@ -13363,8 +13380,9 @@ define("collections/project/users", function(){});
           modelID = this.model.id;
           modal = new Views.Modal({
             title: "Unsaved changes",
-            $html: $('<p />').html("There are unsaved changes in the " + (this.model.get('textLayer')) + " layer.<br><br>Save changes or press cancel to discard."),
+            $html: $('<p />').html("There are unsaved changes in the " + (this.model.get('textLayer')) + " layer.<br><br>"),
             submitValue: 'Save changes',
+            cancelValue: 'Discard changes',
             width: '320px'
           });
           modal.on('cancel', function() {
@@ -13404,6 +13422,11 @@ define("collections/project/users", function(){});
         return Backbone.history.navigate(newFragment, {
           replace: true
         });
+      };
+
+      LayerEditor.prototype.remove = function() {
+        this.editor.remove();
+        return LayerEditor.__super__.remove.apply(this, arguments);
       };
 
       return LayerEditor;
@@ -13570,8 +13593,7 @@ define("collections/project/users", function(){});
             return _this.renderTranscription();
           });
           this.listenTo(this.annotationEditor, 'newannotation:saved', function(annotation) {
-            _this.currentTranscription.get('annotations').add(annotation);
-            return _this.publish('message', "New annotation added.");
+            return _this.currentTranscription.get('annotations').add(annotation);
           });
         } else {
           this.annotationEditor.show(model);
@@ -14109,155 +14131,169 @@ define("collections/project/users", function(){});
 /*! @source http://purl.eligrey.com/github/classList.js/blob/master/classList.js*/
 
 if ("document" in self && !(
-    "classList" in document.createElement("_") &&
-    "classList" in document.createElementNS("http://www.w3.org/2000/svg", "svg")
-)) {
-	console.log('la');
+		"classList" in document.createElement("_") &&
+		"classList" in document.createElementNS("http://www.w3.org/2000/svg", "svg")
+	)) {
 
-    (function(view) {
+(function (view) {
 
-        
 
-        if (!('Element' in view)) return;
 
-        var
-        classListProp = "classList",
-            protoProp = "prototype",
-            elemCtrProto = view.Element[protoProp],
-            objCtr = Object,
-            strTrim = String[protoProp].trim || function() {
-                return this.replace(/^\s+|\s+$/g, "");
-            }, arrIndexOf = Array[protoProp].indexOf || function(item) {
-                var
-                i = 0,
-                    len = this.length;
-                for (; i < len; i++) {
-                    if (i in this && this[i] === item) {
-                        return i;
-                    }
-                }
-                return -1;
-            }
-            // Vendors: please allow content code to instantiate DOMExceptions
-            , DOMEx = function(type, message) {
-                this.name = type;
-                this.code = DOMException[type];
-                this.message = message;
-            }, checkTokenAndGetIndex = function(classList, token) {
-                if (token === "") {
-                    throw new DOMEx(
-                        "SYNTAX_ERR", "An invalid or illegal string was specified"
-                    );
-                }
-                if (/\s/.test(token)) {
-                    throw new DOMEx(
-                        "INVALID_CHARACTER_ERR", "String contains an invalid character"
-                    );
-                }
-                return arrIndexOf.call(classList, token);
-            }, ClassList = function(elem) {
-                var
-                trimmedClasses = strTrim.call(elem.getAttribute("class")),
-                    classes = trimmedClasses ? trimmedClasses.split(/\s+/) : [],
-                    i = 0,
-                    len = classes.length;
-                for (; i < len; i++) {
-                    this.push(classes[i]);
-                }
-                this._updateClassName = function() {
-                    elem.setAttribute("class", this.toString());
-                };
-            }, classListProto = ClassList[protoProp] = [],
-            classListGetter = function() {
-                return new ClassList(this);
-            };
-        // Most DOMException implementations don't allow calling DOMException's toString()
-        // on non-DOMExceptions. Error's toString() is sufficient here.
-        DOMEx[protoProp] = Error[protoProp];
-        classListProto.item = function(i) {
-            return this[i] || null;
-        };
-        classListProto.contains = function(token) {
-            token += "";
-            return checkTokenAndGetIndex(this, token) !== -1;
-        };
-        classListProto.add = function() {
-            var
-            tokens = arguments,
-                i = 0,
-                l = tokens.length,
-                token, updated = false;
-            do {
-                token = tokens[i] + "";
-                if (checkTokenAndGetIndex(this, token) === -1) {
-                    this.push(token);
-                    updated = true;
-                }
-            }
-            while (++i < l);
+if (!('Element' in view)) return;
 
-            if (updated) {
-                this._updateClassName();
-            }
-        };
-        classListProto.remove = function() {
-            var
-            tokens = arguments,
-                i = 0,
-                l = tokens.length,
-                token, updated = false;
-            do {
-                token = tokens[i] + "";
-                var index = checkTokenAndGetIndex(this, token);
-                if (index !== -1) {
-                    this.splice(index, 1);
-                    updated = true;
-                }
-            }
-            while (++i < l);
+var
+	  classListProp = "classList"
+	, protoProp = "prototype"
+	, elemCtrProto = view.Element[protoProp]
+	, objCtr = Object
+	, strTrim = String[protoProp].trim || function () {
+		return this.replace(/^\s+|\s+$/g, "");
+	}
+	, arrIndexOf = Array[protoProp].indexOf || function (item) {
+		var
+			  i = 0
+			, len = this.length
+		;
+		for (; i < len; i++) {
+			if (i in this && this[i] === item) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	// Vendors: please allow content code to instantiate DOMExceptions
+	, DOMEx = function (type, message) {
+		this.name = type;
+		this.code = DOMException[type];
+		this.message = message;
+	}
+	, checkTokenAndGetIndex = function (classList, token) {
+		if (token === "") {
+			throw new DOMEx(
+				  "SYNTAX_ERR"
+				, "An invalid or illegal string was specified"
+			);
+		}
+		if (/\s/.test(token)) {
+			throw new DOMEx(
+				  "INVALID_CHARACTER_ERR"
+				, "String contains an invalid character"
+			);
+		}
+		return arrIndexOf.call(classList, token);
+	}
+	, ClassList = function (elem) {
+		var
+			  trimmedClasses = strTrim.call(elem.getAttribute("class"))
+			, classes = trimmedClasses ? trimmedClasses.split(/\s+/) : []
+			, i = 0
+			, len = classes.length
+		;
+		for (; i < len; i++) {
+			this.push(classes[i]);
+		}
+		this._updateClassName = function () {
+			elem.setAttribute("class", this.toString());
+		};
+	}
+	, classListProto = ClassList[protoProp] = []
+	, classListGetter = function () {
+		return new ClassList(this);
+	}
+;
+// Most DOMException implementations don't allow calling DOMException's toString()
+// on non-DOMExceptions. Error's toString() is sufficient here.
+DOMEx[protoProp] = Error[protoProp];
+classListProto.item = function (i) {
+	return this[i] || null;
+};
+classListProto.contains = function (token) {
+	token += "";
+	return checkTokenAndGetIndex(this, token) !== -1;
+};
+classListProto.add = function () {
+	var
+		  tokens = arguments
+		, i = 0
+		, l = tokens.length
+		, token
+		, updated = false
+	;
+	do {
+		token = tokens[i] + "";
+		if (checkTokenAndGetIndex(this, token) === -1) {
+			this.push(token);
+			updated = true;
+		}
+	}
+	while (++i < l);
 
-            if (updated) {
-                this._updateClassName();
-            }
-        };
-        classListProto.toggle = function(token, forse) {
-            token += "";
+	if (updated) {
+		this._updateClassName();
+	}
+};
+classListProto.remove = function () {
+	var
+		  tokens = arguments
+		, i = 0
+		, l = tokens.length
+		, token
+		, updated = false
+	;
+	do {
+		token = tokens[i] + "";
+		var index = checkTokenAndGetIndex(this, token);
+		if (index !== -1) {
+			this.splice(index, 1);
+			updated = true;
+		}
+	}
+	while (++i < l);
 
-            var
-            result = this.contains(token),
-                method = result ?
-                    forse !== true && "remove" :
-                    forse !== false && "add";
+	if (updated) {
+		this._updateClassName();
+	}
+};
+classListProto.toggle = function (token, forse) {
+	token += "";
 
-            if (method) {
-                this[method](token);
-            }
+	var
+		  result = this.contains(token)
+		, method = result ?
+			forse !== true && "remove"
+		:
+			forse !== false && "add"
+	;
 
-            return !result;
-        };
-        classListProto.toString = function() {
-            return this.join(" ");
-        };
+	if (method) {
+		this[method](token);
+	}
 
-        if (objCtr.defineProperty) {
-            var classListPropDesc = {
-                get: classListGetter,
-                enumerable: true,
-                configurable: true
-            };
-            try {
-                objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
-            } catch (ex) { // IE 8 doesn't support enumerable:true
-                if (ex.number === -0x7FF5EC54) {
-                    classListPropDesc.enumerable = false;
-                    objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
-                }
-            }
-        } else if (objCtr[protoProp].__defineGetter__) {
-            elemCtrProto.__defineGetter__(classListProp, classListGetter);
-        }
+	return !result;
+};
+classListProto.toString = function () {
+	return this.join(" ");
+};
 
-    }(self));
+if (objCtr.defineProperty) {
+	var classListPropDesc = {
+		  get: classListGetter
+		, enumerable: true
+		, configurable: true
+	};
+	try {
+		objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+	} catch (ex) { // IE 8 doesn't support enumerable:true
+		if (ex.number === -0x7FF5EC54) {
+			classListPropDesc.enumerable = false;
+			objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+		}
+	}
+} else if (objCtr[protoProp].__defineGetter__) {
+	elemCtrProto.__defineGetter__(classListProp, classListGetter);
+}
+
+}(self));
 
 }
 ;

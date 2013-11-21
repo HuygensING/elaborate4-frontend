@@ -1,6 +1,8 @@
 # Description...
 define (require) ->
 
+	viewManager = require 'hilib/managers/view'
+
 	Collections = 
 		projects: require 'collections/projects'
 
@@ -27,10 +29,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			@editor = new Views.SuperTinyEditor
+			@editor = viewManager.show @el, Views.SuperTinyEditor,
 				cssFile:		'/css/main.css'
 				controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
-				el:				@$('.annotation-editor')
 				height:			@options.height
 				html: 			@model.get 'body'
 				htmlAttribute:	'body'

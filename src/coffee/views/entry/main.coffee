@@ -4,6 +4,8 @@ define (require) ->
 	config = require 'config'
 
 	Fn = require 'hilib/functions/general'
+	viewManager = require 'hilib/managers/view'
+
 	StringFn = require 'hilib/functions/string'
 	require 'hilib/functions/jquery.mixin'
 	Async = require 'hilib/managers/async'
@@ -112,8 +114,7 @@ define (require) ->
 			@setTranscriptionNameToMenu()
 
 			unless @layerEditor
-				@layerEditor = new Views.LayerEditor
-					el: @el.querySelector('.transcription-placeholder')
+				@layerEditor = viewManager.show @el.querySelector('.transcription-placeholder'), Views.LayerEditor,
 					model: @currentTranscription
 					height: @preview.$el.innerHeight()
 					width: @preview.$el.width() - 4
@@ -126,14 +127,13 @@ define (require) ->
 			if @preview?
 				@preview.setModel @model
 			else
-				@preview = new Views.Preview
+				@preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
 					model: @model
-					el: @$('.container .right-pane')
+					append: true
 
 		renderAnnotation: (model) ->
 			unless @annotationEditor
-				@annotationEditor = new Views.AnnotationEditor
-					el: @el.querySelector('.annotation-placeholder')
+				@annotationEditor = viewManager.show @el.querySelector('.annotation-placeholder'), Views.AnnotationEditor,
 					model: model
 					height: @preview.$el.innerHeight() - 31
 					width: @preview.$el.width() - 4
@@ -142,20 +142,19 @@ define (require) ->
 					@renderTranscription()
 				@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
 					@currentTranscription.get('annotations').add annotation
-					@publish 'message', "New annotation added."
+					
 			else
 				@annotationEditor.show model
 
 			@layerEditor.hide()
 
 		renderSubsubmenu: ->
-			# @subviews.textlayersEdit = new Views.EditTextlayers
+			# @subviews.textlayersEdit = viewManager.show @el.querySelector(), Views.EditTextlayers,
 			# 	collection: @model.get 'transcriptions'
 			# 	el: @$('.subsubmenu .edittextlayers')
 
-			@subviews.facsimileEdit = new Views.EditFacsimiles
+			@subviews.facsimileEdit = viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
 				collection: @model.get 'facsimiles'
-				el: @$('.subsubmenu .editfacsimiles')
 			
 		# ### Events
 		events: ->

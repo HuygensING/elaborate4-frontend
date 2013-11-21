@@ -15,6 +15,8 @@ define (require) ->
 	# ## TranscriptionPreview
 	class TranscriptionPreview extends Views.Base
 
+		className: 'right-pane'
+
 		# ### Initialize
 		initialize: ->
 			super
@@ -133,6 +135,12 @@ define (require) ->
 
 		# ### Methods
 
+		destroy: ->
+			@addAnnotationTooltip.remove()
+			@editAnnotationTooltip.remove()
+
+			@remove()
+
 		setScroll: (percentages) ->
 			@autoscroll = true
 			# Use setTimeout to wait for other events to finish first
@@ -191,6 +199,8 @@ define (require) ->
 			annotation.set 'annotatedText', text
 
 		addNewAnnotation: (newAnnotation, range) ->
+			@unhighlightAnnotation()
+			
 			@newAnnotation = newAnnotation
 
 			@addNewAnnotationTags range

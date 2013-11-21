@@ -40,6 +40,7 @@
 						li
 							label(for="version") Version
 							input(type="text", name="version", value=settings.Version, data-attr="Version")
+
 						if settings.publicationURL.length > 0
 							li(style="margin-top: 20px")
 								strong Publication
@@ -49,14 +50,15 @@
 							li
 								label Title
 								input(type="text", value=settings['publication.title'], name="publication.title", data-attr="publication.title")
-							li
-								label(for="text.font") Font
-								select(name="text.font", data-attr="text.font")
-									option(value="junicode", selected=settings['text.font']=='junicode') Junicode
-									option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
-									option(value="gentium", selected=settings['text.font']=='gentium') Gentium
-									option(value="alexander", selected=settings['text.font']=='alexander') Alexander
-									option(value="newathena", selected=settings['text.font']=='newathena') New Athena
+							//- li
+							//- 	label(for="text.font") Font
+							//- 	select(name="text.font", data-attr="text.font")
+							//- 		option(value="junicode", selected=settings['text.font']=='junicode') Junicode
+							//- 		option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
+							//- 		option(value="gentium", selected=settings['text.font']=='gentium') Gentium
+							//- 		option(value="alexander", selected=settings['text.font']=='alexander') Alexander
+							//- 		option(value="newathena", selected=settings['text.font']=='newathena') New Athena
+									
 						li(style="margin-top: 20px")
 							input.inactive(type="submit", name="savesettings", value="Save settings")
 			.cell.span1

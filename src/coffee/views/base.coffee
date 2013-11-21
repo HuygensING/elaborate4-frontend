@@ -6,8 +6,8 @@ define (require) ->
 
 	class BaseView extends Backbone.View
 
-		initialize: ->
-			viewManager.register @
+		initialize: ->	
+			# viewManager.register @
 
 			_.extend @, Pubsub # extend the view with pubsub terminology (just aliases for listenTo and trigger)
 

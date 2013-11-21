@@ -75,9 +75,9 @@ define (require) ->
 							projectEntryIds: entryIDs
 							settings: settings
 						dataType: 'text'
-					jqXHR.done => 
-						@hide()
+					jqXHR.done =>
 						@publish 'message', 'Metadata of multiple entries saved.'
+						@hide()
 					jqXHR.fail (jqXHR, textStatus, errorThrown) => console.log jqXHR, textStatus, errorThrown
 
 		# ### Methods

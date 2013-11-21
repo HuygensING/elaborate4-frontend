@@ -1,6 +1,8 @@
 # Description...
 define (require) ->
 
+	viewManager = require 'hilib/managers/view'
+
 	StringFn = require 'hilib/functions/string'
 
 	Views = 
@@ -21,16 +23,15 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			$el = @$('.transcription-placeholder')
-			@editor = new Views.SuperTinyEditor
+			@editor = viewManager.show @el, Views.SuperTinyEditor,
 				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
 				cssFile:		'/css/main.css'
-				el:				@$('.transcription-editor')
 				height:			@options.height
 				html:			@model.get 'body'
 				htmlAttribute:	'body'
 				model:			@model
 				width: 			@options.width
+
 			@listenTo @editor, 'save', => 
 				@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
