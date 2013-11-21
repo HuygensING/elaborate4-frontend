@@ -32,7 +32,7 @@ define (require) ->
 
 		# ### Events
 		events: ->
-			'click button[name="savemetadata"]': 'saveEditSelection'
+			'click button[name="savemetadata"]': 'saveMetadata'
 			'click button[name="cancel"]': -> @hide()
 			'keyup input[type="text"]': 'checkInput'
 			'change input[type="checkbox"]': 'toggleInactive'
@@ -54,12 +54,14 @@ define (require) ->
 			else
 				@$('button[name="savemetadata"]').removeClass 'inactive'
 
-		saveEditSelection: (ev) ->
+		saveMetadata: (ev) ->
 			ev.preventDefault()
 
 			unless $(ev.currentTarget).hasClass 'inactive'
-				entryIDs = _.map document.querySelectorAll('.entries input[type="checkbox"]:checked'), (cb) => parseInt cb.getAttribute('data-id'), 10
+				# Get all entry IDs from the result list that are checked
+				entryIDs = _.map document.querySelectorAll('.entries input[type="checkbox"]:checked'), (cb) => +cb.getAttribute 'data-id'
 				
+				# Create a hash of metadata to change
 				settings = {}
 				_.each @el.querySelectorAll('input[type="checkbox"]:checked'), (cb) =>
 					key = cb.getAttribute 'data-name'
@@ -68,6 +70,10 @@ define (require) ->
 					settings[key] = value if value.trim().length > 0
 
 				if entryIDs.length > 0 and _.size(settings) > 0
+					# Show loader
+					saveButton = @$('button[name="savemetadata"]')
+					saveButton.addClass 'loader'
+
 					ajax.token = token.get()
 					jqXHR = ajax.put
 						url: config.baseUrl+"projects/#{@model.id}/multipleentrysettings"
@@ -76,6 +82,7 @@ define (require) ->
 							settings: settings
 						dataType: 'text'
 					jqXHR.done =>
+						saveButton.removeClass 'loader'
 						@publish 'message', 'Metadata of multiple entries saved.'
 						@hide()
 					jqXHR.fail (jqXHR, textStatus, errorThrown) => console.log jqXHR, textStatus, errorThrown
@@ -85,5 +92,4 @@ define (require) ->
 		hide: ->
 			@trigger 'close'
 			@el.querySelector('form').reset()
-			@el.style.display = 'none'
 		
