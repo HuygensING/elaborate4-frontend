@@ -90,7 +90,7 @@ define (require) ->
 		# 	subMenu = new Views.SubMenu()
 		# 	@$el.prepend subMenu.$el
 
-			@listenTo @model, 'change', => $('input[name="savesettings"]').removeClass 'inactive'
+			@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 			# @listenTo subMenu, 'clicked', (menuItem) =>
 			# 	if menuItem.key is 'save'
 			# 		@model.save()
@@ -208,6 +208,7 @@ define (require) ->
 		events:
 			# 'click input[name="addannotationtype"]': 'addAnnotationType'
 			'click li[data-tab]': 'showTab'
+			'keyup div[data-tab="project"] input': -> @$('input[name="savesettings"]').removeClass 'inactive'
 			'change div[data-tab="project"] input': 'updateModel'
 			'change div[data-tab="project"] select': 'updateModel'
 			'click input[name="savesettings"]': 'saveSettings'
