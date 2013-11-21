@@ -12,4 +12,7 @@ define (require) ->
 
 		url: ->	"#{config.baseUrl}users"
 
-		comparator: 'title'
+		comparator: (user) ->
+			# Apparently title can be null
+			title = user.get('title')
+			return if title? then title.toLowerCase() else ''

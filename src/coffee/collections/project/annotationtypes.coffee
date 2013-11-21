@@ -16,4 +16,4 @@ define (require) ->
 		
 		url: -> config.baseUrl + "annotationtypes"
 
-		comparator: (annotationType) -> annotationType.get 'description'
+		comparator: (annotationType) -> annotationType.get('title').toLowerCase()
