@@ -27,6 +27,13 @@ define (require) ->
 
 			name
 
+		# ### Overrides
+
+		parse: (attr) ->
+			attr.title = attr.title + ' (' + attr.username + ')'
+
+			attr
+
 		sync: (method, model, options) ->
 			
 			if method is 'create'
