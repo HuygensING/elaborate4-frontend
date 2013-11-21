@@ -119,7 +119,7 @@ define (require) ->
 			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click .submenu li[data-key="editselection"]': 'toggleEditMultipleMetadata'
 			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
-			'click li.entry label': 'changeCurrentEntry'
+			'click li.entry label[data-id]': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
 			'click .pagination li.next': 'changePage'
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
@@ -128,19 +128,27 @@ define (require) ->
 			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
 
 		toggleEditMultipleMetadata: (ev) ->
-			editmetadataPlaceholder = @el.querySelector('.editselection-placeholder')
+			@$('.resultview').toggleClass 'editmetadata'
+			
+			# Empty text inputs
+			textInput.value = '' for textInput in @el.querySelectorAll('.editselection-placeholder form input[type="text"]')
+				
+			# Clear checkboxes
+			Fn.checkCheckboxes null, false
 
-			visible = editmetadataPlaceholder.style.display is 'block'
+			# return false
+			# editmetadataPlaceholder = @el.querySelector('.editselection-placeholder')
 
-			display = if visible then 'none' else 'block'
-			opacity = if visible then 0 else 1
+			# visible = editmetadataPlaceholder.style.display is 'block'
 
-			editmetadataPlaceholder.style.display = display
-			checkboxes = @el.querySelectorAll('ul.entries input[type="checkbox"]')
-			cb.style.opacity = opacity for cb in checkboxes
+			# display = if visible then 'none' else 'block'
+			# opacity = if visible then 0 else 1
+
+			# editmetadataPlaceholder.style.display = display
+			# checkboxes = @el.querySelectorAll('ul.entries input[type="checkbox"]')
+			# cb.style.opacity = opacity for cb in checkboxes
 
 			# When hiding edit metadata, reset (uncheck) all checkboxes
-			Fn.checkCheckboxes null, false if visible
 
 		newEntry: (ev) ->
 			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')

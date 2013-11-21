@@ -2,7 +2,8 @@ each entry in model.get('results')
 	li.entry(id='entry'+entry.id)
 		- id = generateID()
 		input(type="checkbox", data-id=entry.id, id=id)
-		label(data-id=entry.id, for=id)= entry.name
+		label(data-id=entry.id)= entry.name
+		label(for=id)= entry.name
 		.keywords
 			ul
 				each kwic in entry._kwic

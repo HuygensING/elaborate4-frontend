@@ -13,6 +13,26 @@
 					content url('/images/loader_transparent.gif')
 	
 	.resultview
+
+		&.editmetadata
+			ul.entries
+				list-style none
+				margin-left -16px
+
+				label
+					display inline
+
+					&[data-id]
+						display none
+
+				input[type="checkbox"]
+					display inline-block
+					margin-right 4px
+
+
+			.editselection-placeholder
+				display block
+
 		header
 			background white
 			padding-bottom 12px
@@ -62,15 +82,17 @@
 					*
 						vertical-align middle
 
+					button[name="savemetadata"]
+						margin 0
+
 					button[name="cancel"]
 						background none
 						border none
-						box-shadow 1px 1px 2px #CCC
 						color #F66
 						border-radius 4px
 
 					span
-						margin 0 4px 0 8px
+						margin 0 8px 0 4px
 
 			// .numfound-placeholder
 
@@ -87,7 +109,7 @@
 						color #BBB
 						cursor default
 
-		& > ul.entries
+		ul.entries
 			margin-top 20px
 			list-style square
 			padding-left 16px
@@ -96,13 +118,21 @@
 				margin-bottom 12px
 
 				input[type="checkbox"]
-					margin-right 4px
-					opacity 0
+					display none
 				
 				label
-					// font-weight bold
+					display none
 					font-size 1.1rem
 					cursor pointer
+					padding 2px 4px
+					border-radius 2px
+
+					&:hover
+						background lighten(spotcolor, 70%)
+					
+					&[data-id]
+						display inline
+
 
 				.keywords
 					color #BBB
