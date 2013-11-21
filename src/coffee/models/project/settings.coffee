@@ -16,6 +16,8 @@ define (require) ->
 			'Release date': ''
 			'Start date': ''
 			'Version': ''
+			'entry.term_singular': 'entry'
+			'entry.term_plural': 'entries'
 
 		url: -> "#{config.baseUrl}projects/#{@projectID}/settings"
 

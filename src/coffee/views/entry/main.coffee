@@ -287,7 +287,7 @@ define (require) ->
 				model: @model.clone()
 
 			modal = new Views.Modal
-				title: "Edit entry metadata"
+				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
 				$html: entryMetadata.$el
 				submitValue: 'Save metadata'
 				width: '300px'

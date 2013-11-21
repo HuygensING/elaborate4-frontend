@@ -46,7 +46,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = tpls['project/main'] user: currentUser
+			rtpl = tpls['project/main']
+				user: currentUser
+				settings: @project.get('settings')
 			@$el.html rtpl
 
 			# Render the EditSelection view. Is toggled in the menu and can be used
@@ -82,7 +84,7 @@ define (require) ->
 			@
 
 		renderHeader: (responseModel) ->
-			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + ' entries found'
+			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
 				
 			currentpage = (responseModel.get('start') / @resultRows) + 1
 			pagecount = Math.ceil responseModel.get('numFound') / @resultRows

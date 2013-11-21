@@ -4,6 +4,7 @@ define (require) ->
 	config = require 'config'
 
 	Fn = require 'hilib/functions/general'
+	StringFn = require 'hilib/functions/string'
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
 
@@ -71,6 +72,7 @@ define (require) ->
 			rtpl = tpls['ui/header']
 				projects: Collections.projects
 				user: Models.currentUser
+				singular: StringFn.ucfirst @project.get('settings').get('entry.term_singular')
 			@$el.html rtpl
 
 			# projectNav = new Views.ProjectNav
