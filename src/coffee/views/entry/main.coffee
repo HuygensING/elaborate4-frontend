@@ -40,16 +40,16 @@ define (require) ->
 			@subviews = {}
 
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
-			async = new Async ['transcriptions', 'facsimiles', 'settings', 'annotationtypes']
+			async = new Async ['transcriptions', 'facsimiles', 'settings']
 			@listenToOnce async, 'ready', => @render()
 
-			Collections.projects.getCurrent (@project) => 
+			Collections.projects.getCurrent (@project) =>
 				@project.get('entries').fetch
 					success: (collection, response, options) =>
 						# setCurrent returns the current model/entry
-						@model = collection.setCurrent @options.entryId
+						@entry = collection.setCurrent @options.entryId
 						
-						@model.get('transcriptions').fetch success: (collection, response, options) =>
+						@entry.get('transcriptions').fetch success: (collection, response, options) =>
 
 							# Find the model with the given textLayer
 							model = collection.find (model) => model.get('textLayer').toLowerCase() is @options.transcriptionName.toLowerCase() if @options.transcriptionName?
@@ -59,23 +59,16 @@ define (require) ->
 
 							async.called 'transcriptions'
 
-						@model.get('facsimiles').fetch success: (collection, response, options) =>
+						@entry.get('facsimiles').fetch success: (collection, response, options) =>
 							@currentFacsimile = collection.setCurrent()
 							async.called 'facsimiles'
 
-						@model.get('settings').fetch success: -> async.called 'settings'
-
-				@project.get('annotationtypes').fetch
-					success: => async.called 'annotationtypes'
-
-				# @project.fetchEntrymetadatafields => async.called 'entrymetadatafields'
-
-				
+						@entry.get('settings').fetch success: -> async.called 'settings'
 
 		# ### Render
 		render: ->
 			# console.log tpls
-			rtpl = tpls['entry/main'] @model.toJSON()
+			rtpl = tpls['entry/main'] @entry.toJSON()
 			@$el.html rtpl
 
 			@renderFacsimile()
@@ -99,8 +92,8 @@ define (require) ->
 
 		renderFacsimile: ->
 			# Only load the iframe with the current facsimile if there is a current facsimile
-			if @model.get('facsimiles').current?
-				url = @model.get('facsimiles').current.get 'zoomableUrl'
+			if @entry.get('facsimiles').current?
+				url = @entry.get('facsimiles').current.get 'zoomableUrl'
 				@$('.left-pane iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id='+ url
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
@@ -125,10 +118,10 @@ define (require) ->
 				
 		renderPreview: ->
 			if @preview?
-				@preview.setModel @model
+				@preview.setModel @entry
 			else
 				@preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
-					model: @model
+					model: @entry
 					append: true
 
 		renderAnnotation: (model) ->
@@ -150,11 +143,11 @@ define (require) ->
 
 		renderSubsubmenu: ->
 			# @subviews.textlayersEdit = viewManager.show @el.querySelector(), Views.EditTextlayers,
-			# 	collection: @model.get 'transcriptions'
+			# 	collection: @entry.get 'transcriptions'
 			# 	el: @$('.subsubmenu .edittextlayers')
 
 			@subviews.facsimileEdit = viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
-				collection: @model.get 'facsimiles'
+				collection: @entry.get 'facsimiles'
 			
 		# ### Events
 		events: ->
@@ -248,13 +241,13 @@ define (require) ->
 					currentMenu = newMenu
 
 		previousEntry: ->
-			# @model.collection.previous() returns an entry model
-			entryID = @model.collection.previous().id
+			# @entry.collection.previous() returns an entry model
+			entryID = @entry.collection.previous().id
 			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
 		nextEntry: ->
-			entryID = @model.collection.next().id
+			entryID = @entry.collection.next().id
 			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
@@ -262,29 +255,29 @@ define (require) ->
 			# Check if ev is an Event, else assume ev is an ID
 			facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
-			newFacsimile = @model.get('facsimiles').get facsimileID
-			@model.get('facsimiles').setCurrent newFacsimile if newFacsimile?
+			newFacsimile = @entry.get('facsimiles').get facsimileID
+			@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
 		changeTranscription: (ev) ->
 			# Check if ev is an Event, else assume ev is an ID
 			transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
-			newTranscription = @model.get('transcriptions').get transcriptionID
+			newTranscription = @entry.get('transcriptions').get transcriptionID
 
 			# If the newTranscription is truly new than set it to be the current transcription.
 			if newTranscription isnt @currentTranscription 
 				# Set @currentTranscription to newTranscription
-				@model.get('transcriptions').setCurrent newTranscription
+				@entry.get('transcriptions').setCurrent newTranscription
 			# If newTranscription and @currentTranscription are the same than it is still possible the transcription editor
 			# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
 			# trigger when the model hasn't changed.
 			else if not @layerEditor.visible()
 				# @layerEditor.show()
-				@model.get('transcriptions').trigger 'current:change', @currentTranscription 
+				@entry.get('transcriptions').trigger 'current:change', @currentTranscription 
 
 		editEntryMetadata: (ev) ->
 			entryMetadata = new Views.Form
 				tpl: tpls['entry/metadata']
-				model: @model.clone()
+				model: @entry.clone()
 
 			modal = new Views.Modal
 				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
@@ -292,13 +285,13 @@ define (require) ->
 				submitValue: 'Save metadata'
 				width: '300px'
 			modal.on 'submit', =>
-				@model.updateFromClone entryMetadata.model
+				@entry.updateFromClone entryMetadata.model
 
-				@model.get('settings').save()
+				@entry.get('settings').save()
 
-				jqXHR = @model.save()
+				jqXHR = @entry.save()
 				jqXHR.done => 
-					@publish 'message', "Saved metadata for entry: #{@model.get('name')}."
+					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 					modal.close()
 
 
@@ -322,10 +315,10 @@ define (require) ->
 			@listenTo @layerEditor.editor, 'scrolled', (percentages) => @preview.setScroll percentages
 
 
-			@listenTo @model.get('facsimiles'), 'current:change', (current) =>
+			@listenTo @entry.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
 				@renderFacsimile()
-			@listenTo @model.get('facsimiles'), 'add', (facsimile) =>
+			@listenTo @entry.get('facsimiles'), 'add', (facsimile) =>
 				# Add the new facsimile to the menu
 				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
 				@$('.submenu .facsimiles').append li
@@ -335,16 +328,16 @@ define (require) ->
 				@subsubmenu.close()
 				@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
 
-			@listenTo @model.get('facsimiles'), 'remove', (facsimile) => 
+			@listenTo @entry.get('facsimiles'), 'remove', (facsimile) => 
 				@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
 				@publish 'message', "Removed facsimile: \"#{facsimile.get('name')}\"."
 
-			@listenTo @model.get('transcriptions'), 'current:change', (current) =>			
+			@listenTo @entry.get('transcriptions'), 'current:change', (current) =>			
 				@currentTranscription = current
 				# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
 				# the user is not fast enough to click an annotation
 				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
-			@listenTo @model.get('transcriptions'), 'add', (transcription) =>
+			@listenTo @entry.get('transcriptions'), 'add', (transcription) =>
 				# Add the new text layer to the submenu
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
 				@$('.submenu .textlayers').append li
@@ -354,7 +347,7 @@ define (require) ->
 				@subsubmenu.close()
 				@publish 'message', "Added text layer: \"#{transcription.get('textLayer')}\"."
 			
-			@listenTo @model.get('transcriptions'), 'remove', (transcription) => 
+			@listenTo @entry.get('transcriptions'), 'remove', (transcription) => 
 				@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
 				@publish 'message', "Removed text layer: \"#{transcription.get('textLayer')}\"."
 

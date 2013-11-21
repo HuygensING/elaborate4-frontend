@@ -3,6 +3,7 @@ form
 		li
 			label Name
 			input(type="text", name="name", value=model.get('name'))
+		- console.log(model.get('settings').attributes)
 		each value, key in model.get('settings').attributes
 			li
 				label= key

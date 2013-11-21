@@ -163,8 +163,9 @@ define (require) ->
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?
 					annotationType = changes.collection.get changes.added
-					@project.addAnnotationType annotationType, =>
-						@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
+					console.log annotationType
+					# @project.addAnnotationType annotationType, =>
+					# 	@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
 				else if changes.removed?
 					name = @project.allannotationtypes.get(changes.removed).get('name')
 					@project.removeAnnotationType changes.removed, =>

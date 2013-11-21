@@ -115,6 +115,7 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
+			console.log @project
 			annotationMetadata = new Views.Form
 				tpl: tpls['entry/annotation.metadata']
 				model: @model.clone()

@@ -37,6 +37,7 @@ define (require) ->
 
 			@resize()
 
+
 		# ### Render
 		render: ->
 			data = @currentTranscription.toJSON()
