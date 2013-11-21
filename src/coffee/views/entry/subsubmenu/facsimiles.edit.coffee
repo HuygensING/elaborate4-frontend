@@ -37,6 +37,7 @@ define (require) ->
 			'click ul.facsimiles li.destroy .orcancel': 'cancelRemove'
 			'click ul.facsimiles li.destroy .name': 'destroyfacsimile'
 			'keyup input[name="name"]': 'keyupName'
+			'change input[type="file"]': -> @el.querySelector('button.addfacsimile').style.display = 'block'
 			'click button.addfacsimile': 'addfacsimile'
 
 		keyupName: (ev) -> @el.querySelector('form.addfile').style.display = if ev.currentTarget.value.length > 0 then 'block' else 'none'
@@ -45,6 +46,8 @@ define (require) ->
 		addfacsimile: (ev) ->
 			ev.stopPropagation()
 			ev.preventDefault()
+
+			$(ev.currentTarget).addClass 'loader'
 
 			form = @el.querySelector 'form.addfile'
 			formData = new FormData form
@@ -58,6 +61,7 @@ define (require) ->
 			,
 				token: false
 			jqXHR.done (response) =>
+				$(ev.currentTarget).removeClass 'loader'
 				data =
 					name: @el.querySelector('input[name="name"]').value
 					filename: response[1].originalName

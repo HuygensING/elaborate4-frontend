@@ -6,12 +6,13 @@
 				li(data-key="current")= name
 				li(data-key="next") &nbsp;
 				//- li.arrowdown.subsub(data-key="editfacsimiles") Edit facsimiles
-				li.alignright(data-key="facsimiles") Facsimiles
+				li.alignright(data-key="facsimiles") Facsimiles 
+					span= '(' + facsimiles.length + ')'
 					ul.vertical.menu.facsimiles
 						li.spacer &nbsp;
-						li.subsub(data-key="editfacsimiles") Edit...
-						each facsimile in facsimiles.models
-							li(data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
+						li.subsub(data-key="editfacsimiles") Add &amp; remove...
+						each facsimile, index in facsimiles.models
+							li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
 		.cell.span2.alignright
 			ul.horizontal.menu
 				//- li(data-key="save") MoveSave

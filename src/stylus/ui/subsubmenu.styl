@@ -74,6 +74,13 @@
 
 				button
 					elaboratebutton()
+					display none
+					
+					&.loader:after
+						content url('/images/loader_transparent.gif')
+						margin-left 6px
+						position relative
+						top 3px
 
 				button, input[type="file"]
 					margin-left 40px

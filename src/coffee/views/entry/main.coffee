@@ -255,6 +255,9 @@ define (require) ->
 			# Check if ev is an Event, else assume ev is an ID
 			facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
+			$('.submenu .facsimiles li.active').removeClass('active')
+			$('.submenu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
+
 			newFacsimile = @entry.get('facsimiles').get facsimileID
 			@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
@@ -318,7 +321,10 @@ define (require) ->
 			@listenTo @entry.get('facsimiles'), 'current:change', (current) =>
 				@currentFacsimile = current
 				@renderFacsimile()
-			@listenTo @entry.get('facsimiles'), 'add', (facsimile) =>
+			@listenTo @entry.get('facsimiles'), 'add', (facsimile, collection) =>
+				# Update facsimile count in submenu
+				@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
+
 				# Add the new facsimile to the menu
 				li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
 				@$('.submenu .facsimiles').append li
@@ -327,9 +333,13 @@ define (require) ->
 				@changeFacsimile facsimile.id
 				@subsubmenu.close()
 				@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
+			@listenTo @entry.get('facsimiles'), 'remove', (facsimile, collection) =>
+				# Update facsimile count in submenu
+				@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
 
-			@listenTo @entry.get('facsimiles'), 'remove', (facsimile) => 
+				# Remove the facsimile from the submenu
 				@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
+
 				@publish 'message', "Removed facsimile: \"#{facsimile.get('name')}\"."
 
 			@listenTo @entry.get('transcriptions'), 'current:change', (current) =>			

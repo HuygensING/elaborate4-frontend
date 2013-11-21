@@ -49,9 +49,23 @@
 			&[data-key="facsimiles"], &[data-key="editfacsimiles"], &[data-key="edittextlayers"], &[data-key="layer"]
 				arrowdown(spotcolor)
 
+				span
+					color darken(spotcolor, 20%)
+					display inline-block
+					margin-top -3px
+
 		.vertical.menu 
 			border-bottom-left-radius 6px
 			border-bottom-right-radius 6px
+
+			&.facsimiles
+				li
+					padding-left 20px
+
+				li.active:before
+					content '✓ '
+					position absolute
+					margin-left -12px
 
 			& > li
 				border-bottom 1px solid #666
