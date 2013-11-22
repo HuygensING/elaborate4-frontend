@@ -9,7 +9,7 @@
 					ul.vertical.menu
 						//- li.spacer
 						li.search= singular + ' overview'
-						if user.get('role') === 'ADMIN'
+						if user.get('roleNo') >= 40
 							li.settings Project settings
 						li.history History
 						//- li.publish Publish

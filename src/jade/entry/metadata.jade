@@ -2,14 +2,23 @@ form
 	ul(data-model-id=model.cid)
 		li
 			label Name
-			input(type="text", name="name", value=model.get('name'))
-		- console.log(model.get('settings').attributes)
+			if user.get('roleNo') >= 20
+				input(type="text", name="name", value=model.get('name'))
+			else
+				span= model.get('name')
+
 		each value, key in model.get('settings').attributes
 			li
 				label= key
-				input(type="text", name=key, value=value)
+				if user.get('roleNo') >= 20
+					input(type="text", name=key, value=value)
+				else
+					span= value
 		li
 			label Publishable
-			input(type="checkbox", name="publishable", checked=model.get('publishable'))
+			if user.get('roleNo') >= 20
+				input(type="checkbox", name="publishable", checked=model.get('publishable'))
+			else
+				span= model.get('publishable')
 br
 small The last modification of #{model.get('name')} was #{new Date(model.get('modifiedOn')).toDateString()} by #{model.get('modifier').title}.

@@ -11,22 +11,31 @@ define (require) ->
 	class CurrentUser extends Models.Base
 
 		defaults: ->
-			rev: null
-			username: null
-			title: null
-			email: null
-			firstName: null
-			lastName: null
-			root: null # boolean
-			roleString: null
-			loggedIn: null # boolean
+			username: ''
+			title: ''
+			email: ''
+			firstName: ''
+			lastName: ''
+			role: ''
+			roleString: ''
+			roleNo: ''
+			loggedIn: false # boolean
 
+		# ### Initiailze
 		initialize: ->
 			super
 
 			@loggedIn = false
 
 			@subscribe 'unauthorized', -> sessionStorage.clear()
+
+		# ### Overrides
+
+		parse: (attrs) ->
+			attrs.roleNo = config.roles[attrs.role]
+			attrs
+
+		# ### Methods
 
 		authorize: (args) ->
 			{@authorized, @unauthorized} = args
@@ -76,7 +85,9 @@ define (require) ->
 
 				jqXHR.done (data) =>
 					@password = null
-					
+
+					data.user = @parse data.user
+
 					token.set data.token
 					@set data.user
 

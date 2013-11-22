@@ -12,6 +12,7 @@ define (require) ->
 
 	Models =
 		Entry: require 'models/entry'
+		currentUser: require 'models/currentUser'
 
 	Collections =
 		projects: require 'collections/projects'
@@ -68,7 +69,9 @@ define (require) ->
 		# ### Render
 		render: ->
 			# console.log tpls
-			rtpl = tpls['entry/main'] @entry.toJSON()
+			rtpl = tpls['entry/main']
+				entry: @entry
+				user: Models.currentUser
 			@$el.html rtpl
 
 			@renderFacsimile()
@@ -280,6 +283,8 @@ define (require) ->
 		editEntryMetadata: (ev) ->
 			entryMetadata = new Views.Form
 				tpl: tpls['entry/metadata']
+				tplData:
+					user: Models.currentUser
 				model: @entry.clone()
 
 			modal = new Views.Modal

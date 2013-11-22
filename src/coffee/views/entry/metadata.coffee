@@ -2,6 +2,8 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
 
+	currentUser = require 'models/currentUser'
+
 	Views = 
 		Form: require 'hilib/views/form/main'
 
@@ -19,7 +21,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			rtpl = tpls['entry/metadata'] @model.toJSON()
+			rtpl = tpls['entry/metadata']
+				model: @model.toJSON()
+				user: currentUser
 			@$el.html rtpl
 
 			@
