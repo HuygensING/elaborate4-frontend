@@ -13,7 +13,7 @@ define (require) ->
 	tpls = require 'tpls'
 
 	# ## TranscriptionPreview
-	class TranscriptionPreview extends Views.Base
+	class EntryPreview extends Views.Base
 
 		className: 'right-pane'
 
@@ -94,7 +94,8 @@ define (require) ->
 			id = ev.currentTarget.getAttribute('data-id')
 
 			annotation = if id is 'newannotation' then @newAnnotation else @currentTranscription.get('annotations').findWhere annotationNo: id >> 0
-		
+			return console.error 'Annotation not found! ID:', id, ' Collection:', @currentTranscription.get('annotations') unless annotation?
+
 			@setAnnotatedText annotation
 
 			@editAnnotationTooltip.show

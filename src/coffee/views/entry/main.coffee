@@ -49,6 +49,7 @@ define (require) ->
 					success: (collection, response, options) =>
 						# setCurrent returns the current model/entry
 						@entry = collection.setCurrent @options.entryId
+						@entry.projectID = @project.id
 						
 						@entry.get('transcriptions').fetch success: (collection, response, options) =>
 
@@ -280,29 +281,34 @@ define (require) ->
 				# @layerEditor.show()
 				@entry.get('transcriptions').trigger 'current:change', @currentTranscription 
 
-		editEntryMetadata: (ev) ->
-			entryMetadata = new Views.Form
-				tpl: tpls['entry/metadata']
-				tplData:
-					user: Models.currentUser
-				model: @entry.clone()
+		editEntryMetadata: do ->
+			# Create a reference to the modal, so we can check if a modal is active.
+			modal = null
 
-			modal = new Views.Modal
-				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
-				$html: entryMetadata.$el
-				submitValue: 'Save metadata'
-				width: '300px'
-			modal.on 'submit', =>
-				@entry.updateFromClone entryMetadata.model
+			(ev) ->
+				return if modal?
 
-				@entry.get('settings').save()
+				entryMetadata = new Views.Form
+					tpl: tpls['entry/metadata']
+					tplData:
+						user: Models.currentUser
+					model: @entry.clone()
 
-				jqXHR = @entry.save()
-				jqXHR.done => 
-					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
-					modal.close()
+				modal = new Views.Modal
+					title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
+					$html: entryMetadata.$el
+					submitValue: 'Save metadata'
+					width: '300px'
+				modal.on 'submit', =>
+					@entry.updateFromClone entryMetadata.model
 
+					async = new Async ['entry', 'settings']
+					@listenToOnce async, 'ready', => 
+						modal.close()
+						@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
+					@entry.get('settings').save null, success: ->  async.called 'settings'
+					@entry.save null, success: -> async.called 'entry'
 
 		# ### Methods
 
