@@ -76,12 +76,14 @@ define (require) ->
 			@projectUserIDs.save userIDs,
 				success: => 
 					@allusers.add user
+					@get('members').add user
 					done()
 
 		removeUser: (id, done) ->
 			@projectUserIDs.save Fn.removeFromArray(@get('userIDs'), id),
 				success: => 
 					@allusers.remove id
+					@get('members').removeById id
 					done()
 
 		load: (cb) ->

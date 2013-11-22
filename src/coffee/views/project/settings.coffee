@@ -105,18 +105,12 @@ define (require) ->
 						placeholder: 'Add layer'
 						confirmRemove: true
 			@listenTo textLayerList, 'confirmRemove', (id, confirm) =>
-				modal = new Views.Modal
+				@renderConfirmModal confirm,
 					$html: 'You are about to delete the '+id+' layer'
 					submitValue: 'Remove '+id+' layer'
-					width: 'auto'
-				modal.on 'submit', => 
-					modal.close()
-					confirm()
 			@listenTo textLayerList, 'change', (values) =>
 				@project.set 'textLayers', values
 				@project.saveTextlayers => @publish 'message', 'Text layers updated.'
-				# @project.save null,
-				# 	success: @publish 'message', 'Text layers updated.'
 			@$('div[data-tab="textlayers"]').append textLayerList.el
 
 			# Entry metadata
@@ -126,14 +120,10 @@ define (require) ->
 					settings:
 						placeholder: 'Add field'
 						confirmRemove: true
-			@listenTo EntryMetadataList, 'confirmRemove', (fieldName, confirm) =>
-				modal = new Views.Modal
-					$html: 'You are about to delete entry metadata field: '+fieldName
-					submitValue: 'Remove field '+fieldName
-					width: 'auto'
-				modal.on 'submit', => 
-					modal.close()
-					confirm()
+			@listenTo EntryMetadataList, 'confirmRemove', (id, confirm) =>
+				@renderConfirmModal confirm,
+					$html: 'You are about to delete entry metadata field: '+id
+					submitValue: 'Remove field '+id
 			@listenTo EntryMetadataList, 'change', (values) => 
 				new EntryMetadata(@project.id).save values,
 					success: => @publish 'message', 'Entry metadata fields updated.'
@@ -153,6 +143,7 @@ define (require) ->
 					data: @project.allannotationtypes
 					settings:
 						placeholder: 'Add annotation type'
+						confirmRemove: true
 			@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
 
 			form = new Views.Form
@@ -160,12 +151,16 @@ define (require) ->
 				tpl: tpls['project/settings/addannotationtype']
 			@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
 
+			@listenTo combolist, 'confirmRemove', (id, confirm) =>
+				@renderConfirmModal confirm,
+					$html: 'You are about to delete annotation type: <u>'+annotationTypes.get(id).get('title')+'</u>.'
+					submitValue: 'Remove annotation type'
+
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?
 					annotationType = changes.collection.get changes.added
-					console.log annotationType
-					# @project.addAnnotationType annotationType, =>
-					# 	@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
+					@project.addAnnotationType annotationType, =>
+						@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
 				else if changes.removed?
 					name = @project.allannotationtypes.get(changes.removed).get('name')
 					@project.removeAnnotationType changes.removed, =>
@@ -183,6 +178,7 @@ define (require) ->
 					data: @project.allusers
 					settings:
 						placeholder: 'Add member'
+						confirmRemove: true
 			@$('div[data-tab="users"] .userlist').append combolist.el
 
 			form = new Views.Form
@@ -190,6 +186,10 @@ define (require) ->
 				tpl: tpls['project/settings/adduser']
 			@$('div[data-tab="users"] .adduser').append form.el
 
+			@listenTo combolist, 'confirmRemove', (id, confirm) =>
+				@renderConfirmModal confirm,
+					$html: 'You are about to remove <u>'+members.get(id).get('title')+'</u> from your project.'
+					submitValue: 'Remove user'
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?
 					user = changes.collection.get changes.added
@@ -204,6 +204,12 @@ define (require) ->
 
 			@listenTo form, 'save:success', (model) => @project.get('members').add model
 			@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
+
+		renderConfirmModal: (confirm, options) ->
+			modal = new Views.Modal _.extend options, width: 'auto'
+			modal.on 'submit', => 
+				modal.close()
+				confirm()
 
 		# ### Events
 		events:
