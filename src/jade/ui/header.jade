@@ -1,16 +1,13 @@
 .cell.span1.project.aligncenter
 	img(src="/images/logo.elaborate.png")
-	//- span.white.projecttitle <%= project.get('title') %>
 	ul.horizontal.menu
 		li.thisproject.arrowdown 
 			span.projecttitle= projects.current.get('title')
 			ul.vertical.menu
-				//- li.spacer
 				li.search= singular + ' overview'
 				if user.get('roleNo') >= 40
 					li.settings Project settings
 				li.history History
-				//- li.publish Publish
 .cell.span1
 	span.message
 .cell.span1.user.alignright
@@ -18,10 +15,9 @@
 		li Help
 		li.username.arrowdown= user.get('title')
 			ul.vertical.menu
-				//- li.spacer
-				li.projects.arrowleft My projects
+				li.projects.arrowleft= 'My projects (' + projects.length + ')'
 					ul.vertical.menu
 						each project in projects.models
-							li.project(data-id=project.id)= project.get('title')
+							li.project(class=projects.current==project?'active':'', data-id=project.id)= project.get('title')
 				li.logout Logout
 	img(src="/images/logo.huygens.png")
