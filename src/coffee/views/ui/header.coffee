@@ -24,9 +24,7 @@ define (require) ->
 	
 	class Header extends BaseView
 
-		tagName: 'header'
-
-		className: 'main'
+		className: 'row span3'
 
 		# ### Initialize
 		initialize: ->
