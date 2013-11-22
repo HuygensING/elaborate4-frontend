@@ -5,19 +5,16 @@
 				li(data-key="previous") &nbsp;
 				li(data-key="current")= entry.get('name')
 				li(data-key="next") &nbsp;
-				//- li.arrowdown.subsub(data-key="editfacsimiles") Edit facsimiles
-				if user.get('roleNo') >= 20
-					li.alignright(data-key="facsimiles") Facsimiles 
-						span= '(' + entry.get('facsimiles').length + ')'
-						ul.vertical.menu.facsimiles
-							li.spacer &nbsp;
+				li.alignright(data-key="facsimiles") Facsimiles 
+					span= '(' + entry.get('facsimiles').length + ')'
+					ul.vertical.menu.facsimiles
+						li.spacer &nbsp;
+						if user.get('roleNo') >= 20
 							li.subsub(data-key="editfacsimiles") Add &amp; remove...
-							each facsimile, index in entry.get('facsimiles').models
-								li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
+						each facsimile, index in entry.get('facsimiles').models
+							li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
 		.cell.span2.alignright
 			ul.horizontal.menu
-				//- li(data-key="save") MoveSave
-				//- li.subsub(data-key="edittextlayers") Edit layers
 				if user.get('roleNo') >= 20
 					li(data-key="print") Print
 				li.arrowdown(data-key="layer") Layer
@@ -25,11 +22,9 @@
 						li.spacer &nbsp;
 						each transcription in entry.get('transcriptions').models
 							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
-				//- li(data-key="metadata") Metadata
 		.cell.span2.alignright
 			ul.horizontal.menu
 				li(data-key="metadata") Metadata
-				//- li(data-key="preview") Preview
 
 .subsubmenu
 	.edittextlayers
