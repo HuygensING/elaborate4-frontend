@@ -67,28 +67,7 @@ define (require) ->
 			@publish 'annotationEditor:show', @model.get 'annotationNo'
 
 		hide: -> 
-			if @model.changedSinceLastSave?
-				# Save a reference to the old @model.id
-				modelID = @model.id
-
-				modal = new Views.Modal
-					title: "Unsaved changes"
-					$html: $('<p />').html("There are unsaved changes in annotation: #{@model.get('annotationNo')}.<br><br>")
-					submitValue: 'Save changes'
-					cancelValue: 'Discard changes'
-					width: '320px'
-				modal.on 'cancel', =>
-					# We have to get the model from the @model's collection, because showing the modal is non-blocking.
-					# Meaning the script will continue to run and @model will change to a new annotation.
-					@model.collection.get(modelID).cancelChanges()
-				modal.on 'submit', => 
-					model = @model.collection.get(modelID)
-					model.save null,
-						success: => @publish 'message', "Saved changes to annotation: #{model.get('annotationNo')}."
-					modal.close()
-
 			@el.style.display = 'none'
-
 			@publish 'annotationEditor:hide', @model.get 'annotationNo'
 
 		visible: -> @el.style.display is 'block'

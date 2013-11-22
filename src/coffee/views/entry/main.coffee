@@ -129,21 +129,31 @@ define (require) ->
 					append: true
 
 		renderAnnotation: (model) ->
-			unless @annotationEditor
-				@annotationEditor = viewManager.show @el.querySelector('.annotation-placeholder'), Views.AnnotationEditor,
-					model: model
-					height: @preview.$el.innerHeight() - 31
-					width: @preview.$el.width() - 4
-				@listenTo @annotationEditor, 'cancel', =>
-					@preview.removeNewAnnotationTags()
-					@renderTranscription()
-				@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
-					@currentTranscription.get('annotations').add annotation
-					
-			else
-				@annotationEditor.show model
+			showAnnotationEditor = =>
+				unless @annotationEditor
+					@annotationEditor = viewManager.show @el.querySelector('.annotation-placeholder'), Views.AnnotationEditor,
+						model: model
+						height: @preview.$el.innerHeight() - 31
+						width: @preview.$el.width() - 4
+					@listenTo @annotationEditor, 'cancel', =>
+						@showUnsavedChangesModal
+							model: @annotationEditor.model
+							html: $('<p />').html("There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<br><br>")
+							done: =>
+								@preview.removeNewAnnotationTags()
+								@renderTranscription()
+					@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
+						@currentTranscription.get('annotations').add annotation
+				else
+					@annotationEditor.show model
 
-			@layerEditor.hide()
+				@layerEditor.hide()
+			
+			@showUnsavedChangesModal
+				model: @layerEditor.model
+				html: $('<p />').html("There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.<br><br>")
+				done: showAnnotationEditor
+
 
 		renderSubsubmenu: ->
 			# @subviews.textlayersEdit = viewManager.show @el.querySelector(), Views.EditTextlayers,
@@ -266,20 +276,49 @@ define (require) ->
 			@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
 		changeTranscription: (ev) ->
-			# Check if ev is an Event, else assume ev is an ID
-			transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
-			newTranscription = @entry.get('transcriptions').get transcriptionID
+			showTranscription = =>
+				# Check if ev is an Event, else assume ev is an ID
+				transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
+				newTranscription = @entry.get('transcriptions').get transcriptionID
 
-			# If the newTranscription is truly new than set it to be the current transcription.
-			if newTranscription isnt @currentTranscription 
-				# Set @currentTranscription to newTranscription
-				@entry.get('transcriptions').setCurrent newTranscription
-			# If newTranscription and @currentTranscription are the same than it is still possible the transcription editor
-			# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
-			# trigger when the model hasn't changed.
-			else if not @layerEditor.visible()
-				# @layerEditor.show()
-				@entry.get('transcriptions').trigger 'current:change', @currentTranscription 
+				# If the newTranscription is truly new than set it to be the current transcription.
+				if newTranscription isnt @currentTranscription 
+					# Set @currentTranscription to newTranscription
+					@entry.get('transcriptions').setCurrent newTranscription
+				# If newTranscription and @currentTranscription are the same then it is possible the transcription editor
+				# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
+				# trigger when the model hasn't changed.
+				else if not @layerEditor.visible()
+					# @layerEditor.show()
+					@entry.get('transcriptions').trigger 'current:change', @currentTranscription
+
+			if @annotationEditor? and @annotationEditor.visible()
+				@showUnsavedChangesModal
+					model: @annotationEditor.model
+					html: $('<p />').html("There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<br><br>")
+					done: showTranscription
+			else
+				@showUnsavedChangesModal
+					model: @layerEditor.model
+					html: $('<p />').html("There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.<br><br>")
+					done: showTranscription
+		
+		showUnsavedChangesModal: (args) ->
+			{model, html, done} = args
+
+			if model.changedSinceLastSave?
+				modal = new Views.Modal
+					title: "Unsaved changes"
+					$html: html
+					submitValue: 'Discard changes'
+					width: '320px'
+				modal.on 'submit', =>
+					model.cancelChanges()
+					modal.close()
+					done()
+			else
+				done()
+
 
 		editEntryMetadata: do ->
 			# Create a reference to the modal, so we can check if a modal is active.
@@ -305,6 +344,7 @@ define (require) ->
 					async = new Async ['entry', 'settings']
 					@listenToOnce async, 'ready', => 
 						modal.close()
+						modal = null
 						@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
 					@entry.get('settings').save null, success: ->  async.called 'settings'
