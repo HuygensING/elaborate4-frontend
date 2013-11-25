@@ -19,11 +19,11 @@ define (require) ->
 
 	Views = 
 		Base: require 'views/base'
+		Submenu: require 'views/entry/submenu'
 		Preview: require 'views/entry/preview/main'
 		EntryMetadata: require 'views/entry/metadata'
 		EditFacsimiles: require 'views/entry/subsubmenu/facsimiles.edit'
 		Modal: require 'hilib/views/modal/main'
-		Form: require 'hilib/views/form/main'
 		AnnotationEditor: require 'views/entry/editors/annotation'
 		LayerEditor: require 'views/entry/editors/layer'
 
@@ -69,17 +69,25 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			# console.log tpls
 			rtpl = tpls['entry/main']
 				entry: @entry
 				user: Models.currentUser
 			@$el.html rtpl
 
+			# Render submenu
+			@submenu = viewManager.show @el, Views.Submenu,
+				entry: @entry
+				user: Models.currentUser
+				project: @project
+				prepend: true
+
+			# Render subsubmenu
+			@subviews.facsimileEdit = viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
+				collection: @entry.get 'facsimiles'
+
 			@renderFacsimile()
 			
-			@renderTranscription()
-
-			@renderSubsubmenu()
+			@renderTranscriptionEditor()
 
 			@addListeners()
 
@@ -91,7 +99,7 @@ define (require) ->
 				if @options.annotationID?
 					annotation = annotations.get @options.annotationID
 					@preview.setAnnotatedText annotation
-					@renderAnnotation annotation
+					@renderAnnotationEditor annotation
 					
 
 		renderFacsimile: ->
@@ -103,12 +111,12 @@ define (require) ->
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
 				@$('.left-pane iframe').height document.documentElement.clientHeight - 89
 
-		# * TODO: How many times is renderTranscription called on init?
-		renderTranscription: ->
+		# * TODO: How many times is renderTranscriptionEditor called on init?
+		renderTranscriptionEditor: ->
 			# The preview is based on the transcription, so we have to render it each time the transcription is rendered
 			@renderPreview()
 
-			@setTranscriptionNameToMenu()
+			@submenu.render()
 
 			unless @layerEditor
 				@layerEditor = viewManager.show @el.querySelector('.transcription-placeholder'), Views.LayerEditor,
@@ -128,7 +136,7 @@ define (require) ->
 					model: @entry
 					append: true
 
-		renderAnnotation: (model) ->
+		renderAnnotationEditor: (model) ->
 			showAnnotationEditor = =>
 				unless @annotationEditor
 					@annotationEditor = viewManager.show @el.querySelector('.annotation-placeholder'), Views.AnnotationEditor,
@@ -141,7 +149,7 @@ define (require) ->
 							html: "<p>There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<p>"
 							done: =>
 								@preview.removeNewAnnotationTags()
-								@renderTranscription()
+								@renderTranscriptionEditor()
 					@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
 						@currentTranscription.get('annotations').add annotation
 				else
@@ -153,65 +161,13 @@ define (require) ->
 				model: @layerEditor.model
 				html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
 				done: showAnnotationEditor
-
-
-		renderSubsubmenu: ->
-			# @subviews.textlayersEdit = viewManager.show @el.querySelector(), Views.EditTextlayers,
-			# 	collection: @entry.get 'transcriptions'
-			# 	el: @$('.subsubmenu .edittextlayers')
-
-			@subviews.facsimileEdit = viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
-				collection: @entry.get 'facsimiles'
 			
+
 		# ### Events
 		events: ->
-			'click .menu li[data-key="previous"]': 'previousEntry'
-			'click .menu li[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
 			'click .menu li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
-			'click .menu li[data-key="print"]': 'printEntry'
-			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
-			# 'click .menu li[data-key="save"]': 'save'
-
-		# When the user wants to print we create a div#printpreview directly under <body> and show
-		# a clone of the preview body and an ordered list of the annotations.
-		printEntry: (ev) ->
-			pp = document.querySelector('#printpreview')
-			pp.parentNode.removeChild pp if pp?
-
-			annotations = @currentTranscription.get('annotations')
-
-			mainDiv = document.createElement('div')
-			mainDiv.id = 'printpreview'
-
-			h2 = document.createElement('h2')
-			h2.innerHTML = 'Preview'
-
-			mainDiv.appendChild h2
-			mainDiv.appendChild @el.querySelector('.preview').cloneNode true
-
-			ol = document.createElement('ol')
-			ol.className = 'annotations'
-			
-			sups = @el.querySelectorAll('sup[data-marker="end"]')
-			_.each sups, (sup) =>
-				annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
-				
-				li = document.createElement('li')
-				li.innerHTML = annotation.get('body')
-				
-				ol.appendChild li
-
-			h2 = document.createElement('h2')
-			h2.innerHTML = 'Annotations'
-
-			mainDiv.appendChild h2
-			mainDiv.appendChild ol
-
-			document.body.appendChild mainDiv
-
-			window.print()
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
@@ -254,17 +210,6 @@ define (require) ->
 
 					currentMenu = newMenu
 
-		previousEntry: ->
-			# @entry.collection.previous() returns an entry model
-			entryID = @entry.collection.previous().id
-			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
-
-		nextEntry: ->
-			entryID = @entry.collection.next().id
-			textLayer = StringFn.slugify @currentTranscription.get 'textLayer'
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
-
 		changeFacsimile: (ev) ->
 			# Check if ev is an Event, else assume ev is an ID
 			facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
@@ -274,6 +219,22 @@ define (require) ->
 
 			newFacsimile = @entry.get('facsimiles').get facsimileID
 			@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
+		
+		showUnsavedChangesModal: (args) ->
+			{model, html, done} = args
+
+			if model.changedSinceLastSave?
+				modal = new Views.Modal
+					title: "Unsaved changes"
+					html: html
+					submitValue: 'Discard changes'
+					width: '320px'
+				modal.on 'submit', =>
+					model.cancelChanges()
+					modal.close()
+					done()
+			else
+				done()
 
 		changeTranscription: (ev) ->
 			showTranscription = =>
@@ -302,68 +263,12 @@ define (require) ->
 					model: @layerEditor.model
 					html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
 					done: showTranscription
-		
-		showUnsavedChangesModal: (args) ->
-			{model, html, done} = args
-
-			if model.changedSinceLastSave?
-				modal = new Views.Modal
-					title: "Unsaved changes"
-					html: html
-					submitValue: 'Discard changes'
-					width: '320px'
-				modal.on 'submit', =>
-					model.cancelChanges()
-					modal.close()
-					done()
-			else
-				done()
-
-
-		editEntryMetadata: do ->
-			# Create a reference to the modal, so we can check if a modal is active.
-			modal = null
-
-			(ev) ->
-				return if modal?
-
-				entryMetadata = new Views.Form
-					tpl: tpls['entry/metadata']
-					tplData:
-						user: Models.currentUser
-					model: @entry.clone()
-
-				modal = new Views.Modal
-					title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
-					html: entryMetadata.el
-					submitValue: 'Save metadata'
-					width: '300px'
-				modal.on 'submit', =>
-					@entry.updateFromClone entryMetadata.model
-
-					async = new Async ['entry', 'settings']
-					@listenToOnce async, 'ready', => 
-						modal.close()
-						@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
-
-					@entry.get('settings').save null, success: ->  async.called 'settings'
-					@entry.save null, success: -> async.called 'entry'
-				modal.on 'close', -> modal = null
 
 		# ### Methods
 
-		# Replace default text "Layer" with the name of the layer, for example: "Diplomatic layer".
-		# First used a span as placeholder, but in combination with the arrowdown class, things went haywire.
-		setTranscriptionNameToMenu: ->
-			textLayer = @currentTranscription.get 'textLayer'
-			textLayerNode = document.createTextNode textLayer+ ' layer'
-			li = @el.querySelector '.submenu li[data-key="layer"]'
-			li.replaceChild textLayerNode, li.firstChild
-
-
 		addListeners: ->
-			@listenTo @preview, 'editAnnotation', @renderAnnotation
-			@listenTo @preview, 'annotation:removed', @renderTranscription
+			@listenTo @preview, 'editAnnotation', @renderAnnotationEditor
+			@listenTo @preview, 'annotation:removed', @renderTranscriptionEditor
 			# layerEditor cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
 			@listenTo @layerEditor.editor, 'scrolled', (percentages) => @preview.setScroll percentages
@@ -397,7 +302,7 @@ define (require) ->
 				@currentTranscription = current
 				# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
 				# the user is not fast enough to click an annotation
-				@currentTranscription.getAnnotations (annotations) => @renderTranscription()
+				@currentTranscription.getAnnotations (annotations) => @renderTranscriptionEditor()
 			@listenTo @entry.get('transcriptions'), 'add', (transcription) =>
 				# Add the new text layer to the submenu
 				li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")

@@ -1,0 +1,27 @@
+.row.span7
+	.cell.span3.left
+		ul.horizontal.menu
+			li(data-key="previous") &nbsp;
+			li(data-key="current")= entry.get('name')
+			li(data-key="next") &nbsp;
+			li.alignright(data-key="facsimiles") Facsimiles 
+				span= '(' + entry.get('facsimiles').length + ')'
+				ul.vertical.menu.facsimiles
+					li.spacer &nbsp;
+					if user.get('roleNo') >= 20
+						li.subsub(data-key="editfacsimiles") Add &amp; remove...
+					each facsimile, index in entry.get('facsimiles').models
+						li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
+	.cell.span2.alignright
+		ul.horizontal.menu
+			if user.get('roleNo') >= 20
+				li(data-key="print") Print
+			li.arrowdown(data-key="layer")= entry.get('transcriptions').current.get('textLayer') + ' layer'
+				ul.vertical.menu.textlayers
+					li.spacer &nbsp;
+					each transcription in entry.get('transcriptions').models
+						if transcription != entry.get('transcriptions').current
+							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
+	.cell.span2.alignright
+		ul.horizontal.menu
+			li(data-key="metadata") Metadata
