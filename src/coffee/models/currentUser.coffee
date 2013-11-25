@@ -32,6 +32,7 @@ define (require) ->
 		# ### Overrides
 
 		parse: (attrs) ->
+			attrs.title ?= attrs.username
 			attrs.roleNo = config.roles[attrs.role]
 			attrs
 
