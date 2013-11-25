@@ -94,7 +94,6 @@ define (require) ->
 				@model.save()
 
 		editMetadata: ->
-			console.log @project
 			annotationMetadata = new Views.Form
 				tpl: tpls['entry/annotation.metadata']
 				model: @model.clone()
@@ -109,7 +108,7 @@ define (require) ->
 
 			modal = new Views.Modal
 				title: "Edit annotation metadata"
-				$html: annotationMetadata.$el
+				html: annotationMetadata.el
 				submitValue: 'Save metadata'
 				width: '300px'
 			modal.on 'submit', =>

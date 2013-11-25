@@ -153,11 +153,9 @@ define (require) ->
 			# When hiding edit metadata, reset (uncheck) all checkboxes
 
 		newEntry: (ev) ->
-			$html = $('<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>')
-
 			modal = new Views.Modal
 				title: "Create a new entry"
-				$html: $html
+				html: '<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>'
 				submitValue: 'Create entry'
 				width: '300px'
 			modal.on 'submit', =>

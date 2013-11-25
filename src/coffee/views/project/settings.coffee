@@ -106,7 +106,7 @@ define (require) ->
 						confirmRemove: true
 			@listenTo textLayerList, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					$html: 'You are about to delete the '+id+' layer'
+					html: 'You are about to delete the '+id+' layer'
 					submitValue: 'Remove '+id+' layer'
 			@listenTo textLayerList, 'change', (values) =>
 				@project.set 'textLayers', values
@@ -122,7 +122,7 @@ define (require) ->
 						confirmRemove: true
 			@listenTo EntryMetadataList, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					$html: 'You are about to delete entry metadata field: '+id
+					html: 'You are about to delete entry metadata field: '+id
 					submitValue: 'Remove field '+id
 			@listenTo EntryMetadataList, 'change', (values) => 
 				new EntryMetadata(@project.id).save values,
@@ -153,7 +153,7 @@ define (require) ->
 
 			@listenTo combolist, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					$html: 'You are about to delete annotation type: <u>'+annotationTypes.get(id).get('title')+'</u>.'
+					html: 'You are about to delete annotation type: <u>'+annotationTypes.get(id).get('title')+'</u>.'
 					submitValue: 'Remove annotation type'
 
 			@listenTo combolist, 'change', (changes) =>
@@ -188,7 +188,7 @@ define (require) ->
 
 			@listenTo combolist, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					$html: 'You are about to remove <u>'+members.get(id).get('title')+'</u> from your project.'
+					html: 'You are about to remove <u>'+members.get(id).get('title')+'</u> from your project.'
 					submitValue: 'Remove user'
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?

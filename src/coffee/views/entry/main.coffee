@@ -138,7 +138,7 @@ define (require) ->
 					@listenTo @annotationEditor, 'cancel', =>
 						@showUnsavedChangesModal
 							model: @annotationEditor.model
-							html: $('<p />').html("There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<br><br>")
+							html: "<p>There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<p>"
 							done: =>
 								@preview.removeNewAnnotationTags()
 								@renderTranscription()
@@ -151,7 +151,7 @@ define (require) ->
 			
 			@showUnsavedChangesModal
 				model: @layerEditor.model
-				html: $('<p />').html("There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.<br><br>")
+				html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
 				done: showAnnotationEditor
 
 
@@ -295,12 +295,12 @@ define (require) ->
 			if @annotationEditor? and @annotationEditor.visible()
 				@showUnsavedChangesModal
 					model: @annotationEditor.model
-					html: $('<p />').html("There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<br><br>")
+					html: "<p>There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.</p>"
 					done: showTranscription
 			else
 				@showUnsavedChangesModal
 					model: @layerEditor.model
-					html: $('<p />').html("There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.<br><br>")
+					html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
 					done: showTranscription
 		
 		showUnsavedChangesModal: (args) ->
@@ -309,7 +309,7 @@ define (require) ->
 			if model.changedSinceLastSave?
 				modal = new Views.Modal
 					title: "Unsaved changes"
-					$html: html
+					html: html
 					submitValue: 'Discard changes'
 					width: '320px'
 				modal.on 'submit', =>
@@ -335,7 +335,7 @@ define (require) ->
 
 				modal = new Views.Modal
 					title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
-					$html: entryMetadata.$el
+					html: entryMetadata.el
 					submitValue: 'Save metadata'
 					width: '300px'
 				modal.on 'submit', =>
@@ -344,11 +344,11 @@ define (require) ->
 					async = new Async ['entry', 'settings']
 					@listenToOnce async, 'ready', => 
 						modal.close()
-						modal = null
 						@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
 					@entry.get('settings').save null, success: ->  async.called 'settings'
 					@entry.save null, success: -> async.called 'entry'
+				modal.on 'close', -> modal = null
 
 		# ### Methods
 
