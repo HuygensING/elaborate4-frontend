@@ -31,12 +31,6 @@ define (require) ->
 
 	ProjectUserIDs = require 'project.user.ids'
 
-	# Templates =
-	# 	Settings: require 'text!html/project/settings/main.html'
-	# 	# EntryMetadata: require 'text!html/project/metadata_entries.html'
-	# 	AnnotationTypes: require 'text!html/project/settings/metadata_annotations.html'
-	# 	AddUser: require 'text!html/project/settings/adduser.html'
-
 	tpls = require 'tpls'
 	
 	class ProjectSettings extends Views.Base
@@ -50,22 +44,6 @@ define (require) ->
 			Collections.projects.getCurrent (@project) =>
 				@model = @project.get 'settings'
 				@render()
-				# async = new Async ['annotationtypes', 'users']
-				# async.on 'ready', => @render()
-
-				# @allannotationtypes = new Collections.AnnotationTypes()
-				# @allannotationtypes.fetch
-				# 	success: (collection) => async.called 'annotationtypes'
-
-				# @allusers = new Collections.Users()
-				# @allusers.fetch 
-				# 	success: (collection) =>
-				# 		@project.set 'members', new Collections.Users collection.filter (model) => @project.get('userIDs').indexOf(model.id) > -1
-				# 		async.called 'users'
-
-				# @model = new Models.Settings null,
-				# 	projectID: @project.id
-				# @model.fetch success: => @render()
 
 		# ### Render
 		render: ->
@@ -74,21 +52,15 @@ define (require) ->
 				projectMembers: @project.get('members')
 			@$el.html rtpl
 
-			# @renderSubMenu()
-
 			@renderTabs()
 			@renderAnnotationsTab()
 			@renderUserTab()
 
-			@loadStatistics()
+			# @loadStatistics()
 
 			@showTab @options.tabName if @options.tabName
 
 			@
-
-		# renderSubMenu: ->
-		# 	subMenu = new Views.SubMenu()
-		# 	@$el.prepend subMenu.$el
 
 			@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 			# @listenTo subMenu, 'clicked', (menuItem) =>
@@ -269,26 +241,6 @@ define (require) ->
 
 		# ### Methods
 
-		loadStatistics: ->
-			start = new Date().getTime()
 
-			stats = new Models.Statistics @project.id
-			stats.fetch (data) =>
-				str = JSON.stringify(data, null, 4)
-				
-				str = str.replace /{/g, ''
-				str = str.replace /}/g, ''
-				str = str.replace /\"/g, ''
-				str = str.replace /,/g, ''
-
-				end = new Date().getTime()
-				delta = end - start
-
-				if delta < 1000
-					remaining = 1000 - delta
-					setTimeout (=> 
-						@$('img.loader').css 'visibility', 'hidden' # ! display: none does not work in Chrome
-						@$('.statistics').html str
-					), remaining
 
 				

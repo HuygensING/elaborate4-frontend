@@ -40,11 +40,13 @@ define (require) ->
 			'click .project .projecttitle': 'navigateToProject'
 			'click .project .settings': 'navigateToProjectSettings'
 			'click .project .search': 'navigateToProject'
+			'click .project .statistics': 'navigateToProjectStatistics'
 			'click .project .history': 'navigateToProjectHistory'
 			'click .message': -> @$('.message').removeClass 'active'
 
 		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
 		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+		navigateToProjectStatistics: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/statistics", trigger: true
 		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 
 		# ### Render

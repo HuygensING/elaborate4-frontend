@@ -43,11 +43,11 @@ module.exports = (grunt) ->
 				src: '~/Projects/hilib'
 				dest: 'compiled/lib/hilib'
 			,
-				src: 'compiled/lib/hilib/images/views/supertinyeditor'
-				dest: 'images/supertinyeditor'
-			,
-				src: 'compiled/lib/hilib/images/views/modal'
-				dest: 'images/modal'
+				src: 'compiled/lib/hilib/images'
+				dest: 'images/hilib'
+			# ,
+			# 	src: 'compiled/lib/hilib/images/views/modal'
+			# 	dest: 'images/modal'
 			]
 			dist: [{
 				src: 'images'

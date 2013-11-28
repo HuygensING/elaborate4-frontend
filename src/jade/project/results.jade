@@ -6,6 +6,6 @@ each entry in model.get('results')
 		label(for=id)= entry.name
 		.keywords
 			ul
-				each kwic in entry._kwic
+				each kwic, container in entry._kwic
 					each row in kwic
-						li!= row
+						li!= '<span class="container">'+container + ':</span> '+ row

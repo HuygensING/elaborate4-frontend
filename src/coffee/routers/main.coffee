@@ -14,6 +14,7 @@ define (require) ->
 		ProjectMain: require 'views/project/main'
 		ProjectSettings: require 'views/project/settings'
 		ProjectHistory: require 'views/project/history'
+		Statistics: require 'views/project/statistics'
 		Entry: require 'views/entry/main'
 		Header: require 'views/ui/header'
 
@@ -54,6 +55,7 @@ define (require) ->
 			'projects/:name/settings/:tab': 'projectSettings'
 			'projects/:name/settings': 'projectSettings'
 			'projects/:name/history': 'projectHistory'
+			'projects/:name/statistics': 'statistics'
 			'projects/:name/entries/:id': 'entry'
 			'projects/:name/entries/:id/transcriptions/:name': 'entry'
 			'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
@@ -72,6 +74,9 @@ define (require) ->
 
 		projectHistory: (name) ->
 			@manageView Views.ProjectHistory
+
+		statistics: ->
+			@manageView Views.Statistics
 
 		entry: (projectName, entryID, transcriptionName, annotationID) ->
 			@manageView Views.Entry,

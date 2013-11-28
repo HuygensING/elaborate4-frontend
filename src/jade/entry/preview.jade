@@ -1,7 +1,9 @@
+if lineCount == 0
+	span.emptylayer This layer is empty.
 .preview 
 	.body!= body
 	ul.linenumbers
-		- lineNumber = 1
-		while lineNumber <= lineCount
-			li= lineNumber
-			- lineNumber++
+			- lineNumber = 1
+			while lineNumber <= lineCount
+				li= lineNumber
+				- lineNumber++

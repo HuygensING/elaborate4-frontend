@@ -50,6 +50,8 @@ define (require) ->
 			lineCount++ if body.substr(-4) isnt '<br>'
 			data.lineCount = lineCount
 
+			data.lineCount = 0 if data.body.trim() is ''
+
 			rtpl = tpls['entry/preview'] data
 			@$el.html rtpl
 
