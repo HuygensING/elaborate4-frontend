@@ -51,7 +51,9 @@ define (require) ->
 			# to edit the metadata of multiple entries at once.
 			@editSelection = viewManager.show @el.querySelector('.editselection-placeholder'),  Views.EditSelection,
 				model: @project
-			@listenTo @editSelection, 'close', @toggleEditMultipleMetadata
+			@listenTo @editSelection, 'close', =>
+				@toggleEditMultipleMetadata()
+				@facetedSearch.reset()
 
 			# @facetedSearch = new Views.FacetedSearch
 			@facetedSearch = viewManager.show @el.querySelector('.faceted-search-placeholder'), Views.FacetedSearch,
@@ -133,20 +135,6 @@ define (require) ->
 				
 			# Clear checkboxes
 			Fn.checkCheckboxes null, false
-
-			# return false
-			# editmetadataPlaceholder = @el.querySelector('.editselection-placeholder')
-
-			# visible = editmetadataPlaceholder.style.display is 'block'
-
-			# display = if visible then 'none' else 'block'
-			# opacity = if visible then 0 else 1
-
-			# editmetadataPlaceholder.style.display = display
-			# checkboxes = @el.querySelectorAll('ul.entries input[type="checkbox"]')
-			# cb.style.opacity = opacity for cb in checkboxes
-
-			# When hiding edit metadata, reset (uncheck) all checkboxes
 
 		newEntry: (ev) ->
 			modal = new Views.Modal
