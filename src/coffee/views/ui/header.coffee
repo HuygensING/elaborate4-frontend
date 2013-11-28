@@ -52,7 +52,7 @@ define (require) ->
 			rtpl = tpls['ui/header']
 				projects: Collections.projects
 				user: Models.currentUser
-				singular: StringFn.ucfirst @project.get('settings').get('entry.term_singular')
+				plural: StringFn.ucfirst @project.get('settings').get('entry.term_plural')
 			@$el.html rtpl
 
 			@

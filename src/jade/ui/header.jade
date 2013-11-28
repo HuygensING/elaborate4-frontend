@@ -4,7 +4,7 @@
 		li.thisproject.arrowdown 
 			span.projecttitle= projects.current.get('title')
 			ul.vertical.menu
-				li.search= singular + ' overview'
+				li.search= plural + ' overview'
 				if user.get('roleNo') >= 40
 					li.settings Project settings
 				li.history History

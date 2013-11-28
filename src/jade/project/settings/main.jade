@@ -46,18 +46,18 @@
 								strong Publication
 							li
 								label URL
-								a(href=settings.publicationURL, data-bypass) link
+								a(href=settings.publicationURL, data-bypass, target="_blank") link
 							li
 								label Title
 								input(type="text", value=settings['publication.title'], name="publication.title", data-attr="publication.title")
-							//- li
-							//- 	label(for="text.font") Font
-							//- 	select(name="text.font", data-attr="text.font")
-							//- 		option(value="junicode", selected=settings['text.font']=='junicode') Junicode
-							//- 		option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
-							//- 		option(value="gentium", selected=settings['text.font']=='gentium') Gentium
-							//- 		option(value="alexander", selected=settings['text.font']=='alexander') Alexander
-							//- 		option(value="newathena", selected=settings['text.font']=='newathena') New Athena
+							li
+								label(for="text.font") Font
+								select(name="text.font", data-attr="text.font")
+									option(value="junicode", selected=settings['text.font']=='junicode') Junicode
+									option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
+									option(value="gentium", selected=settings['text.font']=='gentium') Gentium
+									option(value="alexander", selected=settings['text.font']=='alexander') Alexander
+									option(value="newathena", selected=settings['text.font']=='newathena') New Athena
 									
 						li(style="margin-top: 20px")
 							input.inactive(type="submit", name="savesettings", value="Save settings")
@@ -67,12 +67,12 @@
 				pre.statistics
 
 	div(data-tab="textlayers")
-		h3 Edit text layers
+		h3 Add / remove text layers
 
 	div(data-tab="metadata-entries")
 		.row.span2
 			.cell.span1.entrylist
-				h3 Edit entry metadata fields
+				h3 Add / remove entry metadata fields
 			.cell.span1.setnames
 					h3 Set entry name
 					form
@@ -92,11 +92,13 @@
 	div(data-tab="annotationtypes")
 		.row.span3
 			.cell.span1.annotationtypelist
-				h3 Annotation types
+				h3 Add / remove annotation types
 			.cell.span1.addannotationtype
 				h3 Add annotation type to project
 			.cell.span1.setnames
 				h3 Set custom names for tags
+				p(style="color:gray")
+					strong The custom names are only applicable to the <u>diplomatic</u> layer!
 				form
 					ul
 						li
@@ -137,6 +139,6 @@
 	div(data-tab="users")
 		.row.span3
 			.cell.span1.userlist
-				h3 Project members
+				h3 Add / remove project members
 			.cell.span2.adduser
 				h3 Add user to project

@@ -1,3 +1,6 @@
+small The last modification of #{model.get('name')} was #{new Date(model.get('modifiedOn')).toDateString()} by #{model.get('modifier').title}.
+br
+br
 form
 	ul(data-model-id=model.cid)
 		li
@@ -20,5 +23,3 @@ form
 				input(type="checkbox", name="publishable", checked=model.get('publishable'))
 			else
 				span= model.get('publishable')
-br
-small The last modification of #{model.get('name')} was #{new Date(model.get('modifiedOn')).toDateString()} by #{model.get('modifier').title}.

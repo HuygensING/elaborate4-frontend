@@ -26,10 +26,6 @@ define (require) ->
 		Modal: require 'hilib/views/modal/main'
 		EditSelection: require 'views/project/editselection'
 
-	# Templates =
-	# 	Search: require 'text!html/project/main.html'
-	# 	Results: require 'text!html/project/results.html'
-
 	tpls = require 'tpls'
 
 	class ProjectSearch extends Views.Base

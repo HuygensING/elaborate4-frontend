@@ -106,7 +106,8 @@ define (require) ->
 						confirmRemove: true
 			@listenTo textLayerList, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					html: 'You are about to delete the '+id+' layer'
+					title: 'Caution!'
+					html: 'You are about to <b>remove</b> the '+id+' layer<br><br>All texts and annotations will be <b>permanently</b> removed!'
 					submitValue: 'Remove '+id+' layer'
 			@listenTo textLayerList, 'change', (values) =>
 				@project.set 'textLayers', values
@@ -153,7 +154,8 @@ define (require) ->
 
 			@listenTo combolist, 'confirmRemove', (id, confirm) =>
 				@renderConfirmModal confirm,
-					html: 'You are about to delete annotation type: <u>'+annotationTypes.get(id).get('title')+'</u>.'
+					title: 'Caution!'
+					html: "You are about to <b>remove</b> annotation type: #{annotationTypes.get(id).get('title')}.<br><br>All annotations of type #{annotationTypes.get(id).get('title')} will be <b>permanently</b> removed!"
 					submitValue: 'Remove annotation type'
 
 			@listenTo combolist, 'change', (changes) =>
