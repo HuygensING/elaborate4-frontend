@@ -17,8 +17,8 @@ define (require) ->
 			super
 
 			Collections.projects.getCurrent (@project) =>
-				stats = new Models.Statistics @project.id
-				stats.fetch (data) =>
+				stats = new Models.Statistics null, projectID: @project.id
+				stats.fetch success: (data) =>
 					@statString = JSON.stringify(data, null, 4)
 					
 					@statString = @statString.replace /{/g, ''

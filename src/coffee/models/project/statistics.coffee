@@ -1,25 +1,31 @@
 # * TODO: use hilib/managers/ajax
 define (require) ->
 	config = require 'config'
+	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
 
+	Base = require 'models/base'
 	# Models =
 	# 	state: require 'models/state'
 
 	# Collections =
 	# 	projects: require 'collections/projects'
 
-	class ProjectStatistics
+	class ProjectStatistics extends Base
 
-		constructor: (@projectID) ->
+		url: -> "#{config.baseUrl}projects/#{@projectID}/statistics"
 
-		fetch: (cb) ->
-			jqXHR = $.ajax
-				url: "#{config.baseUrl}projects/#{@projectID}/statistics"
-				type: 'get'
-				dataType: 'json'
-				beforeSend: (xhr) =>
-					xhr.setRequestHeader 'Authorization', "SimpleAuth #{token.get()}"
+		initialize: (attrs, options) ->
+			super
 
-			jqXHR.done (data) ->
-				cb data
+			@projectID = options.projectID
+
+		sync: (method, model, options) ->
+			if method is 'read'
+				ajax.token = token.get()
+				jqXHR = ajax.get
+					url: @url()
+				jqXHR.done (response) => options.success response
+				jqXHR.fail => console.error 'Saving ProjectSettings failed!'
+			else
+				super method, model, options
