@@ -93,23 +93,6 @@ module.exports = (grunt) ->
 					processName: (filename) -> filename.substring(9, filename.length-5)
 
 
-		# jade:
-		# 	init:
-		# 		files: [
-		# 			expand: true
-		# 			cwd: 'src/jade'
-		# 			src: '**/*.jade'
-		# 			dest: 'compiled/html'
-		# 			rename: (dest, src) -> 
-		# 				dest + '/' + src.replace(/.jade/, '.html') # Use rename to preserve multiple dots in filenames (nav.user.coffee => nav.user.js)
-		# 		,
-		# 			'compiled/index.html': 'src/index.jade'
-		# 		]
-		# 	compile:
-		# 		options:
-		# 			pretty: false
-
-
 		replace:
 			html:
 				src: 'compiled/index.html'

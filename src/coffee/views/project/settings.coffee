@@ -166,9 +166,9 @@ define (require) ->
 					submitValue: 'Remove user'
 			@listenTo combolist, 'change', (changes) =>
 				if changes.added?
-					user = changes.collection.get changes.added
-					@project.addUser user, =>
-						@publish 'message', "Added #{user.getShortName()} to #{@project.get('title')}."
+					userAttrs = _.findWhere changes.selected, id: changes.added
+					user = new Models.User userAttrs
+					@project.addUser user, => @publish 'message', "Added #{user.getShortName()} to #{@project.get('title')}."
 				else if changes.removed?
 					user = @project.allusers.get changes.removed
 					shortName = user.getShortName()

@@ -6,6 +6,9 @@ define (require) ->
 	Pubsub = require 'hilib/mixins/pubsub'
 	Fn = require 'hilib/functions/general'
 
+	Models =
+		currentUser: require 'models/currentUser'
+
 	Collections =
 		projects: require 'collections/projects'
 
@@ -23,30 +26,33 @@ define (require) ->
 		initialize: ->
 			_.extend @, Pubsub
 
-			@on 'route', =>
-				# @renderHeader() if @project?
-				history.update()
+			Models.currentUser.authorize
+				authorized: =>
+					Collections.projects.fetch()
+					Collections.projects.getCurrent (@project) =>
+						# Route to correct url
+						url = history.last() ? 'projects/'+@project.get('name')
+						@navigate url, trigger: true
+
+						viewManager.show 'header.main', Views.Header,
+							project: @project
+							prepend: true
+							persist: true
+						
+						@listenTo Collections.projects, 'current:change', (@project) =>
+							# Clear cache when we switch project
+							viewManager.clearCache()
+							@navigate "projects/#{@project.get('name')}", trigger: true
+
+				unauthorized: =>
+					@navigate 'login', trigger: true
+
+			@on 'route', => history.update()
 
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
 			Collections.projects.getCurrent (@project) =>
-				viewManager.show 'header.main', Views.Header,
-					project: @project
-					prepend: true
-					persist: true
-				
-				@listenTo Collections.projects, 'current:change', (@project) =>
-					# Clear cache when we switch project
-					viewManager.clearCache()
-					# @renderHeader()
-					@navigate "projects/#{@project.get('name')}", trigger: true
 
 		manageView: (View, options) -> viewManager.show 'div#main', View, options
-
-		# renderHeader: ->
-			# console.log document.querySelector('#container > header')
-			# header = new Views.Header
-
-
 
 		routes:
 			'': 'projectMain'

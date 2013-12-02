@@ -12,6 +12,12 @@ define (require) ->
 
 		urlRoot: -> config.baseUrl + "users"
 
+		validation:
+			username:
+				required: true
+			password:
+				required: true
+
 		defaults: ->
 			username: ''
 			email: ''

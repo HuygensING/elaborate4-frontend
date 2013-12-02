@@ -5,9 +5,6 @@ define (require) ->
 
 	MainRouter = require 'routers/main'
 
-	Models =
-		currentUser: require 'models/currentUser'
-
 	projects = require 'collections/projects'
 
 	Views =
@@ -21,17 +18,6 @@ define (require) ->
 	init: ->
 		mainRouter = new MainRouter()
 		Backbone.history.start pushState: true
-
-		Models.currentUser.authorize
-			authorized: =>
-				projects.fetch()
-				projects.getCurrent (current) ->
-					# Route to correct url
-					url = history.last() ? 'projects/'+projects.current.get('name')
-					mainRouter.navigate url, trigger: true
-
-			unauthorized: =>
-				mainRouter.navigate 'login', trigger: true
 
 		$(document).on 'click', 'a:not([data-bypass])', (e) ->
 			href = $(@).attr 'href'
