@@ -19,6 +19,8 @@ define (require) ->
 		mainRouter = new MainRouter()
 		Backbone.history.start pushState: true
 
+		mainRouter.init()
+
 		$(document).on 'click', 'a:not([data-bypass])', (e) ->
 			href = $(@).attr 'href'
 			

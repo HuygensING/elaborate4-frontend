@@ -26,6 +26,12 @@ define (require) ->
 		initialize: ->
 			_.extend @, Pubsub
 
+			@on 'route', => history.update()
+
+		# The init method is manually triggered from app.js, after Backbone.history.start().
+		# Ideally we would have this code in the initialize method, but we need to use @navigate
+		# which isn't operational yet.
+		init: ->
 			Models.currentUser.authorize
 				authorized: =>
 					Collections.projects.fetch()
@@ -47,10 +53,9 @@ define (require) ->
 				unauthorized: =>
 					@navigate 'login', trigger: true
 
-			@on 'route', => history.update()
 
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
-			Collections.projects.getCurrent (@project) =>
+			# Collections.projects.getCurrent (@project) =>
 
 		manageView: (View, options) -> viewManager.show 'div#main', View, options
 
