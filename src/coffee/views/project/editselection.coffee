@@ -85,7 +85,7 @@ define (require) ->
 						saveButton.removeClass 'loader'
 						@publish 'message', 'Metadata of multiple entries saved.'
 						@hide()
-					jqXHR.fail (jqXHR, textStatus, errorThrown) => console.log jqXHR, textStatus, errorThrown
+					jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		# ### Methods
 

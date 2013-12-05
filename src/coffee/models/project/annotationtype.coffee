@@ -47,7 +47,7 @@ define (require) ->
 						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
 						xhr.done (data, textStatus, jqXHR) =>
 							options.success data
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 			else if method is 'update'
 				ajax.token = token.get()
 				jqXHR = ajax.put
@@ -57,7 +57,7 @@ define (require) ->
 						description: model.get 'description'
 				# Options.success is not called, because the server does not respond with the updated model.
 				jqXHR.done (response) => @trigger 'sync'
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else
 				super

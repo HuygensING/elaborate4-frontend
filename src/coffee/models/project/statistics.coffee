@@ -1,5 +1,7 @@
 # * TODO: use hilib/managers/ajax
 define (require) ->
+	Backbone = require 'backbone'
+	
 	config = require 'config'
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
@@ -26,6 +28,8 @@ define (require) ->
 				jqXHR = ajax.get
 					url: @url()
 				jqXHR.done (response) => options.success response
-				jqXHR.fail => console.error 'Saving ProjectSettings failed!'
+				jqXHR.fail (response) => 
+					console.error 'Saving ProjectSettings failed!'
+					Backbone.history.navigate 'login', trigger: true if response.status is 401
 			else
 				super method, model, options

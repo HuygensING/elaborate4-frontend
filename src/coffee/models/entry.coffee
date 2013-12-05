@@ -93,9 +93,10 @@ define (require) ->
 						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
 						xhr.done (data, textStatus, jqXHR) =>
 							options.success data
-						xhr.fail => console.log arguments
+						xhr.fail (response) =>
+							Backbone.history.navigate 'login', trigger: true if response.status is 401
 
-				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
 				ajax.token = token.get()
@@ -103,7 +104,7 @@ define (require) ->
 					url: @url()
 					data: data
 				jqXHR.done (response) => options.success response
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else
 				super

@@ -152,6 +152,7 @@ define (require) ->
 
 		highlightAnnotation: (annotationNo) ->
 			range = document.createRange()
+			console.log annotationNo, @el.querySelector('span[data-id="'+annotationNo+'"]')
 			range.setStartAfter @el.querySelector('span[data-id="'+annotationNo+'"]')
 			range.setEndBefore @el.querySelector('sup[data-id="'+annotationNo+'"]')
 

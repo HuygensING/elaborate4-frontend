@@ -52,7 +52,9 @@ define (require) ->
 							@trigger 'sync'
 							options.success data
 
-				jqXHR.fail (response) => options.error response
+				jqXHR.fail (response) => 
+					options.error response
+					Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
 				ajax.token = token.get()
@@ -60,7 +62,9 @@ define (require) ->
 					url: @url()
 					data: JSON.stringify model.toJSON()
 				jqXHR.done (response) => @trigger 'sync'
-				jqXHR.fail (response) => options.error response
+				jqXHR.fail (response) => 
+					options.error response
+					jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else
 				super
