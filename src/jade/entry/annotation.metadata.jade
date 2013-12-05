@@ -10,4 +10,4 @@ form
 		each metadata in model.get('annotationType').metadataItems
 			li 
 				label(title=metadata.description)= metadata.name
-				input(type="text", name='metadata.'+metadata.name, value=model.get('metadata')[metadata.name])x
+				input(type="text", name='metadata.'+metadata.name, value=model.get('metadata')[metadata.name])
