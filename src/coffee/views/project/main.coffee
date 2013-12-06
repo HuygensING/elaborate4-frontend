@@ -138,12 +138,12 @@ define (require) ->
 
 		newEntry: (ev) ->
 			modal = new Views.Modal
-				title: "Create a new entry"
+				title: "Create a new #{@project.get('settings').get('entry.term_singular')}"
 				html: '<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>'
-				submitValue: 'Create entry'
+				submitValue: "Create #{@project.get('settings').get('entry.term_singular')}"
 				width: '300px'
 			modal.on 'submit', =>
-				modal.message 'success', 'Creating new entry...'
+				modal.message 'success', "Creating a new #{@project.get('settings').get('entry.term_singular')}..."
 				
 				# @listenToOnce entries, 'add', (entry) =>
 
@@ -159,7 +159,7 @@ define (require) ->
 						@stopListening()
 						@project.get('entries').add model
 						modal.close()
-						@publish 'message', 'New entry added to project.'
+						@publish 'message', "New #{@project.get('settings').get('entry.term_singular')} added to project."
 						Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
 				# entries.create {name: modal.$('input[name="name"]').val()}, wait: true
