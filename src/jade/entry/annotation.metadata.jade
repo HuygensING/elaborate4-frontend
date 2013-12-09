@@ -7,7 +7,9 @@ form
 					- sel = item.id === model.get('annotationType').id
 					option(value=item.id, selected=sel) #{item.get('description')} (#{item.get('name')})
 
-		each metadata in model.get('annotationType').metadataItems
-			li 
-				label(title=metadata.description)= metadata.name
-				input(type="text", name='metadata.'+metadata.name, value=model.get('metadata')[metadata.name])x
+		//- TODO add annotationType.metadataItems to model.defaults()
+		if model.get('annotationType').hasOwnProperty('metadataItems')
+			each metadata in model.get('annotationType').metadataItems
+				li 
+					label(title=metadata.description)= metadata.name
+					input(type="text", name='metadata.'+metadata.name, value=model.get('metadata')[metadata.name])

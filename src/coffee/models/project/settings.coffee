@@ -33,6 +33,6 @@ define (require) ->
 					url: @url()
 					data: JSON.stringify(@)
 				jqXHR.done (response) => options.success response
-				jqXHR.fail => console.error 'Saving ProjectSettings failed!'
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 			else
 				super method, model, options

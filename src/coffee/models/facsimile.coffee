@@ -35,7 +35,7 @@ define (require) ->
 							@trigger 'sync'
 							options.success data
 
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 			else
 				super
 

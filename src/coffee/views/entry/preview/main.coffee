@@ -28,8 +28,9 @@ define (require) ->
 			# @model is the entry
 			@currentTranscription = @model.get('transcriptions').current
 			
-			@subscribe 'annotationEditor:show', @highlightAnnotation
-			@subscribe 'annotationEditor:hide', @unhighlightAnnotation
+			# console.log 'subbing'
+			# @subscribe 'annotationEditor:show', @highlightAnnotation
+			# @subscribe 'annotationEditor:hide', @unhighlightAnnotation
 
 			@addListeners()
 
@@ -52,8 +53,7 @@ define (require) ->
 
 			data.lineCount = 0 if data.body.trim() is ''
 
-			rtpl = tpls['entry/preview'] data
-			@$el.html rtpl
+			@el.innerHTML = tpls['entry/preview'] data
 
 			@renderTooltips()
 
@@ -152,6 +152,7 @@ define (require) ->
 
 		highlightAnnotation: (annotationNo) ->
 			range = document.createRange()
+
 			range.setStartAfter @el.querySelector('span[data-id="'+annotationNo+'"]')
 			range.setEndBefore @el.querySelector('sup[data-id="'+annotationNo+'"]')
 

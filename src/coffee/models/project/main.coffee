@@ -135,9 +135,7 @@ define (require) ->
 			jqXHR.done (response) =>
 				@set 'entrymetadatafields', response
 				cb()
-			jqXHR.fail (a, b, c) => 
-				console.log a, b, c
-				console.error 'fetchEntrymetadatafields failed!'
+			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 				
 		publishDraft: (cb) ->
 			ajax.token = token.get()
@@ -148,7 +146,7 @@ define (require) ->
 				locationUrl = jqXHR.getResponseHeader('Location')
 				localStorage.setItem 'publishDraftLocation', locationUrl
 				@pollDraft locationUrl, cb
-			jqXHR.fail => console.log arguments
+			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		pollDraft: (url, done) ->
 			ajax.poll
@@ -171,4 +169,5 @@ define (require) ->
 				url: config.baseUrl+"projects/#{@id}/textlayers"
 				data: JSON.stringify @get 'textLayers'
 			jqXHR.done => done()
+			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 

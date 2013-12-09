@@ -1,4 +1,5 @@
 define (require) ->
+	Backbone = require 'backbone'
 
 	ajax = require 'hilib/managers/ajax'
 	token = require 'hilib/managers/token'
@@ -89,7 +90,8 @@ define (require) ->
 							options.success data
 						xhr.fail => console.log arguments
 
-				jqXHR.fail (a, b, c) => console.log 'fail', a, b, c
+				jqXHR.fail (response) =>
+					Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
 				ajax.token = token.get()
@@ -100,7 +102,7 @@ define (require) ->
 						typeId: @get('annotationType').id
 						metadata: @get 'metadata'
 				jqXHR.done (response) => options.success response
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else
 				super

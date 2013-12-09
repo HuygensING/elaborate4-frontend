@@ -150,10 +150,12 @@ define (require) ->
 							done: =>
 								@preview.removeNewAnnotationTags()
 								@renderTranscriptionEditor()
-					@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
-						@currentTranscription.get('annotations').add annotation
+					@listenTo @annotationEditor, 'newannotation:saved', (annotation) => @currentTranscription.get('annotations').add annotation
+					@listenTo @annotationEditor, 'hide', (annotationNo) => @preview.unhighlightAnnotation annotationNo
 				else
 					@annotationEditor.show model
+
+				@preview.highlightAnnotation model.get('annotationNo')
 
 				@layerEditor.hide()
 			

@@ -81,7 +81,7 @@ define (require) ->
 							@trigger 'sync'
 							options.success data
 
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
 				ajax.token = token.get()
@@ -91,7 +91,7 @@ define (require) ->
 				jqXHR.done (response) => 
 					@trigger 'sync'
 					options.success response
-				jqXHR.fail (response) => console.log 'fail', response
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else
 				super
@@ -107,7 +107,7 @@ define (require) ->
 					entryId: @collection.entryId
 					projectId: @collection.projectId
 
-				annotations.fetch
+				jqXHR = annotations.fetch
 					success: (collection) =>
 						@set 'annotations', collection
 
@@ -115,6 +115,7 @@ define (require) ->
 						@listenTo collection, 'remove', @removeAnnotation
 
 						cb collection
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		addAnnotation: (model) ->
 			unless model.get('annotationNo')? 
@@ -138,6 +139,7 @@ define (require) ->
 				$body.find("[data-id='#{model.get('annotationNo')}']").remove()
 
 				@resetAnnotationOrder $body, false
+			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		resetAnnotationOrder: ($body, add=true) ->
 			# Find all sups in $body and update the innerHTML with the new index
@@ -148,10 +150,11 @@ define (require) ->
 			@set 'body', $body.html()
 
 			# Save the transcription to the server.
-			@save null, 
+			jqXHR = @save null, 
 				success: => 
 					message = if add then "New annotation added." else "Annotation removed."
 					@publish 'message', message
+			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		# cancelChanges: ->
 		# 	@set 'body', @changedSinceLastSave

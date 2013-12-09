@@ -64,11 +64,9 @@ define (require) ->
 
 			@el.style.display = 'block'
 
-			@publish 'annotationEditor:show', @model.get 'annotationNo'
-
 		hide: -> 
 			@el.style.display = 'none'
-			@publish 'annotationEditor:hide', @model.get 'annotationNo'
+			@trigger 'hide', @model.get 'annotationNo'
 
 		visible: -> @el.style.display is 'block'
 
