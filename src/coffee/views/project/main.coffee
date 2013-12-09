@@ -68,13 +68,13 @@ define (require) ->
 					resultRows: @resultRows
 
 			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
-			@listenTo @facetedSearch, 'results:change', (responseModel, queryOptions) =>
+			@listenTo @facetedSearch, 'results:change', (responseModel) =>
 				@project.get('entries').set responseModel.get 'results'
 				@listenTo @project.get('entries'), 'current:change', (entry) =>
 					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 				
 				@renderHeader responseModel
-				@renderResults responseModel, queryOptions
+				@renderResults responseModel
 
 			# Check if a draft is in the process of being published.
 			@pollDraft()
@@ -98,7 +98,9 @@ define (require) ->
 			else
 				@$('.pagination').hide()
 
-		renderResults: (responseModel, queryOptions) ->
+		renderResults: (responseModel) ->
+			queryOptions = responseModel.options.queryOptions
+			
 			rtpl = tpls['project/results']
 				model: responseModel
 				generateID: Fn.generateID
