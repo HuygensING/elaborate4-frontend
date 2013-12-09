@@ -100,13 +100,13 @@ define (require) ->
 
 		renderResults: (responseModel) ->
 			queryOptions = responseModel.options.queryOptions
-			
+
 			rtpl = tpls['project/results']
 				model: responseModel
 				generateID: Fn.generateID
 			@$('ul.entries').html rtpl
 			
-			if queryOptions.term? and queryOptions.term isnt ''
+			if queryOptions? and queryOptions.term? and queryOptions.term isnt ''
 				document.getElementById('cb_showkeywords').checked = true
 				@$('.keywords').show()
 			else 
