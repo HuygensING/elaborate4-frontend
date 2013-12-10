@@ -60,7 +60,6 @@ define (require) ->
 			modal = null
 
 			(ev) ->
-				console.log modal
 				return if modal?
 
 				entryMetadata = new Views.Form

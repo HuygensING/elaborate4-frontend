@@ -17,77 +17,47 @@ define (require) ->
 		className: "tooltip addannotation"
 
 		events: ->
+			'change select': 'selectChanged'
 			'click button': 'buttonClicked'
+
+		selectChanged: (ev) ->
+			index = ev.currentTarget.selectedIndex
+			option = ev.currentTarget.options[index]
+			@newannotation.set 'annotationType', @options.annotationTypes.get(option.value).attributes
 
 		buttonClicked: (ev) ->
 			@hide()
-			@trigger 'clicked', new Annotation()
+			@trigger 'clicked', @newannotation
 
 		initialize: ->
 			super
 
 			@container = @options.container ? document.querySelector 'body'
-			# @boundingBox = Fn.boundingBox @container
 
 			@render()
 
 		render: ->
-			@$el.html tpls['entry/tooltip.add.annotation']()
+			@el.innerHTML = tpls['entry/tooltip.add.annotation'] annotationTypes: @options.annotationTypes
 
 			# There can be only one!
 			tooltip = tooltip = document.querySelector('.tooltip.addannotation')
 			tooltip.remove() if tooltip?
 
-			# console.log @container
 			dom(@container).prepend @el
-
-			# Native prepend
-			# @container.insertBefore @el, @container.firstChild
-
-			# $('body').prepend @$el
 
 			@
 
 		# Set the position and show the tooltip
 		show: (position) ->
+			# The default annotationType is set to the first in the list. Should this be configurable?
+			@newannotation = new Annotation annotationType: @options.annotationTypes.at 0
+
 			@setPosition position
 
 			@el.classList.add 'active'
 
 		# Hide the tooltip
 		hide: -> @el.classList.remove 'active'
-
-		# setPosition: (position) ->
-		# 	boundingBox = Fn.boundingBox @container
-
-		# 	@$el.removeClass 'tipright tipleft tipbottom'
-
-		# 	# console.log 'setPos', @el.offsetWidth
-
-		# 	# left = half of the element pointed to PLUS the left position of the element pointed to MINUS half the width of the tooltip
-		# 	left = (@pointedEl.offsetWidth/2) + position.left - (@$el.width()/2)
-		# 	# top = top position of the element pointed to PLUS an arbitrary offset/margin
-		# 	top = position.top + 30
-
-
-		# 	if left < 10
-		# 		left = 10
-		# 		@$el.addClass 'tipleft'
-
-		# 	if boundingBox.width < (left + @$el.width())
-		# 		left = boundingBox.width - @$el.width() - 10
-		# 		@$el.addClass 'tipright'
-
-		# 	tooltipBottomPos = top + @$el.height()
-		# 	pane = document.querySelector('.container .right-pane')
-		# 	scrollBottomPos = pane.scrollTop + pane.clientHeight
-
-		# 	if tooltipBottomPos > scrollBottomPos
-		# 		top = top - 48 - @$el.height()
-		# 		@$el.addClass 'tipbottom'
-
-		# 	@$el.css 'left', left
-		# 	@$el.css 'top', top
 
 		setPosition: (position) ->
 			boundingBox = Fn.boundingBox @container

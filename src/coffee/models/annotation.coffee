@@ -19,8 +19,7 @@ define (require) ->
 		defaults: ->
 			annotationMetadataItems: []
 			annotationNo: 'newannotation'
-			annotationType:
-				id: 1
+			annotationType: null
 			body: ''
 			createdOn: ''
 			creator: null

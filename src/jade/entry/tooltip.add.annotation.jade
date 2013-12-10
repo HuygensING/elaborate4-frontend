@@ -1,1 +1,4 @@
+select
+	each annotationType in annotationTypes.models
+		option(value=annotationType.id)= annotationType.get('name')
 button Add annotation

@@ -54,7 +54,8 @@ define (require) ->
 
 			@el.style.left = 0
 			@el.style.top = 0
-			@$('.tooltip-body').html ''
+			@el.querySelector('.tooltip-body').innerHTML = ''
+			@el.querySelector('.annotation-type').innerHTML = ''
 
 			# console.log 'show', @el.offsetWidth
 
@@ -72,23 +73,14 @@ define (require) ->
 			if @model?
 				@$el.removeClass 'newannotation'
 
-
-				# Add body of the model to the tooltip
-				@$('.tooltip-body').html @model.get 'body'
+				@el.querySelector('.tooltip-body').innerHTML = @model.get 'body'
+				@el.querySelector('.annotation-type').innerHTML = @model.get('annotationType').name if @model.get('annotationType').name?
 			else
 				@$el.addClass 'newannotation'
 			
-			# console.log $el.offset()
-			# console.log $el.position()
-
-			# Calculate and set the absolute position
-
-
 			if @options.container? then	@setRelativePosition(dom(@pointedEl).position(@container)) else @setAbsolutePosition($el.offset())
 
 			@el.classList.add 'active'
-			# Show the tooltip
-			# @$el.fadeIn 'fast', =>
 
 		hide: ->
 			@el.removeAttribute 'data-id'

@@ -1,6 +1,7 @@
 # Description...
 define (require) ->
 	Fn = require 'hilib/functions/general'
+	dom = require 'hilib/functions/DOM'
 
 	config = require 'config'
 
@@ -27,10 +28,6 @@ define (require) ->
 
 			# @model is the entry
 			@currentTranscription = @model.get('transcriptions').current
-			
-			# console.log 'subbing'
-			# @subscribe 'annotationEditor:show', @highlightAnnotation
-			# @subscribe 'annotationEditor:hide', @unhighlightAnnotation
 
 			@addListeners()
 
@@ -63,7 +60,9 @@ define (require) ->
 
 		renderTooltips: ->
 			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
-			@addAnnotationTooltip = new Views.AddAnnotationTooltip container: @el.querySelector('.preview')
+			@addAnnotationTooltip = new Views.AddAnnotationTooltip
+				container: @el.querySelector('.preview')
+				annotationTypes: @model.project.get('annotationtypes')
 
 			@editAnnotationTooltip.remove() if @editAnnotationTooltip?
 			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el.querySelector('.preview')
@@ -110,6 +109,8 @@ define (require) ->
 				@addAnnotationTooltip.hide()
 
 		onMouseup: (ev) ->
+			return if ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
+			
 			sel = document.getSelection()
 
 			# If there is no range to get (for example when using the scrollbar)
