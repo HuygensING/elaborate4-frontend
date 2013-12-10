@@ -43,7 +43,7 @@ define (require) ->
 						viewManager.show 'header.main', Views.Header,
 							project: @project
 							prepend: true
-							persist: true
+							# persist: true
 						
 						@listenTo Collections.projects, 'current:change', (@project) =>
 							# Clear cache when we switch project
