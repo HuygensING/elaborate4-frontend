@@ -85,7 +85,6 @@ define (require) ->
 					if jqXHR.status is 201
 						xhr = ajax.get url: jqXHR.getResponseHeader('Location')
 						xhr.done (data, textStatus, jqXHR) =>
-							console.log 'done!'
 							options.success data
 						xhr.fail => console.log arguments
 
