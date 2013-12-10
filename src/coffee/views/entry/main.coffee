@@ -45,10 +45,11 @@ define (require) ->
 			@listenToOnce async, 'ready', => @render()
 
 			Collections.projects.getCurrent (@project) =>
-				@project.get('entries').fetch
+				jqXHR = @project.get('entries').fetch
 					success: (collection, response, options) =>
 						# setCurrent returns the current model/entry
 						@entry = collection.setCurrent @options.entryId
+						@entry.project = @project
 						@entry.projectID = @project.id
 						
 						@entry.get('transcriptions').fetch success: (collection, response, options) =>
@@ -66,6 +67,8 @@ define (require) ->
 							async.called 'facsimiles'
 
 						@entry.get('settings').fetch success: -> async.called 'settings'
+
+				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		# ### Render
 		render: ->
@@ -110,6 +113,14 @@ define (require) ->
 
 				# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
 				@$('.left-pane iframe').height document.documentElement.clientHeight - 89
+				
+		renderPreview: ->
+			if @preview?
+				@preview.setModel @entry
+			else
+				@preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
+					model: @entry
+					append: true
 
 		# * TODO: How many times is renderTranscriptionEditor called on init?
 		renderTranscriptionEditor: ->
@@ -127,14 +138,6 @@ define (require) ->
 				@layerEditor.show @currentTranscription
 
 			@annotationEditor.hide() if @annotationEditor?
-				
-		renderPreview: ->
-			if @preview?
-				@preview.setModel @entry
-			else
-				@preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
-					model: @entry
-					append: true
 
 		renderAnnotationEditor: (model) ->
 			showAnnotationEditor = =>
