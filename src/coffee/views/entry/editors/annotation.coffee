@@ -82,14 +82,15 @@ define (require) ->
 			# Navigate to the new fragement.
 			Backbone.history.navigate fragment, replace: true
 
-		save: ->
+		save: (done=->) ->
 			if @model.isNew()
 				@model.save [],
 					success: (model) => 
 						@trigger 'newannotation:saved', model
+						done()
 					error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
 			else
-				@model.save()
+				@model.save [], success: done
 
 		editMetadata: ->
 			annotationMetadata = new Views.Form
@@ -115,10 +116,13 @@ define (require) ->
 				# console.log metadata
 				@model.updateFromClone annotationMetadata.model
 
-				jqXHR = @model.save()
-				jqXHR.done => 
+				@save =>
 					@publish 'message', "Saved metadata for annotation: #{@model.get('annotationNo')}."
 					modal.close()
+
+				# jqXHR = @model.save()
+				# jqXHR.done =>
+				# 	console.log @model
 
 
 

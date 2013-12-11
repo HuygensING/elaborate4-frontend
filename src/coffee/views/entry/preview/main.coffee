@@ -129,13 +129,16 @@ define (require) ->
 
 			# if not range.collapsed and not startIsSup and not endIsSup
 			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
-				# Listen once to the click on the (to be shown) add annotation tooltip.
-				@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
-					@addNewAnnotation model, range
-				# Show the add annotation tooltip.
-				@addAnnotationTooltip.show
-					left: ev.pageX
-					top: ev.pageY
+				if @currentTranscription.changedSinceLastSave?
+					@publish 'message', "Save the #{@currentTranscription.get('textLayer')} layer, before adding a new annotation!"
+				else
+					# Listen once to the click on the (to be shown) add annotation tooltip.
+					@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
+						@addNewAnnotation model, range
+					# Show the add annotation tooltip.
+					@addAnnotationTooltip.show
+						left: ev.pageX
+						top: ev.pageY
 
 
 		# ### Methods
