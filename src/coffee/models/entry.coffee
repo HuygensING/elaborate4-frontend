@@ -77,6 +77,36 @@ define (require) ->
 		# 	else
 		# 		super
 
+		fetchTranscriptions: (currentTranscriptionName, done) ->
+			transcriptions = new Collections.Transcriptions [], 
+				projectId: @projectID
+				entryId: @id
+
+			jqXHR = transcriptions.fetch()
+			jqXHR.done =>			
+				@set 'transcriptions', transcriptions
+				done transcriptions.setCurrent currentTranscriptionName
+
+		fetchFacsimiles: (done) ->
+			facsimiles = new Collections.Facsimiles [], 
+				projectId: @cprojectID
+				entryId: @id
+
+			jqXHR = facsimiles.fetch()
+			jqXHR.done => 
+				@set 'facsimiles', facsimiles
+				done facsimiles.setCurrent()
+
+		fetchSettings: (done) ->
+			settings = new Models.Settings [], 
+				projectId: @projectID
+				entryId: @id
+
+			jqXHR = settings.fetch()
+			jqXHR.done =>
+				@set 'settings', settings
+				done()
+
 		sync: (method, model, options) ->
 			data = JSON.stringify
 				name: @get 'name'

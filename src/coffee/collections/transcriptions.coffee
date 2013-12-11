@@ -19,15 +19,18 @@ define (require) ->
 
 		setCurrent: (model) ->
 			if not model? or model isnt @current
-				if model?
-					@current = model
+				if _.isString model
+					transcriptionName = model
+					@current = @find (model) => model.get('textLayer').toLowerCase() is transcriptionName.toLowerCase()
 				else
-					# Default to the Diplomatic text layer
-					@current = @findWhere textLayer: 'Diplomatic'
+					if model?
+						@current = model
+					else
+						# Default to the Diplomatic text layer
+						@current = @findWhere textLayer: 'Diplomatic'
 
-					# If no Diplomatic text layer was found, get the first in the collection
-					@first() unless @current?
-
+						# If no Diplomatic text layer was found, get the first in the collection
+						@first() unless @current?
 
 				@trigger 'current:change', @current
 

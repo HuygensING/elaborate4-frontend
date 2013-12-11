@@ -44,30 +44,17 @@ define (require) ->
 			async = new Async ['transcriptions', 'facsimiles', 'settings']
 			@listenToOnce async, 'ready', => @render()
 
+
 			Collections.projects.getCurrent (@project) =>
-				jqXHR = @project.get('entries').fetch
-					success: (collection, response, options) =>
-						# setCurrent returns the current model/entry
-						@entry = collection.setCurrent @options.entryId
+				@entry = new Models.Entry id: @options.entryId
+				jqXHR = @entry.fetch
+					success: (model, response, options) =>
 						@entry.project = @project
 						@entry.projectID = @project.id
-						
-						@entry.get('transcriptions').fetch success: (collection, response, options) =>
 
-							# Find the model with the given textLayer
-							model = collection.find (model) => model.get('textLayer').toLowerCase() is @options.transcriptionName.toLowerCase() if @options.transcriptionName?
-
-							# Set the current transcription. If the model is undefined, the collection will return the first model.
-							@currentTranscription = collection.setCurrent model
-
-							async.called 'transcriptions'
-
-						@entry.get('facsimiles').fetch success: (collection, response, options) =>
-							@currentFacsimile = collection.setCurrent()
-							async.called 'facsimiles'
-
-						@entry.get('settings').fetch success: -> async.called 'settings'
-
+						@entry.fetchTranscriptions @options.transcriptionName, (@currentTranscription) => async.called 'transcriptions'
+						@entry.fetchFacsimiles (@currentFacsimile) => async.called 'facsimiles'
+						@entry.fetchSettings => async.called 'settings'
 				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		# ### Render

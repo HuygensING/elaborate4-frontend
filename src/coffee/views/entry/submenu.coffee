@@ -41,20 +41,21 @@ define (require) ->
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			'click .menu li[data-key="print"]': 'printEntry'
 
+		# FIXME @entry.collection is not available anymore
 		previousEntry: ->
-			# @entry.collection.previous() returns an entry model
-			entryID = @entry.collection.previous().id
-			currentTranscription = @entry.get('transcriptions').current
-			textLayer = StringFn.slugify currentTranscription.get 'textLayer'
+			# entryID = @entry.collection.previous().id
+			# currentTranscription = @entry.get('transcriptions').current
+			# textLayer = StringFn.slugify currentTranscription.get 'textLayer'
 
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
+			# Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
+		# FIXME @entry.collection is not available anymore
 		nextEntry: ->
-			entryID = @entry.collection.next().id
-			currentTranscription = @entry.get('transcriptions').current
-			textLayer = StringFn.slugify currentTranscription.get 'textLayer'
+			# entryID = @entry.collection.next().id
+			# currentTranscription = @entry.get('transcriptions').current
+			# textLayer = StringFn.slugify currentTranscription.get 'textLayer'
 
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
+			# Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
 
 		editEntryMetadata: do ->
 			# Create a reference to the modal, so we can check if a modal is active.
