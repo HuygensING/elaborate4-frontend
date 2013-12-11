@@ -67,7 +67,7 @@ define (require) ->
 				queryOptions:
 					resultRows: @resultRows
 
-			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
+			@listenTo @facetedSearch, 'unauthorized', => Backbone.history.navigate 'login', trigger: true
 			@listenTo @facetedSearch, 'results:change', (responseModel) =>
 				# @project.get('entries').set responseModel.get 'results'
 				# @listenTo @project.get('entries'), 'current:change', (entry) =>
