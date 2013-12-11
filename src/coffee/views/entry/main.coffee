@@ -46,12 +46,12 @@ define (require) ->
 
 
 			Collections.projects.getCurrent (@project) =>
-				@entry = new Models.Entry id: @options.entryId
+				@entry = new Models.Entry
+					id: @options.entryId
+					projectID: @project.id
+				@entry.project = @project
 				jqXHR = @entry.fetch
 					success: (model, response, options) =>
-						@entry.project = @project
-						@entry.projectID = @project.id
-
 						@entry.fetchTranscriptions @options.transcriptionName, (@currentTranscription) => async.called 'transcriptions'
 						@entry.fetchFacsimiles (@currentFacsimile) => async.called 'facsimiles'
 						@entry.fetchSettings => async.called 'settings'

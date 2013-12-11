@@ -17,15 +17,14 @@ define (require) ->
 
 	class Entry extends Models.Base
 
-		urlRoot: -> config.baseUrl + "projects/#{@projectID}/entries"
+		urlRoot: -> config.baseUrl + "projects/#{@get('projectID')}/entries"
 
 		defaults: ->
 			name: ''
 			publishable: false
 
-		initialize: (attrs, options={}) ->
+		initialize: ->
 			super
-			@projectID = options.projectID if options.projectID?
 			_.extend @, syncOverride
 
 		set: (attrs, options) ->
@@ -44,7 +43,7 @@ define (require) ->
 				modifiedOn: @get 'modifiedOn'
 
 			newObj.set 'settings', new Models.Settings @get('settings').toJSON(),
-				projectId: @collection.projectId
+				projectId: @get('projectID')
 				entryId: @id
 
 			newObj
@@ -79,7 +78,7 @@ define (require) ->
 
 		fetchTranscriptions: (currentTranscriptionName, done) ->
 			transcriptions = new Collections.Transcriptions [], 
-				projectId: @projectID
+				projectId: @get('projectID')
 				entryId: @id
 
 			jqXHR = transcriptions.fetch()
@@ -89,7 +88,7 @@ define (require) ->
 
 		fetchFacsimiles: (done) ->
 			facsimiles = new Collections.Facsimiles [], 
-				projectId: @cprojectID
+				projectId: @get('projectID')
 				entryId: @id
 
 			jqXHR = facsimiles.fetch()
@@ -99,7 +98,7 @@ define (require) ->
 
 		fetchSettings: (done) ->
 			settings = new Models.Settings [], 
-				projectId: @projectID
+				projectId: @get('projectID')
 				entryId: @id
 
 			jqXHR = settings.fetch()
