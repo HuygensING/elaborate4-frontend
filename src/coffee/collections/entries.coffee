@@ -21,6 +21,7 @@ define (require) ->
 		setCurrent: (modelID) ->
 			model = @get modelID
 			
+			# FIXME Unused!
 			@trigger 'current:change', model
 
 			# Set and return @current

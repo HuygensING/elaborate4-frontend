@@ -69,9 +69,11 @@ define (require) ->
 
 			@listenTo @facetedSearch, 'unauthorized', => @publish 'unauthorized'
 			@listenTo @facetedSearch, 'results:change', (responseModel) =>
-				@project.get('entries').set responseModel.get 'results'
-				@listenTo @project.get('entries'), 'current:change', (entry) =>
-					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
+				# @project.get('entries').set responseModel.get 'results'
+				# @listenTo @project.get('entries'), 'current:change', (entry) =>
+				# 	Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
+				
+				@project.resultSet = responseModel
 				
 				@renderHeader responseModel
 				@renderResults responseModel
@@ -180,17 +182,13 @@ define (require) ->
 
 
 		changeCurrentEntry: (ev) ->
+			# If edit multiple metadata is active, we don't navigate to the entry when it is clicked,
+			# instead a click toggles a checkbox which is used by edit multiple metadata.
 			placeholder = @el.querySelector('.editselection-placeholder')
-			# Only change current entry if the edit metadata isn't active.
-			# console.log placeholder?
-			# console.log placeholder.style.display isnt 'block'
 			return if placeholder? and placeholder.style.display is 'block'
 
 			entryID = ev.currentTarget.getAttribute 'data-id'
-			@project.get('entries').setCurrent entryID
-				# id = ev.currentTarget.id.replace 'entry', ''
-			
-			
+			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
 
 		# ### Methods
 
