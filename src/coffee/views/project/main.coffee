@@ -4,6 +4,7 @@ define (require) ->
 
 	Fn = require 'hilib/functions/general'
 	viewManager = require 'hilib/managers/view'
+	dom = require 'hilib/functions/DOM'
 
 	config = require 'config'
 	token = require 'hilib/managers/token'
@@ -106,7 +107,10 @@ define (require) ->
 			rtpl = tpls['project/results']
 				model: responseModel
 				generateID: Fn.generateID
-			@$('ul.entries').html rtpl
+			entries = @el.querySelector('ul.entries')
+			entries.innerHTML = rtpl
+			entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
+
 			
 			if queryOptions? and queryOptions.term? and queryOptions.term isnt ''
 				document.getElementById('cb_showkeywords').checked = true
@@ -139,6 +143,11 @@ define (require) ->
 				
 			# Clear checkboxes
 			Fn.checkCheckboxes null, false
+
+			# Resize result list, because result list height is dynamically calculated on render and the appearance
+			# and removal of the edit multiple metadata form alters the position of the result list.
+			entries = @el.querySelector('ul.entries')
+			entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
 
 		newEntry: (ev) ->
 			modal = new Views.Modal

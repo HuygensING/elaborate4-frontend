@@ -13,34 +13,30 @@
 					li(data-key="publish") Publish draft
 				//- li(data-key="print") Print
 
-.row.span3(style="margin: 20px 0")
-	.cell.span1
-		.padl4
-			.faceted-search-placeholder
+.faceted-search-placeholder
 
-	.cell.span2
-		.padr4.resultview
-			header
-				.editselection-placeholder
-				.row.span2.numfound-placeholder
-					.cell.span1 
-						h3.numfound
-					.cell.span1.alignright
-						nav
-							ul
-								li 
-									input#cb_showkeywords(type="checkbox")
-									label(for="cb_showkeywords") Display keywords
-								li(data-key="selectall") Select all
-								li(data-key="deselectall") Deselect all
-				.row.span2.pagination-placeholder
-					.cell.span1 
-						ul.horizontal.menu.pagination
-							li.prev.inactive &lt;
-							li.currentpage.text
-							li.text of
-							li.pagecount.text
-							li.next &gt;
-					.cell.span1.alignright		
+.resultview
+	header
+		.editselection-placeholder
+		.row.span2.numfound-placeholder
+			.cell.span1 
+				h3.numfound
+			.cell.span1.alignright
+				nav
+					ul
+						li 
+							input#cb_showkeywords(type="checkbox")
+							label(for="cb_showkeywords") Display keywords
+						li(data-key="selectall") Select all
+						li(data-key="deselectall") Deselect all
+		.row.span2.pagination-placeholder
+			.cell.span1 
+				ul.horizontal.menu.pagination
+					li.prev.inactive &lt;
+					li.currentpage.text
+					li.text of
+					li.pagecount.text
+					li.next &gt;
+			.cell.span1.alignright		
 
-			ul.entries
+	ul.entries

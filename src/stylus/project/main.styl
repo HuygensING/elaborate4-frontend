@@ -2,7 +2,7 @@
 	position absolute
 	top 88px
 	bottom 0
-	overflow-y auto
+	overflow hidden
 	width 100vw
 
 	.submenu
@@ -17,8 +17,22 @@
 					top 3px
 					right 5px
 					content url('/images/loader_transparent.gif')
+
+	.faceted-search-placeholder
+		position absolute
+		left 10px
+		top 16px
+		bottom 0px
+		width 300px
+		padding 4px 20px 20px 10px
+		overflow-y scroll
 	
 	.resultview
+		position absolute
+		left 360px
+		top 20px
+		bottom 10px
+		right 0px
 
 		&.editmetadata
 			ul.entries
@@ -127,6 +141,7 @@
 
 		ul.entries
 			margin-top 20px
+			overflow-y scroll
 			list-style square
 			padding-left 16px
 
