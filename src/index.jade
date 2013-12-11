@@ -5,10 +5,27 @@ html(lang="en")
 		meta(name="viewport", content="width=device-width, initial-scale=1.0")
 		title eLaborate
 		link(rel="stylesheet", type="text/css", href="/css/main.css")
+
+
+		noscript
+			.noscript
+				h1 eLaborate work environment
+				p Your browser doesn't support JavaScript or JavaScript is turned off.
+				p eLaborate depends heavily on JavaScript. Please use <a href="www.google.com/chrome">Google Chrome</a> or <a href="http://www.mozilla.org/firefox">Mozilla Firefox</a> when using eLaborate.
 	body
+		.wrongbrowser(style="display: none")
+			h1 eLaborate work environment
+			p eLaborate is designed to work with <a href="www.google.com/chrome">Google Chrome</a> or <a href="http://www.mozilla.org/firefox">Mozilla Firefox</a>.
+		
 		#container
 			header.main
 			div#main
 			//- footer.main Huygens ING &copy; 2013
 
+		script
+			if (navigator.userAgent.indexOf('Firefox') === -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+				document.querySelector('.wrongbrowser').style.display = "block";
+				container = document.getElementById('container');
+				container.parentNode.removeChild(container);
+			}
 		script(data-main="/js/main", src="/lib/requirejs/require.js")
