@@ -2,6 +2,7 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
 	StringFn = require 'hilib/functions/string'
+	Async = require 'hilib/managers/async'
 
 	Base = require 'views/base'
 

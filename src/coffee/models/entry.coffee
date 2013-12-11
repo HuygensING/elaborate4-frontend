@@ -55,7 +55,7 @@ define (require) ->
 			@get('settings').set clone.get('settings').toJSON()
 
 		parse: (attrs) ->
-			if @collection?
+			if attrs? and @collection?
 				attrs.transcriptions = new Collections.Transcriptions [], 
 					projectId: @collection.projectId
 					entryId: attrs.id
