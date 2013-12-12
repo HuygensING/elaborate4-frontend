@@ -23,7 +23,7 @@ define (require) ->
 
 		defaults: ->
 			name: ''
-			publishable: false
+			# publishable: false
 
 		initialize: ->
 			super
@@ -40,7 +40,7 @@ define (require) ->
 		clone: ->
 			newObj = new @constructor
 				name: @get 'name'
-				publishable: @get 'publishable'
+				# publishable: @get 'publishable'
 				modifier: @get 'modifier'
 				modifiedOn: @get 'modifiedOn'
 
@@ -52,7 +52,7 @@ define (require) ->
 
 		updateFromClone: (clone) ->
 			@set 'name', clone.get 'name'
-			@set 'publishable', clone.get 'publishable'
+			# @set 'publishable', clone.get 'publishable'
 			@get('settings').set clone.get('settings').toJSON()
 
 		parse: (attrs) ->
@@ -111,7 +111,7 @@ define (require) ->
 		sync: (method, model, options) ->
 			data = JSON.stringify
 				name: @get 'name'
-				publishable: @get 'publishable'
+				# publishable: @get 'publishable'
 
 			if method is 'create'
 				jqXHR = ajax.post

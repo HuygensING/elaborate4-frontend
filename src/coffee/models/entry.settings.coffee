@@ -7,6 +7,9 @@ define (require) ->
 
 	class EntrySettings extends Models.Base
 
+		defaults: ->
+			Publishable: false
+
 		initialize: (models, options) ->
 			@projectId = options.projectId
 			@entryId = options.entryId
