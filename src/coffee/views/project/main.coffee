@@ -48,14 +48,6 @@ define (require) ->
 				settings: @project.get('settings')
 			@$el.html rtpl
 
-			# Render the EditSelection view. Is toggled in the menu and can be used
-			# to edit the metadata of multiple entries at once.
-			@editSelection = viewManager.show @el.querySelector('.editselection-placeholder'),  Views.EditSelection,
-				model: @project
-			@listenTo @editSelection, 'close', =>
-				@toggleEditMultipleMetadata()
-				@facetedSearch.reset()
-
 			# @facetedSearch = new Views.FacetedSearch
 			@facetedSearch = viewManager.show @el.querySelector('.faceted-search-placeholder'), Views.FacetedSearch,
 				baseUrl: config.baseUrl
@@ -125,7 +117,7 @@ define (require) ->
 		events:
 			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
-			'click .submenu li[data-key="editselection"]': 'toggleEditMultipleMetadata'
+			'click .submenu li[data-key="editmetadata"]': 'toggleEditMultipleMetadata'
 			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
 			'click li.entry label[data-id]': 'changeCurrentEntry'
 			'click .pagination li.prev': 'changePage'
@@ -133,21 +125,41 @@ define (require) ->
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
-			'change .entry input[type="checkbox"]': -> @editSelection.toggleInactive()
+			'change .entry input[type="checkbox"]': -> @editMultipleEntryMetadata.toggleInactive()
 
-		toggleEditMultipleMetadata: (ev) ->
-			@$('.resultview').toggleClass 'editmetadata'
-			
-			# Empty text inputs
-			textInput.value = '' for textInput in @el.querySelectorAll('.editselection-placeholder form input[type="text"]')
-				
-			# Clear checkboxes
-			Fn.checkCheckboxes null, false
+		# Use IIFE to remember visibility.
+		toggleEditMultipleMetadata: do ->
+			visible = false
 
-			# Resize result list, because result list height is dynamically calculated on render and the appearance
-			# and removal of the edit multiple metadata form alters the position of the result list.
-			entries = @el.querySelector('ul.entries')
-			entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
+			(ev) ->
+				# ul.entries is used twice so we define it on top.
+				entries = @el.querySelector('ul.entries')
+
+				if visible
+					# Remove class to switch result list back to navigatable entries.
+					@$('.resultview').removeClass 'edit-multiple-entry-metadata'
+					# Uncheck all checkboxes in the result list.
+					Fn.checkCheckboxes null, false, entries
+					# Remove the form.
+					@editMultipleEntryMetadata.remove()
+				else
+					# Add class to switch result list to selectable entries.
+					@$('.resultview').addClass 'edit-multiple-entry-metadata'
+
+					# Create the form.
+					@editMultipleEntryMetadata = new Views.EditSelection model: @project
+					@el.querySelector('.editselection-placeholder').appendChild @editMultipleEntryMetadata.el
+					
+					# Add listeners.
+					@listenToOnce @editMultipleEntryMetadata, 'close', => @toggleEditMultipleMetadata()
+					@listenToOnce @editMultipleEntryMetadata, 'saved', => @facetedSearch.reset()
+
+				# Toggle visibility.
+				visible = not visible
+
+				# Resize result list, because result list height is dynamically calculated on render and the appearance
+				# and removal of the edit multiple metadata form alters the top position of the result list.
+				entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
 
 		newEntry: (ev) ->
 			modal = new Views.Modal

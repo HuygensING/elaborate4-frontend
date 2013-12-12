@@ -14,7 +14,7 @@ h3= 'Edit metadata of multiple ' + settings.get('entry.term_plural')
 						li 
 							label= field
 							input(type="text", name=field, tabindex=key * 2 + 1)
-							input(type="checkbox", tabindex=key * 2 + 2, data-name=field)
+							input.empty(type="checkbox", tabindex=key * 2 + 2, data-name=field)
 	.cell.span1
 		form
 			ul
@@ -22,11 +22,15 @@ h3= 'Edit metadata of multiple ' + settings.get('entry.term_plural')
 					if key >= entrymetadatafields.length/2
 						li 
 							label= field
-							input(type="text", name=field, tabindex=entrymetadatafields.length/2 + key * 2 - 1)
-							input(type="checkbox", tabindex=entrymetadatafields.length/2 + key * 2, data-name=field)
+							input(type="text", name=field, tabindex=key * 2 + 1)
+							input.empty(type="checkbox", tabindex=key * 2 + 2, data-name=field)
+				li
+					label Publishable
+					input(style="margin-right: 137px", type="checkbox", name="Publishable", tabindex=entrymetadatafields.length * 2 + 3)
+					input.empty(type="checkbox", tabindex=entrymetadatafields.length * 2 + 4, data-name="Publishable")
 
 
 footer
-	button(name="cancel", tabindex=entrymetadatafields.length * 2 + 1) Cancel
+	button(name="cancel", tabindex=entrymetadatafields.length * 2 + 5) Cancel
 	span or
-	button.simple.inactive(name="savemetadata", tabindex=entrymetadatafields.length * 2 + 2) Save metadata
+	button.simple.inactive(name="savemetadata", tabindex=entrymetadatafields.length * 2 + 6) Save metadata

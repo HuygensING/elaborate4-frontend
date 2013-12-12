@@ -1,3 +1,5 @@
+# TODO Remove publishable
+
 define (require) ->
 
 	config = require 'config'

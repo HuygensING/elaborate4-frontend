@@ -49,6 +49,7 @@ define (require) ->
 				@entry = new Models.Entry
 					id: @options.entryId
 					projectID: @project.id
+				@project.get('entries').add @entry
 				@entry.project = @project
 				jqXHR = @entry.fetch
 					success: (model, response, options) =>
