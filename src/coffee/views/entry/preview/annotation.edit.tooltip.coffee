@@ -25,11 +25,11 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			@$el.html tpls['ui/tooltip']()
+			@$el.html tpls['ui/tooltip'] interactive: @options.interactive
 
 			# There can be only one!
 			# $('#annotationtooltip').remove() 
-			tooltip = document.querySelector('.tooltip.editannotation')
+			tooltip = @container.querySelector('.tooltip.editannotation')
 			tooltip.remove() if tooltip?
 
 			dom(@container).prepend @el
@@ -78,7 +78,7 @@ define (require) ->
 			else
 				@$el.addClass 'newannotation'
 			
-			if @options.container? then	@setRelativePosition(dom(@pointedEl).position(@container)) else @setAbsolutePosition($el.offset())
+			if @options.container? then	@setRelativePosition(dom(@pointedEl).position(@options.container)) else @setAbsolutePosition($el.offset())
 
 			@el.classList.add 'active'
 
@@ -108,8 +108,7 @@ define (require) ->
 				@$el.addClass 'tipright'
 
 			tooltipBottomPos = top + @$el.height()
-			pane = document.querySelector('.container .right-pane')
-			scrollBottomPos = pane.scrollTop + pane.clientHeight
+			scrollBottomPos = @container.scrollTop + @container.clientHeight
 
 			if tooltipBottomPos > scrollBottomPos
 				top = top - 48 - @$el.height()
@@ -120,6 +119,8 @@ define (require) ->
 
 		# * FIX
 		setAbsolutePosition: (position) ->
+			console.error 'Don"t use! This has to be fixed!'
+
 			boundingBox = Fn.boundingBox @container
 
 			@$el.removeClass 'tipright tipleft tipbottom'
@@ -139,10 +140,8 @@ define (require) ->
 				top = top - 60 - @$el.height()
 				@$el.addClass 'tipbottom'
 
-			console.log top, left
-
 			@$el.css 'left', left
 			@$el.css 'top', top
 
 		# Is the tooltip active/visible? Returns Boolean.
-		isActive: -> @$el.is(':visible')
+		isActive: -> @$el.css('z-index') > 0

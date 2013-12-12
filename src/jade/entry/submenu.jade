@@ -1,10 +1,10 @@
 .row.span7
-	.cell.span3.left
+	.cell.span3.left-menu
 		ul.horizontal.menu
 			li(data-key="previous") &nbsp;
 			li(data-key="current")= entry.get('name')
 			li(data-key="next") &nbsp;
-			li.alignright(data-key="facsimiles") Facsimiles 
+			li(data-key="facsimiles") Facsimiles&nbsp;
 				span= '(' + entry.get('facsimiles').length + ')'
 				ul.vertical.menu.facsimiles
 					li.spacer &nbsp;
@@ -12,7 +12,12 @@
 						li.subsub(data-key="editfacsimiles") Add &amp; remove...
 					each facsimile, index in entry.get('facsimiles').models
 						li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
-	.cell.span2.alignright
+			li(data-key="textlayers") Textlayers&nbsp;
+				span= '(' + entry.get('transcriptions').length + ')'
+				ul.vertical.menu.textlayers
+					each transcription in entry.get('transcriptions').models
+						li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
+	.cell.span2.alignright.middle-menu
 		ul.horizontal.menu
 			if user.get('roleNo') >= 20
 				li(data-key="print") Print
@@ -22,6 +27,6 @@
 					each transcription in entry.get('transcriptions').models
 						if transcription != entry.get('transcriptions').current
 							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
-	.cell.span2.alignright
+	.cell.span2.alignright.right-menu
 		ul.horizontal.menu
 			li(data-key="metadata") Metadata

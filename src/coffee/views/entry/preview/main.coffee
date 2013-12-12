@@ -16,7 +16,7 @@ define (require) ->
 	# ## TranscriptionPreview
 	class EntryPreview extends Views.Base
 
-		className: 'right-pane'
+		className: 'preview'
 
 		# ### Initialize
 		initialize: ->
@@ -26,8 +26,8 @@ define (require) ->
 
 			@highlighter = Fn.highlighter()
 
-			# @model is the entry
-			@currentTranscription = @model.get('transcriptions').current
+			@transcription = if @options.textLayer? then @options.textLayer else @model.get('transcriptions').current
+			@interactive = if @options.textLayer? then false else true
 
 			@addListeners()
 
@@ -38,9 +38,9 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			data = @currentTranscription.toJSON()
+			data = @transcription.toJSON()
 
-			body = @currentTranscription.get('body')
+			body = @transcription.get('body')
 			# Count all the <br>s in the body string. Match returns null if no breaks are found.
 			lineCount = (body.match(/<br>/g) ? []).length
 			# If the body string does not end with a <br> that means there is
@@ -59,43 +59,52 @@ define (require) ->
 			@
 
 		renderTooltips: ->
-			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
-			@addAnnotationTooltip = new Views.AddAnnotationTooltip
-				container: @el.querySelector('.preview')
-				annotationTypes: @model.project.get('annotationtypes')
-
 			@editAnnotationTooltip.remove() if @editAnnotationTooltip?
-			@editAnnotationTooltip = new Views.EditAnnotationTooltip container: @el.querySelector('.preview')
-			@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
-			@listenTo @editAnnotationTooltip, 'delete', (model) =>
-				if model.get('annotationNo') is 'newannotation'
-					@removeNewAnnotation()
-				else
-					# Remove the annotation from the collection, the transcription model wil take care of the rest
-					@currentTranscription.get('annotations').remove model
+			@editAnnotationTooltip = new Views.EditAnnotationTooltip
+				container: @el.querySelector('.body-container')
+				interactive: @interactive
 
-				# Let the entry view know an annotation has been removed so it can remove the annotationEditor view and
-				# show the current transcription.
-				@trigger 'annotation:removed'
+			if @interactive
+				@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
+				@listenTo @editAnnotationTooltip, 'delete', (model) =>
+					if model.get('annotationNo') is 'newannotation'
+						@removeNewAnnotation()
+					else
+						# Remove the annotation from the collection, the transcription model wil take care of the rest
+						@transcription.get('annotations').remove model
+
+					# Let the entry view know an annotation has been removed so it can remove the annotationEditor view and
+					# show the current transcription.
+					@trigger 'annotation:removed'
+
+				@addAnnotationTooltip.remove() if @addAnnotationTooltip?
+				@addAnnotationTooltip = new Views.AddAnnotationTooltip
+					container: @el.querySelector('.body-container')
+					annotationTypes: @model.project.get('annotationtypes')
 
 		# ### Events
 		events: ->
-			'click sup[data-marker="end"]': 'supClicked'
-			'mousedown .preview': 'onMousedown'
-			'mouseup .preview': 'onMouseup'
-			'scroll': 'onScroll'
+			hash = 
+				'click sup[data-marker="end"]': 'supClicked'
+			
+			if @interactive
+				hash['mousedown .body-container'] = 'onMousedown'
+				hash['mouseup .body-container'] = 'onMouseup'
+				hash['scroll'] = 'onScroll'
+
+			hash
 
 		onScroll: (ev) ->
 			if @autoscroll = !@autoscroll
 				Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
 		supClicked: (ev) ->
-			return console.error 'No annotations found!' unless @currentTranscription.get('annotations')?
+			return console.error 'No annotations found!' unless @transcription.get('annotations')?
 
 			id = ev.currentTarget.getAttribute('data-id')
 
-			annotation = if id is 'newannotation' then @newAnnotation else @currentTranscription.get('annotations').findWhere annotationNo: id >> 0
-			return console.error 'Annotation not found! ID:', id, ' Collection:', @currentTranscription.get('annotations') unless annotation?
+			annotation = if id is 'newannotation' then @newAnnotation else @transcription.get('annotations').findWhere annotationNo: id >> 0
+			return console.error 'Annotation not found! ID:', id, ' Collection:', @transcription.get('annotations') unless annotation?
 
 			@setAnnotatedText annotation
 
@@ -104,47 +113,57 @@ define (require) ->
 				model: annotation
 
 		onMousedown: (ev) ->
-			if ev.target is @el.querySelector('.preview .body')
-				@stopListening @addAnnotationTooltip
+			downOnAdd = ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
+			downOnEdit = ev.target is @editAnnotationTooltip.el or dom(@editAnnotationTooltip.el).hasDescendant(ev.target)
+
+			unless downOnEdit or downOnAdd
 				@addAnnotationTooltip.hide()
+				@editAnnotationTooltip.hide()
 
 		onMouseup: (ev) ->
-			return if ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
+			upOnAdd = ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
+			upOnEdit = ev.target is @editAnnotationTooltip.el or dom(@editAnnotationTooltip.el).hasDescendant(ev.target)
 			
-			sel = document.getSelection()
+			checkMouseup = =>
+				sel = document.getSelection()
 
-			# If there is no range to get (for example when using the scrollbar)
-			# or
-			# When the user clicked a sup
-			if sel.rangeCount is 0 or ev.target.tagName is 'SUP' or ev.target.tagName is 'BUTTON'
-				# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
-				@addAnnotationTooltip.hide()
-				return false
+				# If there is no range to get (for example when using the scrollbar)
+				# or
+				# When the user clicked a sup
+				if sel.rangeCount is 0 or ev.target.tagName is 'SUP' or ev.target.tagName is 'BUTTON'
+					# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
+					@addAnnotationTooltip.hide()
+					return false
 
-			range = sel.getRangeAt 0
+				range = sel.getRangeAt 0
 
-			# Boolean to check if the selection start or ends on a <span data-marker="start"> or <sup data-marker="end">.
-			# A selection cannot start inside a marker.
-			isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') or range.endContainer.parentNode.hasAttribute('data-marker')
+				# Boolean to check if the selection start or ends on a <span data-marker="start"> or <sup data-marker="end">.
+				# A selection cannot start inside a marker.
+				isInsideMarker = range.startContainer.parentNode.hasAttribute('data-marker') or range.endContainer.parentNode.hasAttribute('data-marker')
 
-			# if not range.collapsed and not startIsSup and not endIsSup
-			unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
-				if @currentTranscription.changedSinceLastSave?
-					@publish 'message', "Save the #{@currentTranscription.get('textLayer')} layer, before adding a new annotation!"
-				else
-					# Listen once to the click on the (to be shown) add annotation tooltip.
-					@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
-						@addNewAnnotation model, range
-					# Show the add annotation tooltip.
-					@addAnnotationTooltip.show
-						left: ev.pageX
-						top: ev.pageY
+				# if not range.collapsed and not startIsSup and not endIsSup
+				unless range.collapsed or isInsideMarker or @$('[data-id="newannotation"]').length > 0
+					if @transcription.changedSinceLastSave?
+						@publish 'message', "Save the #{@transcription.get('textLayer')} layer, before adding a new annotation!"
+					else
+						# Listen once to the click on the (to be shown) add annotation tooltip.
+						@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
+							@addNewAnnotation model, range
+						# Show the add annotation tooltip.
+
+						@addAnnotationTooltip.show
+							left: ev.pageX
+							top: ev.pageY
+
+			# Move checkMouseup to the end of the event queue, because the we want to wait for the
+			# browser to finish events like deselect.
+			setTimeout checkMouseup, 0 unless upOnAdd or upOnEdit
 
 
 		# ### Methods
 
 		destroy: ->
-			@addAnnotationTooltip.remove()
+			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
 			@editAnnotationTooltip.remove()
 
 			@remove()
@@ -215,7 +234,7 @@ define (require) ->
 			@addNewAnnotationTags range
 			
 			# Set the urlRoot manually, because a new annotation has not been added to the collection yet.
-			annotations = @currentTranscription.get 'annotations'
+			annotations = @transcription.get 'annotations'
 			newAnnotation.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
 			
 			@setAnnotatedText newAnnotation
@@ -238,7 +257,7 @@ define (require) ->
 			range.collapse false
 			range.insertNode sup
 
-			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
+			@transcription.set 'body', @$('.body-container .body').html(), silent: true
 
 		removeNewAnnotation: ->
 			@newAnnotation = null
@@ -246,7 +265,7 @@ define (require) ->
 
 		removeNewAnnotationTags: ->
 			@$('[data-id="newannotation"]').remove()
-			@currentTranscription.set 'body', @$('.preview .body').html(), silent: true
+			@transcription.set 'body', @$('.body-container .body').html(), silent: true
 			# @trigger 'newAnnotationRemoved'
 
 		onHover: ->
@@ -263,7 +282,6 @@ define (require) ->
 					endNode: ev.currentTarget
 			supLeave = (ev) => @highlighter.off()
 
-			# Cache markers
 			markers = @$('sup[data-marker]')
 			# Unbind previous events
 			markers.off 'mouseenter mouseleave'
@@ -278,11 +296,11 @@ define (require) ->
 		setModel: (entry) ->
 			@unhighlightAnnotation()
 			@model = entry
-			@currentTranscription = @model.get('transcriptions').current
+			@transcription = @model.get('transcriptions').current
 			@addListeners()
 			@render()
 
 		addListeners: ->
 			# * TODO: Triggers double render??
-			@listenTo @currentTranscription, 'current:change', @render
-			@listenTo @currentTranscription, 'change:body', @render
+			@listenTo @transcription, 'current:change', @render
+			@listenTo @transcription, 'change:body', @render

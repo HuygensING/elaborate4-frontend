@@ -86,4 +86,4 @@ define (require) ->
 			@$el.css 'top', top
 
 		# Is the tooltip active/visible? Returns Boolean.
-		isActive: -> @$el.is(':visible')
+		isActive: -> @$el.css('z-index') > 0

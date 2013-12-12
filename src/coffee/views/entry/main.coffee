@@ -4,6 +4,7 @@ define (require) ->
 	config = require 'config'
 
 	Fn = require 'hilib/functions/general'
+	dom = require 'hilib/functions/DOM'
 	viewManager = require 'hilib/managers/view'
 
 	StringFn = require 'hilib/functions/string'
@@ -94,6 +95,11 @@ define (require) ->
 					
 
 		renderFacsimile: ->
+			@el.querySelector('.left-pane iframe').style.display = 'block'
+			@el.querySelector('.left-pane .preview-placeholder').style.display = 'none'
+			# $('.left-pane iframe').show()
+			# $('.left-pane .transcription').hide()
+
 			# Only load the iframe with the current facsimile if there is a current facsimile
 			if @entry.get('facsimiles').current?
 				url = @entry.get('facsimiles').current.get 'zoomableUrl'
@@ -106,9 +112,12 @@ define (require) ->
 			if @preview?
 				@preview.setModel @entry
 			else
-				@preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
+				# @preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
+				# 	model: @entry
+				# 	append: true
+				@preview = new Views.Preview
 					model: @entry
-					append: true
+				@el.querySelector('.right-pane .preview-placeholder').appendChild @preview.el
 
 		# * TODO: How many times is renderTranscriptionEditor called on init?
 		renderTranscriptionEditor: ->
@@ -158,9 +167,34 @@ define (require) ->
 
 		# ### Events
 		events: ->
-			'click .menu li[data-key="facsimile"]': 'changeFacsimile'
-			'click .menu li[data-key="transcription"]': 'changeTranscription'
+			'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
+			'click .left-menu ul.textlayers li[data-key="transcription"]': 'showTranscription'
+			'click .middle-menu ul.textlayers li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
+
+		showTranscription: do ->
+			preview = null
+			
+			(ev) ->
+				@el.querySelector('.left-pane iframe').style.display = 'none'
+				@el.querySelector('.left-pane .preview-placeholder').style.display = 'block'
+
+				transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
+				transcription = @entry.get('transcriptions').get transcriptionID
+
+				preview.destroy() if preview?
+
+				preview = new Views.Preview
+					model: @entry
+					textLayer: transcription
+
+				@el.querySelector('.preview-placeholder').innerHTML = ''
+				@el.querySelector('.preview-placeholder').appendChild preview.el
+
+				$('.left-menu .facsimiles li.active').removeClass('active')
+				$('.left-menu .textlayers li.active').removeClass('active')
+				$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
+
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
@@ -207,8 +241,9 @@ define (require) ->
 			# Check if ev is an Event, else assume ev is an ID
 			facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
-			$('.submenu .facsimiles li.active').removeClass('active')
-			$('.submenu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
+			$('.left-menu .facsimiles li.active').removeClass('active')
+			$('.left-menu .textlayers li.active').removeClass('active')
+			$('.left-menu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
 
 			newFacsimile = @entry.get('facsimiles').get facsimileID
 			@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
@@ -258,6 +293,11 @@ define (require) ->
 					done: showTranscription
 
 		# ### Methods
+
+		destroy: ->
+			@preview.destroy()
+
+			@destroy()
 
 		addListeners: ->
 			@listenTo @preview, 'editAnnotation', @renderAnnotationEditor

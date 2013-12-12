@@ -1,6 +1,7 @@
 define (require) ->
 	config = require 'config'
 	Base = require 'collections/base'
+	StringFn = require 'hilib/functions/string'
 
 	Models =
 		Transcription: require 'models/transcription'
@@ -21,7 +22,7 @@ define (require) ->
 			if not model? or model isnt @current
 				if _.isString model
 					transcriptionName = model
-					@current = @find (model) => model.get('textLayer').toLowerCase() is transcriptionName.toLowerCase()
+					@current = @find (model) => StringFn.slugify(model.get('textLayer')) is StringFn.slugify(transcriptionName)
 				else
 					if model?
 						@current = model
