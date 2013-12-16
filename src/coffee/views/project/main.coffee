@@ -25,6 +25,7 @@ define (require) ->
 		Base: require 'views/base'
 		FacetedSearch: require 'faceted-search'
 		Modal: require 'hilib/views/modal/main'
+		Pagination: require 'hilib/views/pagination/main'
 		EditSelection: require 'views/project/editselection'
 
 	tpls = require 'tpls'
@@ -61,14 +62,11 @@ define (require) ->
 					resultRows: @resultRows
 
 			@listenTo @facetedSearch, 'unauthorized', => Backbone.history.navigate 'login', trigger: true
-			@listenTo @facetedSearch, 'results:change', (responseModel) =>
-				# @project.get('entries').set responseModel.get 'results'
-				# @listenTo @project.get('entries'), 'current:change', (entry) =>
-				# 	Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
-				
+			# Render the header only on the first change of results (init), after that, the user will update
+			# the header when using pagination.
+			@listenToOnce @facetedSearch, 'results:change', (responseModel) => @renderHeader responseModel
+			@listenTo @facetedSearch, 'results:change', (responseModel) =>		
 				@project.resultSet = responseModel
-				
-				@renderHeader responseModel
 				@renderResults responseModel
 
 			# Check if a draft is in the process of being published.
@@ -79,19 +77,11 @@ define (require) ->
 		renderHeader: (responseModel) ->
 			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
 				
-			currentpage = (responseModel.get('start') / @resultRows) + 1
-			pagecount = Math.ceil responseModel.get('numFound') / @resultRows
-
-			if pagecount > 1
-				@$('.pagination li.prev').addClass 'inactive' unless @facetedSearch.hasPrev()
-				@$('.pagination li.next').addClass 'inactive' unless @facetedSearch.hasNext()
-
-				@$('.pagination li.currentpage').html currentpage
-				@$('.pagination li.pagecount').html pagecount
-
-				@$('.pagination').show()
-			else
-				@$('.pagination').hide()
+			pagination = new Views.Pagination
+				rowCount: @resultRows
+				resultCount: responseModel.get('numFound')
+			@listenTo pagination, 'change:pagenumber', (pagenumber) => @facetedSearch.page pagenumber
+			@$('.pagination').html pagination.el
 
 		renderResults: (responseModel) ->
 			queryOptions = responseModel.options.queryOptions
