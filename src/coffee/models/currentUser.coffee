@@ -38,28 +38,44 @@ define (require) ->
 
 		# ### Methods
 
+		# TODO Doc
+		authorized: ->
+
+		# TODO Doc
+		unauthorized: ->
+
+		# TODO Doc
+		navigateToLogin: ->
+
 		authorize: (args) ->
-			{@authorized, @unauthorized} = args
+			{@authorized, @unauthorized, @navigateToLogin} = args
 
 			if token.get()
-				@fetchUserAttrs => 
-					# @trigger 'authorized'
-					# @publish 'authorized'
-					@authorized()
-					@loggedIn = true
+				@fetchUserAttrs
+					done: => 
+						@authorized()
+						@loggedIn = true
 			else
-				@unauthorized()
+				@navigateToLogin()
 
 		login: (username, password) ->
 			@set 'username', username
-			@password = password
 
-			@fetchUserAttrs =>
-				sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
-				# @publish 'authorized'
-				# @trigger 'authorized'
-				@authorized()
-				@loggedIn = true
+			@fetchUserAttrs
+				username: username
+				password: password
+				done: =>
+					sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
+					@authorized()
+					@loggedIn = true
+
+		hsidLogin: (hsid) ->
+			@fetchUserAttrs
+				hsid: hsid
+				done: =>
+					sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
+					@authorized()
+					@loggedIn = true
 
 		logout: (args) ->
 			jqXHR = $.ajax
@@ -72,33 +88,36 @@ define (require) ->
 
 			jqXHR.fail -> console.error 'Logout failed'
 
-		fetchUserAttrs: (cb) ->
+		fetchUserAttrs: (args) ->
+			{username, password, hsid, done} = args
+
 			if userAttrs = sessionStorage.getItem 'huygens_user'
 				@set JSON.parse(userAttrs)
-				cb()
+				done()
 			else
+				if hsid?
+					data = hsid: hsid 
+				else if username? and password?
+					data = 
+						username: username
+						password: password
+				else
+					return @unauthorized()
+
 				jqXHR = $.ajax
 					type: 'post'
 					url: config.baseUrl + 'sessions/login'
-					data: 
-						username: @get 'username'
-						password: @password
+					data: data
 
 				jqXHR.done (data) =>
-					@password = null
-
 					data.user = @parse data.user
 
 					token.set data.token
 					@set data.user
 
-					cb()
+					done()
 
-				jqXHR.fail (a, b, c) =>
-					console.log a, b, c
-					# @publish 'unauthorized'
-					# @trigger 'unauthorized'
-					@unauthorized()
+				jqXHR.fail => @unauthorized()
 			
 
 	new CurrentUser()

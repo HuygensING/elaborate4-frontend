@@ -50,8 +50,8 @@ define (require) ->
 							viewManager.clearCache()
 							@navigate "projects/#{@project.get('name')}", trigger: true
 
-				unauthorized: =>
-					@navigate 'login', trigger: true
+				unauthorized: => @publish 'login:failed'
+				navigateToLogin: => @navigate 'login', trigger: true
 
 
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)

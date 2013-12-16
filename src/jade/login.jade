@@ -42,9 +42,12 @@
 			:markdown
 				More about Huygens ING at [http://www.huygens.knaw.nl/](http://www.huygens.knaw.nl/)
 
-.cell.span1.alignright
-	.padl5.padr5
+.cell.span1
+	.padl5.padr5.alignright
+		h2 Regular login
 		form.login.region
+			ul.message
+				li
 			ul
 				li
 					label Username
@@ -56,4 +59,7 @@
 					input#submit(type="submit", value="Login", style="width: 75px")
 				li.loggingin Logging in...
 					img(src='/images/loader.gif')
-		button.federated-login Federated login
+	//- div(style="text-align: left; padding-left: 5%; margin-top: 40px")
+	.federated
+		h2 Federate login
+		button.simple.federated-login Login

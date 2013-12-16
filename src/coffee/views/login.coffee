@@ -13,21 +13,27 @@ define (require) ->
 
 	class Login extends BaseView
 
-		className: 'row span3'
+		className: 'login row span3'
 
-		submit: (ev) ->
-			ev.preventDefault()
-
-			@el.querySelector('li.login').style.display = 'none'
-			@el.querySelector('li.loggingin').style.display = 'inline-block'
-
-			currentUser.login @$('#username').val(), @$('#password').val()
-
+		# ### INITIALIZE
 		initialize: ->
 			super
 			
-			@render()
+			path = window.location.search.substr 1
+			parameters = path.split '&'
 
+			for param in parameters
+				[key, value] = param.split('=')
+				@hsid = value if key is 'hsid'
+
+			if @hsid?
+				currentUser.hsidLogin @hsid
+			else
+				@render()
+
+			@subscribe 'login:failed', @loginFailed
+
+		# ### RENDER
 		render: ->
 			rtpl = tpls['login']
 			@$el.html rtpl()
@@ -41,9 +47,18 @@ define (require) ->
 			
 			@
 
+		# ### EVENTS
 		events: ->
 			'click input#submit': 'submit'
 			'click button.federated-login': 'federatedLogin'
+
+		submit: (ev) ->
+			ev.preventDefault()
+
+			@el.querySelector('li.login').style.display = 'none'
+			@el.querySelector('li.loggingin').style.display = 'inline-block'
+
+			currentUser.login @$('#username').val(), @$('#password').val()
 
 		federatedLogin: (ev) ->
 			wl = window.location;
@@ -65,10 +80,8 @@ define (require) ->
 
 			form.submit()
 
+		# ### METHODS
 
-
-			# jqXHR = ajax.post
-			# 	url: 'https://secure.huygens.knaw.nl/saml2/login'
-			# 	data: JSON.stringify hsurl: 'http://localhost:4000'
-
-			# jqXHR.done => console.log arguments
+		loginFailed: ->
+			@render()
+			@$('ul.message li').html('Username / password combination unknown!').show()
