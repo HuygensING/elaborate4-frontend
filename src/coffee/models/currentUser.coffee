@@ -96,9 +96,9 @@ define (require) ->
 				done()
 			else
 				if hsid?
-					data = hsid: hsid 
+					postData = hsid: hsid
 				else if username? and password?
-					data = 
+					postData =
 						username: username
 						password: password
 				else
@@ -107,7 +107,7 @@ define (require) ->
 				jqXHR = $.ajax
 					type: 'post'
 					url: config.baseUrl + 'sessions/login'
-					data: data
+					data: postData
 
 				jqXHR.done (data) =>
 					data.user = @parse data.user
