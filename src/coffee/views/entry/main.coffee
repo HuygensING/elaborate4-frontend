@@ -195,6 +195,11 @@ define (require) ->
 				$('.left-menu .textlayers li.active').removeClass('active')
 				$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
 
+				# Unset the current facsimile, otherwise when switching from transcription to facsimile,
+				# the facsimile will not be loaded, because the facsimiles collection thinks the current
+				# facsimile is the same as the one requested and thus will not update.
+				@entry.get('facsimiles').current = null
+
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
 		# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
