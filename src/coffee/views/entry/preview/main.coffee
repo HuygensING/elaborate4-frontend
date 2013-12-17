@@ -271,7 +271,7 @@ define (require) ->
 
 			# TODO Why set body of @transcription? We don't want to save a transcription
 			# with <span data-id=newannotation>, this is error prone!
-			@transcription.set 'body', @$('.body-container .body').html(), silent: true
+			@setTranscriptionBody()
 
 		removeNewAnnotation: ->
 			@newAnnotation = null
@@ -279,8 +279,14 @@ define (require) ->
 
 		removeNewAnnotationTags: ->
 			@$('[data-id="newannotation"]').remove()
-			@transcription.set 'body', @$('.body-container .body').html(), silent: true
-			# @trigger 'newAnnotationRemoved'
+			@setTranscriptionBody()
+
+		setTranscriptionBody: (body) ->
+			@unhighlightAnnotation()
+
+			body = @$('.body-container .body').html()
+			@transcription.set 'body', body, silent: true
+
 
 		onHover: ->
 
