@@ -24,7 +24,7 @@ define (require) ->
 		# ### Render
 		render: ->
 			@editor = viewManager.show @el, Views.SuperTinyEditor,
-				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
+				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
 				cssFile:		'/css/main.css'
 				height:			@options.height
 				html:			@model.get 'body'
@@ -32,7 +32,8 @@ define (require) ->
 				model:			@model
 				width: 			@options.width
 
-			@listenTo @editor, 'save', => 
+			@listenTo @editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
+			@listenTo @editor, 'button:save', => 
 				@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
 			@show()

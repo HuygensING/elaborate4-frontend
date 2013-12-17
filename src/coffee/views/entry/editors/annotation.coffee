@@ -39,9 +39,9 @@ define (require) ->
 				width: 			@options.width
 				wrap: 			true
 
-			@listenTo @editor, 'save', @save
-			@listenTo @editor, 'cancel', => @trigger 'cancel'
-			@listenTo @editor, 'metadata', @editMetadata
+			@listenTo @editor, 'button:save', @save
+			@listenTo @editor, 'button:cancel', => @trigger 'cancel'
+			@listenTo @editor, 'button:metadata', @editMetadata
 
 			@show()
 

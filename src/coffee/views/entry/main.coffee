@@ -187,6 +187,7 @@ define (require) ->
 				preview = new Views.Preview
 					model: @entry
 					textLayer: transcription
+					wordwrap: true
 
 				@el.querySelector('.preview-placeholder').innerHTML = ''
 				@el.querySelector('.preview-placeholder').appendChild preview.el
@@ -310,6 +311,7 @@ define (require) ->
 			# layerEditor cannot use the general Fn.setScrollPercentage function, so it implements it's own.
 			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
 			@listenTo @layerEditor.editor, 'scrolled', (percentages) => @preview.setScroll percentages
+			@listenTo @layerEditor, 'wrap', (wrap) => @preview.toggleWrap wrap
 
 
 			@listenTo @entry.get('facsimiles'), 'current:change', (current) =>

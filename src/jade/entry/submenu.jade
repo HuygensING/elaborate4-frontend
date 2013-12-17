@@ -12,7 +12,7 @@
 						li.subsub(data-key="editfacsimiles") Add &amp; remove...
 					each facsimile, index in entry.get('facsimiles').models
 						li(class=index==0?'active':'', data-key="facsimile", data-value=facsimile.id)= facsimile.get('name')
-			li(data-key="textlayers") Textlayers&nbsp;
+			li(data-key="textlayers") Text layers&nbsp;
 				span= '(' + entry.get('transcriptions').length + ')'
 				ul.vertical.menu.textlayers
 					each transcription in entry.get('transcriptions').models

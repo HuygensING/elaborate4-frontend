@@ -12,6 +12,16 @@ preview()
 	.body
 		padding 6px 0 0 24px
 
+		// span.line
+		// 	counter-increment linenumber
+
+		// 	&:before
+		// 		content counter(linenumber)
+		// 		position absolute
+		// 		margin-left -30px
+		// 		text-align right
+		// 		width 20px
+
 		sup[data-marker]
 			select_none()
 			color #FFF
@@ -96,6 +106,12 @@ preview()
 			white-space nowrap
 			overflow-y auto
 			margin 76px 10px 0 10px
+
+			&.wrap
+				white-space normal
+
+				.linenumbers
+					display none
 
 			span.emptylayer
 				padding-left 6px

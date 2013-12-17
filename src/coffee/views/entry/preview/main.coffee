@@ -1,4 +1,7 @@
-# Description...
+# @options
+#	textLayer	String 		The text layer to show, defaults to current text layer.
+#	wordwrap	Boolean		Defaults to false
+
 define (require) ->
 	Fn = require 'hilib/functions/general'
 	dom = require 'hilib/functions/DOM'
@@ -33,19 +36,26 @@ define (require) ->
 
 			@render()
 
+			@options.wordwrap ?= false
+			@toggleWrap() if @options.wordwrap
+
 			@resize()
 
 
 		# ### Render
 		render: ->
 			data = @transcription.toJSON()
+			
+			# data.body = '<span class="line">' + data.body.replace(/<br>/g, '</span><br><span class="line">') + '</span>'
 
-			body = @transcription.get('body')
+			# body = @transcription.get('body')
+
+
 			# Count all the <br>s in the body string. Match returns null if no breaks are found.
-			lineCount = (body.match(/<br>/g) ? []).length
+			lineCount = (data.body.match(/<br>/g) ? []).length
 			# If the body string does not end with a <br> that means there is
 			# some text after the last <br> and we have to add a linenumber.
-			lineCount++ if body.substr(-4) isnt '<br>'
+			lineCount++ if data.body.substr(-4) isnt '<br>'
 			data.lineCount = lineCount
 
 			data.lineCount = 0 if data.body.trim() is ''
@@ -162,6 +172,8 @@ define (require) ->
 
 		# ### Methods
 
+		toggleWrap: (wrap) -> @$el.toggleClass 'wrap', wrap
+
 		destroy: ->
 			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
 			@editAnnotationTooltip.remove()
@@ -257,6 +269,8 @@ define (require) ->
 			range.collapse false
 			range.insertNode sup
 
+			# TODO Why set body of @transcription? We don't want to save a transcription
+			# with <span data-id=newannotation>, this is error prone!
 			@transcription.set 'body', @$('.body-container .body').html(), silent: true
 
 		removeNewAnnotation: ->
