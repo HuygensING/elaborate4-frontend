@@ -11,6 +11,6 @@ define (require) ->
 
 		sync: (method, model, options) ->
 			options.beforeSend = (xhr) =>
-				xhr.setRequestHeader 'Authorization', "SimpleAuth #{token.get()}"
+				xhr.setRequestHeader 'Authorization', "#{token.getType()} #{token.get()}"
 
 			super method, model, options

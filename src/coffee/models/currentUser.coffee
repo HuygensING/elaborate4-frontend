@@ -112,7 +112,8 @@ define (require) ->
 				jqXHR.done (data) =>
 					data.user = @parse data.user
 
-					token.set data.token
+					type = 'Federated' if hsid?
+					token.set data.token, type
 					@set data.user
 
 					done()
