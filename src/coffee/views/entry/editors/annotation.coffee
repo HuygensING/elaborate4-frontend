@@ -85,12 +85,16 @@ define (require) ->
 		save: (done=->) ->
 			if @model.isNew()
 				@model.save [],
-					success: (model) => 
+					success: (model) =>
+						@publish 'message', "Annotation #{@model.get('annotationNo')} saved."
 						@trigger 'newannotation:saved', model
 						done()
 					error: (model, xhr, options) => console.error 'Saving annotation failed!', model, xhr, options
 			else
-				@model.save [], success: done
+				@model.save [],
+					success: (model) =>
+						@publish 'message', "Annotation #{@model.get('annotationNo')} saved."
+						done()
 
 		editMetadata: ->
 			annotationMetadata = new Views.Form
