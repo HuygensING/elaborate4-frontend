@@ -98,7 +98,7 @@ define (require) ->
 				if @options.annotationID?
 					annotation = annotations.get @options.annotationID
 					@preview.setAnnotatedText annotation
-					@renderAnnotationEditor annotation				
+					@renderAnnotationEditor annotation
 
 		renderFacsimile: ->
 			@el.querySelector('.left-pane iframe').style.display = 'block'

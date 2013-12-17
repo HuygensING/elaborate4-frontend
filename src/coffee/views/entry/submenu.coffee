@@ -24,8 +24,6 @@ define (require) ->
 
 			{@entry, @user, @project} = @options
 
-			@render()
-
 		# ### Render
 		render: ->
 			rtpl = tpls['entry/submenu']
@@ -33,29 +31,39 @@ define (require) ->
 				user: @user
 			@$el.html rtpl
 
+			unless @entry.prevID? and @entry.nextID?
+				@entry.fetchPrevNext =>
+					@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
+					@$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
+
+
 			@
 
 		events: ->
-			'click .menu li[data-key="previous"]': 'previousEntry'
-			'click .menu li[data-key="next"]': 'nextEntry'
+			'click .menu li.active[data-key="previous"]': 'previousEntry'
+			'click .menu li.active[data-key="next"]': 'nextEntry'
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			'click .menu li[data-key="print"]': 'printEntry'
 
-		# FIXME @entry.collection is not available anymore
 		previousEntry: ->
-			# entryID = @entry.collection.previous().id
-			# currentTranscription = @entry.get('transcriptions').current
-			# textLayer = StringFn.slugify currentTranscription.get 'textLayer'
+			prevEntry = @entry.collection.get @entry.prevID
+			prevEntry.nextID = @entry.id if prevEntry?
 
-			# Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
+			projectName = @entry.project.get('name')
+			entryId = @entry.prevID
+			transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
-		# FIXME @entry.collection is not available anymore
+			Backbone.history.navigate "projects/#{projectName}/entries/#{entryId}/transcriptions/#{transcription}", trigger: true
+
 		nextEntry: ->
-			# entryID = @entry.collection.next().id
-			# currentTranscription = @entry.get('transcriptions').current
-			# textLayer = StringFn.slugify currentTranscription.get 'textLayer'
+			nextEntry = @entry.collection.get @entry.nextID
+			nextEntry.prevID = @entry.id if nextEntry?
 
-			# Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}/transcriptions/#{textLayer}", trigger: true
+			projectName = @entry.project.get('name')
+			entryId = @entry.nextID
+			transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
+
+			Backbone.history.navigate "projects/#{projectName}/entries/#{entryId}/transcriptions/#{transcription}", trigger: true
 
 		editEntryMetadata: do ->
 			# Create a reference to the modal, so we can check if a modal is active.

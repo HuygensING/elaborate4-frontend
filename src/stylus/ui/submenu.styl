@@ -27,6 +27,12 @@
 				top 50%
 				margin-top -0.5 * @line-height
 
+			&[data-key="previous"], &[data-key="next"]
+				opacity 0.4
+
+				&.active
+					opacity 1
+
 			&[data-key="previous"]
 				arrowleft(spotcolor)
 				padding-right 0

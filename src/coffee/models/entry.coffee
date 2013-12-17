@@ -109,6 +109,13 @@ define (require) ->
 				@set 'settings', settings
 				done()
 
+		fetchPrevNext: (done) ->
+			jqXHR = ajax.get url: @url() + '/prevnext'
+			jqXHR.done (response) =>
+				@nextID = response.next
+				@prevID = response.prev
+				done()
+
 		sync: (method, model, options) ->
 			data = JSON.stringify
 				name: @get 'name'
@@ -131,7 +138,7 @@ define (require) ->
 				jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
-				ajax.token = token.get()
+				# ajax.token = token.get()
 				jqXHR = ajax.put
 					url: @url()
 					data: data

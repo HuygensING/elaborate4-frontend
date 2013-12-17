@@ -2,9 +2,9 @@
 .row.span7
 	.cell.span3.left-menu
 		ul.horizontal.menu
-			li(data-key="previous") &nbsp;
+			li(data-key="previous", class=entry.prevID>0?'active':false) &nbsp;
 			li(data-key="current")= entry.get('name')
-			li(data-key="next") &nbsp;
+			li(data-key="next", class=entry.nextID>0?'active':false) &nbsp;
 			li(data-key="facsimiles") Facsimiles&nbsp;
 				span= '(' + entry.get('facsimiles').length + ')'
 				ul.vertical.menu.facsimiles
