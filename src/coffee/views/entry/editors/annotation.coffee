@@ -86,6 +86,7 @@ define (require) ->
 			if @model.isNew()
 				@model.save [],
 					success: (model) =>
+						@setURLPath model.id
 						@publish 'message', "Annotation #{@model.get('annotationNo')} saved."
 						@trigger 'newannotation:saved', model
 						done()
@@ -93,6 +94,7 @@ define (require) ->
 			else
 				@model.save [],
 					success: (model) =>
+						@setURLPath model.id
 						@publish 'message', "Annotation #{@model.get('annotationNo')} saved."
 						done()
 
