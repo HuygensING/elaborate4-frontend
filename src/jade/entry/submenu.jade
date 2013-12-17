@@ -1,3 +1,4 @@
+- currentTranscription = entry.get('transcriptions').current
 .row.span7
 	.cell.span3.left-menu
 		ul.horizontal.menu
@@ -21,11 +22,11 @@
 		ul.horizontal.menu
 			if user.get('roleNo') >= 20
 				li(data-key="print") Print
-			li.arrowdown(data-key="layer")= entry.get('transcriptions').current.get('textLayer') + ' layer'
+			li.arrowdown(data-key="layer", data-value=currentTranscription.id)= currentTranscription.get('textLayer') + ' layer'
 				ul.vertical.menu.textlayers
 					li.spacer &nbsp;
 					each transcription in entry.get('transcriptions').models
-						if transcription != entry.get('transcriptions').current
+						if transcription != currentTranscription
 							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
 	.cell.span2.alignright.right-menu
 		ul.horizontal.menu

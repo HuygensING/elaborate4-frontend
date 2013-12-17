@@ -167,6 +167,7 @@ define (require) ->
 
 		# ### Events
 		events: ->
+			'click li[data-key="layer"]': 'changeTranscription'
 			'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
 			'click .left-menu ul.textlayers li[data-key="transcription"]': 'showTranscription'
 			'click .middle-menu ul.textlayers li[data-key="transcription"]': 'changeTranscription'
@@ -271,6 +272,8 @@ define (require) ->
 				done()
 
 		changeTranscription: (ev) ->
+			ev.stopPropagation()
+
 			showTranscription = =>
 				# Check if ev is an Event, else assume ev is an ID
 				transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
