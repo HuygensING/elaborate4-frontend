@@ -127,8 +127,15 @@ define (require) ->
 			downOnEdit = ev.target is @editAnnotationTooltip.el or dom(@editAnnotationTooltip.el).hasDescendant(ev.target)
 
 			unless downOnEdit or downOnAdd
+				# Hide all tooltips, we check what to show in onMouseup.
 				@addAnnotationTooltip.hide()
 				@editAnnotationTooltip.hide()
+				
+				# Stop listening to the add annotation tooltip, because the add annotation tooltip has a
+				# listenToOnce on it and when the user clicks outside the tooltip, the listener is still there.
+				# If we don't remove it, the new annotation will popup on all previous selected areas.
+				@stopListening @addAnnotationTooltip
+
 
 		onMouseup: (ev) ->
 			upOnAdd = ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
@@ -156,7 +163,9 @@ define (require) ->
 					if @transcription.changedSinceLastSave?
 						@publish 'message', "Save the #{@transcription.get('textLayer')} layer, before adding a new annotation!"
 					else
-						# Listen once to the click on the (to be shown) add annotation tooltip.
+						# ListenToOnce, so when the tooltip is clicked, the listener is removed.
+						# If the tooltip isn't clicked, the tooltip will be hidden en stopListening'd
+						# in the onMousedown.
 						@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
 							@addNewAnnotation model, range
 						# Show the add annotation tooltip.
@@ -281,11 +290,10 @@ define (require) ->
 			@$('[data-id="newannotation"]').remove()
 			@setTranscriptionBody()
 
-		setTranscriptionBody: (body) ->
+		setTranscriptionBody: ->
 			@unhighlightAnnotation()
 
-			body = @$('.body-container .body').html()
-			@transcription.set 'body', body, silent: true
+			@transcription.set 'body', @$('.body-container .body').html(), silent: true
 
 
 		onHover: ->
