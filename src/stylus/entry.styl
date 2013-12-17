@@ -35,13 +35,22 @@ preview()
 			background-color #FFBEFC
 			font-weight bold
 
+		// For hovering annotations
 		span.hilite
 			background-color lighten(#FFBEFC, 40%)
 
+		// For active annotations
 		span.hilite[data-highlight]
 			background-color #FFBEFC
 			padding 1px 2px
 			border-radius 4px
+
+		// For full text query highlighting
+		span.highlight
+			background #FF0
+			padding 4px 6px 2px 6px
+			border-radius 4px
+			box-shadow 1px 1px 2px #CCC
 
 #printpreview
 	display none

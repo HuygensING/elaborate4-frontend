@@ -47,11 +47,18 @@ define (require) ->
 
 
 			Collections.projects.getCurrent (@project) =>
-				@entry = new Models.Entry
-					id: @options.entryId
-					projectID: @project.id
-				@project.get('entries').add @entry
-				@entry.project = @project
+				@entry = @project.get('entries').get @options.entryId
+
+				unless @entry?
+					@entry = new Models.Entry
+						id: @options.entryId
+						projectID: @project.id
+					@project.get('entries').add @entry
+					@entry.project = @project
+				# @entry.options ?= {}
+				# @entry.options.projectID = @project.id
+
+				# console.log @entry
 				jqXHR = @entry.fetch
 					success: (model, response, options) =>
 						@entry.fetchTranscriptions @options.transcriptionName, (@currentTranscription) => async.called 'transcriptions'
@@ -91,8 +98,7 @@ define (require) ->
 				if @options.annotationID?
 					annotation = annotations.get @options.annotationID
 					@preview.setAnnotatedText annotation
-					@renderAnnotationEditor annotation
-					
+					@renderAnnotationEditor annotation				
 
 		renderFacsimile: ->
 			@el.querySelector('.left-pane iframe').style.display = 'block'

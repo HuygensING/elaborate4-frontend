@@ -1,0 +1,15 @@
+- randomID = generateID()
+
+li.entry(id='entry'+entry.id)
+	.editmultiple
+		input(type="checkbox", data-id=entry.id, id=randomID)
+		label(for=randomID)= entry.name
+	a(href='projects/'+projectName+'/entries/'+entry.id)= entry.name
+
+	if fulltext
+		.keywords
+			ul
+				if entry._kwic != null
+					each kwic, container in entry._kwic
+						each row in kwic
+							li!= '<span class="container">'+container + ':</span> '+ row

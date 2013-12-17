@@ -19,10 +19,11 @@ define (require) ->
 
 	class Entry extends Models.Base
 
-		urlRoot: -> config.baseUrl + "projects/#{@get('projectID')}/entries"
+		urlRoot: -> config.baseUrl + "projects/#{@project.id}/entries"
 
 		defaults: ->
 			name: ''
+			terms: null
 			# publishable: false
 
 		initialize: ->
@@ -45,7 +46,7 @@ define (require) ->
 				modifiedOn: @get 'modifiedOn'
 
 			newObj.set 'settings', new Models.Settings @get('settings').toJSON(),
-				projectId: @get('projectID')
+				projectId: @project.id
 				entryId: @id
 
 			newObj
@@ -55,21 +56,21 @@ define (require) ->
 			# @set 'publishable', clone.get 'publishable'
 			@get('settings').set clone.get('settings').toJSON()
 
-		parse: (attrs) ->
-			if attrs? and @collection?
-				attrs.transcriptions = new Collections.Transcriptions [], 
-					projectId: @collection.projectId
-					entryId: attrs.id
+		# parse: (attrs) ->
+		# 	if attrs? and @collection?
+		# 		attrs.transcriptions = new Collections.Transcriptions [], 
+		# 			projectId: @collection.projectId
+		# 			entryId: attrs.id
 					
-				attrs.settings = new Models.Settings [], 
-					projectId: @collection.projectId
-					entryId: attrs.id
+		# 		attrs.settings = new Models.Settings [], 
+		# 			projectId: @collection.projectId
+		# 			entryId: attrs.id
 
-				attrs.facsimiles = new Collections.Facsimiles [], 
-					projectId: @collection.projectId
-					entryId: attrs.id
+		# 		attrs.facsimiles = new Collections.Facsimiles [], 
+		# 			projectId: @collection.projectId
+		# 			entryId: attrs.id
 
-			attrs
+		# 	attrs
 
 		# sync: (method, model, options) ->
 		# 	if method is 'create' or method is 'update'
@@ -80,7 +81,7 @@ define (require) ->
 
 		fetchTranscriptions: (currentTranscriptionName, done) ->
 			transcriptions = new Collections.Transcriptions [], 
-				projectId: @get('projectID')
+				projectId: @project.id
 				entryId: @id
 
 			jqXHR = transcriptions.fetch()
@@ -90,7 +91,7 @@ define (require) ->
 
 		fetchFacsimiles: (done) ->
 			facsimiles = new Collections.Facsimiles [], 
-				projectId: @get('projectID')
+				projectId: @project.id
 				entryId: @id
 
 			jqXHR = facsimiles.fetch()
@@ -100,7 +101,7 @@ define (require) ->
 
 		fetchSettings: (done) ->
 			settings = new Models.Settings [], 
-				projectId: @get('projectID')
+				projectId: @project.id
 				entryId: @id
 
 			jqXHR = settings.fetch()

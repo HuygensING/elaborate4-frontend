@@ -46,11 +46,6 @@ define (require) ->
 		render: ->
 			data = @transcription.toJSON()
 			
-			# data.body = '<span class="line">' + data.body.replace(/<br>/g, '</span><br><span class="line">') + '</span>'
-
-			# body = @transcription.get('body')
-
-
 			# Count all the <br>s in the body string. Match returns null if no breaks are found.
 			lineCount = (data.body.match(/<br>/g) ? []).length
 			# If the body string does not end with a <br> that means there is
@@ -60,11 +55,14 @@ define (require) ->
 
 			data.lineCount = 0 if data.body.trim() is ''
 
+			data.body = data.body.replace new RegExp(term, "gi"), '<span class="highlight">$&</span>' for own term, count of @model.get 'terms'
+
 			@el.innerHTML = tpls['entry/preview'] data
 
 			@renderTooltips()
 
 			@onHover()
+
 
 			@
 
@@ -218,6 +216,17 @@ define (require) ->
 				# Replace el with the documentFragment
 				el.parentNode.replaceChild docFrag, el
 
+		unhighlightQuery: ->
+			el = @el.querySelector('span.highlight')
+
+			if el?
+				# Move all children from el to a documentFragment
+				docFrag = document.createDocumentFragment()
+				docFrag.appendChild el.firstChild while el.childNodes.length
+
+				# Replace el with the documentFragment
+				el.parentNode.replaceChild docFrag, el
+
 		# Set the text that is annotated to the annotation model. This is the text between the start (<span>) and end (<sup>) tag.
 		# Text (numbers) from annotations (<sup>s) between de start and end tag are filtered out.
 		setAnnotatedText: (annotation) ->
@@ -291,6 +300,7 @@ define (require) ->
 			@setTranscriptionBody()
 
 		setTranscriptionBody: ->
+			@unhighlightQuery()
 			@unhighlightAnnotation()
 
 			@transcription.set 'body', @$('.body-container .body').html(), silent: true

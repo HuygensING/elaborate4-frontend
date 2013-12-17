@@ -42,8 +42,8 @@
 				label
 					display inline
 
-					&[data-id]
-						display none
+				a
+					display none
 
 				input[type="checkbox"]
 					display inline-block
@@ -146,8 +146,9 @@
 				input[type="checkbox"]
 					display none
 				
-				label
-					display none
+				label, a
+					text-decoration none
+					color black
 					font-size 1.1rem
 					cursor pointer
 					padding 2px 4px
@@ -155,14 +156,12 @@
 
 					&:hover
 						background lighten(spotcolor, 70%)
-					
-					&[data-id]
-						display inline
 
+				label
+					display none
 
 				.keywords
 					color #999
-					display none
 
 					ul
 						list-style none
@@ -181,4 +180,3 @@
 
 							em
 								color spotcolor2
-

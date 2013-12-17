@@ -27,6 +27,7 @@ define (require) ->
 		Modal: require 'hilib/views/modal/main'
 		Pagination: require 'hilib/views/pagination/main'
 		EditSelection: require 'views/project/editselection'
+		EntryListitem: require 'views/entry/listitem'
 
 	tpls = require 'tpls'
 
@@ -62,11 +63,12 @@ define (require) ->
 					resultRows: @resultRows
 
 			@listenTo @facetedSearch, 'unauthorized', => Backbone.history.navigate 'login', trigger: true
-			# Render the header only on the first change of results (init), after that, the user will update
-			# the header when using pagination.
-			@listenToOnce @facetedSearch, 'results:change', (responseModel) => @renderHeader responseModel
+			# # Render the header only on the first change of results (init), after that, the user will update
+			# # the header when using pagination.
+			# @listenToOnce @facetedSearch, 'results:change', (responseModel) => 
 			@listenTo @facetedSearch, 'results:change', (responseModel) =>		
 				@project.resultSet = responseModel
+				@renderHeader responseModel
 				@renderResults responseModel
 
 			# Check if a draft is in the process of being published.
@@ -84,22 +86,33 @@ define (require) ->
 			@$('.pagination').html pagination.el
 
 		renderResults: (responseModel) ->
-			queryOptions = responseModel.options.queryOptions
+			# Set @fulltextTerm so we can pass it to an entry.
+			queryOptions = responseModel.options.queryOptions ? {}
+			fulltext = queryOptions.term? and queryOptions.term isnt ''
 
-			rtpl = tpls['project/results']
-				model: responseModel
-				generateID: Fn.generateID
-			entries = @el.querySelector('ul.entries')
-			entries.innerHTML = rtpl
-			entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
+			# Add the results to this project's entries.
+			entries = @project.get('entries')
+			entries.add responseModel.get('results')
 
-			
-			if queryOptions? and queryOptions.term? and queryOptions.term isnt ''
-				document.getElementById('cb_showkeywords').checked = true
-				@$('.keywords').show()
-			else 
-				document.getElementById('cb_showkeywords').checked = false
-				@$('.keywords').hide()
+			# Create a document fragment and append entry listitem views.
+			frag = document.createDocumentFragment()
+			for result in responseModel.get 'results'
+				entry = entries.get result.id
+				entry.project = @project
+
+				entryListitem = new Views.EntryListitem
+					model: entry
+					fulltext: fulltext
+				frag.appendChild entryListitem.el
+
+			# Add the frag to the dom
+			ulentries = @el.querySelector('ul.entries')
+			ulentries.innerHTML = ''
+			ulentries.appendChild frag
+			ulentries.style.height = document.documentElement.clientHeight - dom(ulentries).position().top + 'px'
+
+			# Toggle the display keywords checkbox and keywords per result.	
+			document.getElementById('cb_showkeywords').checked = fulltext
 
 			@
 
@@ -109,9 +122,9 @@ define (require) ->
 			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click .submenu li[data-key="editmetadata"]': 'toggleEditMultipleMetadata'
 			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
-			'click li.entry label[data-id]': 'changeCurrentEntry'
-			'click .pagination li.prev': 'changePage'
-			'click .pagination li.next': 'changePage'
+			# 'click li.entry label[data-id]': 'navToEntry'
+			# 'click .pagination li.prev': 'changePage'
+			# 'click .pagination li.next': 'changePage'
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
@@ -131,7 +144,7 @@ define (require) ->
 					# Uncheck all checkboxes in the result list.
 					Fn.checkCheckboxes null, false, entries
 					# Remove the form.
-					@editMultipleEntryMetadata.remove()
+					@editMultipleEntryMetadata.destroy()
 				else
 					# Add class to switch result list to selectable entries.
 					@$('.resultview').addClass 'edit-multiple-entry-metadata'
@@ -192,14 +205,14 @@ define (require) ->
 				@facetedSearch.next()
 
 
-		changeCurrentEntry: (ev) ->
-			# If edit multiple metadata is active, we don't navigate to the entry when it is clicked,
-			# instead a click toggles a checkbox which is used by edit multiple metadata.
-			placeholder = @el.querySelector('.editselection-placeholder')
-			return if placeholder? and placeholder.style.display is 'block'
+		# navToEntry: (ev) ->
+		# 	# If edit multiple metadata is active, we don't navigate to the entry when it is clicked,
+		# 	# instead a click toggles a checkbox which is used by edit multiple metadata.
+		# 	placeholder = @el.querySelector('.editselection-placeholder')
+		# 	return if placeholder? and placeholder.style.display is 'block'
 
-			entryID = ev.currentTarget.getAttribute 'data-id'
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
+		# 	entryID = ev.currentTarget.getAttribute 'data-id'
+		# 	Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entryID}", trigger: true
 
 		# ### Methods
 
