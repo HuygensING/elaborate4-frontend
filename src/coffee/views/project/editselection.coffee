@@ -35,22 +35,22 @@ define (require) ->
 			'click button[name="savemetadata"]': 'saveMetadata'
 			'click button[name="cancel"]': -> @trigger 'close'
 			'keyup input[type="text"]': 'toggleInactive'
-			'change input[type="checkbox"]:not(.empty)': 'toggleInactive'
-			'change input.empty[type="checkbox"]': 'disableInput'
+			'change input[type="checkbox"]': 'toggleInactive'
+		# 	'change input.empty[type="checkbox"]': 'disableInput'
 
-		disableInput: (ev) ->
-			name = ev.currentTarget.getAttribute 'data-name'
-			input = @el.querySelector "input[name='#{name}']"
+		# disableInput: (ev) ->
+		# 	name = ev.currentTarget.getAttribute 'data-name'
+		# 	input = @el.querySelector "input[name='#{name}']"
 
-			if input.hasAttribute 'disabled'
-				input.removeAttribute 'disabled'
-				input.removeAttribute 'placeholder'
-			else
-				input.value = ''
-				input.setAttribute 'disabled', 'disabled'
-				input.setAttribute 'placeholder', 'Text will be cleared.'
+		# 	if input.hasAttribute 'disabled'
+		# 		input.removeAttribute 'disabled'
+		# 		input.removeAttribute 'placeholder'
+		# 	else
+		# 		input.value = ''
+		# 		input.setAttribute 'disabled', 'disabled'
+		# 		input.setAttribute 'placeholder', 'Text will be cleared.'
 
-			@toggleInactive()
+		# 	@toggleInactive()
 
 			# 'change input[type="checkbox"]': 'toggleInactive'
 
@@ -62,11 +62,18 @@ define (require) ->
 		
 		# Check if there are checkboxes checked, if so, activate the submit button,
 		# if not, deactivate the submit button.
+
+
+		### TODO ###
+		# - in the input loop, check .active checkboxes
+		# - on change .active, toggleInactive
+		### TODO ###
+
 		toggleInactive: ->
 			# entryCBs = document.querySelectorAll('.entries input[type="checkbox"]:checked')
 			@settings = {}
 
-			for input in @el.querySelectorAll('input:not(.empty)')
+			for input in @el.querySelectorAll('input:not(.active)')
 				if input.type is 'checkbox'
 					@settings[input.name] = true if input.checked
 					@settings[input.name] = false if input.hasAttribute 'disabled'
@@ -75,7 +82,7 @@ define (require) ->
 					@settings[input.name] = '' if input.hasAttribute 'disabled'
 
 			# if entryCBs.length is 0 or metadataCBs.length is 0
-			if _.isEmpty(@settings)
+			if _.isEmpty(@settings) or document.querySelectorAll('.entries input[type="checkbox"]:checked').length is 0
 				@$('button[name="savemetadata"]').addClass 'inactive' 
 			else
 				@$('button[name="savemetadata"]').removeClass 'inactive'
