@@ -1,0 +1,39 @@
+.row.span3
+	.cell.span1.entrylist
+		h3 Add / remove entry metadata fields
+	.cell.span1.setnames
+			h3 Set entry name
+			form
+				ul
+					li
+						label Singular
+						input(type="text", name="entry.term_singular", value=settings['entry.term_singular'], placeholder="entry")
+					li
+						label Plural
+						input(type="text", name="entry.term_plural", value=settings['entry.term_plural'], placeholder="entries")
+					li
+						input.inactive(type="submit", value="Save settings")
+	.cell.span1.sortlevels
+		h3 Sort levels
+		form
+			ul
+				li
+					label Level 1
+					select(name="level1")
+						option
+						for field in entrymetadatafields
+							option(value=field, selected=field===level1)= field
+				li
+					label Level 2
+					select(name="level2")
+						option
+						for field in entrymetadatafields
+							option(value=field, selected=field===level2)= field
+				li
+					label Level 3
+					select(name="level3")
+						option
+						for field in entrymetadatafields
+							option(value=field, selected=field===level3)= field
+				li
+					button.simple.savesortlevels.inactive Save sort levels

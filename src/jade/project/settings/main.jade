@@ -3,11 +3,11 @@
 
 	ul.horizontal.tab.menu
 		li.active(data-tab="project") Project
+		li(data-tab="users") Users
+		li(data-tab="entries") Entries
 		li(data-tab="textlayers") Text layers
-		li(data-tab="metadata-entries") Entries
 		//- li(data-tab="metadata-annotations") Annotation types
 		li(data-tab="annotationtypes") Annotations
-		li(data-tab="users") Users 
 
 	.active(data-tab="project")
 		h3 Project
@@ -67,25 +67,8 @@
 			//- 	pre.statistics
 
 	div(data-tab="textlayers")
-		h3 Add / remove text layers
 
-	div(data-tab="metadata-entries")
-		.row.span2
-			.cell.span1.entrylist
-				h3 Add / remove entry metadata fields
-			.cell.span1.setnames
-					h3 Set entry name
-					form
-						ul
-							li
-								label Singular
-								input(type="text", name="entry.term_singular", value=settings['entry.term_singular'], placeholder="entry")
-							li
-								label Plural
-								input(type="text", name="entry.term_plural", value=settings['entry.term_plural'], placeholder="entries")
-							li
-								input.inactive(type="submit", value="Save settings")
-		
+	div(data-tab="entries")
 		
 	//- div(data-tab="metadata-annotations")
 

@@ -15,6 +15,8 @@ define (require) ->
 		ComboList: require 'hilib/views/form/combolist/main'
 		Form: require 'hilib/views/form/main'
 		Modal: require 'hilib/views/modal/main'
+		TextlayersTab: require 'views/project/settings.textlayers'
+		EntriesTab: require 'views/project/settings.entries'
 
 	Models =
 		Statistics: require 'models/project/statistics'
@@ -52,59 +54,33 @@ define (require) ->
 				projectMembers: @project.get('members')
 			@$el.html rtpl
 
-			@renderTabs()
-			@renderAnnotationsTab()
 			@renderUserTab()
-
-			# @loadStatistics()
+			@renderEntriesTab()
+			@renderTextlayersTab()
+			@renderAnnotationsTab()
 
 			@showTab @options.tabName if @options.tabName
 
 			@
 
 			@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
-			# @listenTo subMenu, 'clicked', (menuItem) =>
-			# 	if menuItem.key is 'save'
-			# 		@model.save()
-			# 		subMenu.setState 'save', 'inactive'
 
-		renderTabs: ->
-			# Text layers
-			textLayerList = new Views.EditableList
-				value: @project.get('textLayers')
-				config:
-					settings:
-						placeholder: 'Add layer'
-						confirmRemove: true
-			@listenTo textLayerList, 'confirmRemove', (id, confirm) =>
-				@renderConfirmModal confirm,
-					title: 'Caution!'
-					html: 'You are about to <b>remove</b> the '+id+' layer<br><br>All texts and annotations will be <b>permanently</b> removed!'
-					submitValue: 'Remove '+id+' layer'
-			@listenTo textLayerList, 'change', (values) =>
-				@project.set 'textLayers', values
-				@project.saveTextlayers => @publish 'message', 'Text layers updated.'
-			@$('div[data-tab="textlayers"]').append textLayerList.el
+		renderEntriesTab: ->
+			entriesTab = new Views.EntriesTab
+				project: @project
 
-			# Entry metadata
-			EntryMetadataList = new Views.EditableList
-				value: @project.get('entrymetadatafields')
-				config:
-					settings:
-						placeholder: 'Add field'
-						confirmRemove: true
-			@listenTo EntryMetadataList, 'confirmRemove', (id, confirm) =>
-				@renderConfirmModal confirm,
-					html: 'You are about to delete entry metadata field: '+id
-					submitValue: 'Remove field '+id
-			@listenTo EntryMetadataList, 'change', (values) => 
-				new EntryMetadata(@project.id).save values,
-					success: => @publish 'message', 'Entry metadata fields updated.'
-			@$('div[data-tab="metadata-entries"] .entrylist').append EntryMetadataList.el
+			@listenTo entriesTab, 'confirm', @renderConfirmModal
+			@listenTo entriesTab, 'savesettings', @saveSettings
 
-			# # Annotation types
-			# rtpl = tpls['project/settings/metadata_annotations'] annotationTypes: @project.get('annotationtypes')
-			# @$('div[data-tab="metadata-annotations"]').html rtpl
+			@$('div[data-tab="entries"]').html entriesTab.el
+
+		renderTextlayersTab: ->
+			textlayersTab = new Views.TextlayersTab
+				project: @project
+
+			@listenTo textlayersTab, 'confirm', @renderConfirmModal
+
+			@$('div[data-tab="textlayers"]').html textlayersTab.el
 
 		# * TODO: Add to separate view
 		renderAnnotationsTab: ->
@@ -193,20 +169,14 @@ define (require) ->
 			'change div[data-tab="project"] input': 'updateModel'
 			'change div[data-tab="project"] select': 'updateModel'
 			'click input[name="savesettings"]': 'saveSettings'
-			'click .setnames form input[type="submit"]': 'submitSetCustomNames'
-			'change .setnames form input[type="text"]': (ev) ->	@$('.setnames form input[type="submit"]').removeClass 'inactive'
-
-		submitSetCustomNames: (ev) ->
-			ev.preventDefault()
-
-			@model.set input.name, input.value for input in @el.querySelectorAll('.setnames form input[type="text"]')
-			@saveSettings ev
 
 		saveSettings: (ev) -> 
 			ev.preventDefault()
 
 			unless $(ev.currentTarget).hasClass 'inactive'
-				@model.save null, success: => $(ev.currentTarget).addClass 'inactive'
+				@model.save null, success: => 
+					$(ev.currentTarget).addClass 'inactive'
+					@publish 'message', 'Settings saved.'
 
 		updateModel: (ev) -> @model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
 
