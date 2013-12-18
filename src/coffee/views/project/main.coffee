@@ -1,5 +1,3 @@
-# TODO: cache search result
-
 define (require) ->
 
 	Fn = require 'hilib/functions/general'
@@ -9,12 +7,7 @@ define (require) ->
 	config = require 'config'
 	token = require 'hilib/managers/token'
 
-	# Models =
-	# 	Search: require 'models/project/search'
-		# state: require 'models/state'
 	currentUser = require 'models/currentUser'
-
-	# Tplzz = require 'text!hilib/views/modal/main.html'
 
 	Entry = require 'models/entry'
 
@@ -66,7 +59,8 @@ define (require) ->
 			# # Render the header only on the first change of results (init), after that, the user will update
 			# # the header when using pagination.
 			# @listenToOnce @facetedSearch, 'results:change', (responseModel) => 
-			@listenTo @facetedSearch, 'results:change', (responseModel) =>		
+			@listenTo @facetedSearch, 'results:change', (responseModel) =>
+				console.log responseModel
 				@project.resultSet = responseModel
 				@renderHeader responseModel
 				@renderResults responseModel
@@ -76,14 +70,22 @@ define (require) ->
 
 			@
 
-		renderHeader: (responseModel) ->
-			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
-				
-			pagination = new Views.Pagination
-				rowCount: @resultRows
-				resultCount: responseModel.get('numFound')
-			@listenTo pagination, 'change:pagenumber', (pagenumber) => @facetedSearch.page pagenumber
-			@$('.pagination').html pagination.el
+		renderHeader: do ->
+			pagination = null
+
+			(responseModel) ->
+				@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
+
+				if pagination?
+					@stopListening pagination
+					pagination.destroy()
+
+				pagination = new Views.Pagination
+					start: responseModel.get('start')
+					rowCount: @resultRows
+					resultCount: responseModel.get('numFound')
+				@listenTo pagination, 'change:pagenumber', (pagenumber) => @facetedSearch.page pagenumber
+				@$('.pagination').html pagination.el
 
 		renderResults: (responseModel) ->
 			# Set @fulltextTerm so we can pass it to an entry.
