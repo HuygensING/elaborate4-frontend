@@ -4,7 +4,7 @@ define (require) ->
 	StringFn = require 'hilib/functions/string'
 	Async = require 'hilib/managers/async'
 
-	Base = require 'views/base'
+	Base = require 'hilib/views/base'
 
 	# Tpl = require 'text!html/entry/metadata.html'
 	tpls = require 'tpls'

@@ -7,7 +7,7 @@ define (require) ->
 	token = require 'hilib/managers/token'
 
 	Views = 
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 
 	# Templates =
 	# 	EditSelection: require 'text!html/project/editselection.html'

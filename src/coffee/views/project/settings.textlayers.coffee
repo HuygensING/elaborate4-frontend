@@ -4,7 +4,7 @@ define (require) ->
 	ajax = require 'hilib/managers/ajax'
 
 	Views =
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		EditableList: require 'hilib/views/form/editablelist/main'
 
 	tpls = require 'tpls'

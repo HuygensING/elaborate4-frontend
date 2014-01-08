@@ -1,5 +1,5 @@
 define (require) ->
-	BaseView = require 'views/base'
+	BaseView = require 'hilib/views/base'
 
 	Models =
 		Statistics: require 'models/project/statistics'

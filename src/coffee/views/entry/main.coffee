@@ -5,7 +5,7 @@ define (require) ->
 
 	Fn = require 'hilib/functions/general'
 	dom = require 'hilib/functions/DOM'
-	viewManager = require 'hilib/managers/view'
+	viewManager = require 'hilib/managers/view2'
 
 	StringFn = require 'hilib/functions/string'
 	require 'hilib/functions/jquery.mixin'
@@ -19,7 +19,7 @@ define (require) ->
 		projects: require 'collections/projects'
 
 	Views = 
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		Submenu: require 'views/entry/submenu'
 		Preview: require 'views/entry/preview/main'
 		EntryMetadata: require 'views/entry/metadata'

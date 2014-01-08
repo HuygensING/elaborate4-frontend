@@ -1,7 +1,7 @@
 define (require) ->
 
 	Fn = require 'hilib/functions/general'
-	viewManager = require 'hilib/managers/view'
+	viewManager = require 'hilib/managers/view2'
 	dom = require 'hilib/functions/DOM'
 
 	config = require 'config'
@@ -15,7 +15,7 @@ define (require) ->
 		projects: require 'collections/projects'
 
 	Views =
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		FacetedSearch: require 'faceted-search'
 		Modal: require 'hilib/views/modal/main'
 		Pagination: require 'hilib/views/pagination/main'

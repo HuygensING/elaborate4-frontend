@@ -1,4 +1,4 @@
 define (require) ->
-	BaseView = require 'views/base'
+	BaseView = require 'hilib/views/base'
 	
 	class Home extends BaseView

@@ -1,5 +1,5 @@
 define (require) ->
-	BaseView = require 'views/base'
+	BaseView = require 'hilib/views/base'
 
 	# ajax = require 'hilib/managers/ajax'
 

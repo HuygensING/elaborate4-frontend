@@ -3,7 +3,7 @@
 # 	Fn = require 'hilib/functions/general'
 
 # 	Views = 
-# 		Base: require 'views/base'
+# 		Base: require 'hilib/views/base'
 
 # 	Tpl = require 'text!html/entry/transcription.edit.menu.html'
 

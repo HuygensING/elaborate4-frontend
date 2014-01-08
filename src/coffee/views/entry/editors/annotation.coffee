@@ -1,13 +1,13 @@
 # Description...
 define (require) ->
 
-	viewManager = require 'hilib/managers/view'
+	viewManager = require 'hilib/managers/view2'
 
 	Collections = 
 		projects: require 'collections/projects'
 
 	Views = 
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
 		Modal: require 'hilib/views/modal/main'
 		Form: require 'hilib/views/form/main'

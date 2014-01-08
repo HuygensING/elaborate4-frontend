@@ -9,7 +9,7 @@ define (require) ->
 	EntryMetadata = require 'entry.metadata'
 
 	Views =
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		# SubMenu: require 'views/ui/settings.submenu'
 		EditableList: require 'hilib/views/form/editablelist/main'
 		ComboList: require 'hilib/views/form/combolist/main'

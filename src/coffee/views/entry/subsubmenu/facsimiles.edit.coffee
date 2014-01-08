@@ -6,7 +6,7 @@ define (require) ->
 	token = require 'hilib/managers/token'
 
 	Views = 
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 
 	# Tpl = require 'text!html/entry/subsubmenu/facsimiles.edit.html'
 	tpls = require 'tpls'

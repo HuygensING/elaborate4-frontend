@@ -4,7 +4,7 @@
 define (require) ->
 	Fn = require 'hilib/functions/general'
 
-	Base = require 'views/base'
+	Base = require 'hilib/views/base'
 
 	# Tpl = require 'text!html/entry/metadata.html'
 	tpls = require 'tpls'

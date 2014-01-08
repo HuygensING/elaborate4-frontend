@@ -5,7 +5,7 @@
 # 		currentUser: require 'models/currentUser'
 
 # 	Views = 
-# 		Base: require 'views/base'
+# 		Base: require 'hilib/views/base'
 
 # 	Templates =
 # 		Debug: require 'text!html/debug.html'

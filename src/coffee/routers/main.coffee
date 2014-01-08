@@ -1,7 +1,7 @@
 define (require) ->
 	Backbone = require 'backbone'
 
-	viewManager = require 'hilib/managers/view'
+	viewManager = require 'hilib/managers/view2'
 	history = require 'hilib/managers/history'
 	Pubsub = require 'hilib/mixins/pubsub'
 	Fn = require 'hilib/functions/general'

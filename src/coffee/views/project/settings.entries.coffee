@@ -7,7 +7,7 @@ define (require) ->
 	EntryMetadata = require 'entry.metadata'
 
 	Views =
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		EditableList: require 'hilib/views/form/editablelist/main'
 
 	tpls = require 'tpls'

@@ -9,7 +9,7 @@ define (require) ->
 	config = require 'config'
 
 	Views = 
-		Base: require 'views/base'
+		Base: require 'hilib/views/base'
 		AddAnnotationTooltip: require 'views/entry/preview/annotation.add.tooltip'
 		EditAnnotationTooltip: require 'views/entry/preview/annotation.edit.tooltip'
 
