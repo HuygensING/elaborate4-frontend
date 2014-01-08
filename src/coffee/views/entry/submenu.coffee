@@ -31,12 +31,12 @@ define (require) ->
 				user: @user
 			@$el.html rtpl
 
-			unless @entry.prevID? and @entry.nextID?
-				@entry.fetchPrevNext =>
-					@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
-					@$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
-
-
+			if @project.resultSet?
+				@entry.setPrevNext => @activatePrevNext()
+			else
+				unless @entry.prevID? and @entry.nextID?
+					@entry.fetchPrevNext => @activatePrevNext()
+						
 			@
 
 		events: ->
@@ -45,25 +45,21 @@ define (require) ->
 			'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 			'click .menu li[data-key="print"]': 'printEntry'
 
-		previousEntry: ->
-			prevEntry = @entry.collection.get @entry.prevID
-			prevEntry.nextID = @entry.id if prevEntry?
+		activatePrevNext: ->
+			@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
+			@$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
 
+		previousEntry: ->
 			projectName = @entry.project.get('name')
-			entryId = @entry.prevID
 			transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
-			Backbone.history.navigate "projects/#{projectName}/entries/#{entryId}/transcriptions/#{transcription}", trigger: true
+			Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.prevID}/transcriptions/#{transcription}", trigger: true
 
 		nextEntry: ->
-			nextEntry = @entry.collection.get @entry.nextID
-			nextEntry.prevID = @entry.id if nextEntry?
-
 			projectName = @entry.project.get('name')
-			entryId = @entry.nextID
 			transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
-			Backbone.history.navigate "projects/#{projectName}/entries/#{entryId}/transcriptions/#{transcription}", trigger: true
+			Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.nextID}/transcriptions/#{transcription}", trigger: true
 
 		editEntryMetadata: do ->
 			# Create a reference to the modal, so we can check if a modal is active.

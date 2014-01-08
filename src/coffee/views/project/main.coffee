@@ -24,7 +24,7 @@ define (require) ->
 
 	tpls = require 'tpls'
 
-	class ProjectSearch extends Views.Base
+	class ProjectMain extends Views.Base
 
 		className: 'projectsearch'
 
@@ -60,7 +60,6 @@ define (require) ->
 			# # the header when using pagination.
 			# @listenToOnce @facetedSearch, 'results:change', (responseModel) => 
 			@listenTo @facetedSearch, 'results:change', (responseModel) =>
-				console.log responseModel
 				@project.resultSet = responseModel
 				@renderHeader responseModel
 				@renderResults responseModel

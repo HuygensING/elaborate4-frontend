@@ -39,8 +39,6 @@ define (require) ->
 		initialize: ->
 			super
 
-			@subviews = {}
-
 			# Models.state.onHeaderRendered => @render() # TODO Remove this check!
 			async = new Async ['transcriptions', 'facsimiles', 'settings']
 			@listenToOnce async, 'ready', => @render()
@@ -81,7 +79,7 @@ define (require) ->
 				prepend: true
 
 			# Render subsubmenu
-			@subviews.facsimileEdit = viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
+			viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
 				collection: @entry.get 'facsimiles'
 
 			@renderFacsimile()

@@ -109,6 +109,15 @@ define (require) ->
 				@set 'settings', settings
 				done()
 
+		setPrevNext: (done) ->
+			ids = @project.resultSet.get('ids')
+			index = ids.indexOf(''+@id)
+			
+			@prevID = ids[index-1] ? -1
+			@nextID = ids[index+1] ? -1
+
+			done()
+
 		fetchPrevNext: (done) ->
 			jqXHR = ajax.get url: @url() + '/prevnext'
 			jqXHR.done (response) =>
