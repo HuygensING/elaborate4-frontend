@@ -72,15 +72,20 @@ define (require) ->
 			@$el.html rtpl
 
 			# Render submenu
-			@submenu = viewManager.show @el, Views.Submenu,
+			# @subviews.submenu = viewManager.show @el, Views.Submenu,
+			# 	prepend: true
+
+			@subviews.submenu = new Views.Submenu 
 				entry: @entry
 				user: Models.currentUser
 				project: @project
-				prepend: true
+			@$el.prepend @subviews.submenu.el
 
 			# Render subsubmenu
-			viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
-				collection: @entry.get 'facsimiles'
+			# viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
+			# 	collection: @entry.get 'facsimiles'
+			@subviews.subsubmenu = new Views.EditFacsimiles collection: @entry.get 'facsimiles'
+			@$('.subsubmenu .editfacsimiles').html @subviews.subsubmenu.el
 
 			@renderFacsimile()
 			
@@ -95,7 +100,7 @@ define (require) ->
 				# and we have to show it.
 				if @options.annotationID?
 					annotation = annotations.get @options.annotationID
-					@preview.setAnnotatedText annotation
+					@subviews.preview.setAnnotatedText annotation
 					@renderAnnotationEditor annotation
 
 		renderFacsimile: ->
@@ -113,62 +118,63 @@ define (require) ->
 				@$('.left-pane iframe').height document.documentElement.clientHeight - 89
 				
 		renderPreview: ->
-			if @preview?
-				@preview.setModel @entry
+			if @subviews.preview?
+				@subviews.preview.setModel @entry
 			else
-				# @preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
+				# @subviews.preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
 				# 	model: @entry
 				# 	append: true
-				@preview = new Views.Preview
-					model: @entry
-				@el.querySelector('.right-pane .preview-placeholder').appendChild @preview.el
+				@subviews.preview = new Views.Preview model: @entry
+				@$('.right-pane .preview-placeholder').append @subviews.preview.el
 
 		# * TODO: How many times is renderTranscriptionEditor called on init?
 		renderTranscriptionEditor: ->
 			# The preview is based on the transcription, so we have to render it each time the transcription is rendered
 			@renderPreview()
 
-			@submenu.render()
+			@subviews.submenu.render()
 
-			unless @layerEditor
-				@layerEditor = viewManager.show @el.querySelector('.transcription-placeholder'), Views.LayerEditor,
+			unless @subviews.layerEditor
+				@subviews.layerEditor = new Views.LayerEditor
 					model: @currentTranscription
-					height: @preview.$el.innerHeight()
-					width: @preview.$el.width() - 4
+					height: @subviews.preview.$el.innerHeight()
+					width: @subviews.preview.$el.width() - 4
+				@$('.transcription-placeholder').html @subviews.layerEditor.el
 			else
-				@layerEditor.show @currentTranscription
+				@subviews.layerEditor.show @currentTranscription
 
-			@annotationEditor.hide() if @annotationEditor?
+			@subviews.annotationEditor.hide() if @subviews.annotationEditor?
 
 		renderAnnotationEditor: (model) ->
 			showAnnotationEditor = =>
-				unless @annotationEditor
-					@annotationEditor = viewManager.show @el.querySelector('.annotation-placeholder'), Views.AnnotationEditor,
+				unless @subviews.annotationEditor
+					@subviews.annotationEditor = new Views.AnnotationEditor
 						model: model
-						height: @preview.$el.innerHeight() - 31
-						width: @preview.$el.width() - 4
-					@listenTo @annotationEditor, 'cancel', =>
+						height: @subviews.preview.$el.innerHeight() - 31
+						width: @subviews.preview.$el.width() - 4
+					@$('.annotation-placeholder').html @subviews.annotationEditor.el
+					@listenTo @subviews.annotationEditor, 'cancel', =>
 						@showUnsavedChangesModal
-							model: @annotationEditor.model
-							html: "<p>There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.<p>"
+							model: @subviews.annotationEditor.model
+							html: "<p>There are unsaved changes in annotation: #{@subviews.annotationEditor.model.get('annotationNo')}.<p>"
 							done: =>
-								@preview.removeNewAnnotationTags()
+								@subviews.preview.removeNewAnnotationTags()
 								@renderTranscriptionEditor()
-					@listenTo @annotationEditor, 'newannotation:saved', (annotation) =>
+					@listenTo @subviews.annotationEditor, 'newannotation:saved', (annotation) =>
 						@currentTranscription.get('annotations').add annotation
-						@preview.highlightAnnotation annotation.get('annotationNo')
+						@subviews.preview.highlightAnnotation annotation.get('annotationNo')
 
-					@listenTo @annotationEditor, 'hide', (annotationNo) => @preview.unhighlightAnnotation annotationNo
+					@listenTo @subviews.annotationEditor, 'hide', (annotationNo) => @subviews.preview.unhighlightAnnotation annotationNo
 				else
-					@annotationEditor.show model
+					@subviews.annotationEditor.show model
 
-				@preview.highlightAnnotation model.get('annotationNo')
+				@subviews.preview.highlightAnnotation model.get('annotationNo')
 
-				@layerEditor.hide()
+				@subviews.layerEditor.hide()
 			
 			@showUnsavedChangesModal
-				model: @layerEditor.model
-				html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
+				model: @subviews.layerEditor.model
+				html: "<p>There are unsaved changes in the #{@subviews.layerEditor.model.get('textLayer')} layer.</p>"
 				done: showAnnotationEditor
 			
 
@@ -176,38 +182,33 @@ define (require) ->
 		events: ->
 			'click li[data-key="layer"]': 'changeTranscription'
 			'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
-			'click .left-menu ul.textlayers li[data-key="transcription"]': 'showTranscription'
+			'click .left-menu ul.textlayers li[data-key="transcription"]': 'showLeftTranscription'
 			'click .middle-menu ul.textlayers li[data-key="transcription"]': 'changeTranscription'
 			'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
 
-		showTranscription: do ->
-			preview = null
-			
-			(ev) ->
-				@el.querySelector('.left-pane iframe').style.display = 'none'
-				@el.querySelector('.left-pane .preview-placeholder').style.display = 'block'
+		showLeftTranscription: (ev) ->
+			@$('.left-pane iframe').hide()
+			@$('.left-pane .preview-placeholder').show()
 
-				transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
-				transcription = @entry.get('transcriptions').get transcriptionID
+			transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
+			transcription = @entry.get('transcriptions').get transcriptionID
 
-				preview.destroy() if preview?
+			@subviews.leftPreview.destroy() if @subviews.leftPreview?
+			@subviews.leftPreview = new Views.Preview
+				model: @entry
+				textLayer: transcription
+				wordwrap: true
 
-				preview = new Views.Preview
-					model: @entry
-					textLayer: transcription
-					wordwrap: true
+			@$('.left-pane .preview-placeholder').html @subviews.leftPreview.el
 
-				@el.querySelector('.preview-placeholder').innerHTML = ''
-				@el.querySelector('.preview-placeholder').appendChild preview.el
+			$('.left-menu .facsimiles li.active').removeClass('active')
+			$('.left-menu .textlayers li.active').removeClass('active')
+			$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
 
-				$('.left-menu .facsimiles li.active').removeClass('active')
-				$('.left-menu .textlayers li.active').removeClass('active')
-				$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
-
-				# Unset the current facsimile, otherwise when switching from transcription to facsimile,
-				# the facsimile will not be loaded, because the facsimiles collection thinks the current
-				# facsimile is the same as the one requested and thus will not update.
-				@entry.get('facsimiles').current = null
+			# Unset the current facsimile, otherwise when switching from transcription to facsimile,
+			# the facsimile will not be loaded, because the facsimiles collection thinks the current
+			# facsimile is the same as the one requested and thus will not update.
+			@entry.get('facsimiles').current = null
 
 
 		# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
@@ -266,14 +267,15 @@ define (require) ->
 			{model, html, done} = args
 
 			if model.changedSinceLastSave?
-				modal = new Views.Modal
+				@subviews.modal.destroy() if @subviews.modal?
+				@subviews.modal = new Views.Modal
 					title: "Unsaved changes"
 					html: html
 					submitValue: 'Discard changes'
 					width: '320px'
-				modal.on 'submit', =>
+				@subviews.modal.on 'submit', =>
 					model.cancelChanges()
-					modal.close()
+					@subviews.modal.close()
 					done()
 			else
 				done()
@@ -293,35 +295,35 @@ define (require) ->
 				# If newTranscription and @currentTranscription are the same then it is possible the transcription editor
 				# is not visible. If it is not visible, than we have to trigger the change manually, because setCurrent doesn't
 				# trigger when the model hasn't changed.
-				else if not @layerEditor.visible()
-					# @layerEditor.show()
+				else if not @subviews.layerEditor.visible()
+					# @subviews.layerEditor.show()
 					@entry.get('transcriptions').trigger 'current:change', @currentTranscription
 
-			if @annotationEditor? and @annotationEditor.visible()
+			if @subviews.annotationEditor? and @subviews.annotationEditor.visible()
 				@showUnsavedChangesModal
-					model: @annotationEditor.model
-					html: "<p>There are unsaved changes in annotation: #{@annotationEditor.model.get('annotationNo')}.</p>"
+					model: @subviews.annotationEditor.model
+					html: "<p>There are unsaved changes in annotation: #{@subviews.annotationEditor.model.get('annotationNo')}.</p>"
 					done: showTranscription
 			else
 				@showUnsavedChangesModal
-					model: @layerEditor.model
-					html: "<p>There are unsaved changes in the #{@layerEditor.model.get('textLayer')} layer.</p>"
+					model: @subviews.layerEditor.model
+					html: "<p>There are unsaved changes in the #{@subviews.layerEditor.model.get('textLayer')} layer.</p>"
 					done: showTranscription
 
 		# ### Methods
 
-		destroy: ->
-			@preview.destroy()
+		# destroy: ->
+		# 	@subviews.preview.destroy()
 
-			@destroy()
+		# 	@destroy()
 
 		addListeners: ->
-			@listenTo @preview, 'editAnnotation', @renderAnnotationEditor
-			@listenTo @preview, 'annotation:removed', @renderTranscriptionEditor
+			@listenTo @subviews.preview, 'editAnnotation', @renderAnnotationEditor
+			@listenTo @subviews.preview, 'annotation:removed', @renderTranscriptionEditor
 			# layerEditor cannot use the general Fn.setScrollPercentage function, so it implements it's own.
-			@listenTo @preview, 'scrolled', (percentages) => @layerEditor.editor.setScrollPercentage percentages
-			@listenTo @layerEditor.editor, 'scrolled', (percentages) => @preview.setScroll percentages
-			@listenTo @layerEditor, 'wrap', (wrap) => @preview.toggleWrap wrap
+			@listenTo @subviews.preview, 'scrolled', (percentages) => @subviews.layerEditor.subviews.editor.setScrollPercentage percentages
+			@listenTo @subviews.layerEditor.subviews.editor, 'scrolled', (percentages) => @subviews.preview.setScroll percentages
+			@listenTo @subviews.layerEditor, 'wrap', (wrap) => @subviews.preview.toggleWrap wrap
 
 
 			@listenTo @entry.get('facsimiles'), 'current:change', (current) =>
@@ -370,11 +372,11 @@ define (require) ->
 
 			window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 				@renderFacsimile()
-				@preview.resize()
+				@subviews.preview.resize()
 						
-				@layerEditor.editor.setIframeHeight @preview.$el.innerHeight()
-				@layerEditor.editor.setIframeWidth @preview.$el.width() - 4
+				@subviews.layerEditor.subviews.editor.setIframeHeight @subviews.preview.$el.innerHeight()
+				@subviews.layerEditor.subviews.editor.setIframeWidth @subviews.preview.$el.width() - 4
 				
-				if @annotationEditor?
-					@annotationEditor.editor.setIframeHeight @preview.$el.innerHeight()
-					@annotationEditor.editor.setIframeWidth @preview.$el.width() - 4
+				if @subviews.annotationEditor?
+					@subviews.annotationEditor.subviews.editor.setIframeHeight @subviews.preview.$el.innerHeight()
+					@subviews.annotationEditor.subviews.editor.setIframeWidth @subviews.preview.$el.width() - 4

@@ -29,7 +29,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			@editor = viewManager.show @el, Views.SuperTinyEditor,
+			@subviews.editor = new Views.SuperTinyEditor
 				cssFile:		'/css/main.css'
 				controls:		['b_save', 'b_cancel', 'b_metadata', 'n', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo']
 				height:			@options.height
@@ -38,10 +38,11 @@ define (require) ->
 				model: 			@model
 				width: 			@options.width
 				wrap: 			true
+			@$el.html @subviews.editor.el
 
-			@listenTo @editor, 'button:save', @save
-			@listenTo @editor, 'button:cancel', => @trigger 'cancel'
-			@listenTo @editor, 'button:metadata', @editMetadata
+			@listenTo @subviews.editor, 'button:save', @save
+			@listenTo @subviews.editor, 'button:cancel', => @trigger 'cancel'
+			@listenTo @subviews.editor, 'button:metadata', @editMetadata
 
 			@show()
 
@@ -56,9 +57,9 @@ define (require) ->
 
 			if annotation?
 				@model = annotation 
-				@editor.setModel @model
+				@subviews.editor.setModel @model
 
-			@editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
+			@subviews.editor.$('.ste-header:nth-child(2)').addClass('annotationtext').html @model.get 'annotatedText'
 
 			@setURLPath @model.id
 
@@ -99,47 +100,26 @@ define (require) ->
 						done()
 
 		editMetadata: ->
-			annotationMetadata = new Views.Form
+			@subviews.annotationMetadata.destroy() if @subviews.annotationMetadata?
+			@subviews.annotationMetadata = new Views.Form
 				tpl: tpls['entry/annotation.metadata']
 				model: @model.clone()
 				collection: @project.get('annotationtypes')
 
-			annotationMetadata.model.on 'change:metadata:type', (annotationTypeID) =>
-				annotationMetadata.model.set 'metadata', {}
-				annotationMetadata.model.set 'annotationType', @project.get('annotationtypes').get(annotationTypeID).attributes
-				# console.log annotationMetadata.model
-			# 	# console.log @project.get('annotationtypes').get(annotationTypeID)
-				annotationMetadata.render()
+			@subviews.annotationMetadata.model.on 'change:metadata:type', (annotationTypeID) =>
+				@subviews.annotationMetadata.model.set 'metadata', {}
+				@subviews.annotationMetadata.model.set 'annotationType', @project.get('annotationtypes').get(annotationTypeID).attributes
+				@subviews.annotationMetadata.render()
 
-			modal = new Views.Modal
+			@subviews.modal.destroy() if @subviews.modal?
+			@subviews.modal = new Views.Modal
 				title: "Edit annotation metadata"
-				html: annotationMetadata.el
+				html: @subviews.annotationMetadata.el
 				submitValue: 'Save metadata'
 				width: '300px'
-			modal.on 'submit', =>
-				# metadata = annotationMetadata.model.get 'metadata'
-
-				# console.log metadata
-				@model.updateFromClone annotationMetadata.model
+			@subviews.modal.on 'submit', =>
+				@model.updateFromClone @subviews.annotationMetadata.model
 
 				@save =>
 					@publish 'message', "Saved metadata for annotation: #{@model.get('annotationNo')}."
-					modal.close()
-
-				# jqXHR = @model.save()
-				# jqXHR.done =>
-				# 	console.log @model
-
-
-
-
-				# @model.get('settings').save()
-
-				# jqXHR = @model.save()
-				# jqXHR.done => modal.messageAndFade 'success', 'Metadata saved!'
-
-			# @annotationMetadata = new Views.AnnotationMetadata
-			# 	model: model
-			# 	collection: @project.get 'annotationtypes'
-			# 	el: @el.querySelector('.container .middle .annotationmetadata')
-	
+					@subviews.modal.close()

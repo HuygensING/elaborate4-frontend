@@ -23,7 +23,7 @@ define (require) ->
 
 		# ### Render
 		render: ->
-			@editor = viewManager.show @el, Views.SuperTinyEditor,
+			@subviews.editor = new Views.SuperTinyEditor
 				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
 				cssFile:		'/css/main.css'
 				height:			@options.height
@@ -31,9 +31,10 @@ define (require) ->
 				htmlAttribute:	'body'
 				model:			@model
 				width: 			@options.width
+			@$el.html @subviews.editor.el
 
-			@listenTo @editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
-			@listenTo @editor, 'button:save', => 
+			@listenTo @subviews.editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
+			@listenTo @subviews.editor, 'button:save', => 
 				@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
 			@show()
@@ -49,7 +50,7 @@ define (require) ->
 
 			if textLayer?
 				@model = textLayer
-				@editor.setModel @model
+				@subviews.editor.setModel @model
 
 			@setURLPath()
 
@@ -79,5 +80,5 @@ define (require) ->
 			Backbone.history.navigate newFragment, replace: true
 
 		remove: ->
-			@editor.remove()
+			@subviews.editor.remove()
 			super

@@ -67,14 +67,14 @@ define (require) ->
 			@
 
 		renderTooltips: ->
-			@editAnnotationTooltip.remove() if @editAnnotationTooltip?
-			@editAnnotationTooltip = new Views.EditAnnotationTooltip
+			@subviews.editAnnotationTooltip.destroy() if @subviews.editAnnotationTooltip?
+			@subviews.editAnnotationTooltip = new Views.EditAnnotationTooltip
 				container: @el.querySelector('.body-container')
 				interactive: @interactive
 
 			if @interactive
-				@listenTo @editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
-				@listenTo @editAnnotationTooltip, 'delete', (model) =>
+				@listenTo @subviews.editAnnotationTooltip, 'edit', (model) => @trigger 'editAnnotation', model
+				@listenTo @subviews.editAnnotationTooltip, 'delete', (model) =>
 					if model.get('annotationNo') is 'newannotation'
 						@removeNewAnnotation()
 					else
@@ -85,8 +85,8 @@ define (require) ->
 					# show the current transcription.
 					@trigger 'annotation:removed'
 
-				@addAnnotationTooltip.remove() if @addAnnotationTooltip?
-				@addAnnotationTooltip = new Views.AddAnnotationTooltip
+				@subviews.addAnnotationTooltip.destroy() if @subviews.addAnnotationTooltip?
+				@subviews.addAnnotationTooltip = new Views.AddAnnotationTooltip
 					container: @el.querySelector('.body-container')
 					annotationTypes: @model.project.get('annotationtypes')
 
@@ -116,28 +116,28 @@ define (require) ->
 
 			@setAnnotatedText annotation
 
-			@editAnnotationTooltip.show
+			@subviews.editAnnotationTooltip.show
 				$el: $(ev.currentTarget)
 				model: annotation
 
 		onMousedown: (ev) ->
-			downOnAdd = ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
-			downOnEdit = ev.target is @editAnnotationTooltip.el or dom(@editAnnotationTooltip.el).hasDescendant(ev.target)
+			downOnAdd = ev.target is @subviews.addAnnotationTooltip.el or dom(@subviews.addAnnotationTooltip.el).hasDescendant(ev.target)
+			downOnEdit = ev.target is @subviews.editAnnotationTooltip.el or dom(@subviews.editAnnotationTooltip.el).hasDescendant(ev.target)
 
 			unless downOnEdit or downOnAdd
 				# Hide all tooltips, we check what to show in onMouseup.
-				@addAnnotationTooltip.hide()
-				@editAnnotationTooltip.hide()
+				@subviews.addAnnotationTooltip.hide()
+				@subviews.editAnnotationTooltip.hide()
 				
 				# Stop listening to the add annotation tooltip, because the add annotation tooltip has a
 				# listenToOnce on it and when the user clicks outside the tooltip, the listener is still there.
 				# If we don't remove it, the new annotation will popup on all previous selected areas.
-				@stopListening @addAnnotationTooltip
+				@stopListening @subviews.addAnnotationTooltip
 
 
 		onMouseup: (ev) ->
-			upOnAdd = ev.target is @addAnnotationTooltip.el or dom(@addAnnotationTooltip.el).hasDescendant(ev.target)
-			upOnEdit = ev.target is @editAnnotationTooltip.el or dom(@editAnnotationTooltip.el).hasDescendant(ev.target)
+			upOnAdd = ev.target is @subviews.addAnnotationTooltip.el or dom(@subviews.addAnnotationTooltip.el).hasDescendant(ev.target)
+			upOnEdit = ev.target is @subviews.editAnnotationTooltip.el or dom(@subviews.editAnnotationTooltip.el).hasDescendant(ev.target)
 			
 			checkMouseup = =>
 				sel = document.getSelection()
@@ -147,7 +147,7 @@ define (require) ->
 				# When the user clicked a sup
 				if sel.rangeCount is 0 or ev.target.tagName is 'SUP' or ev.target.tagName is 'BUTTON'
 					# Only hide the tooltip, don't stopListening, because the click to add an annotation also ends up here
-					@addAnnotationTooltip.hide()
+					@subviews.addAnnotationTooltip.hide()
 					return false
 
 				range = sel.getRangeAt 0
@@ -164,11 +164,11 @@ define (require) ->
 						# ListenToOnce, so when the tooltip is clicked, the listener is removed.
 						# If the tooltip isn't clicked, the tooltip will be hidden en stopListening'd
 						# in the onMousedown.
-						@listenToOnce @addAnnotationTooltip, 'clicked', (model) =>
+						@listenToOnce @subviews.addAnnotationTooltip, 'clicked', (model) =>
 							@addNewAnnotation model, range
 						# Show the add annotation tooltip.
 
-						@addAnnotationTooltip.show
+						@subviews.addAnnotationTooltip.show
 							left: ev.pageX
 							top: ev.pageY
 
@@ -181,11 +181,11 @@ define (require) ->
 
 		toggleWrap: (wrap) -> @$el.toggleClass 'wrap', wrap
 
-		destroy: ->
-			@addAnnotationTooltip.remove() if @addAnnotationTooltip?
-			@editAnnotationTooltip.remove()
+		# destroy: ->
+		# 	@subviews.addAnnotationTooltip.destroy() if @subviews.addAnnotationTooltip?
+		# 	@subviews.editAnnotationTooltip.destroy()
 
-			@remove()
+		# 	@remove()
 
 		setScroll: (percentages) ->
 			@autoscroll = true

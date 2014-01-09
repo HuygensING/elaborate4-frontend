@@ -40,15 +40,11 @@ define (require) ->
 						url = history.last() ? 'projects/'+@project.get('name')
 						@navigate url, trigger: true
 
-						viewManager.show 'header.main', Views.Header,
-							project: @project
-							prepend: true
+						header = new Views.Header project: @project
+						$('header.main').prepend header.el
 							# persist: true
 						
-						@listenTo Collections.projects, 'current:change', (@project) =>
-							# Clear cache when we switch project
-							viewManager.clearCache()
-							@navigate "projects/#{@project.get('name')}", trigger: true
+						@listenTo Collections.projects, 'current:change', (@project) => @navigate "projects/#{@project.get('name')}", trigger: true
 
 				unauthorized: => @publish 'login:failed'
 				navigateToLogin: => @navigate 'login', trigger: true
@@ -57,7 +53,7 @@ define (require) ->
 			# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
 			# Collections.projects.getCurrent (@project) =>
 
-		manageView: (View, options) -> viewManager.show 'div#main', View, options
+		manageView: (View, options) -> viewManager.show $('div#main'), View, options
 
 		routes:
 			'': 'projectMain'
@@ -77,20 +73,29 @@ define (require) ->
 		login: ->
 			@manageView Views.Login
 
-		projectMain: (name) ->
-			@manageView Views.ProjectMain
+		projectMain: (projectName) ->
+			# In theory we don't have to pass the projectName, because it is known
+			# through Collections.project.current, but we need to send it for the viewManager
+			# so it doesn't cache the same view for different projects.
+			@manageView Views.ProjectMain, projectName: projectName
 
-		projectSettings: (name, tab) ->
-			@manageView Views.ProjectSettings, tabName: tab
+		projectSettings: (projectName, tab) ->
+			# See projectMain comment
+			@manageView Views.ProjectSettings,
+				projectName: projectName
+				tabName: tab
 
-		projectHistory: (name) ->
-			@manageView Views.ProjectHistory
+		projectHistory: (projectName) ->
+			# See projectMain comment
+			@manageView Views.ProjectHistory, projectName: projectName
 
-		statistics: ->
-			@manageView Views.Statistics
+		statistics: (projectName) ->
+			# See projectMain comment
+			@manageView Views.Statistics, projectName: projectName
 
 		entry: (projectName, entryID, transcriptionName, annotationID) ->
 			@manageView Views.Entry,
+				projectName: projectName
 				entryId: entryID
 				transcriptionName: transcriptionName
 				annotationID: annotationID

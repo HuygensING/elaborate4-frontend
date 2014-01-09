@@ -43,8 +43,16 @@ define (require) ->
 				settings: @project.get('settings')
 			@$el.html rtpl
 
-			# @facetedSearch = new Views.FacetedSearch
-			@facetedSearch = viewManager.show @el.querySelector('.faceted-search-placeholder'), Views.FacetedSearch,
+			@renderFacetedSearch()
+
+			# Check if a draft is in the process of being published.
+			@pollDraft()
+
+			@
+
+		renderFacetedSearch: ->
+			# @subviews.facetedSearch = new Views.FacetedSearch
+			@subviews.facetedSearch = new Views.FacetedSearch
 				baseUrl: config.baseUrl
 				searchPath: 'projects/'+@project.id+'/search'
 				token: token.get()
@@ -54,40 +62,32 @@ define (require) ->
 					searchInTranscriptions: true
 				queryOptions:
 					resultRows: @resultRows
+			@$('.faceted-search-placeholder').html @subviews.facetedSearch.el
 
-			@listenTo @facetedSearch, 'unauthorized', => Backbone.history.navigate 'login', trigger: true
+			@listenTo @subviews.facetedSearch, 'unauthorized', => Backbone.history.navigate 'login', trigger: true
 			# # Render the header only on the first change of results (init), after that, the user will update
 			# # the header when using pagination.
-			# @listenToOnce @facetedSearch, 'results:change', (responseModel) => 
-			@listenTo @facetedSearch, 'results:change', (responseModel) =>
+			# @listenToOnce @subviews.facetedSearch, 'results:change', (responseModel) => 
+			@listenTo @subviews.facetedSearch, 'results:change', (responseModel) =>
 				@project.resultSet = responseModel
 				@renderHeader responseModel
 				@renderResults responseModel
 
-			# Check if a draft is in the process of being published.
-			@pollDraft()
+		renderHeader: (responseModel) ->
+			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
 
-			@
+			if @subviews.pagination?
+				@stopListening @subviews.pagination
+				@subviews.pagination.destroy()
 
-		renderHeader: do ->
-			pagination = null
-
-			(responseModel) ->
-				@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
-
-				if pagination?
-					@stopListening pagination
-					pagination.destroy()
-
-				pagination = new Views.Pagination
-					start: responseModel.get('start')
-					rowCount: @resultRows
-					resultCount: responseModel.get('numFound')
-				@listenTo pagination, 'change:pagenumber', (pagenumber) => @facetedSearch.page pagenumber
-				@$('.pagination').html pagination.el
+			@subviews.pagination = new Views.Pagination
+				start: responseModel.get('start')
+				rowCount: @resultRows
+				resultCount: responseModel.get('numFound')
+			@listenTo @subviews.pagination, 'change:pagenumber', (pagenumber) => @subviews.facetedSearch.page pagenumber
+			@$('.pagination').html @subviews.pagination.el
 
 		renderResults: (responseModel) ->
-			# Set @fulltextTerm so we can pass it to an entry.
 			queryOptions = responseModel.options.queryOptions ? {}
 			fulltext = queryOptions.term? and queryOptions.term isnt ''
 
@@ -119,7 +119,7 @@ define (require) ->
 
 		# ### Events
 		events:
-			'click .submenu li[data-key="newsearch"]': -> @facetedSearch.reset()
+			'click .submenu li[data-key="newsearch"]': -> @subviews.facetedSearch.reset()
 			'click .submenu li[data-key="newentry"]': 'newEntry'
 			'click .submenu li[data-key="editmetadata"]': 'toggleEditMultipleMetadata'
 			'click .submenu li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
@@ -129,41 +129,39 @@ define (require) ->
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
-			'change .entry input[type="checkbox"]': -> @editMultipleEntryMetadata.toggleInactive()
+			'change .entry input[type="checkbox"]': -> @subviews.editMultipleEntryMetadata.toggleInactive()
 
 		# Use IIFE to remember visibility.
-		toggleEditMultipleMetadata: do ->
-			visible = false
+		toggleEditMultipleMetadata: (ev) ->
+			# ul.entries is used twice so we define it on top.
+			entries = @el.querySelector('ul.entries')
 
-			(ev) ->
-				# ul.entries is used twice so we define it on top.
-				entries = @el.querySelector('ul.entries')
+			@$('.resultview').toggleClass 'edit-multiple-entry-metadata'
 
-				if visible
-					# Remove class to switch result list back to navigatable entries.
-					@$('.resultview').removeClass 'edit-multiple-entry-metadata'
-					# Uncheck all checkboxes in the result list.
-					Fn.checkCheckboxes null, false, entries
-					# Remove the form.
-					@editMultipleEntryMetadata.destroy()
-				else
-					# Add class to switch result list to selectable entries.
-					@$('.resultview').addClass 'edit-multiple-entry-metadata'
+			# Class has been added, so we add the form
+			if @$('.resultview').hasClass 'edit-multiple-entry-metadata'				
+				# Create the form.
+				@subviews.editMultipleEntryMetadata = new Views.EditSelection model: @project
+				@$('.editselection-placeholder').html @subviews.editMultipleEntryMetadata.el
+				
+				# Add listeners.
+				@listenToOnce @subviews.editMultipleEntryMetadata, 'close', => @toggleEditMultipleMetadata()
+				@listenToOnce @subviews.editMultipleEntryMetadata, 'saved', => @subviews.facetedSearch.reset()
+			# Class has been removed, so we remove the form
+			else
+				# Uncheck all checkboxes in the result list.
+				Fn.checkCheckboxes null, false, entries
 
-					# Create the form.
-					@editMultipleEntryMetadata = new Views.EditSelection model: @project
-					@el.querySelector('.editselection-placeholder').appendChild @editMultipleEntryMetadata.el
-					
-					# Add listeners.
-					@listenToOnce @editMultipleEntryMetadata, 'close', => @toggleEditMultipleMetadata()
-					@listenToOnce @editMultipleEntryMetadata, 'saved', => @facetedSearch.reset()
+				# Remove the form.
+				@stopListening @subviews.editMultipleEntryMetadata
+				@subviews.editMultipleEntryMetadata.destroy()
 
-				# Toggle visibility.
-				visible = not visible
+			# Toggle visibility.
+			visible = not visible
 
-				# Resize result list, because result list height is dynamically calculated on render and the appearance
-				# and removal of the edit multiple metadata form alters the top position of the result list.
-				entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
+			# Resize result list, because result list height is dynamically calculated on render and the appearance
+			# and removal of the edit multiple metadata form alters the top position of the result list.
+			entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px'
 
 		newEntry: (ev) ->
 			modal = new Views.Modal
@@ -201,9 +199,9 @@ define (require) ->
 			@el.querySelector('li.next').classList.remove 'inactive'
 
 			if cl.contains 'prev'
-				@facetedSearch.prev()
+				@subviews.facetedSearch.prev()
 			else if cl.contains 'next'
-				@facetedSearch.next()
+				@subviews.facetedSearch.next()
 
 
 		# navToEntry: (ev) ->
@@ -220,7 +218,7 @@ define (require) ->
 		uncheckCheckboxes: -> Fn.checkCheckboxes '.entries input[type="checkbox"]', false, @el
 
 		destroy: ->
-			@facetedSearch.remove()
+			@subviews.facetedSearch.remove()
 			@remove()
 
 		activatePublishDraftButton: ->

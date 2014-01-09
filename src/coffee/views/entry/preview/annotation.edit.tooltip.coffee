@@ -9,7 +9,7 @@ define (require) ->
 
 	tpls = require 'tpls'
 
-	class Tooltip extends BaseView
+	class EditAnnotationTooltip extends BaseView
 
 		className: 'tooltip editannotation'
 
