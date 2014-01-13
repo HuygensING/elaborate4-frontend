@@ -17,3 +17,10 @@ form
 					input(type=key=='Publishable'?'checkbox':'text', name=key, value=value)
 				else
 					span= value
+
+		li
+			label Publishable
+			if user.get('roleNo') >= 20
+				input(type="checkbox", name="publishable", checked=model.get('publishable'))
+			else
+				span= model.get('publishable')
