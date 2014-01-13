@@ -4,23 +4,26 @@ br
 form
 	ul(data-model-id=model.cid)
 		li
-			label Name
+			- id = generateID()
+			label(for=id) Name
 			if user.get('roleNo') >= 20
-				input(type="text", name="name", value=model.get('name'))
+				input(id=id, type="text", name="name", value=model.get('name'))
 			else
 				span= model.get('name')
 
 		each value, key in model.get('settings').attributes
 			li
-				label= key
+				- id = generateID()
+				label(for=id)= key
 				if user.get('roleNo') >= 20
-					input(type=key=='Publishable'?'checkbox':'text', name=key, value=value)
+					input(id=id, type=key=='Publishable'?'checkbox':'text', name=key, value=value)
 				else
 					span= value
 
 		li
-			label Publishable
+			- id = generateID()
+			label(for=id) Publishable
 			if user.get('roleNo') >= 20
-				input(type="checkbox", name="publishable", checked=model.get('publishable'))
+				input(id=id, type="checkbox", name="publishable", checked=model.get('publishable'))
 			else
 				span= model.get('publishable')

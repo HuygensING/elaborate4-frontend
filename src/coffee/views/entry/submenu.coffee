@@ -72,6 +72,7 @@ define (require) ->
 					tpl: tpls['entry/metadata']
 					tplData:
 						user: @user
+						generateID: Fn.generateID
 					model: @entry.clone()
 
 				modal = new Views.Modal
