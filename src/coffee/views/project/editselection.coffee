@@ -34,8 +34,30 @@ define (require) ->
 		events: ->
 			'click button[name="savemetadata"]': 'saveMetadata'
 			'click button[name="cancel"]': -> @trigger 'close'
-			'keyup input[type="text"]': 'toggleInactive'
-			'change input[type="checkbox"]': 'toggleInactive'
+			'keyup input[type="text"]': 'toggleCheckboxes'
+			'change input[type="checkbox"]': 'toggleCheckboxes'
+			'click i.fa': 'toggleIncludeCheckboxes'
+
+		emptyInput: (name) -> 
+			input = @el.querySelector('input[name="'+name+'"]') 
+			if input.type is 'checkbox'
+				input.checked = false
+			else
+				input.value = ''
+
+
+		toggleIncludeCheckboxes: (ev) ->
+			$target = $(ev.currentTarget)
+			$target.toggleClass 'fa-square-o'
+			$target.toggleClass 'fa-check-square-o'
+
+			if $target.hasClass 'fa-square-o'
+				@emptyInput $target.attr('data-name')
+				$target.removeClass 'include'
+			else
+				$target.addClass 'include'
+
+			@updateSettings()
 		# 	'change input.empty[type="checkbox"]': 'disableInput'
 
 		# disableInput: (ev) ->
@@ -69,18 +91,46 @@ define (require) ->
 		# - on change .active, toggleInactive
 		### TODO ###
 
-		toggleInactive: ->
-			# entryCBs = document.querySelectorAll('.entries input[type="checkbox"]:checked')
+		toggleCheckboxes: ->		
+			for input in @el.querySelectorAll 'input'
+				check = false
+
+				if input.type is 'checkbox'
+					if input.checked
+						check = true
+				else		
+					if input.value.length > 0
+						check = true
+
+				$cb = @$('i[data-name="'+input.name+'"]')
+				if check
+					$cb.removeClass 'fa-square-o'
+					$cb.addClass 'fa-check-square-o'
+				else unless $cb.hasClass 'include'
+					$cb.addClass 'fa-square-o'
+					$cb.removeClass 'fa-check-square-o'
+
+			@updateSettings()
+
+		updateSettings: ->
 			@settings = {}
 
-			for input in @el.querySelectorAll('input:not(.active)')
+			for input in @el.querySelectorAll 'input'
 				if input.type is 'checkbox'
-					@settings[input.name] = true if input.checked
-					@settings[input.name] = false if input.hasAttribute 'disabled'
-				else 
-					@settings[input.name] = input.value if input.value.length > 0
-					@settings[input.name] = '' if input.hasAttribute 'disabled'
+					if input.checked
+						@settings[input.name] = true
+				else		
+					if input.value.length > 0
+						@settings[input.name] = input.value
 
+			for i in @el.querySelectorAll 'i.fa.include'
+				name = i.getAttribute('data-name')
+				input = @el.querySelector 'input[name="'+name+'"]'
+				@settings[name] = if input.type is 'checkbox' then false else ''
+
+			@activateSaveButton()
+
+		activateSaveButton: ->
 			# if entryCBs.length is 0 or metadataCBs.length is 0
 			if _.isEmpty(@settings) or document.querySelectorAll('.entries input[type="checkbox"]:checked').length is 0
 				@$('button[name="savemetadata"]').addClass 'inactive' 

@@ -13,7 +13,8 @@ h3= 'Edit metadata of multiple ' + settings.get('entry.term_plural')
 					if key < entrymetadatafields.length/2
 						li 
 							label= field
-							input.active(type="checkbox", tabindex=key * 2 + 1, data-name=field)
+							i.fa.fa-square-o(data-name=field)
+							//- input.include(type="checkbox", tabindex=key * 2 + 1, data-name=field)
 							input(type="text", name=field, tabindex=key * 2 + 2)
 	.cell.span1
 		form
@@ -22,11 +23,13 @@ h3= 'Edit metadata of multiple ' + settings.get('entry.term_plural')
 					if key >= entrymetadatafields.length/2
 						li 
 							label= field
-							input.active(type="checkbox", tabindex=key * 2 + 1, data-name=field)
+							i.fa.fa-square-o(data-name=field)
+							//- input.include(type="checkbox", tabindex=key * 2 + 1, data-name=field)
 							input(type="text", name=field, tabindex=key * 2 + 2)
 				li
 					label Publishable
-					input.empty(type="checkbox", tabindex=entrymetadatafields.length * 2 + 3, data-name="Publishable")
+					i.fa.fa-square-o(data-name="Publishable")
+					//- input.empty(type="checkbox", tabindex=entrymetadatafields.length * 2 + 3, data-name="Publishable")
 					input(style="margin-right: 137px", type="checkbox", name="Publishable", tabindex=entrymetadatafields.length * 2 + 4)
 
 

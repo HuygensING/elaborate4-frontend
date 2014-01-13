@@ -129,7 +129,7 @@ define (require) ->
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
-			'change .entry input[type="checkbox"]': -> @subviews.editMultipleEntryMetadata.toggleInactive()
+			'change .entry input[type="checkbox"]': -> @subviews.editMultipleEntryMetadata.activateSaveButton()
 
 		# Use IIFE to remember visibility.
 		toggleEditMultipleMetadata: (ev) ->
