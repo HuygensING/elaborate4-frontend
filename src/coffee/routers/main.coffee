@@ -93,9 +93,22 @@ define (require) ->
 			# See projectMain comment
 			@manageView Views.Statistics, projectName: projectName
 
+		# An entry might be editted outside the entry view (where it would update the DOM),
+		# for instance when editting multiple metadata, so we check the IDs of changed entries
+		# and set options.cache according.
 		entry: (projectName, entryID, transcriptionName, annotationID) ->
-			@manageView Views.Entry,
+			attrs =
 				projectName: projectName
 				entryId: entryID
 				transcriptionName: transcriptionName
 				annotationID: annotationID
+
+			changedIndex = @project.get('entries').changed.indexOf +entryID if @project?
+			if changedIndex > -1
+				# Remove entryID from changed array.
+				@project.get('entries').changed.splice changedIndex, 1
+
+				# Set cache value to false, to tell viewManager to rerender view.
+				attrs.cache = false 
+
+			@manageView Views.Entry, attrs

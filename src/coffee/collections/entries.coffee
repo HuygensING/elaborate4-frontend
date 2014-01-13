@@ -15,6 +15,7 @@ define (require) ->
 			@projectId = options.projectId
 
 			@current = null
+			@changed = []
 		
 		url: -> config.baseUrl + "projects/#{@projectId}/entries"
 

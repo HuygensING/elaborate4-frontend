@@ -152,7 +152,6 @@ define (require) ->
 			# 		for own key, value of @settings
 			# 			console.log 'k', key, 'v', value
 			# 			entry.get('settings').set key, value
-
 			# return
 
 			unless $(ev.currentTarget).hasClass 'inactive'
@@ -172,6 +171,7 @@ define (require) ->
 							settings: @settings
 						dataType: 'text'
 					jqXHR.done =>
+						@model.get('entries').changed = _.union @model.get('entries').changed, entryIDs
 						saveButton.removeClass 'loader'
 						@publish 'message', 'Metadata of multiple entries saved.'
 						@trigger 'saved'
