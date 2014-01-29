@@ -1,0 +1,14 @@
+button Levels
+	i.fa.fa-caret-down
+ul
+	each i in [1, 2, 3]
+		li(name='level'+i)
+			label= 'Level '+i
+			select(name='level'+i)
+				option(value=project.get('level1'), selected=i==1)= project.get('level1')
+				option(value=project.get('level2'), selected=i==2)= project.get('level2')
+				option(value=project.get('level3'), selected=i==3)= project.get('level3')
+			i.fa.fa-sort-alpha-asc
+
+	li
+		button Search

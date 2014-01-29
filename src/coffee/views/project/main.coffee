@@ -34,6 +34,8 @@ define (require) ->
 
 			@resultRows = 50
 
+			@subscribe 'sortlevels:saved', @renderLevels
+
 			Collections.projects.getCurrent (@project) => @render()
 
 		# ### Render
@@ -44,6 +46,8 @@ define (require) ->
 			@$el.html rtpl
 
 			@renderFacetedSearch()
+
+			@renderLevels()
 
 			# Check if a draft is in the process of being published.
 			@pollDraft()
@@ -76,6 +80,8 @@ define (require) ->
 		renderHeader: (responseModel) ->
 			@el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + " #{@project.get('settings').get('entry.term_plural')} found"
 
+			@renderLevels()
+
 			if @subviews.pagination?
 				@stopListening @subviews.pagination
 				@subviews.pagination.destroy()
@@ -86,6 +92,10 @@ define (require) ->
 				resultCount: responseModel.get('numFound')
 			@listenTo @subviews.pagination, 'change:pagenumber', (pagenumber) => @subviews.facetedSearch.page pagenumber
 			@$('.pagination').html @subviews.pagination.el
+
+		renderLevels: ->
+			rtpl = tpls['project/header.levels'] project: @project
+			@$('header li.levels').html rtpl
 
 		renderResults: (responseModel) ->
 			queryOptions = responseModel.options.queryOptions ? {}
@@ -126,10 +136,66 @@ define (require) ->
 			# 'click li.entry label[data-id]': 'navToEntry'
 			# 'click .pagination li.prev': 'changePage'
 			# 'click .pagination li.next': 'changePage'
+			'click li.levels > button': 'toggleLevels'
+			'click li.levels ul button': 'saveLevels'
+			'change li.levels ul li select': 'changeLevels'
+			'click li.levels ul li i.fa': 'changeAlphaSort'
 			'click li[data-key="selectall"]': -> Fn.checkCheckboxes '.entries input[type="checkbox"]', true, @el
 			'click li[data-key="deselectall"]': 'uncheckCheckboxes'
 			'change #cb_showkeywords': (ev) -> if ev.currentTarget.checked then @$('.keywords').show() else @$('.keywords').hide()
 			'change .entry input[type="checkbox"]': -> @subviews.editMultipleEntryMetadata.activateSaveButton()
+
+		toggleLevels: (ev) ->
+			@$('li.levels ul').toggle()
+
+		changeLevels: (ev) ->
+			@$('li.levels ul').addClass 'show-save-button'
+
+			target = ev.currentTarget
+			# Keep track of 'used' levels. We use this to update the other levels after the
+			# user has changed one of the levels.
+			used = [target.options[target.selectedIndex].value]
+			# Make an array of levels.
+			levels = [@project.get('level1'), @project.get('level2'), @project.get('level3')]
+			
+			# Loop the selects.
+			for select in @el.querySelectorAll 'li.levels ul select'
+				# Skip the select which is changed by the user.
+				if select.name isnt target.name
+					# Loop the levels.
+					for level in levels
+						# If the level is not in the used array, set it to the select and break the loop.
+						if used.indexOf(level) is -1
+							used.push level
+							$(select).val level
+							break
+
+			# Reset all selects to ascending.
+			for i in @el.querySelectorAll 'li.levels ul li i.fa'
+				$target = @$(i)
+				$target.addClass 'fa-sort-alpha-asc'
+				$target.removeClass 'fa-sort-alpha-desc'
+
+		changeAlphaSort: (ev) ->
+			@$('li.levels ul').addClass 'show-save-button'
+
+			$target = @$(ev.currentTarget)
+			$target.toggleClass 'fa-sort-alpha-asc'
+			$target.toggleClass 'fa-sort-alpha-desc'
+
+		saveLevels: ->
+			sortParameters = []
+			
+			for li in @el.querySelectorAll 'li.levels ul li[name]'				
+				select = li.querySelector('select')
+
+				sortParameter = {}
+				sortParameter.fieldname = select.options[select.selectedIndex].value
+				sortParameter.direction = if $(li).find('i.fa').hasClass 'fa-sort-alpha-asc' then 'asc' else 'desc'
+
+				sortParameters.push sortParameter
+
+			@subviews.facetedSearch.refresh sortParameters: sortParameters
 
 		# Use IIFE to remember visibility.
 		toggleEditMultipleMetadata: (ev) ->

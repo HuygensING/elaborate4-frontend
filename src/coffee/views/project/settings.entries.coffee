@@ -74,6 +74,15 @@ define (require) ->
 			jqXHR = ajax.put
 				url: config.baseUrl + "projects/#{@project.id}/sortlevels"
 				data: JSON.stringify sortlevels
-			jqXHR.done => 
+			jqXHR.done =>
+				# Update project attributes
+				@project.set 'level1', sortlevels[0]
+				@project.set 'level2', sortlevels[1]
+				@project.set 'level3', sortlevels[2]
+
 				@$('.sortlevels form button').addClass 'inactive'
+				
 				@publish 'message', 'Entry sort levels saved.'
+				
+				# Send message to project main view, so it can re-render the levels.
+				@publish 'sortlevels:saved'
