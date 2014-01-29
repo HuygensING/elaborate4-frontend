@@ -146,7 +146,7 @@ define (require) ->
 				
 				# Add listeners.
 				@listenToOnce @subviews.editMultipleEntryMetadata, 'close', => @toggleEditMultipleMetadata()
-				@listenToOnce @subviews.editMultipleEntryMetadata, 'saved', => @subviews.facetedSearch.reset()
+				@listenToOnce @subviews.editMultipleEntryMetadata, 'saved', => @subviews.facetedSearch.refresh()
 			# Class has been removed, so we remove the form
 			else
 				# Uncheck all checkboxes in the result list.
