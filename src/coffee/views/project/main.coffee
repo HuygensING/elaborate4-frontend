@@ -103,17 +103,22 @@ define (require) ->
 
 			# Add the results to this project's entries.
 			entries = @project.get('entries')
-			entries.add responseModel.get('results')
+			entries.add responseModel.get('results'), merge: true
 
 			# Create a document fragment and append entry listitem views.
 			frag = document.createDocumentFragment()
+
 			for result in responseModel.get 'results'
 				entry = entries.get result.id
 				entry.project = @project
 
+				found = []
+				found.push term+': '+count for own term, count of entry.get('terms')
+
 				entryListitem = new Views.EntryListitem
 					model: entry
 					fulltext: fulltext
+					found: found.join(', ')
 				frag.appendChild entryListitem.el
 
 			# Add the frag to the dom

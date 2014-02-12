@@ -150,7 +150,7 @@
 				label, a
 					text-decoration none
 					color black
-					font-size 1.1rem
+					font-size 1.2rem
 					cursor pointer
 					padding 2px 4px
 					border-radius 2px
@@ -160,6 +160,30 @@
 
 				label
 					display none
+
+				.found
+					color #999
+					display inline-block
+					margin-left 10px
+
+					&:before
+						content: '('
+
+					&:after
+						content: ')'
+				
+				.metadata
+					ul
+						list-style none
+						padding 4px 0 0 12px
+
+						li
+							margin-bottom 0px
+							// display inline-block
+							// width 30%
+
+							span.key
+								color #999
 
 				.keywords
 					color #999
@@ -171,7 +195,7 @@
 						li
 							padding 2px 0
 							margin 0
-							margin-left 18px
+							margin-left 13px
 							overflow-x hidden
 							white-space nowrap
 							text-overflow ellipsis

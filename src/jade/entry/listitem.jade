@@ -5,6 +5,14 @@ li.entry(id='entry'+entry.id)
 		input(type="checkbox", data-id=entry.id, id=randomID)
 		label(for=randomID)= entry.name
 	a(href='projects/'+projectName+'/entries/'+entry.id)= entry.name
+	if fulltext
+		.found= found
+	.metadata
+		ul
+			each value, key in entry.metadata
+				li
+					span.key= key+': '
+					span.value= value
 
 	if fulltext
 		.keywords
