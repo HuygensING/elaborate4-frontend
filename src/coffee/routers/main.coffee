@@ -15,7 +15,7 @@ define (require) ->
 	Views =
 		Login: require 'views/login'
 		ProjectMain: require 'views/project/main'
-		ProjectSettings: require 'views/project/settings'
+		ProjectSettings: require 'views/project/settings/main'
 		ProjectHistory: require 'views/project/history'
 		Statistics: require 'views/project/statistics'
 		Entry: require 'views/entry/main'

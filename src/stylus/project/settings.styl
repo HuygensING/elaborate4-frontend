@@ -42,9 +42,9 @@
 			margin-right 10px
 			display inline-block
 
-		.adduser
-			input[type="submit"]
-				margin-left 0px
+		// .adduser
+		// 	input[type="submit"]
+		// 		margin-left 0px
 
 		ul.selected-annotation-types
 			padding-left 16px
@@ -54,6 +54,30 @@
 
 				span.description
 					color gray
+
+	div[data-tab="users"]
+		position relative
+		min-height 200px
+
+		.userroles
+			margin-bottom 20px
+			
+			ul
+				list-style square
+				margin-left 16px
+
+			select
+				background none
+				border 1px solid #CCC
+				margin-right 8px
+
+		.userlist
+			margin-right 300px
+
+		.adduser
+			position absolute
+			right 20px
+			top 0
 
 	div[data-tab="annotationtypes"]
 		.setnames

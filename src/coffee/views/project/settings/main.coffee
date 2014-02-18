@@ -15,8 +15,9 @@ define (require) ->
 		ComboList: require 'hilib/views/form/combolist/main'
 		Form: require 'hilib/views/form/main'
 		Modal: require 'hilib/views/modal/main'
-		TextlayersTab: require 'views/project/settings.textlayers'
-		EntriesTab: require 'views/project/settings.entries'
+		TextlayersTab: require 'views/project/settings/textlayers'
+		EntriesTab: require 'views/project/settings/entries'
+		UsersTab: require 'views/project/settings/users'
 
 	Models =
 		Statistics: require 'models/project/statistics'
@@ -82,6 +83,13 @@ define (require) ->
 
 			@$('div[data-tab="textlayers"]').html textlayersTab.el
 
+		renderUserTab: ->
+			usersTab = new Views.UsersTab project: @project
+
+			@listenTo usersTab, 'confirm', @renderConfirmModal
+
+			@$('div[data-tab="users"]').html usersTab.el
+
 		# * TODO: Add to separate view
 		renderAnnotationsTab: ->
 			annotationTypes = @project.get 'annotationtypes'
@@ -117,42 +125,6 @@ define (require) ->
 						@publish 'message', "Removed #{name} from #{@project.get('title')}."
 				
 			@listenTo form, 'save:success', (model) => @project.get('annotationtypes').add model
-			@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
-
-		# * TODO: Add to separate view
-		renderUserTab: ->
-			members = @project.get 'members'
-			combolist = new Views.ComboList
-				value: members
-				config:
-					data: @project.allusers
-					settings:
-						placeholder: 'Add member'
-						confirmRemove: true
-			@$('div[data-tab="users"] .userlist').append combolist.el
-
-			form = new Views.Form
-				Model: Models.User
-				tpl: tpls['project/settings/adduser']
-			@$('div[data-tab="users"] .adduser').append form.el
-
-			@listenTo combolist, 'confirmRemove', (id, confirm) =>
-				@renderConfirmModal confirm,
-					html: 'You are about to remove <u>'+members.get(id).get('title')+'</u> from your project.'
-					submitValue: 'Remove user'
-			@listenTo combolist, 'change', (changes) =>
-				if changes.added?
-					userAttrs = _.findWhere changes.selected, id: changes.added
-					user = new Models.User userAttrs
-					@project.addUser user, => @publish 'message', "Added #{user.getShortName()} to #{@project.get('title')}."
-				else if changes.removed?
-					user = @project.allusers.get changes.removed
-					shortName = user.getShortName()
-					@project.removeUser changes.removed, =>
-						@publish 'message', "Removed #{shortName} from #{@project.get('title')}."
-
-
-			@listenTo form, 'save:success', (model) => @project.get('members').add model
 			@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
 
 		renderConfirmModal: (confirm, options) ->

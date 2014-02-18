@@ -1,0 +1,8 @@
+each member in members.models
+	- var role = member.get('role');
+	if role == 'USER' || role == 'READER'
+		li
+			select(data-id=member.id)
+				option(selected=role=='READER') READER
+				option(selected=role=='USER') USER
+			label= member.get('title')

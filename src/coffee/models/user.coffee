@@ -63,10 +63,15 @@ define (require) ->
 					Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			else if method is 'update'
+				data = model.clone().toJSON()
+				delete data.title
+				delete data.roleString
+				delete data.loggedIn
+
 				ajax.token = token.get()
 				jqXHR = ajax.put
 					url: @url()
-					data: JSON.stringify model.toJSON()
+					data: JSON.stringify data
 				jqXHR.done (response) => @trigger 'sync'
 				jqXHR.fail (response) => 
 					options.error response
