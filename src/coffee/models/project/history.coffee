@@ -1,18 +1,18 @@
-define (require) ->
-	# config = require 'config'
-	Models = 
-		Base: require 'models/base'
-		# state: require 'models/state'
+Models = 
+	Base: require '../base'
+	# state: require 'models/state'
 
-	class ProjectHistory extends Models.Base
+class ProjectHistory extends Models.Base
 
-		defaults: ->
-			comment: ''
-			userName: ''
-			createdOn: null
-			dateString: ''
+	defaults: ->
+		comment: ''
+		userName: ''
+		createdOn: null
+		dateString: ''
 
-		parse: (attrs) ->
-			attrs.dateString = new Date(attrs.createdOn).toDateString()
+	parse: (attrs) ->
+		attrs.dateString = new Date(attrs.createdOn).toDateString()
 
-			attrs
+		attrs
+
+module.exports = ProjectHistory

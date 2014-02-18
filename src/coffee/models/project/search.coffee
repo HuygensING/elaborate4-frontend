@@ -1,6 +1,6 @@
-define (require) ->
+Models = 
+	Base: require '../base'
 
-	Models = 
-		Base: require 'models/base'
+class Search extends Models.Base
 
-	class Search extends Models.Base
+module.exports = Search

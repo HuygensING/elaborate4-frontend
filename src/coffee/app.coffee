@@ -1,30 +1,31 @@
-define (require) ->
-	Backbone = require 'backbone'
+Backbone = require 'backbone'
+$ = require 'jquery'
+Backbone.$ = $
 
-	history = require 'hilib/managers/history'
+history = require 'hilib/src/managers/history'
 
-	MainRouter = require 'routers/main'
+MainRouter = require './routers/main'
 
-	projects = require 'collections/projects'
+projects = require './collections/projects'
 
-	Views =
-		Header: require 'views/ui/header'
+Views =
+	Header: require './views/ui/header'
 
-	### DEBUG ###
-	Backbone.on 'authorized', -> console.log '[debug] authorized'
-	Backbone.on 'unauthorized', -> console.log '[debug] unauthorized'
-	### /DEBUG ###
+### DEBUG ###
+Backbone.on 'authorized', -> console.log '[debug] authorized'
+Backbone.on 'unauthorized', -> console.log '[debug] unauthorized'
+### /DEBUG ###
 
-	init: ->
-		mainRouter = new MainRouter()
-		Backbone.history.start pushState: true
+module.exports = ->
+	mainRouter = new MainRouter()
+	Backbone.history.start pushState: true
 
-		mainRouter.init()
+	mainRouter.init()
 
-		$(document).on 'click', 'a:not([data-bypass])', (e) ->
-			href = $(@).attr 'href'
-			
-			if href?
-				e.preventDefault()
+	$(document).on 'click', 'a:not([data-bypass])', (e) ->
+		href = $(@).attr 'href'
+		
+		if href?
+			e.preventDefault()
 
-				Backbone.history.navigate href, 'trigger': true
+			Backbone.history.navigate href, 'trigger': true

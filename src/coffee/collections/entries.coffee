@@ -1,39 +1,40 @@
-define (require) ->
-	config = require 'config'
-	Base = require 'collections/base'
+config = require '../config'
+Base = require './base'
 
-	Models =
-		Entry: require 'models/entry'
+Models =
+	Entry: require '../models/entry'
 
-	class Entries extends Base
+class Entries extends Base
 
-		model: Models.Entry
+	model: Models.Entry
 
-		initialize: (models, options) ->
-			super
+	initialize: (models, options) ->
+		super
 
-			@projectId = options.projectId
+		@projectId = options.projectId
 
-			@current = null
-			@changed = []
+		@current = null
+		@changed = []
+	
+	url: -> config.baseUrl + "projects/#{@projectId}/entries"
+
+	setCurrent: (modelID) ->
+		model = @get modelID
 		
-		url: -> config.baseUrl + "projects/#{@projectId}/entries"
+		# FIXME Unused!
+		@trigger 'current:change', model
 
-		setCurrent: (modelID) ->
-			model = @get modelID
-			
-			# FIXME Unused!
-			@trigger 'current:change', model
+		# Set and return @current
+		@current = model
 
-			# Set and return @current
-			@current = model
+	previous: ->
+		previousIndex = @indexOf(@current) - 1
+		model = @at previousIndex
+		@setCurrent model
 
-		previous: ->
-			previousIndex = @indexOf(@current) - 1
-			model = @at previousIndex
-			@setCurrent model
+	next: ->
+		nextIndex = @indexOf(@current) + 1
+		model = @at nextIndex
+		@setCurrent model
 
-		next: ->
-			nextIndex = @indexOf(@current) + 1
-			model = @at nextIndex
-			@setCurrent model
+module.exports = Entries

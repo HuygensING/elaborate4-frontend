@@ -1,47 +1,28 @@
-# define (require) ->
-# 	config = require 'config'
+config = require '../../config'
 
-# 	Models = 
-# 		History: require 'models/project/history'
+ajax = require 'hilib/src/managers/ajax'
+token = require 'hilib/src/managers/token'
 
-# 	Collections =
-# 		Base: require 'collections/base'
-# 		# projects: require 'collections/projects'
+# Models = 
+# 	History: require 'models/project/history'
 
-# 	class ProjectHistory extends Collections.Base
+# Collections =
+# 	Base: require 'collections/base'
+	# projects: require 'collections/projects'
 
-# 		model: Models.History
+class ProjectHistory
 
-# 		url: -> "#{config.baseUrl}projects/#{@projectID}/logentries"
+	fetch: (done) ->
+		ajax.token = token.get()
+		jqXHR = ajax.get url: @url
+		jqXHR.done (response) => done(response)
 
-# 		initialize: (models, options) ->
-# 			super
+	constructor: (projectID) ->
+		@url = "#{config.baseUrl}projects/#{projectID}/logentries"
 
-# 			@projectID = options.projectID
-define (require) ->
-	config = require 'config'
+	# initialize: (models, options) ->
+	# 	super
 
-	ajax = require 'hilib/managers/ajax'
-	token = require 'hilib/managers/token'
+	# 	@projectID = options.projectID
 
-	# Models = 
-	# 	History: require 'models/project/history'
-
-	# Collections =
-	# 	Base: require 'collections/base'
-		# projects: require 'collections/projects'
-
-	class ProjectHistory
-
-		fetch: (done) ->
-			ajax.token = token.get()
-			jqXHR = ajax.get url: @url
-			jqXHR.done (response) => done(response)
-
-		constructor: (projectID) ->
-			@url = "#{config.baseUrl}projects/#{projectID}/logentries"
-
-		# initialize: (models, options) ->
-		# 	super
-
-		# 	@projectID = options.projectID
+module.exports = ProjectHistory

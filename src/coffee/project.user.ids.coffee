@@ -1,31 +1,33 @@
 # Entrymetadata fetches and saves the entry metadata. The fetch returns an array of strings
 # and the save puts the entire array to save it.
-define (require) ->
-	config = require 'config'
-	token = require 'hilib/managers/token'
-	ajax = require 'hilib/managers/ajax'
 
-	# ## ProjectUserIDs
-	class ProjectUserIDs
+config = require './config'
+token = require 'hilib/src/managers/token'
+ajax = require 'hilib/src/managers/ajax'
 
-		# ### Private vars
-		url = null
+# ## ProjectUserIDs
+class ProjectUserIDs
 
-		# ### Contstructor
-		# Set the url based on the projectID
-		constructor: (projectID) -> 
-			url = "#{config.baseUrl}projects/#{projectID}/projectusers"
+	# ### Private vars
+	url = null
 
-		# ### Public methods
-		fetch: (cb) ->
-			ajax.token = token.get()
-			jqXHR = ajax.get url: url
+	# ### Contstructor
+	# Set the url based on the projectID
+	constructor: (projectID) -> 
+		url = "#{config.baseUrl}projects/#{projectID}/projectusers"
 
-			jqXHR.done (data) -> cb data
+	# ### Public methods
+	fetch: (cb) ->
+		ajax.token = token.get()
+		jqXHR = ajax.get url: url
 
-		save: (newValues, options={}) ->
-			ajax.token = token.get()
-			jqXHR = ajax.put
-				url: url
-				data: JSON.stringify newValues
-			jqXHR.done => options.success() if options.success?
+		jqXHR.done (data) -> cb data
+
+	save: (newValues, options={}) ->
+		ajax.token = token.get()
+		jqXHR = ajax.put
+			url: url
+			data: JSON.stringify newValues
+		jqXHR.done => options.success() if options.success?
+
+module.exports = ProjectUserIDs

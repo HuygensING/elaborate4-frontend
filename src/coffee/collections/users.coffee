@@ -1,18 +1,19 @@
-define (require) ->
-	config = require 'config'
-	
-	User = require 'models/user'
+config = require '../config'
 
-	Collections =
-		Base: require 'collections/base'
+User = require '../models/user'
 
-	class Users extends Collections.Base
+Collections =
+	Base: require './base'
 
-		model: User
+class Users extends Collections.Base
 
-		url: ->	"#{config.baseUrl}users"
+	model: User
 
-		comparator: (user) ->
-			# Apparently title can be null
-			title = user.get('title')
-			return if title? then title.toLowerCase() else ''
+	url: ->	"#{config.baseUrl}users"
+
+	comparator: (user) ->
+		# Apparently title can be null
+		title = user.get('title')
+		return if title? then title.toLowerCase() else ''
+
+module.exports = Users

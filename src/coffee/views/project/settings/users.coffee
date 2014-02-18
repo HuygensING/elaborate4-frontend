@@ -1,83 +1,85 @@
-define (require) ->
-	Models =
-		User: require 'models/user'
+Models =
+	User: require '../../../models/user'
 
-	Views =
-		Base: require 'hilib/views/base'
-		ComboList: require 'hilib/views/form/combolist/main'
-		Form: require 'hilib/views/form/main'
+Views =
+	Base: require 'hilib/src/views/base'
+	ComboList: require 'hilib/src/views/form/combolist/main'
+	Form: require 'hilib/src/views/form/main'
 
-	tpls = require 'tpls'
-	
-	class ProjectSettingsUsers extends Views.Base
+tpl = require '../../../../jade/project/settings/users.jade'
+rolesTpl = require '../../../../jade/project/settings/userroles.jade'
 
-		className: 'users'
+class ProjectSettingsUsers extends Views.Base
 
-		initialize: ->
-			super
+	className: 'users'
 
-			@project = @options.project
-			@members = @project.get 'members'
+	initialize: ->
+		super
 
-			@listenTo @members, 'add remove', @renderUserroles
+		@project = @options.project
+		@members = @project.get 'members'
 
-			@render()
+		@listenTo @members, 'add remove', @renderUserroles
 
-		render: ->
-			@el.innerHTML = tpls['project/settings/users']()
+		@render()
 
-			@renderUserroles()
+	render: ->
+		@el.innerHTML = tpl()
 
-			@renderCombolist()
-			
-			@renderAddUserForm()
+		@renderUserroles()
 
-			@
+		@renderCombolist()
+		
+		@renderAddUserForm()
 
-		renderUserroles: ->
-			@$('.userroles ul').html tpls['project/settings/userroles'] members: @members
+		@
 
-		renderCombolist: ->
-			combolist = new Views.ComboList
-				value: @members
-				config:
-					data: @project.allusers
-					settings:
-						placeholder: 'Add member'
-						confirmRemove: true
-			@$('.userlist').append combolist.el
+	renderUserroles: ->
+		@$('.userroles ul').html rolesTpl members: @members
 
-			@listenTo combolist, 'confirmRemove', (id, confirm) => @trigger 'confirm', confirm,
-				html: 'You are about to remove <u>'+@members.get(id).get('title')+'</u> from your project.'
-				submitValue: 'Remove user'
+	renderCombolist: ->
+		combolist = new Views.ComboList
+			value: @members
+			config:
+				data: @project.allusers
+				settings:
+					placeholder: 'Add member'
+					confirmRemove: true
+		@$('.userlist').append combolist.el
 
-			@listenTo combolist, 'change', (changes) =>
-				if changes.added?
-					userAttrs = _.findWhere changes.selected, id: changes.added
-					user = new Models.User userAttrs
-					@project.addUser user, => @publish 'message', "Added #{user.getShortName()} to #{@project.get('title')}."
-				else if changes.removed?
-					user = @project.allusers.get changes.removed
-					shortName = user.getShortName()
-					@project.removeUser changes.removed, =>
-						@publish 'message', "Removed #{shortName} from #{@project.get('title')}."
+		@listenTo combolist, 'confirmRemove', (id, confirm) => @trigger 'confirm', confirm,
+			html: 'You are about to remove <u>'+@members.get(id).get('title')+'</u> from your project.'
+			submitValue: 'Remove user'
 
-		renderAddUserForm: ->
-			form = new Views.Form
-				Model: Models.User
-				tpl: tpls['project/settings/adduser']
-			@$('.adduser').append form.el
+		@listenTo combolist, 'change', (changes) =>
+			if changes.added?
+				userAttrs = _.findWhere changes.selected, id: changes.added
+				user = new Models.User userAttrs
+				@project.addUser user, => @publish 'message', "Added #{user.getShortName()} to #{@project.get('title')}."
+			else if changes.removed?
+				user = @project.allusers.get changes.removed
+				shortName = user.getShortName()
+				@project.removeUser changes.removed, =>
+					@publish 'message', "Removed #{shortName} from #{@project.get('title')}."
 
-			@listenTo form, 'save:success', (model) => @project.get('members').add model
-			@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
+	renderAddUserForm: ->
+		form = new Views.Form
+			Model: Models.User
+			tpl: tpls['project/settings/adduser']
+		@$('.adduser').append form.el
 
-		events: ->
-			'change select': 'roleChanged'
+		@listenTo form, 'save:success', (model) => @project.get('members').add model
+		@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
 
-		roleChanged: (ev) ->
-			id = ev.currentTarget.getAttribute 'data-id'
-			role = ev.currentTarget.options[ev.currentTarget.selectedIndex].value
+	events: ->
+		'change select': 'roleChanged'
 
-			jqXHR = @members.get(id).set('role', role).save()
-			jqXHR.done => @publish 'message', 'Changed role to '+role
-			jqXHR.fail => @publish 'message', 'Changing role failed!'
+	roleChanged: (ev) ->
+		id = ev.currentTarget.getAttribute 'data-id'
+		role = ev.currentTarget.options[ev.currentTarget.selectedIndex].value
+
+		jqXHR = @members.get(id).set('role', role).save()
+		jqXHR.done => @publish 'message', 'Changed role to '+role
+		jqXHR.fail => @publish 'message', 'Changing role failed!'
+
+module.exports = ProjectSettingsUsers

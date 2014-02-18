@@ -1,39 +1,44 @@
 {
-  "name": "elaborate",
-  "version": "0.0.0",
+  "name": "elaborate-work-environment",
+  "version": "0.0.1",
   "author": {
     "name": "",
-    "email": "",
-    "url": "https://github.com/Gijsjan"
+    "email": ""
   },
   "main": "app/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Gijsjan/generator-backbone-amd.git"
+  },
   "scripts": {
     "test": "node ./.test/bin/server.js",
-    "start": "coffee ./server.coffee 4000",
-    "start-stage": "coffee ./server.coffee 4001"
+    "start": "coffee ./server.coffee"
   },
   "devDependencies": {
     "coffee-script": "*",
     "stylus": "*",
     "jade": "*",
-    "grunt": "*",
-    "grunt-shell": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-contrib-coffee": "*",
-    "grunt-contrib-jade": "*",
-    "grunt-contrib-stylus": "*",
-    "grunt-contrib-requirejs": "~0.4.1",
-    "grunt-contrib-copy": "~0.4.1",
-    "grunt-text-replace": "~0.3.6",
-    "grunt-contrib-uglify": "~0.2.2",
-    "markdown": "~0.4.0",
-    "grunt-contrib-cssmin": "~0.6.1",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-connect": "~0.3.0",
-    "grunt-plato": "~0.2.1",
-    "grunt-newer": "~0.6.0",
-    "grunt-concurrent": "~0.4.1",
-    "my-grunt-modules": "Gijsjan/my-grunt-modules",
-    "load-grunt-tasks": "~0.2.0"
+    "jquery": "~2.1.0",
+    "underscore": "*",
+    "backbone": "~1.0.0",
+    "gulp-connect": "~0.3.1",
+    "gulp-util": "~2.2.14",
+    "gulp": "~3.5.2",
+    "gulp-jade": "~0.4.1",
+    "gulp-concat": "~2.1.7",
+    "gulp-coffee": "~1.4.1",
+    "gulp-clean": "~0.2.4",
+    "gulp-stylus": "0.0.12",
+    "gulp-browserify": "~0.4.4",
+    "gulp-wrap-amd": "~0.3.0",
+    "gulp-rename": "~1.0.0",
+    "browserify": "~3.28.0",
+    "coffeeify": "~0.6.0",
+    "jadeify": "~2.1.1",
+    "deamdify": "~0.1.1",
+    "underscore.string": "~2.3.3",
+    "rangy-browser": "~1.2.3-1",
+    "browserify-shim": "~3.2.2",
+    "markdown": "~0.5.0"
   }
 }

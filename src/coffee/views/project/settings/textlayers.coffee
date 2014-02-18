@@ -1,44 +1,45 @@
-define (require) ->
-	config = require 'config'
+config = require '../../../config'
 
-	ajax = require 'hilib/managers/ajax'
+ajax = require 'hilib/src/managers/ajax'
 
-	Views =
-		Base: require 'hilib/views/base'
-		EditableList: require 'hilib/views/form/editablelist/main'
+Views =
+	Base: require 'hilib/src/views/base'
+	EditableList: require 'hilib/src/views/form/editablelist/main'
 
-	tpls = require 'tpls'
-	
-	class ProjectSettingsTextlayers extends Views.Base
+tpl = require '../../../../jade/project/settings/textlayers.jade'
 
-		className: 'textlayers'
+class ProjectSettingsTextlayers extends Views.Base
 
-		initialize: ->
-			super
+	className: 'textlayers'
 
-			@project = @options.project
+	initialize: ->
+		super
 
-			@render()
+		@project = @options.project
 
-		render: ->
-			@el.innerHTML = tpls['project/settings/textlayers']()
+		@render()
 
-			# Text layers
-			textLayerList = new Views.EditableList
-				value: @project.get('textLayers')
-				config:
-					settings:
-						placeholder: 'Add layer'
-						confirmRemove: true
-			@listenTo textLayerList, 'confirmRemove', (id, confirm) => @trigger 'confirm', confirm,
-				title: 'Caution!'
-				html: 'You are about to <b>remove</b> the '+id+' layer<br><br>All texts and annotations will be <b>permanently</b> removed!'
-				submitValue: 'Remove '+id+' layer'
+	render: ->
+		@el.innerHTML = tpl()
 
-			@listenTo textLayerList, 'change', (values) =>
-				@project.set 'textLayers', values
-				@project.saveTextlayers => @publish 'message', 'Text layers updated.'
-			
-			@$el.append textLayerList.el
+		# Text layers
+		textLayerList = new Views.EditableList
+			value: @project.get('textLayers')
+			config:
+				settings:
+					placeholder: 'Add layer'
+					confirmRemove: true
+		@listenTo textLayerList, 'confirmRemove', (id, confirm) => @trigger 'confirm', confirm,
+			title: 'Caution!'
+			html: 'You are about to <b>remove</b> the '+id+' layer<br><br>All texts and annotations will be <b>permanently</b> removed!'
+			submitValue: 'Remove '+id+' layer'
 
-			@
+		@listenTo textLayerList, 'change', (values) =>
+			@project.set 'textLayers', values
+			@project.saveTextlayers => @publish 'message', 'Text layers updated.'
+		
+		@$el.append textLayerList.el
+
+		@
+
+module.exports = ProjectSettingsTextlayers

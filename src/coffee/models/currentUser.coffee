@@ -1,124 +1,123 @@
-define (require) ->
-	config = require 'config'
-	token = require 'hilib/managers/token'
+config = require '../config'
+token = require 'hilib/src/managers/token'
 
-	Models =
-		Base: require 'models/base'
+Models =
+	Base: require './base'
 
-	Collections =
-		Base: require 'collections/base'
+Collections =
+	Base: require '../collections/base'
 
-	class CurrentUser extends Models.Base
+class CurrentUser extends Models.Base
 
-		defaults: ->
-			username: ''
-			title: ''
-			email: ''
-			firstName: ''
-			lastName: ''
-			role: ''
-			roleString: ''
-			roleNo: ''
-			loggedIn: false # boolean
+	defaults: ->
+		username: ''
+		title: ''
+		email: ''
+		firstName: ''
+		lastName: ''
+		role: ''
+		roleString: ''
+		roleNo: ''
+		loggedIn: false # boolean
 
-		# ### Initiailze
-		initialize: ->
-			super
+	# ### Initiailze
+	initialize: ->
+		super
 
-			@loggedIn = false
+		@loggedIn = false
 
-			@subscribe 'unauthorized', -> sessionStorage.clear()
+		@subscribe 'unauthorized', -> sessionStorage.clear()
 
-		# ### Overrides
+	# ### Overrides
 
-		parse: (attrs) ->
-			attrs.title ?= attrs.username
-			attrs.roleNo = config.roles[attrs.role]
-			attrs
+	parse: (attrs) ->
+		attrs.title ?= attrs.username
+		attrs.roleNo = config.roles[attrs.role]
+		attrs
 
-		# ### Methods
+	# ### Methods
 
-		# TODO Doc
-		authorized: ->
+	# TODO Doc
+	authorized: ->
 
-		# TODO Doc
-		unauthorized: ->
+	# TODO Doc
+	unauthorized: ->
 
-		# TODO Doc
-		navigateToLogin: ->
+	# TODO Doc
+	navigateToLogin: ->
 
-		authorize: (args) ->
-			{@authorized, @unauthorized, @navigateToLogin} = args
+	authorize: (args) ->
+		{@authorized, @unauthorized, @navigateToLogin} = args
 
-			if token.get()
-				@fetchUserAttrs
-					done: => 
-						@authorized()
-						@loggedIn = true
+		if token.get()
+			@fetchUserAttrs
+				done: => 
+					@authorized()
+					@loggedIn = true
+		else
+			@navigateToLogin()
+
+	login: (username, password) ->
+		@set 'username', username
+
+		@fetchUserAttrs
+			username: username
+			password: password
+			done: =>
+				sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
+				@authorized()
+				@loggedIn = true
+
+	hsidLogin: (hsid) ->
+		@fetchUserAttrs
+			hsid: hsid
+			done: =>
+				sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
+				@authorized()
+				@loggedIn = true
+
+	logout: (args) ->
+		jqXHR = $.ajax
+			type: 'post'
+			url: config.baseUrl + "sessions/#{token.get()}/logout"
+
+		jqXHR.done ->
+			sessionStorage.clear()
+			location.reload()
+
+		jqXHR.fail -> console.error 'Logout failed'
+
+	fetchUserAttrs: (args) ->
+		{username, password, hsid, done} = args
+
+		if userAttrs = sessionStorage.getItem 'huygens_user'
+			@set JSON.parse(userAttrs)
+			done()
+		else
+			if hsid?
+				postData = hsid: hsid
+			else if username? and password?
+				postData =
+					username: username
+					password: password
 			else
-				@navigateToLogin()
+				return @unauthorized()
 
-		login: (username, password) ->
-			@set 'username', username
-
-			@fetchUserAttrs
-				username: username
-				password: password
-				done: =>
-					sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
-					@authorized()
-					@loggedIn = true
-
-		hsidLogin: (hsid) ->
-			@fetchUserAttrs
-				hsid: hsid
-				done: =>
-					sessionStorage.setItem 'huygens_user', JSON.stringify(@attributes)
-					@authorized()
-					@loggedIn = true
-
-		logout: (args) ->
 			jqXHR = $.ajax
 				type: 'post'
-				url: config.baseUrl + "sessions/#{token.get()}/logout"
+				url: config.baseUrl + 'sessions/login'
+				data: postData
 
-			jqXHR.done ->
-				sessionStorage.clear()
-				location.reload()
+			jqXHR.done (data) =>
+				data.user = @parse data.user
 
-			jqXHR.fail -> console.error 'Logout failed'
+				type = 'Federated' if hsid?
+				token.set data.token, type
+				@set data.user
 
-		fetchUserAttrs: (args) ->
-			{username, password, hsid, done} = args
-
-			if userAttrs = sessionStorage.getItem 'huygens_user'
-				@set JSON.parse(userAttrs)
 				done()
-			else
-				if hsid?
-					postData = hsid: hsid
-				else if username? and password?
-					postData =
-						username: username
-						password: password
-				else
-					return @unauthorized()
 
-				jqXHR = $.ajax
-					type: 'post'
-					url: config.baseUrl + 'sessions/login'
-					data: postData
+			jqXHR.fail => @unauthorized()
+		
 
-				jqXHR.done (data) =>
-					data.user = @parse data.user
-
-					type = 'Federated' if hsid?
-					token.set data.token, type
-					@set data.user
-
-					done()
-
-				jqXHR.fail => @unauthorized()
-			
-
-	new CurrentUser()
+module.exports = new CurrentUser()

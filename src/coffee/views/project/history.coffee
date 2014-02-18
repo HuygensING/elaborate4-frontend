@@ -1,60 +1,59 @@
-define (require) ->
-	BaseView = require 'hilib/views/base'
 
-	# ajax = require 'hilib/managers/ajax'
+# ajax = require 'hilib/src/managers/ajax'
 
-	# Models =
-	# 	state: require 'models/state'
+# Models =
+# 	state: require 'models/state'
 
-	Collections =
-		History: require 'collections/project/history'
-		projects: require 'collections/projects'
+Collections =
+	History: require '../../collections/project/history'
+	projects: require '../../collections/projects'
 
-	# Templates =
-	# 	History: require 'text!html/project/history.html'
+# Templates =
+# 	History: require 'text!html/project/history.html'
 
-	tpls = require 'tpls'
-	
-	class ProjectHistory extends BaseView
+tpl = require '../../../jade/project/history.jade'
 
-		className: 'projecthistory'
+class ProjectHistory extends BaseView
 
-		initialize: ->
-			super
+	className: 'projecthistory'
 
-			@index = 0
+	initialize: ->
+		super
 
-			Collections.projects.getCurrent (@project) =>
-				@all = new Collections.History @project.id
-				@all.fetch (response) => 
-					@historyChunks = []
-					@historyChunks.push(response.splice(0, 500)) while response.length > 0
+		@index = 0
 
-					@render()
+		Collections.projects.getCurrent (@project) =>
+			@all = new Collections.History @project.id
+			@all.fetch (response) => 
+				@historyChunks = []
+				@historyChunks.push(response.splice(0, 500)) while response.length > 0
 
-		# ### Render
-		render: ->
-			# Hide the 'more' button when we are rendering the last chunk
-			@el.querySelector('button.more').style.display = 'none' if @index+1 is @historyChunks.length
-			# Get the next chunk
-			chunk = @historyChunks[@index]
-			# Add a dateString to every entry
-			_.each chunk, (entry) -> entry.dateString = new Date(entry.createdOn).toDateString()
-			# Group the entries by dateString
-			chunks = _.groupBy(chunk, 'dateString')
+				@render()
 
-			# Render the html with the logEntries
-			rtpl = tpls['project/history'] logEntries: chunks
-			@el.innerHTML = rtpl
+	# ### Render
+	render: ->
+		# Hide the 'more' button when we are rendering the last chunk
+		@el.querySelector('button.more').style.display = 'none' if @index+1 is @historyChunks.length
+		# Get the next chunk
+		chunk = @historyChunks[@index]
+		# Add a dateString to every entry
+		_.each chunk, (entry) -> entry.dateString = new Date(entry.createdOn).toDateString()
+		# Group the entries by dateString
+		chunks = _.groupBy(chunk, 'dateString')
 
-			@
+		# Render the html with the logEntries
+		rtpl = tpl logEntries: chunks
+		@el.innerHTML = rtpl
+
+		@
 
 
-		# ### Events
-		events: ->
-			'click button.more': 'more'
+	# ### Events
+	events: ->
+		'click button.more': 'more'
 
-		more: (ev) -> 
-			@index++
-			@renderEntries()
+	more: (ev) -> 
+		@index++
+		@renderEntries()
 
+module.exports = ProjectHistory

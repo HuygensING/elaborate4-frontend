@@ -1,15 +1,16 @@
-define (require) ->
-	config = require 'config'
-	Base = require 'collections/base'
+config = require '../config'
+Base = require './base'
 
-	Models =
-		Annotation: require 'models/annotation'
+Models =
+	Annotation: require '../models/annotation'
 
-	class Annotations extends Base
+class Annotations extends Base
 
-		model: Models.Annotation
+	model: Models.Annotation
 
-		initialize: (models, options) ->
-			{@projectId, @entryId, @transcriptionId} = options
-		
-		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/transcriptions/#{@transcriptionId}/annotations"
+	initialize: (models, options) ->
+		{@projectId, @entryId, @transcriptionId} = options
+	
+	url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/transcriptions/#{@transcriptionId}/annotations"
+
+module.exports = Annotations

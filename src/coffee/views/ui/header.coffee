@@ -1,76 +1,77 @@
-define (require) ->
-	BaseView = require 'hilib/views/base'
+BaseView = require 'hilib/src/views/base'
 
-	config = require 'config'
+config = require '../../config'
 
-	Fn = require 'hilib/functions/general'
-	StringFn = require 'hilib/functions/string'
-	ajax = require 'hilib/managers/ajax'
-	token = require 'hilib/managers/token'
+Fn = require 'hilib/src/utils/general'
+StringFn = require 'hilib/src/utils/string'
+ajax = require 'hilib/src/managers/ajax'
+token = require 'hilib/src/managers/token'
 
-	Models =
-		currentUser: require 'models/currentUser'
-		# state: require 'models/state'
+Models =
+	currentUser: require '../../models/currentUser'
+	# state: require 'models/state'
 
-	Collections =
-		projects: require 'collections/projects'
+Collections =
+	projects: require '../../collections/projects'
 
-	tpls = require 'tpls'
-	
-	class Header extends BaseView
+tpl = require '../../../jade/ui/header.jade'
 
-		className: 'row span3'
+class Header extends BaseView
 
-		# ### Initialize
-		initialize: ->
-			super
+	className: 'row span3'
 
-			@project = @options.project
+	# ### Initialize
+	initialize: ->
+		super
 
-			@listenTo Collections.projects, 'current:change', (@project) =>	@render()
+		@project = @options.project
 
-			@subscribe 'message', @showMessage, @
+		@listenTo Collections.projects, 'current:change', (@project) =>	@render()
 
-			@render()
+		@subscribe 'message', @showMessage, @
 
-		# ### Events
-		events:
-			'click .user .logout': -> Models.currentUser.logout() 
-			'click .user .project': 'setProject'
-			'click .project .projecttitle': 'navigateToProject'
-			'click .project .settings': 'navigateToProjectSettings'
-			'click .project .search': 'navigateToProject'
-			'click .project .statistics': 'navigateToProjectStatistics'
-			'click .project .history': 'navigateToProjectHistory'
-			'click .message': -> @$('.message').removeClass 'active'
+		@render()
 
-		navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-		navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
-		navigateToProjectStatistics: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/statistics", trigger: true
-		navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
+	# ### Events
+	events:
+		'click .user .logout': -> Models.currentUser.logout() 
+		'click .user .project': 'setProject'
+		'click .project .projecttitle': 'navigateToProject'
+		'click .project .settings': 'navigateToProjectSettings'
+		'click .project .search': 'navigateToProject'
+		'click .project .statistics': 'navigateToProjectStatistics'
+		'click .project .history': 'navigateToProjectHistory'
+		'click .message': -> @$('.message').removeClass 'active'
 
-		# ### Render
-		render: ->
-			rtpl = tpls['ui/header']
-				projects: Collections.projects
-				user: Models.currentUser
-				plural: StringFn.ucfirst @project.get('settings').get('entry.term_plural')
-			@$el.html rtpl
+	navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+	navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+	navigateToProjectStatistics: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/statistics", trigger: true
+	navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 
-			@
+	# ### Render
+	render: ->
+		rtpl = tpl
+			projects: Collections.projects
+			user: Models.currentUser
+			plural: StringFn.ucfirst @project.get('settings').get('entry.term_plural')
+		@$el.html rtpl
 
-		# ### Methods
-		setProject: (ev) ->
-			id = ev.currentTarget.getAttribute 'data-id'
-			Collections.projects.setCurrent id
+		@
 
-		showMessage: (msg) ->
-			return false if msg.trim().length is 0
+	# ### Methods
+	setProject: (ev) ->
+		id = ev.currentTarget.getAttribute 'data-id'
+		Collections.projects.setCurrent id
 
-			$message = @$('.message')
-			$message.addClass 'active' unless $message.hasClass 'active'
-			$message.html msg
+	showMessage: (msg) ->
+		return false if msg.trim().length is 0
 
-			Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), => 
-				$message.addClass 'pulse'
-				setTimeout (=> $message.removeClass 'pulse'), 1000
+		$message = @$('.message')
+		$message.addClass 'active' unless $message.hasClass 'active'
+		$message.html msg
+
+		Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), => 
+			$message.addClass 'pulse'
+			setTimeout (=> $message.removeClass 'pulse'), 1000
+
+module.exports = Header

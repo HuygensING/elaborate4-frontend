@@ -1,193 +1,191 @@
-define (require) ->
 
-	config = require 'config'
-	Async = require 'hilib/managers/async'
-	ajax = require 'hilib/managers/ajax'
-	token = require 'hilib/managers/token'
+config = require '../../../config'
+Async = require 'hilib/src/managers/async'
+ajax = require 'hilib/src/managers/ajax'
+token = require 'hilib/src/managers/token'
 
-	# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
-	EntryMetadata = require 'entry.metadata'
+# EntryMetadata is not a collection, it just reads and writes an array from and to the server.
+EntryMetadata = require '../../../entry.metadata'
 
-	Views =
-		Base: require 'hilib/views/base'
-		# SubMenu: require 'views/ui/settings.submenu'
-		EditableList: require 'hilib/views/form/editablelist/main'
-		ComboList: require 'hilib/views/form/combolist/main'
-		Form: require 'hilib/views/form/main'
-		Modal: require 'hilib/views/modal/main'
-		TextlayersTab: require 'views/project/settings/textlayers'
-		EntriesTab: require 'views/project/settings/entries'
-		UsersTab: require 'views/project/settings/users'
+Views =
+	Base: require 'hilib/src/views/base'
+	# SubMenu: require 'views/ui/settings.submenu'
+	EditableList: require 'hilib/src/views/form/editablelist/main'
+	ComboList: require 'hilib/src/views/form/combolist/main'
+	Form: require 'hilib/src/views/form/main'
+	Modal: require 'hilib/src/views/modal/main'
+	TextlayersTab: require './textlayers'
+	EntriesTab: require './entries'
+	UsersTab: require './users'
 
-	Models =
-		Statistics: require 'models/project/statistics'
-		Settings: require 'models/project/settings'
-		# state: require 'models/state'
-		User: require 'models/user'
-		Annotationtype: require 'models/project/annotationtype'
+Models =
+	Statistics: require '../../../models/project/statistics'
+	Settings: require '../../../models/project/settings'
+	# state: require '../../../models/state'
+	User: require '../../../models/user'
+	Annotationtype: require '../../../models/project/annotationtype'
 
-	Collections =
-		projects: require 'collections/projects'
-		AnnotationTypes: require 'collections/project/annotationtypes'
-		ProjectUsers: require 'collections/project/users'
-		Users: require 'collections/users'
+Collections =
+	projects: require '../../../collections/projects'
 
-	ProjectUserIDs = require 'project.user.ids'
+ProjectUserIDs = require '../../../project.user.ids'
 
-	tpls = require 'tpls'
-	
-	class ProjectSettings extends Views.Base
+tpl = require '../../../../jade/project/settings/main.jade'
+addAnnotationTypetpl = require '../../../../jade/project/settings/addannotationtype.jade'
 
-		className: 'projectsettings'
+class ProjectSettings extends Views.Base
 
-		# ### Initialize
-		initialize: ->
-			super
+	className: 'projectsettings'
 
-			Collections.projects.getCurrent (@project) =>
-				@model = @project.get 'settings'
-				@render()
+	# ### Initialize
+	initialize: ->
+		super
 
-		# ### Render
-		render: ->
-			rtpl = tpls['project/settings/main']
-				settings: @model.attributes
-				projectMembers: @project.get('members')
-			@$el.html rtpl
+		Collections.projects.getCurrent (@project) =>
+			@model = @project.get 'settings'
+			@render()
 
-			@renderUserTab()
-			@renderEntriesTab()
-			@renderTextlayersTab()
-			@renderAnnotationsTab()
+	# ### Render
+	render: ->
+		rtpl = tpl
+			settings: @model.attributes
+			projectMembers: @project.get('members')
+		@$el.html rtpl
 
-			@showTab @options.tabName if @options.tabName
+		@renderUserTab()
+		@renderEntriesTab()
+		@renderTextlayersTab()
+		@renderAnnotationsTab()
 
-			@
+		@showTab @options.tabName if @options.tabName
 
-			@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
+		@
 
-		renderEntriesTab: ->
-			entriesTab = new Views.EntriesTab
-				project: @project
+		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 
-			@listenTo entriesTab, 'confirm', @renderConfirmModal
-			@listenTo entriesTab, 'savesettings', @saveSettings
+	renderEntriesTab: ->
+		entriesTab = new Views.EntriesTab
+			project: @project
 
-			@$('div[data-tab="entries"]').html entriesTab.el
+		@listenTo entriesTab, 'confirm', @renderConfirmModal
+		@listenTo entriesTab, 'savesettings', @saveSettings
 
-		renderTextlayersTab: ->
-			textlayersTab = new Views.TextlayersTab
-				project: @project
+		@$('div[data-tab="entries"]').html entriesTab.el
 
-			@listenTo textlayersTab, 'confirm', @renderConfirmModal
+	renderTextlayersTab: ->
+		textlayersTab = new Views.TextlayersTab
+			project: @project
 
-			@$('div[data-tab="textlayers"]').html textlayersTab.el
+		@listenTo textlayersTab, 'confirm', @renderConfirmModal
 
-		renderUserTab: ->
-			usersTab = new Views.UsersTab project: @project
+		@$('div[data-tab="textlayers"]').html textlayersTab.el
 
-			@listenTo usersTab, 'confirm', @renderConfirmModal
+	renderUserTab: ->
+		usersTab = new Views.UsersTab project: @project
 
-			@$('div[data-tab="users"]').html usersTab.el
+		@listenTo usersTab, 'confirm', @renderConfirmModal
 
-		# * TODO: Add to separate view
-		renderAnnotationsTab: ->
-			annotationTypes = @project.get 'annotationtypes'
+		@$('div[data-tab="users"]').html usersTab.el
 
-			combolist = new Views.ComboList
-				value: annotationTypes
-				config:
-					data: @project.allannotationtypes
-					settings:
-						placeholder: 'Add annotation type'
-						confirmRemove: true
-			@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
+	# * TODO: Add to separate view
+	renderAnnotationsTab: ->
+		annotationTypes = @project.get 'annotationtypes'
 
-			form = new Views.Form
-				Model: Models.Annotationtype
-				tpl: tpls['project/settings/addannotationtype']
-			@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
+		combolist = new Views.ComboList
+			value: annotationTypes
+			config:
+				data: @project.allannotationtypes
+				settings:
+					placeholder: 'Add annotation type'
+					confirmRemove: true
+		@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
 
-			@listenTo combolist, 'confirmRemove', (id, confirm) =>
-				@renderConfirmModal confirm,
-					title: 'Caution!'
-					html: "You are about to <b>remove</b> annotation type: #{annotationTypes.get(id).get('title')}.<br><br>All annotations of type #{annotationTypes.get(id).get('title')} will be <b>permanently</b> removed!"
-					submitValue: 'Remove annotation type'
+		form = new Views.Form
+			Model: Models.Annotationtype
+			tpl: addAnnotationTypeTpl
+		@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
 
-			@listenTo combolist, 'change', (changes) =>
-				if changes.added?
-					annotationType = changes.collection.get changes.added
-					@project.addAnnotationType annotationType, =>
-						@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
-				else if changes.removed?
-					name = @project.allannotationtypes.get(changes.removed).get('name')
-					@project.removeAnnotationType changes.removed, =>
-						@publish 'message', "Removed #{name} from #{@project.get('title')}."
-				
-			@listenTo form, 'save:success', (model) => @project.get('annotationtypes').add model
-			@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
+		@listenTo combolist, 'confirmRemove', (id, confirm) =>
+			@renderConfirmModal confirm,
+				title: 'Caution!'
+				html: "You are about to <b>remove</b> annotation type: #{annotationTypes.get(id).get('title')}.<br><br>All annotations of type #{annotationTypes.get(id).get('title')} will be <b>permanently</b> removed!"
+				submitValue: 'Remove annotation type'
 
-		renderConfirmModal: (confirm, options) ->
-			modal = new Views.Modal _.extend options, width: 'auto'
-			modal.on 'submit', => 
-				modal.close()
-				confirm()
-
-		# ### Events
-		events:
-			# 'click input[name="addannotationtype"]': 'addAnnotationType'
-			'click li[data-tab]': 'showTab'
-			'keyup div[data-tab="project"] input': -> @$('input[name="savesettings"]').removeClass 'inactive'
-			'change div[data-tab="project"] input': 'updateModel'
-			'change div[data-tab="project"] select': 'updateModel'
-			'click input[name="savesettings"]': 'saveSettings'
-
-		saveSettings: (ev) -> 
-			ev.preventDefault()
-
-			unless $(ev.currentTarget).hasClass 'inactive'
-				@model.save null, success: => 
-					$(ev.currentTarget).addClass 'inactive'
-					@publish 'message', 'Settings saved.'
-
-		updateModel: (ev) -> 
-			if ev.currentTarget.getAttribute('data-attr') is 'text.font'
-				console.log @$('img[name="text.font"]')
-				@$('img[name="text.font"]').attr 'src', "/images/fonts/#{ev.currentTarget.value}.png"
-
-			@model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
-
-		showTab: (ev) ->
-			if _.isString ev
-				tabName = ev
-			else
-				$ct = $(ev.currentTarget)
-				tabName = $ct.attr('data-tab')
+		@listenTo combolist, 'change', (changes) =>
+			if changes.added?
+				annotationType = changes.collection.get changes.added
+				@project.addAnnotationType annotationType, =>
+					@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
+			else if changes.removed?
+				name = @project.allannotationtypes.get(changes.removed).get('name')
+				@project.removeAnnotationType changes.removed, =>
+					@publish 'message', "Removed #{name} from #{@project.get('title')}."
 			
-			# Change URL to reflect the new tab
-			index = Backbone.history.fragment.indexOf '/settings'
-			Backbone.history.navigate Backbone.history.fragment.substr(0, index) + '/settings/' + tabName
+		@listenTo form, 'save:success', (model) => @project.get('annotationtypes').add model
+		@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
 
-			@$(".active[data-tab]").removeClass 'active'
-			@$("[data-tab='#{tabName}']").addClass 'active'
+	renderConfirmModal: (confirm, options) ->
+		modal = new Views.Modal _.extend options, width: 'auto'
+		modal.on 'submit', => 
+			modal.close()
+			confirm()
+
+	# ### Events
+	events:
+		# 'click input[name="addannotationtype"]': 'addAnnotationType'
+		'click li[data-tab]': 'showTab'
+		'keyup div[data-tab="project"] input': -> @$('input[name="savesettings"]').removeClass 'inactive'
+		'change div[data-tab="project"] input': 'updateModel'
+		'change div[data-tab="project"] select': 'updateModel'
+		'click input[name="savesettings"]': 'saveSettings'
+
+	saveSettings: (ev) -> 
+		ev.preventDefault()
+
+		unless $(ev.currentTarget).hasClass 'inactive'
+			@model.save null, success: => 
+				$(ev.currentTarget).addClass 'inactive'
+				@publish 'message', 'Settings saved.'
+
+	updateModel: (ev) -> 
+		if ev.currentTarget.getAttribute('data-attr') is 'text.font'
+			console.log @$('img[name="text.font"]')
+			@$('img[name="text.font"]').attr 'src', "/images/fonts/#{ev.currentTarget.value}.png"
+
+		@model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
+
+	showTab: (ev) ->
+		if _.isString ev
+			tabName = ev
+		else
+			$ct = $(ev.currentTarget)
+			tabName = $ct.attr('data-tab')
+		
+		# Change URL to reflect the new tab
+		index = Backbone.history.fragment.indexOf '/settings'
+		Backbone.history.navigate Backbone.history.fragment.substr(0, index) + '/settings/' + tabName
+
+		@$(".active[data-tab]").removeClass 'active'
+		@$("[data-tab='#{tabName}']").addClass 'active'
 
 
-		# addAnnotationType: (ev) ->
-		# 	ev.preventDefault()
+	# addAnnotationType: (ev) ->
+	# 	ev.preventDefault()
 
-		# 	name = @el.querySelector('input[name="annotationname"]').value
-		# 	description = @el.querySelector('input[name="annotationdescription"]').value
-		# 	if name? and name isnt ''
-		# 		ajax.token = token.get()
-		# 		jqXHR = ajax.post
-		# 			url: config.baseUrl+"annotationtypes"
-		# 			# dataType: 'text'
-		# 		jqXHR.done =>
-		# 			console.log 'done!'
-
-
-		# ### Methods
+	# 	name = @el.querySelector('input[name="annotationname"]').value
+	# 	description = @el.querySelector('input[name="annotationdescription"]').value
+	# 	if name? and name isnt ''
+	# 		ajax.token = token.get()
+	# 		jqXHR = ajax.post
+	# 			url: config.baseUrl+"annotationtypes"
+	# 			# dataType: 'text'
+	# 		jqXHR.done =>
+	# 			console.log 'done!'
 
 
+	# ### Methods
 
-				
+
+
+			
+module.exports = ProjectSettings

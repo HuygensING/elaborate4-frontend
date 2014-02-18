@@ -1,50 +1,49 @@
-define (require) ->
-	BaseView = require 'hilib/views/base'
+BaseView = require 'hilib/src/views/base'
 
-	Models =
-		Statistics: require 'models/project/statistics'
+Models =
+	Statistics: require '../../models/project/statistics'
 
-	Collections =
-		projects: require 'collections/projects'
+Collections =
+	projects: require '../../collections/projects'
 
-	tpls = require 'tpls'
-	
-	class Statistics extends BaseView
+tpl = require '../../../jade/project/statistics.jade'
 
-		className: 'statistics'
+class Statistics extends BaseView
 
-		initialize: ->
-			super
+	className: 'statistics'
 
-			Collections.projects.getCurrent (@project) =>
-				stats = new Models.Statistics null, projectID: @project.id
-				stats.fetch success: (data) =>
-					@statString = JSON.stringify(data, null, 4)
-					
-					@statString = @statString.replace /{/g, ''
-					@statString = @statString.replace /}/g, ''
-					@statString = @statString.replace /\"/g, ''
-					@statString = @statString.replace /,/g, ''
+	initialize: ->
+		super			Collections.projects.getCurrent (@project) =>
+			stats = new Models.Statistics null, projectID: @project.id
+			stats.fetch success: (data) =>
+				@statString = JSON.stringify(data, null, 4)
+				
+				@statString = @statString.replace /{/g, ''
+				@statString = @statString.replace /}/g, ''
+				@statString = @statString.replace /\"/g, ''
+				@statString = @statString.replace /,/g, ''
 
-					@render()
+				@render()
 
-		# ### Render
-		render: ->
-			rtpl = tpls['project/statistics'] statistics: @statString
-			@el.innerHTML = rtpl
+	# ### Render
+	render: ->
+		rtpl = tpl statistics: @statString
+		@el.innerHTML = rtpl
 
-			@
+		@
 
-		# loadStatistics: ->
-		# 	start = new Date().getTime()
+	# loadStatistics: ->
+	# 	start = new Date().getTime()
 
 
-		# 		end = new Date().getTime()
-		# 		delta = end - start
+	# 		end = new Date().getTime()
+	# 		delta = end - start
 
-		# 		if delta < 1000
-		# 			remaining = 1000 - delta
-		# 			setTimeout (=> 
-		# 				@$('img.loader').css 'visibility', 'hidden' # ! display: none does not work in Chrome
-		# 				@$('.statistics').html str
-		# 			), remaining
+	# 		if delta < 1000
+	# 			remaining = 1000 - delta
+	# 			setTimeout (=> 
+	# 				@$('img.loader').css 'visibility', 'hidden' # ! display: none does not work in Chrome
+	# 				@$('.statistics').html str
+	# 			), remainingmodule.exports = ProjectHistory
+
+module.exports = Statistics

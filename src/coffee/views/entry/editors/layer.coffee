@@ -1,84 +1,83 @@
-# Description...
-define (require) ->
+viewManager = require 'hilib/src/managers/view2'
 
-	viewManager = require 'hilib/managers/view2'
+StringFn = require 'hilib/src/utils/string'
 
-	StringFn = require 'hilib/functions/string'
+Views = 
+	Base: require 'hilib/src/views/base'
+	SuperTinyEditor: require 'hilib/src/views/supertinyeditor/supertinyeditor'
+	Modal: require 'hilib/src/views/modal/main'
 
-	Views = 
-		Base: require 'hilib/views/base'
-		SuperTinyEditor: require 'hilib/views/supertinyeditor/supertinyeditor'
-		Modal: require 'hilib/views/modal/main'
+# ## LayerEditor
+class LayerEditor extends Views.Base
 
-	# ## LayerEditor
-	class LayerEditor extends Views.Base
+	className: ''
 
-		className: ''
+	# ### Initialize
+	initialize: ->
+		super
 
-		# ### Initialize
-		initialize: ->
-			super
+		@render()
 
-			@render()
+	# ### Render
+	render: ->
+		@subviews.editor = new Views.SuperTinyEditor
+			controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
+			cssFile:		'/css/main.css'
+			height:			@options.height
+			html:			@model.get 'body'
+			htmlAttribute:	'body'
+			model:			@model
+			width: 			@options.width
+		@$el.html @subviews.editor.el
 
-		# ### Render
-		render: ->
-			@subviews.editor = new Views.SuperTinyEditor
-				controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
-				cssFile:		'/css/main.css'
-				height:			@options.height
-				html:			@model.get 'body'
-				htmlAttribute:	'body'
-				model:			@model
-				width: 			@options.width
-			@$el.html @subviews.editor.el
+		@listenTo @subviews.editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
+		@listenTo @subviews.editor, 'button:save', => 
+			@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
-			@listenTo @subviews.editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
-			@listenTo @subviews.editor, 'button:save', => 
-				@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
+		@show()
 
-			@show()
+		@
 
-			@
+	# ### Events
+	events: ->
 
-		# ### Events
-		events: ->
+	# ### Methods
+	show: (textLayer) ->
+		@hide() if @visible()
 
-		# ### Methods
-		show: (textLayer) ->
-			@hide() if @visible()
+		if textLayer?
+			@model = textLayer
+			@subviews.editor.setModel @model
 
-			if textLayer?
-				@model = textLayer
-				@subviews.editor.setModel @model
+		@setURLPath()
 
-			@setURLPath()
+		@el.style.display = 'block'
 
-			@el.style.display = 'block'
+	hide: -> @el.style.display = 'none'
 
-		hide: -> @el.style.display = 'none'
+	visible: -> @el.style.display is 'block'
 
-		visible: -> @el.style.display is 'block'
+	setURLPath: ->
+		oldFragment = Backbone.history.fragment
+		# Cut off '/annotations/*' if it exists.
+		index = oldFragment.indexOf '/transcriptions/'
+		newFragment = if index isnt -1 then oldFragment.substr 0, index else oldFragment 
+		
+		oldTextLayer = oldFragment.substr index
+		oldTextLayer = oldTextLayer.replace '/transcriptions/', ''
+		index = oldTextLayer.indexOf '/'
+		oldTextLayer = oldTextLayer.substr 0, index if index isnt -1
 
-		setURLPath: ->
-			oldFragment = Backbone.history.fragment
-			# Cut off '/annotations/*' if it exists.
-			index = oldFragment.indexOf '/transcriptions/'
-			newFragment = if index isnt -1 then oldFragment.substr 0, index else oldFragment 
-			
-			oldTextLayer = oldFragment.substr index
-			oldTextLayer = oldTextLayer.replace '/transcriptions/', ''
-			index = oldTextLayer.indexOf '/'
-			oldTextLayer = oldTextLayer.substr 0, index if index isnt -1
+		newTextLayer = StringFn.slugify @model.get 'textLayer' 
 
-			newTextLayer = StringFn.slugify @model.get 'textLayer' 
+		# Add the new textLayer to the fragment
+		newFragment = newFragment + '/transcriptions/' + newTextLayer
 
-			# Add the new textLayer to the fragment
-			newFragment = newFragment + '/transcriptions/' + newTextLayer
+		# Navigate to the new newFragment.
+		Backbone.history.navigate newFragment, replace: true
 
-			# Navigate to the new newFragment.
-			Backbone.history.navigate newFragment, replace: true
+	remove: ->
+		@subviews.editor.remove()
+		super
 
-		remove: ->
-			@subviews.editor.remove()
-			super
+module.exports = LayerEditor

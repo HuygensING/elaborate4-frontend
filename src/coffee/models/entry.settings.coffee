@@ -1,19 +1,19 @@
-define (require) ->
+config = require '../config'
 
-	config = require 'config'
+Models = 
+	Base: require './base'
 
-	Models = 
-		Base: require 'models/base'
+class EntrySettings extends Models.Base
 
-	class EntrySettings extends Models.Base
+	initialize: (models, options) ->
+		@projectId = options.projectId
+		@entryId = options.entryId
+	
+	url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/settings"
 
-		initialize: (models, options) ->
-			@projectId = options.projectId
-			@entryId = options.entryId
-		
-		url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/settings"
+	sync: (method, model, options) ->
+		method = 'update' if method is 'create'
 
-		sync: (method, model, options) ->
-			method = 'update' if method is 'create'
+		super
 
-			super
+module.exports = EntrySettings
