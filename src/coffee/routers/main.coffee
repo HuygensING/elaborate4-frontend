@@ -41,7 +41,7 @@ define (require) ->
 						@navigate url, trigger: true
 
 						header = new Views.Header project: @project
-						$('header.main').prepend header.el
+						$('header.main').html header.el
 							# persist: true
 						
 						@listenTo Collections.projects, 'current:change', (@project) => @navigate "projects/#{@project.get('name')}", trigger: true
