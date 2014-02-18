@@ -18,6 +18,7 @@ define (require) ->
 			'Version': ''
 			'entry.term_singular': 'entry'
 			'entry.term_plural': 'entries'
+			'text.font': ''
 
 		url: -> "#{config.baseUrl}projects/#{@projectID}/settings"
 

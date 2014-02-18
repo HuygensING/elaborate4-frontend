@@ -150,7 +150,12 @@ define (require) ->
 					$(ev.currentTarget).addClass 'inactive'
 					@publish 'message', 'Settings saved.'
 
-		updateModel: (ev) -> @model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
+		updateModel: (ev) -> 
+			if ev.currentTarget.getAttribute('data-attr') is 'text.font'
+				console.log @$('img[name="text.font"]')
+				@$('img[name="text.font"]').attr 'src', "/images/fonts/#{ev.currentTarget.value}.png"
+
+			@model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
 
 		showTab: (ev) ->
 			if _.isString ev
