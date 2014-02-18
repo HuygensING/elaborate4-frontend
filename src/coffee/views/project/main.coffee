@@ -157,24 +157,12 @@ define (require) ->
 			@$('li.levels ul').addClass 'show-save-button'
 
 			target = ev.currentTarget
-			# Keep track of 'used' levels. We use this to update the other levels after the
-			# user has changed one of the levels.
-			used = [target.options[target.selectedIndex].value]
-			# Make an array of levels.
-			levels = [@project.get('level1'), @project.get('level2'), @project.get('level3')]
 			
 			# Loop the selects.
 			for select in @el.querySelectorAll 'li.levels ul select'
-				# Skip the select which is changed by the user.
-				if select.name isnt target.name
-					# Loop the levels.
-					for level in levels
-						# If the level is not in the used array, set it to the select and break the loop.
-						if used.indexOf(level) is -1
-							used.push level
-							$(select).val level
-							break
-
+				# Set a select to empty if it has the same value as the user has selected.
+				select.selectedIndex = 0 if select.name isnt target.name and select.value is target.value
+			
 			# Reset all selects to ascending.
 			for i in @el.querySelectorAll 'li.levels ul li i.fa'
 				$target = @$(i)

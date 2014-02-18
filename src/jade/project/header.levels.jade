@@ -1,13 +1,16 @@
 button Levels
 	i.fa.fa-caret-down
 ul
+	//- A loop for level1, level2 and level3
 	each i in [1, 2, 3]
 		li(name='level'+i)
 			label= 'Level '+i
 			select(name='level'+i)
-				option(value=project.get('level1'), selected=i==1)= project.get('level1')
-				option(value=project.get('level2'), selected=i==2)= project.get('level2')
-				option(value=project.get('level3'), selected=i==3)= project.get('level3')
+				//- A loop for the entry metadata fields. If the metadata field is equal to the project settings
+				//- level1, level2 or level3: select it.
+				option
+				each field in project.get('entrymetadatafields')
+					option(value=field, selected=field==project.get('level'+i))= field
 			i.fa.fa-sort-alpha-asc
 
 	li
