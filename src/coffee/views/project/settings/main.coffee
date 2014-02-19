@@ -1,3 +1,4 @@
+_ = require 'underscore'
 
 config = require '../../../config'
 Async = require 'hilib/src/managers/async'

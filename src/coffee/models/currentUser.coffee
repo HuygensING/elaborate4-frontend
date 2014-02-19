@@ -1,5 +1,6 @@
 config = require '../config'
 token = require 'hilib/src/managers/token'
+$ = require 'jquery'
 
 Models =
 	Base: require './base'

@@ -10,7 +10,7 @@ rename = require 'gulp-rename'
 connectRewrite = require './connect-rewrite'
 
 paths =
-	coffee: ['./src/**/*.coffee', './node_modules/elaborate-modules/modules/**/*.coffee']
+	coffee: ['./src/**/*.coffee', './node_modules/elaborate-modules/modules/**/*.coffee', './node_modules/hilib/src/**/*.coffee']
 	jade: ['./src/jade/**/*.jade', './src/index.jade', './node_modules/elaborate-modules/modules/**/*.jade']
 	stylus: ['./node_modules/elaborate-modules/modules/**/*.styl', './src/stylus/**/*.styl', '!./src/stylus/import/*.styl']
 
@@ -29,7 +29,7 @@ gulp.task 'jade', ->
 gulp.task 'browserify', ->
 	gulp.src('./src/coffee/main.coffee', read: false)
 		.pipe(browserify(
-			transform: ['coffeeify', 'jadeify']
+			transform: ['coffeeify', 'jadeify', 'brfs']
 			extensions: ['.coffee', '.jade']
 		))
 		.pipe(rename(extname:'.js'))
@@ -38,9 +38,7 @@ gulp.task 'browserify', ->
 
 gulp.task 'stylus', ->
 	gulp.src(paths.stylus)
-		.pipe(stylus(
-			use: ['nib']
-		))
+		.pipe(stylus())
 		.pipe(concat('main.css'))
 		.pipe(gulp.dest('./dist2/css'))
 

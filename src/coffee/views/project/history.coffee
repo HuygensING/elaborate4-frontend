@@ -4,6 +4,8 @@
 # Models =
 # 	state: require 'models/state'
 
+BaseView = require 'hilib/src/views/base'
+
 Collections =
 	History: require '../../collections/project/history'
 	projects: require '../../collections/projects'

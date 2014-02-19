@@ -1,4 +1,6 @@
 Backbone = require 'backbone'
+_ = require 'underscore'
+$ = require 'jquery'
 
 viewManager = require 'hilib/src/managers/view2'
 history = require 'hilib/src/managers/history'

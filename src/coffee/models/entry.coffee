@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 config = require '../config'
 
 ajax = require 'hilib/src/managers/ajax'

@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 config = require '../config'
 
 history = require 'hilib/src/managers/history'

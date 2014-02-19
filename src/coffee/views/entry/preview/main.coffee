@@ -3,7 +3,7 @@
 #	wordwrap	Boolean		Defaults to false
 
 Fn = require 'hilib/src/utils/general'
-dom = require 'hilib/src/utils/DOM'
+dom = require 'hilib/src/utils/dom'
 
 config = require '../../../config'
 

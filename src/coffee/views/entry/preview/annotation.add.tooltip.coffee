@@ -1,5 +1,5 @@
 Fn = require 'hilib/src/utils/general'
-dom = require 'hilib/src/utils/DOM'
+dom = require 'hilib/src/utils/dom'
 BaseView = require 'hilib/src/views/base'
 
 Annotation = require '../../../models/annotation'

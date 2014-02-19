@@ -1,5 +1,4 @@
-# @options
-# 	fulltext	Boolean		Is the list a result of a fulltext search? Defaults to false.
+_ = require 'underscore'
 
 Fn = require 'hilib/src/utils/general'
 
@@ -7,6 +6,9 @@ Base = require 'hilib/src/views/base'
 
 # Tpl = require 'text!html/entry/metadata.html'
 tpl = require '../../../jade/entry/listitem.jade'
+
+# @options
+# 	fulltext	Boolean		Is the list a result of a fulltext search? Defaults to false.
 
 # ## EntryMetadata
 class EntryListitem extends Base

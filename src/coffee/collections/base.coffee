@@ -1,4 +1,5 @@
 Backbone = require 'backbone'
+_ = require 'underscore'
 
 token = require 'hilib/src/managers/token'
 Pubsub = require 'hilib/src/mixins/pubsub'

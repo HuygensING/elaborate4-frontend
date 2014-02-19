@@ -1,6 +1,6 @@
 Fn = require 'hilib/src/utils/general'
 viewManager = require 'hilib/src/managers/view2'
-dom = require 'hilib/src/utils/DOM'
+dom = require 'hilib/src/utils/dom'
 
 config = require '../../config'
 token = require 'hilib/src/managers/token'
@@ -21,6 +21,7 @@ Views =
 	EntryListitem: require '../entry/listitem'
 
 tpl = require '../../../jade/project/main.jade'
+levelsTpl = require '../../../jade/project/header.levels.jade'
 
 class ProjectMain extends Views.Base
 
@@ -92,7 +93,7 @@ class ProjectMain extends Views.Base
 		@$('.pagination').html @subviews.pagination.el
 
 	renderLevels: ->
-		rtpl = tpls['project/header.levels'] project: @project
+		rtpl = levelsTpl project: @project
 		@$('header li.levels').html rtpl
 
 	renderResults: (responseModel) ->

@@ -3,6 +3,7 @@ Backbone = require 'backbone'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 ajax.token = token.get()
+_ = require 'underscore'
 
 changedSinceLastSave = require 'hilib/src/mixins/model.changedsincelastsave'
 

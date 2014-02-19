@@ -3,7 +3,7 @@ Backbone = require 'backbone'
 config = require '../../config'
 
 Fn = require 'hilib/src/utils/general'
-dom = require 'hilib/src/utils/DOM'
+dom = require 'hilib/src/utils/dom'
 viewManager = require 'hilib/src/managers/view2'
 
 StringFn = require 'hilib/src/utils/string'

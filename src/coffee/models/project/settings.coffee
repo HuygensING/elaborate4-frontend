@@ -37,4 +37,4 @@ class ProjectSettings extends Models.Base
 		else
 			super method, model, options
 
-module.exports = ProjectSettingss
+module.exports = ProjectSettings

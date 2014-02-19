@@ -134,4 +134,4 @@ class EntrySubmenu extends Base
 
 		window.print()
 
-module.exports = EditFacsimiles
+module.exports = EntrySubmenu

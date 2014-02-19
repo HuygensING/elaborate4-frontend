@@ -1,4 +1,8 @@
 $ = require 'jquery'
 app = require './app'
 
-$ -> app.init()
+stylus = require 'stylus'
+
+$ -> 
+	app()
+	stylus.render 'b\n\tcolor #000', (err, css) -> console.log err, css
