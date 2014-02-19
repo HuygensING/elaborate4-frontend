@@ -1,4 +1,4 @@
-
+_ = require 'underscore'
 # ajax = require 'hilib/src/managers/ajax'
 
 # Models =
@@ -34,8 +34,6 @@ class ProjectHistory extends BaseView
 
 	# ### Render
 	render: ->
-		# Hide the 'more' button when we are rendering the last chunk
-		@el.querySelector('button.more').style.display = 'none' if @index+1 is @historyChunks.length
 		# Get the next chunk
 		chunk = @historyChunks[@index]
 		# Add a dateString to every entry
@@ -46,6 +44,9 @@ class ProjectHistory extends BaseView
 		# Render the html with the logEntries
 		rtpl = tpl logEntries: chunks
 		@el.innerHTML = rtpl
+
+		# Hide the 'more' button when we are rendering the last chunk
+		@el.querySelector('button.more').style.display = 'none' if @index+1 is @historyChunks.length
 
 		@
 

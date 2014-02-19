@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 Models =
 	User: require '../../../models/user'
 
@@ -8,6 +10,7 @@ Views =
 
 tpl = require '../../../../jade/project/settings/users.jade'
 rolesTpl = require '../../../../jade/project/settings/userroles.jade'
+addUserTpl = require '../../../../jade/project/settings/adduser.jade'
 
 class ProjectSettingsUsers extends Views.Base
 
@@ -65,7 +68,7 @@ class ProjectSettingsUsers extends Views.Base
 	renderAddUserForm: ->
 		form = new Views.Form
 			Model: Models.User
-			tpl: tpls['project/settings/adduser']
+			tpl: addUserTpl
 		@$('.adduser').append form.el
 
 		@listenTo form, 'save:success', (model) => @project.get('members').add model

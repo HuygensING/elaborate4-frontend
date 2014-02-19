@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 config = require '../config'
 Base = require './base'
 StringFn = require 'hilib/src/utils/string'

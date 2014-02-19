@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+
 Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'
 Async = require 'hilib/src/managers/async'
@@ -6,6 +8,7 @@ Base = require 'hilib/src/views/base'
 
 # Tpl = require 'text!html/entry/metadata.html'
 tpl = require '../../../jade/entry/submenu.jade'
+metadataTpl = require '../../../jade/entry/metadata.jade'
 
 Views =
 	Form: require 'hilib/src/views/form/main'
@@ -67,7 +70,7 @@ class EntrySubmenu extends Base
 			return if modal?
 
 			entryMetadata = new Views.Form
-				tpl: tpls['entry/metadata']
+				tpl: metadataTpl
 				tplData:
 					user: @user
 					generateID: Fn.generateID

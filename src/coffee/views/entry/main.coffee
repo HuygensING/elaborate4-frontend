@@ -1,4 +1,5 @@
 Backbone = require 'backbone'
+$ = require 'jquery'
 
 config = require '../../config'
 

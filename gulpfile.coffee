@@ -8,11 +8,18 @@ stylus = require 'gulp-stylus'
 browserify = require 'gulp-browserify'
 rename = require 'gulp-rename'
 connectRewrite = require './connect-rewrite'
+cache = require 'gulp-cached'
 
 paths =
 	coffee: ['./src/**/*.coffee', './node_modules/elaborate-modules/modules/**/*.coffee', './node_modules/hilib/src/**/*.coffee']
 	jade: ['./src/jade/**/*.jade', './src/index.jade', './node_modules/elaborate-modules/modules/**/*.jade']
-	stylus: ['./node_modules/elaborate-modules/modules/**/*.styl', './src/stylus/**/*.styl', '!./src/stylus/import/*.styl']
+	stylus: [
+		'./node_modules/faceted-search/src/stylus/**/*.styl'
+		# '!./node_modules/faceted-search/src/stylus/import/*.styl'
+		'./node_modules/elaborate-modules/modules/**/*.styl'
+		'./src/stylus/**/*.styl'
+		# '!./src/stylus/import/*.styl'
+	]
 
 gulp.task 'connect', connect.server
 	root: __dirname + '/dist2',
@@ -28,6 +35,7 @@ gulp.task 'jade', ->
 
 gulp.task 'browserify', ->
 	gulp.src('./src/coffee/main.coffee', read: false)
+		.pipe(cache('browserify'))
 		.pipe(browserify(
 			transform: ['coffeeify', 'jadeify', 'brfs']
 			extensions: ['.coffee', '.jade']
@@ -43,14 +51,18 @@ gulp.task 'stylus', ->
 		.pipe(gulp.dest('./dist2/css'))
 
 gulp.task 'css', ['stylus'], ->
-	gulp.src(['./dist2/css/main.css'])
+	gulp.src([
+		'./node_modules/faceted-search/main.css'
+		'./node_modules/hilib/main.css'
+		'./dist2/css/main.css'
+	])
 		.pipe(concat('main.css'))
 		.pipe(gulp.dest('./dist2/css'))
 		.pipe(connect.reload())
 
 gulp.task 'clean-dist2', -> gulp.src('./dist2/*').pipe(clean())
 
-gulp.task 'copy-static', ['clean-dist2'], -> gulp.src('./src/static/**/*').pipe(gulp.dest('./dist2'))
+gulp.task 'copy-static', ['clean-dist2'], -> gulp.src('./static/**/*').pipe(gulp.dest('./dist2'))
 
 gulp.task 'c', ['copy-static', 'browserify', 'jade', 'css']
 	

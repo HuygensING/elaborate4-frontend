@@ -1,4 +1,6 @@
+Backbone = require 'backbone'
 _ = require 'underscore'
+$ = require 'jquery'
 
 config = require '../../../config'
 Async = require 'hilib/src/managers/async'
@@ -32,7 +34,7 @@ Collections =
 ProjectUserIDs = require '../../../project.user.ids'
 
 tpl = require '../../../../jade/project/settings/main.jade'
-addAnnotationTypetpl = require '../../../../jade/project/settings/addannotationtype.jade'
+addAnnotationTypeTpl = require '../../../../jade/project/settings/addannotationtype.jade'
 
 class ProjectSettings extends Views.Base
 

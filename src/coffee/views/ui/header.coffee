@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+
 BaseView = require 'hilib/src/views/base'
 
 config = require '../../config'
