@@ -1,3 +1,4 @@
+Backbone = require 'backbone'
 _ = require 'underscore'
 
 config = require '../config'

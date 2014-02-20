@@ -9,6 +9,7 @@ browserify = require 'gulp-browserify'
 rename = require 'gulp-rename'
 connectRewrite = require './connect-rewrite'
 cache = require 'gulp-cached'
+plumber = require 'gulp-plumber'
 
 paths =
 	coffee: ['./src/**/*.coffee', './node_modules/elaborate-modules/modules/**/*.coffee', './node_modules/hilib/src/**/*.coffee']
@@ -29,12 +30,14 @@ gulp.task 'connect', connect.server
 
 gulp.task 'jade', ->
 	gulp.src(paths.jade[1])
+		.pipe(plumber())
 		.pipe(jade())
 		.pipe(gulp.dest('./dist2'))
 		.pipe(connect.reload())
 
 gulp.task 'browserify', ->
 	gulp.src('./src/coffee/main.coffee', read: false)
+		.pipe(plumber())
 		.pipe(cache('browserify'))
 		.pipe(browserify(
 			transform: ['coffeeify', 'jadeify', 'brfs']
@@ -46,6 +49,7 @@ gulp.task 'browserify', ->
 
 gulp.task 'stylus', ->
 	gulp.src(paths.stylus)
+		.pipe(plumber())
 		.pipe(stylus())
 		.pipe(concat('main.css'))
 		.pipe(gulp.dest('./dist2/css'))
@@ -59,6 +63,7 @@ gulp.task 'css', ['stylus'], ->
 		.pipe(concat('main.css'))
 		.pipe(gulp.dest('./dist2/css'))
 		.pipe(connect.reload())
+
 
 gulp.task 'clean-dist2', -> gulp.src('./dist2/*').pipe(clean())
 

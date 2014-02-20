@@ -1,209 +1,210 @@
-@import '../import/*'
+// @import '../import/*'
 
-.projectsearch
-	position absolute
-	top 88px
-	bottom 0
-	overflow hidden
-	width 100vw
+// .projectsearch
+// 	position absolute
+// 	top 88px
+// 	left -8px
+// 	bottom 0
+// 	overflow hidden
+// 	width 100vw
 
-	.submenu
-		box-shadow 0 12px 12px #FFF
+// 	.submenu
+// 		box-shadow 0 12px 12px #FFF
 
-		li[data-key="publish"]
-			&.active
-				padding-right 24px
+// 		li[data-key="publish"]
+// 			&.active
+// 				padding-right 24px
 
-				&:after
-					position absolute
-					top 3px
-					right 5px
-					content url('/images/loader_transparent.gif')
+// 				&:after
+// 					position absolute
+// 					top 3px
+// 					right 5px
+// 					content url('/images/loader_transparent.gif')
 
-	.faceted-search-placeholder
-		position absolute
-		left 10px
-		top 16px
-		bottom 0px
-		width 300px
-		padding 4px 20px 20px 10px
-		overflow-y auto
+// 	.faceted-search-placeholder
+// 		position absolute
+// 		left 10px
+// 		top 16px
+// 		bottom 0px
+// 		width 300px
+// 		padding 4px 20px 20px 10px
+// 		overflow-y auto
 	
-	.resultview
-		position absolute
-		left 360px
-		top 20px
-		bottom 10px
-		right 0px
+// 	.resultview
+// 		position absolute
+// 		left 360px
+// 		top 20px
+// 		bottom 10px
+// 		right 0px
 
-		&.edit-multiple-entry-metadata
-			ul.entries
-				list-style none
-				margin-left -16px
+// 		&.edit-multiple-entry-metadata
+// 			ul.entries
+// 				list-style none
+// 				margin-left -16px
 
-				label
-					display inline
+// 				label
+// 					display inline
 
-				a
-					display none
+// 				a
+// 					display none
 
-				input[type="checkbox"]
-					display inline-block
-					margin-right 4px
+// 				input[type="checkbox"]
+// 					display inline-block
+// 					margin-right 4px
 
-		header
-			background white
-			padding 0 18px 12px 0
-			border-bottom 1px solid #DDD
+// 		header
+// 			background white
+// 			padding 0 18px 12px 0
+// 			border-bottom 1px solid #DDD
 
-			h3
-				margin-top 0	
+// 			h3
+// 				margin-top 0	
 
-			nav
-				color spotcolor
+// 			nav
+// 				color spotcolor
 
-				& > ul
-					& > li
-						margin-left 6px
-						cursor pointer
-						display inline-block
+// 				& > ul
+// 					& > li
+// 						margin-left 6px
+// 						cursor pointer
+// 						display inline-block
 
-						input#cb_showkeywords
-							margin-right 2px
+// 						input#cb_showkeywords
+// 							margin-right 2px
 
-						label
-							color black
-							cursor default
+// 						label
+// 							color black
+// 							cursor default
 
-						&.levels
-							button
-								i.fa
-									margin-left 4px
+// 						&.levels
+// 							button
+// 								i.fa
+// 									margin-left 4px
 
-							button, select
-								background white
-								border 1px solid rgb(224, 224, 224)
-								outline none
+// 							button, select
+// 								background white
+// 								border 1px solid rgb(224, 224, 224)
+// 								outline none
 
-							ul
-								display none
-								list-style none
-								position absolute
-								background white
-								border 1px solid #EEE
-								padding 18px
-								border-bottom-left-radius 4px
-								border-bottom-right-radius 4px
-								border-top-right-radius 4px
-								margin-top -1px
+// 							ul
+// 								display none
+// 								list-style none
+// 								position absolute
+// 								background white
+// 								border 1px solid #EEE
+// 								padding 18px
+// 								border-bottom-left-radius 4px
+// 								border-bottom-right-radius 4px
+// 								border-top-right-radius 4px
+// 								margin-top -1px
 
-								&.show-save-button
-									li
-										button
-											display block
+// 								&.show-save-button
+// 									li
+// 										button
+// 											display block
 
-									padding-bottom 14px
+// 									padding-bottom 14px
 
-								li
-									margin-bottom 10px
+// 								li
+// 									margin-bottom 10px
 
-									label, i.fa
-										color gray
-										line-height 18px
+// 									label, i.fa
+// 										color gray
+// 										line-height 18px
 									
-									i.fa:hover
-										color black
+// 									i.fa:hover
+// 										color black
 									
-									select, i.fa
-										margin-left 6px
-										height 18px
+// 									select, i.fa
+// 										margin-left 6px
+// 										height 18px
 
-									button
-										display none
-										float right
+// 									button
+// 										display none
+// 										float right
 
-			// .numfound-placeholder
+// 			// .numfound-placeholder
 
-			.pagination-placeholder
-				.pagination
-					select_none()
-					display none
+// 			.pagination-placeholder
+// 				.pagination
+// 					select_none()
+// 					display none
 					
-					li
-						color spotcolor
-						padding 4px
+// 					li
+// 						color spotcolor
+// 						padding 4px
 
-					.inactive, .text
-						color #BBB
-						cursor default
+// 					.inactive, .text
+// 						color #BBB
+// 						cursor default
 
-		ul.entries
-			margin-top 20px
-			overflow-y auto
-			list-style square
-			padding-left 16px
+// 		ul.entries
+// 			margin-top 20px
+// 			overflow-y auto
+// 			list-style square
+// 			padding-left 16px
 
-			li
-				margin-bottom 12px
+// 			li
+// 				margin-bottom 12px
 
-				input[type="checkbox"]
-					display none
+// 				input[type="checkbox"]
+// 					display none
 				
-				label, a
-					text-decoration none
-					color black
-					font-size 1.2rem
-					cursor pointer
-					padding 2px 4px
-					border-radius 2px
+// 				label, a
+// 					text-decoration none
+// 					color black
+// 					font-size 1.2rem
+// 					cursor pointer
+// 					padding 2px 4px
+// 					border-radius 2px
 
-					&:hover
-						background lighten(spotcolor, 70%)
+// 					&:hover
+// 						background lighten(spotcolor, 70%)
 
-				label
-					display none
+// 				label
+// 					display none
 
-				.found
-					color #999
-					display inline-block
-					margin-left 10px
+// 				.found
+// 					color #999
+// 					display inline-block
+// 					margin-left 10px
 
-					&:before
-						content: '('
+// 					&:before
+// 						content: '('
 
-					&:after
-						content: ')'
+// 					&:after
+// 						content: ')'
 				
-				.metadata
-					ul
-						list-style none
-						padding 4px 0 0 12px
+// 				.metadata
+// 					ul
+// 						list-style none
+// 						padding 4px 0 0 12px
 
-						li
-							margin-bottom 0px
-							// display inline-block
-							// width 30%
+// 						li
+// 							margin-bottom 0px
+// 							// display inline-block
+// 							// width 30%
 
-							span.key
-								color #999
+// 							span.key
+// 								color #999
 
-				.keywords
-					color #999
+// 				.keywords
+// 					color #999
 
-					ul
-						list-style none
-						margin-top 4px
+// 					ul
+// 						list-style none
+// 						margin-top 4px
 
-						li
-							padding 2px 0
-							margin 0
-							margin-left 13px
-							overflow-x hidden
-							white-space nowrap
-							text-overflow ellipsis
+// 						li
+// 							padding 2px 0
+// 							margin 0
+// 							margin-left 13px
+// 							overflow-x hidden
+// 							white-space nowrap
+// 							text-overflow ellipsis
 
-							span.container
-								text-decoration underline
+// 							span.container
+// 								text-decoration underline
 
-							em
-								color spotcolor2
+// 							em
+// 								color spotcolor2

@@ -2657,6 +2657,469 @@ ul.pagination li.text {
 
 
 
+.elaborate-annotated-text .annotations {
+  font-size: 10px;
+}
+@media print {
+  .elaborate-annotated-text .annotations {
+    width: auto;
+  }
+}
+.elaborate-annotated-text .annotations header {
+  height: 40px;
+  background: #fff;
+  position: relative;
+  z-index: 2;
+}
+.elaborate-annotated-text .annotations ol {
+  list-style: none;
+  padding: 0 0 0 20px;
+  margin: 0;
+  counter-reset: section;
+  position: relative;
+  z-index: 1;
+}
+.elaborate-annotated-text .annotations ol.active li {
+  white-space: normal;
+}
+.elaborate-annotated-text .annotations ol li {
+  font-size: 12px;
+  padding-left: 6px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  color: #666;
+  counter-increment: section;
+}
+.elaborate-annotated-text .annotations ol li:before {
+  content: counter(section);
+  display: inline-block;
+  text-align: center;
+  width: 20px;
+  position: absolute;
+  left: 0;
+  padding: 2px 0;
+  background-color: #eee;
+  color: #808080;
+  border-radius: 2px;
+  font-size: 0.8em;
+}
+.elaborate-annotated-text .annotations ol li:hover,
+.elaborate-annotated-text .annotations ol li.show,
+.elaborate-annotated-text .annotations ol li.highlight,
+.elaborate-annotated-text .annotations ol li.active {
+  cursor: pointer;
+}
+.elaborate-annotated-text .annotations ol li:hover:before,
+.elaborate-annotated-text .annotations ol li.show:before,
+.elaborate-annotated-text .annotations ol li.highlight:before,
+.elaborate-annotated-text .annotations ol li.active:before {
+  background-color: #ba5db6;
+  color: #fff;
+}
+.elaborate-annotated-text .annotations ol li.hide {
+  visibility: hidden;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+.elaborate-annotated-text .annotations ol li.show,
+.elaborate-annotated-text .annotations ol li.highlight {
+  white-space: normal;
+}
+.elaborate-annotated-text .annotations ol li.show div.type,
+.elaborate-annotated-text .annotations ol li.highlight div.type {
+  display: block;
+}
+.elaborate-annotated-text .annotations ol li.show hr,
+.elaborate-annotated-text .annotations ol li.highlight hr {
+  display: block;
+}
+.elaborate-annotated-text .annotations ol li.highlight .number span {
+  color: #fff;
+  background-color: #ba5db6;
+}
+.elaborate-annotated-text .annotations ol li.highlight,
+.elaborate-annotated-text .annotations ol li:hover,
+.elaborate-annotated-text .annotations ol li.active {
+  color: #3d3d3d;
+}
+.elaborate-annotated-text .annotations ol li.highlight > span,
+.elaborate-annotated-text .annotations ol li:hover > span,
+.elaborate-annotated-text .annotations ol li.active > span {
+  color: #3d3d3d;
+}
+.elaborate-annotated-text .annotations ol li div.type {
+  display: none;
+}
+.elaborate-annotated-text .annotations ol li div.type span {
+  font-size: 0.8em;
+  display: inline-block;
+  color: #000;
+  background-color: #eee;
+  padding: 2px 4px;
+  margin: 0 0 8px -4px;
+  border-radius: 2px;
+}
+.elaborate-annotated-text .annotations ol li hr {
+  display: none;
+  border: 0;
+  height: 1px;
+  background-color: #f1dff0;
+}
+
+.elaborate-annotated-text {
+  position: relative;
+}
+.elaborate-annotated-text select {
+  font-family: sans-serif;
+  font-size: 10px;
+  margin-right: 4px;
+  width: 100px;
+  background: none;
+  border: 1px solid #ddd;
+}
+.elaborate-annotated-text select:focus {
+  outline: none;
+}
+.elaborate-annotated-text i.fa {
+  color: #c4c4c4;
+  font-size: 12px;
+  line-height: 20px;
+}
+.elaborate-annotated-text i.fa:hover {
+  cursor: pointer;
+  color: #888;
+}
+
+.elaborate-annotated-text .text {
+  position: relative;
+  counter-reset: section;
+}
+.elaborate-annotated-text .text.alexander .line {
+  font-family: 'Alexander';
+}
+.elaborate-annotated-text .text.junicode .line {
+  font-family: 'Junicode';
+}
+.elaborate-annotated-text .text.samba .line {
+  font-family: 'Samba';
+}
+.elaborate-annotated-text .text header {
+  height: 40px;
+  margin-bottom: -4px;
+}
+.elaborate-annotated-text .text header select {
+  margin-left: 10px;
+}
+.elaborate-annotated-text .text .line {
+  line-height: 28px;
+  counter-increment: section;
+  position: relative;
+  margin-left: 20px;
+  padding-left: 8px;
+}
+.elaborate-annotated-text .text .line:before {
+  content: counter(section);
+  position: absolute;
+  top: 1px;
+  width: 20px;
+  left: -20px;
+  text-align: right;
+  font-size: 0.8em;
+  font-family: sans-serif;
+  color: #ababab;
+}
+.elaborate-annotated-text .text .line .highlight {
+  display: inline;
+  background-color: #ba5db6;
+  color: #fff;
+  padding: 1px 0;
+  border-radius: 2px;
+}
+.elaborate-annotated-text .text .line sup {
+  line-height: 0;
+}
+.elaborate-annotated-text .text .line sup[data-marker] {
+  cursor: pointer;
+  color: #ff42ff;
+  margin: 0 5px 0 2px;
+  font-style: normal;
+}
+.elaborate-annotated-text .text .line sup[data-marker]:hover {
+  color: #000;
+  background-color: #ffe0ff;
+}
+.elaborate-annotated-text .text span.searched {
+  background-color: #a5dfcc;
+  font-weight: bolder;
+}
+
+.projectsearch .resultview.edit-multiple-entry-metadata ul.entries {
+  list-style: none;
+  margin-left: -16px;
+}
+.projectsearch .resultview.edit-multiple-entry-metadata ul.entries li .edit-mode {
+  display: block;
+}
+.projectsearch .resultview.edit-multiple-entry-metadata ul.entries li .default-mode {
+  display: none;
+}
+.projectsearch .resultview.edit-multiple-entry-metadata header nav ul > li.select-all {
+  display: inline-block;
+}
+.projectsearch .resultview.edit-multiple-entry-metadata header nav ul > li.levels {
+  display: none;
+}
+.projectsearch .resultview .editselection-placeholder {
+  background: #f1f1f1;
+  box-shadow: 0 0 6px #aaa;
+  margin-bottom: 20px;
+  border-radius: 6px;
+}
+.projectsearch .resultview .editselection-placeholder h3 {
+  margin: 0;
+  padding: 12px;
+}
+.projectsearch .resultview .editselection-placeholder form {
+  padding: 12px;
+}
+.projectsearch .resultview .editselection-placeholder li * {
+  vertical-align: middle;
+}
+.projectsearch .resultview .editselection-placeholder li input {
+  margin-left: 4px;
+}
+.projectsearch .resultview .editselection-placeholder footer {
+  text-align: right;
+  padding: 0 8px 8px 0;
+}
+.projectsearch .resultview .editselection-placeholder footer * {
+  vertical-align: middle;
+}
+.projectsearch .resultview .editselection-placeholder footer button[name="savemetadata"] {
+  margin: 0;
+}
+.projectsearch .resultview .editselection-placeholder footer button[name="savemetadata"].loader {
+  background: #fff;
+  padding-bottom: 6px;
+}
+.projectsearch .resultview .editselection-placeholder footer button[name="savemetadata"].loader:after {
+  content: url("/images/loader.gif");
+  margin-left: 6px;
+  position: relative;
+  top: 3px;
+}
+.projectsearch .resultview .editselection-placeholder footer button[name="cancel"] {
+  background: none;
+  border: none;
+  color: #f66;
+  border-radius: 4px;
+}
+.projectsearch .resultview .editselection-placeholder footer span {
+  margin: 0 8px 0 4px;
+}
+
+.projectsearch .resultview ul.entries li {
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.projectsearch .resultview ul.entries li:hover label {
+  background: #c6e7e7;
+}
+.projectsearch .resultview ul.entries li .edit-mode {
+  display: none;
+}
+.projectsearch .resultview ul.entries li .edit-mode input {
+  display: inline-block;
+  margin-right: 4px;
+}
+.projectsearch .resultview ul.entries li label {
+  text-decoration: none;
+  color: #000;
+  font-size: 1.2rem;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.projectsearch .resultview ul.entries li .found {
+  color: #999;
+  display: inline-block;
+  margin-left: 10px;
+}
+.projectsearch .resultview ul.entries li .found:before {
+  content: '(';
+}
+.projectsearch .resultview ul.entries li .found:after {
+  content: ')';
+}
+.projectsearch .resultview ul.entries li .metadata ul {
+  list-style: none;
+  padding: 4px 0 0 12px;
+}
+.projectsearch .resultview ul.entries li .metadata ul li {
+  margin-bottom: 0px;
+}
+.projectsearch .resultview ul.entries li .metadata ul li span.key {
+  color: #999;
+}
+.projectsearch .resultview ul.entries li .keywords {
+  color: #999;
+}
+.projectsearch .resultview ul.entries li .keywords ul {
+  list-style: none;
+  margin-top: 4px;
+}
+.projectsearch .resultview ul.entries li .keywords ul li {
+  padding: 2px 0;
+  margin: 0;
+  margin-left: 13px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.projectsearch .resultview ul.entries li .keywords ul li span.container {
+  text-decoration: underline;
+}
+.projectsearch .resultview ul.entries li .keywords ul li em {
+  color: #ffbefc;
+}
+
+.projectsearch {
+  position: absolute;
+  top: 88px;
+  left: -8px;
+  bottom: 0;
+  overflow: hidden;
+  width: 100vw;
+}
+.projectsearch .submenu {
+  box-shadow: 0 12px 12px #fff;
+}
+.projectsearch .submenu li[data-key="publish"].active {
+  padding-right: 24px;
+}
+.projectsearch .submenu li[data-key="publish"].active:after {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  content: url("/images/loader_transparent.gif");
+}
+.projectsearch .faceted-search-placeholder {
+  position: absolute;
+  left: 10px;
+  top: 16px;
+  bottom: 0px;
+  width: 300px;
+  padding: 4px 20px 20px 10px;
+  overflow-y: auto;
+}
+.projectsearch .resultview {
+  position: absolute;
+  left: 360px;
+  top: 20px;
+  bottom: 10px;
+  right: 0px;
+}
+.projectsearch .resultview header {
+  background: #fff;
+  padding: 0 18px 12px 0;
+  border-bottom: 1px solid #ddd;
+}
+.projectsearch .resultview header h3,
+.projectsearch .resultview header nav {
+  display: inline-block;
+}
+.projectsearch .resultview header h3 {
+  margin-top: 0;
+}
+.projectsearch .resultview header nav {
+  color: #46aaa8;
+}
+.projectsearch .resultview header nav > ul > li {
+  margin-left: 6px;
+  cursor: pointer;
+  display: inline-block;
+}
+.projectsearch .resultview header nav > ul > li.display-keywords {
+  display: none;
+}
+.projectsearch .resultview header nav > ul > li.display-keywords input {
+  margin-right: 2px;
+}
+.projectsearch .resultview header nav > ul > li.select-all {
+  display: none;
+}
+.projectsearch .resultview header nav > ul > li.levels button i.fa {
+  margin-left: 4px;
+}
+.projectsearch .resultview header nav > ul > li.levels button,
+.projectsearch .resultview header nav > ul > li.levels select {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  outline: none;
+}
+.projectsearch .resultview header nav > ul > li.levels ul {
+  display: none;
+  list-style: none;
+  position: absolute;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 18px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-top-right-radius: 4px;
+  margin-top: -1px;
+}
+.projectsearch .resultview header nav > ul > li.levels ul.show-save-button {
+  padding-bottom: 14px;
+}
+.projectsearch .resultview header nav > ul > li.levels ul.show-save-button li button {
+  display: block;
+}
+.projectsearch .resultview header nav > ul > li.levels ul li {
+  margin-bottom: 10px;
+}
+.projectsearch .resultview header nav > ul > li.levels ul li label,
+.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
+  color: #808080;
+  line-height: 18px;
+}
+.projectsearch .resultview header nav > ul > li.levels ul li i.fa:hover {
+  color: #000;
+}
+.projectsearch .resultview header nav > ul > li.levels ul li select,
+.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
+  margin-left: 6px;
+  height: 18px;
+}
+.projectsearch .resultview header nav > ul > li.levels ul li button {
+  display: none;
+  float: right;
+}
+.projectsearch .resultview header nav > ul > li label {
+  color: #000;
+  cursor: default;
+}
+.projectsearch .resultview header .pagination-placeholder .pagination {
+  display: none;
+}
+.projectsearch .resultview header .pagination-placeholder .pagination li {
+  color: #46aaa8;
+  padding: 4px;
+}
+.projectsearch .resultview header .pagination-placeholder .pagination .inactive,
+.projectsearch .resultview header .pagination-placeholder .pagination .text {
+  color: #bbb;
+  cursor: default;
+}
+.projectsearch .resultview ul.entries {
+  margin-top: 20px;
+  overflow-y: auto;
+  list-style: square;
+  padding-left: 16px;
+}
+
 .btn.small {
   line-height: 14px;
 }
@@ -4136,54 +4599,6 @@ i.fa.fa-check-square-o {
 
 
 
-.resultview .editselection-placeholder {
-  background: #f1f1f1;
-  box-shadow: 0 0 6px #aaa;
-  margin-bottom: 20px;
-  border-radius: 6px;
-}
-.resultview .editselection-placeholder h3 {
-  margin: 0;
-  padding: 12px;
-}
-.resultview .editselection-placeholder form {
-  padding: 12px;
-}
-.resultview .editselection-placeholder li * {
-  vertical-align: middle;
-}
-.resultview .editselection-placeholder li input {
-  margin-left: 4px;
-}
-.resultview .editselection-placeholder footer {
-  text-align: right;
-  padding: 0 8px 8px 0;
-}
-.resultview .editselection-placeholder footer * {
-  vertical-align: middle;
-}
-.resultview .editselection-placeholder footer button[name="savemetadata"] {
-  margin: 0;
-}
-.resultview .editselection-placeholder footer button[name="savemetadata"].loader {
-  background: #fff;
-  padding-bottom: 6px;
-}
-.resultview .editselection-placeholder footer button[name="savemetadata"].loader:after {
-  content: url("/images/loader.gif");
-  margin-left: 6px;
-  position: relative;
-  top: 3px;
-}
-.resultview .editselection-placeholder footer button[name="cancel"] {
-  background: none;
-  border: none;
-  color: #f66;
-  border-radius: 4px;
-}
-.resultview .editselection-placeholder footer span {
-  margin: 0 8px 0 4px;
-}
 
 .projecthistory,
 .statistics {
@@ -4209,213 +4624,6 @@ i.fa.fa-check-square-o {
   color: #808080;
 }
 
-.projectsearch {
-  position: absolute;
-  top: 88px;
-  bottom: 0;
-  overflow: hidden;
-  width: 100vw;
-}
-.projectsearch .submenu {
-  box-shadow: 0 12px 12px #fff;
-}
-.projectsearch .submenu li[data-key="publish"].active {
-  padding-right: 24px;
-}
-.projectsearch .submenu li[data-key="publish"].active:after {
-  position: absolute;
-  top: 3px;
-  right: 5px;
-  content: url("/images/loader_transparent.gif");
-}
-.projectsearch .faceted-search-placeholder {
-  position: absolute;
-  left: 10px;
-  top: 16px;
-  bottom: 0px;
-  width: 300px;
-  padding: 4px 20px 20px 10px;
-  overflow-y: auto;
-}
-.projectsearch .resultview {
-  position: absolute;
-  left: 360px;
-  top: 20px;
-  bottom: 10px;
-  right: 0px;
-}
-.projectsearch .resultview.edit-multiple-entry-metadata ul.entries {
-  list-style: none;
-  margin-left: -16px;
-}
-.projectsearch .resultview.edit-multiple-entry-metadata ul.entries label {
-  display: inline;
-}
-.projectsearch .resultview.edit-multiple-entry-metadata ul.entries a {
-  display: none;
-}
-.projectsearch .resultview.edit-multiple-entry-metadata ul.entries input[type="checkbox"] {
-  display: inline-block;
-  margin-right: 4px;
-}
-.projectsearch .resultview header {
-  background: #fff;
-  padding: 0 18px 12px 0;
-  border-bottom: 1px solid #ddd;
-}
-.projectsearch .resultview header h3 {
-  margin-top: 0;
-}
-.projectsearch .resultview header nav {
-  color: #46aaa8;
-}
-.projectsearch .resultview header nav > ul > li {
-  margin-left: 6px;
-  cursor: pointer;
-  display: inline-block;
-}
-.projectsearch .resultview header nav > ul > li input#cb_showkeywords {
-  margin-right: 2px;
-}
-.projectsearch .resultview header nav > ul > li label {
-  color: #000;
-  cursor: default;
-}
-.projectsearch .resultview header nav > ul > li.levels button i.fa {
-  margin-left: 4px;
-}
-.projectsearch .resultview header nav > ul > li.levels button,
-.projectsearch .resultview header nav > ul > li.levels select {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  outline: none;
-}
-.projectsearch .resultview header nav > ul > li.levels ul {
-  display: none;
-  list-style: none;
-  position: absolute;
-  background: #fff;
-  border: 1px solid #eee;
-  padding: 18px;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-  border-top-right-radius: 4px;
-  margin-top: -1px;
-}
-.projectsearch .resultview header nav > ul > li.levels ul.show-save-button {
-  padding-bottom: 14px;
-}
-.projectsearch .resultview header nav > ul > li.levels ul.show-save-button li button {
-  display: block;
-}
-.projectsearch .resultview header nav > ul > li.levels ul li {
-  margin-bottom: 10px;
-}
-.projectsearch .resultview header nav > ul > li.levels ul li label,
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
-  color: #808080;
-  line-height: 18px;
-}
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa:hover {
-  color: #000;
-}
-.projectsearch .resultview header nav > ul > li.levels ul li select,
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
-  margin-left: 6px;
-  height: 18px;
-}
-.projectsearch .resultview header nav > ul > li.levels ul li button {
-  display: none;
-  float: right;
-}
-.projectsearch .resultview header .pagination-placeholder .pagination {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  display: none;
-}
-.projectsearch .resultview header .pagination-placeholder .pagination li {
-  color: #46aaa8;
-  padding: 4px;
-}
-.projectsearch .resultview header .pagination-placeholder .pagination .inactive,
-.projectsearch .resultview header .pagination-placeholder .pagination .text {
-  color: #bbb;
-  cursor: default;
-}
-.projectsearch .resultview ul.entries {
-  margin-top: 20px;
-  overflow-y: auto;
-  list-style: square;
-  padding-left: 16px;
-}
-.projectsearch .resultview ul.entries li {
-  margin-bottom: 12px;
-}
-.projectsearch .resultview ul.entries li input[type="checkbox"] {
-  display: none;
-}
-.projectsearch .resultview ul.entries li label,
-.projectsearch .resultview ul.entries li a {
-  text-decoration: none;
-  color: #000;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 2px;
-}
-.projectsearch .resultview ul.entries li label:hover,
-.projectsearch .resultview ul.entries li a:hover {
-  background: #c6e7e7;
-}
-.projectsearch .resultview ul.entries li label {
-  display: none;
-}
-.projectsearch .resultview ul.entries li .found {
-  color: #999;
-  display: inline-block;
-  margin-left: 10px;
-}
-.projectsearch .resultview ul.entries li .found:before {
-  content: '(';
-}
-.projectsearch .resultview ul.entries li .found:after {
-  content: ')';
-}
-.projectsearch .resultview ul.entries li .metadata ul {
-  list-style: none;
-  padding: 4px 0 0 12px;
-}
-.projectsearch .resultview ul.entries li .metadata ul li {
-  margin-bottom: 0px;
-}
-.projectsearch .resultview ul.entries li .metadata ul li span.key {
-  color: #999;
-}
-.projectsearch .resultview ul.entries li .keywords {
-  color: #999;
-}
-.projectsearch .resultview ul.entries li .keywords ul {
-  list-style: none;
-  margin-top: 4px;
-}
-.projectsearch .resultview ul.entries li .keywords ul li {
-  padding: 2px 0;
-  margin: 0;
-  margin-left: 13px;
-  overflow-x: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.projectsearch .resultview ul.entries li .keywords ul li span.container {
-  text-decoration: underline;
-}
-.projectsearch .resultview ul.entries li .keywords ul li em {
-  color: #ffbefc;
-}
 
 .projectsettings .tab.menu {
   font-size: 0;
