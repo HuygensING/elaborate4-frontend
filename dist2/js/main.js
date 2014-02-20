@@ -1881,7 +1881,7 @@ FacetedSearchResults = (function(_super) {
     })(this));
     return this.listenTo(this.subviews.facetedSearch, 'results:change', (function(_this) {
       return function(responseModel) {
-        _this.project.resultSet = responseModel;
+        _this.trigger('change:results', responseModel);
         _this.renderHeader(responseModel);
         return _this.renderResults(responseModel);
       };
@@ -1927,9 +1927,6 @@ FacetedSearchResults = (function(_super) {
     queryOptions = (_ref = responseModel.options.queryOptions) != null ? _ref : {};
     fulltext = (queryOptions.term != null) && queryOptions.term !== '';
     entries = this.project.get('entries');
-    entries.add(responseModel.get('results'), {
-      merge: true
-    });
     frag = document.createDocumentFragment();
     _ref1 = responseModel.get('results');
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -25503,6 +25500,16 @@ Search = (function(_super) {
       projects: projects
     });
     this.$el.html(fsr.$el);
+    this.listenTo(fsr, 'change:results', (function(_this) {
+      return function(responseModel) {
+        var project;
+        project = projects.current;
+        project.resultSet = responseModel;
+        return project.get('entries').add(responseModel.get('results'), {
+          merge: true
+        });
+      };
+    })(this));
     return this;
   };
 

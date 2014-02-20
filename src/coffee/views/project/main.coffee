@@ -8,14 +8,19 @@ Views =
 
 class Search extends Views.Base
 
-	initialize: -> @render()
+	initialize: ->
+		@render()
 
 	render: ->
 		fsr = new FacetedSearchResults
 			currentUser: currentUser
 			projects: projects
-			
 		@$el.html fsr.$el
+
+		@listenTo fsr, 'change:results', (responseModel) => 
+			project = projects.current
+			project.resultSet = responseModel
+			project.get('entries').add responseModel.get('results'), merge: true
 
 		@
 
