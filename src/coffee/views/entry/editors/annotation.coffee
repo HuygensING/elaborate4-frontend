@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+
 viewManager = require 'hilib/src/managers/view2'
 
 Collections = 

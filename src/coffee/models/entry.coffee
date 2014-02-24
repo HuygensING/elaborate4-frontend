@@ -17,7 +17,7 @@ Collections =
 
 class Entry extends Models.Base
 
-	urlRoot: -> config.baseUrl + "projects/#{@project.id}/entries"
+	urlRoot: -> "#{config.baseUrl}projects/#{@project.id}/entries"
 
 	defaults: ->
 		name: ''

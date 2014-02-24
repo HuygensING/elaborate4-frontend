@@ -69,7 +69,9 @@ gulp.task 'clean-dist2', -> gulp.src('./dist2/*').pipe(clean())
 
 gulp.task 'copy-static', ['clean-dist2'], -> gulp.src('./static/**/*').pipe(gulp.dest('./dist2'))
 
-gulp.task 'c', ['copy-static', 'browserify', 'jade', 'css']
+gulp.task 'copy-images', ['copy-static'], -> gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest('./dist2/images/hilib'))
+
+gulp.task 'c', ['copy-images', 'browserify', 'jade', 'css']
 	
 gulp.task 'watch', ->
 	gulp.watch [paths.coffee], ['browserify']

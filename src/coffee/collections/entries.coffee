@@ -14,6 +14,10 @@ class Entries extends Base
 		@projectId = options.projectId
 
 		@current = null
+
+		# Keep track of changed entries. In this case, we track if the metadata has changed
+		# through edit multiple metadata, but the same logic could be applied elsewhere. 
+		# When the metadata changes, we can't use the view's cache.
 		@changed = []
 	
 	url: -> config.baseUrl + "projects/#{@projectId}/entries"

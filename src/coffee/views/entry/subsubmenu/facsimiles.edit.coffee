@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 Fn = require 'hilib/src/utils/general'
 
 ajax = require 'hilib/src/managers/ajax'

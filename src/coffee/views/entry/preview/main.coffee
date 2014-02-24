@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 # @options
 #	textLayer	String 		The text layer to show, defaults to current text layer.
 #	wordwrap	Boolean		Defaults to false

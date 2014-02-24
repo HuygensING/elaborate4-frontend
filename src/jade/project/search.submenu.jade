@@ -1,0 +1,12 @@
+.row.span3
+	.cell.span1
+		ul.horizontal.menu
+			li(data-key="newsearch") New search
+	if user.get('role') === 'ADMIN'
+		.cell.span1
+			ul.horizontal.menu
+				li(data-key="newentry")= 'New '+config.get('entryTermSingular')
+				li(data-key="editmetadata") Edit metadata
+		.cell.span1.alignright
+			ul.horizontal.menu
+				li(data-key="publish") Publish draft

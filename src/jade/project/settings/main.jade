@@ -30,7 +30,7 @@
 						select(name="leader", data-attr="Project leader")
 							option -- select member --
 							each member in projectMembers.models
-								sel = member.id === parseInt(settings['Project leader'], 10)
+								- sel = member.id === +settings['Project leader']
 								option(value=member.id, selected=sel)= member.get('title')
 					li
 						label(for="start") Start date

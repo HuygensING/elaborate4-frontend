@@ -1,4 +1,5 @@
 Backbone = require 'backbone'
+_ = require 'underscore'
 
 Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'

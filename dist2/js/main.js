@@ -1571,7 +1571,7 @@
 
 }).call(this);
 
-},{"underscore":102}],2:[function(require,module,exports){
+},{"underscore":104}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
 var Backbone, Config, basePath, us,
@@ -1658,7 +1658,7 @@ Config = (function(_super) {
 module.exports = new Config;
 
 
-},{"backbone":13,"underscore.string":101}],4:[function(require,module,exports){
+},{"backbone":15,"underscore.string":103}],4:[function(require,module,exports){
 var Backbone, Entry, config, us,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1798,7 +1798,7 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"./config":3,"backbone":13,"underscore.string":101}],5:[function(require,module,exports){
+},{"./config":3,"backbone":15,"underscore.string":103}],5:[function(require,module,exports){
 var Entry, FacetedSearchResults, Fn, Views, config, dom, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1816,11 +1816,8 @@ Entry = require('../../models/entry');
 Views = {
   Base: require('hilib/src/views/base'),
   FacetedSearch: require('faceted-search'),
-  Modal: require('hilib/src/views/modal/main'),
-  Pagination: require('hilib/src/views/pagination/main'),
   EditMultipleMetadata: require('./views/edit-multiple-metadata'),
-  EntryListitem: require('./views/entry-list-item'),
-  SortLevels: require('../sort-levels')
+  SearchResult: require('../search-result')
 };
 
 tpl = require('./templates/main.jade');
@@ -1837,33 +1834,25 @@ FacetedSearchResults = (function(_super) {
   FacetedSearchResults.prototype.initialize = function() {
     FacetedSearchResults.__super__.initialize.apply(this, arguments);
     this.resultRows = 50;
-    return this.options.projects.getCurrent((function(_this) {
-      return function(project) {
-        _this.project = project;
-        return _this.render();
-      };
-    })(this));
+    return this.render();
   };
 
   FacetedSearchResults.prototype.render = function() {
     var rtpl;
     rtpl = tpl({
-      user: this.options.currentUser,
-      settings: this.project.get('settings')
+      entryTermSingular: config.get('entryTermSingular')
     });
     this.$el.html(rtpl);
     this.renderFacetedSearch();
-    this.pollDraft();
     return this;
   };
 
   FacetedSearchResults.prototype.renderFacetedSearch = function() {
     this.subviews.facetedSearch = new Views.FacetedSearch({
-      baseUrl: config.get('baseUrl'),
-      searchPath: 'projects/' + this.project.id + '/search',
+      searchPath: this.options.searchUrl,
       token: token.get(),
       textSearchOptions: {
-        textLayers: this.project.get('textLayers'),
+        textLayers: this.options.textLayers,
         searchInAnnotations: true,
         searchInTranscriptions: true
       },
@@ -1882,85 +1871,34 @@ FacetedSearchResults = (function(_super) {
     return this.listenTo(this.subviews.facetedSearch, 'results:change', (function(_this) {
       return function(responseModel) {
         _this.trigger('change:results', responseModel);
-        _this.renderHeader(responseModel);
-        return _this.renderResults(responseModel);
+        return _this.renderResult(responseModel);
       };
     })(this));
   };
 
-  FacetedSearchResults.prototype.renderHeader = function(responseModel) {
-    this.el.querySelector('h3.numfound').innerHTML = responseModel.get('numFound') + (" " + (this.project.get('settings').get('entry.term_plural')) + " found");
-    this.renderLevels();
-    if (this.subviews.pagination != null) {
-      this.stopListening(this.subviews.pagination);
-      this.subviews.pagination.destroy();
-    }
-    this.subviews.pagination = new Views.Pagination({
-      start: responseModel.get('start'),
-      rowCount: this.resultRows,
-      resultCount: responseModel.get('numFound')
+  FacetedSearchResults.prototype.renderResult = function(responseModel) {
+    this.subviews.searchResult = new Views.SearchResult({
+      responseModel: responseModel,
+      levels: this.options.levels,
+      entryMetadataFields: this.options.entryMetadataFields,
+      resultRows: this.resultRows
     });
-    this.listenTo(this.subviews.pagination, 'change:pagenumber', (function(_this) {
-      return function(pagenumber) {
-        return _this.subviews.facetedSearch.page(pagenumber);
-      };
-    })(this));
-    return this.$('.pagination').html(this.subviews.pagination.el);
-  };
-
-  FacetedSearchResults.prototype.renderLevels = function() {
-    this.subviews.sortLevels = new Views.SortLevels({
-      project: this.project
-    });
-    this.$('header li.levels').html(this.subviews.sortLevels.$el);
-    return this.listenTo(this.subviews.sortLevels, 'change', (function(_this) {
+    this.$('.resultview').html(this.subviews.searchResult.$el);
+    this.listenTo(this.subviews.searchResult, 'change:sort-levels', (function(_this) {
       return function(sortParameters) {
         return _this.subviews.facetedSearch.refresh({
           sortParameters: sortParameters
         });
       };
     })(this));
-  };
-
-  FacetedSearchResults.prototype.renderResults = function(responseModel) {
-    var count, entries, entry, entryListitem, found, frag, fulltext, queryOptions, result, term, ulentries, _i, _len, _ref, _ref1, _ref2;
-    queryOptions = (_ref = responseModel.options.queryOptions) != null ? _ref : {};
-    fulltext = (queryOptions.term != null) && queryOptions.term !== '';
-    entries = this.project.get('entries');
-    frag = document.createDocumentFragment();
-    _ref1 = responseModel.get('results');
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      result = _ref1[_i];
-      entry = entries.get(result.id);
-      entry.project = this.project;
-      found = [];
-      _ref2 = entry.get('terms');
-      for (term in _ref2) {
-        if (!__hasProp.call(_ref2, term)) continue;
-        count = _ref2[term];
-        found.push(term + ': ' + count);
-      }
-      entryListitem = new Views.EntryListitem({
-        model: entry,
-        fulltext: fulltext,
-        found: found.join(', ')
-      });
-      frag.appendChild(entryListitem.el);
-    }
-    ulentries = this.el.querySelector('ul.entries');
-    ulentries.innerHTML = '';
-    ulentries.appendChild(frag);
-    ulentries.style.height = document.documentElement.clientHeight - dom(ulentries).position().top + 'px';
-    return this;
+    return this.listenTo(this.subviews.searchResult, 'change:pagination', (function(_this) {
+      return function(pagenumber) {
+        return _this.subviews.facetedSearch.page(pagenumber);
+      };
+    })(this));
   };
 
   FacetedSearchResults.prototype.events = {
-    'click .submenu li[data-key="newsearch"]': function() {
-      return this.subviews.facetedSearch.reset();
-    },
-    'click .submenu li[data-key="newentry"]': 'newEntry',
-    'click .submenu li[data-key="editmetadata"]': 'toggleEditMultipleMetadata',
-    'click .submenu li[data-key="publish"]': 'publishDraft',
     'change li.select-all input': function(ev) {
       return Fn.checkCheckboxes('.entries input[type="checkbox"]', ev.currentTarget.checked, this.el);
     },
@@ -1974,66 +1912,6 @@ FacetedSearchResults = (function(_super) {
     'change .entry input[type="checkbox"]': function() {
       return this.subviews.editMultipleEntryMetadata.activateSaveButton();
     }
-  };
-
-  FacetedSearchResults.prototype.toggleEditMultipleMetadata = function(ev) {
-    var entries, visible;
-    entries = this.el.querySelector('ul.entries');
-    this.$('.resultview').toggleClass('edit-multiple-entry-metadata');
-    if (this.$('.resultview').hasClass('edit-multiple-entry-metadata')) {
-      this.subviews.editMultipleEntryMetadata = new Views.EditMultipleMetadata({
-        model: this.project
-      });
-      this.$('.editselection-placeholder').html(this.subviews.editMultipleEntryMetadata.el);
-      this.listenToOnce(this.subviews.editMultipleEntryMetadata, 'close', (function(_this) {
-        return function() {
-          return _this.toggleEditMultipleMetadata();
-        };
-      })(this));
-      this.listenToOnce(this.subviews.editMultipleEntryMetadata, 'saved', (function(_this) {
-        return function() {
-          return _this.subviews.facetedSearch.refresh();
-        };
-      })(this));
-    } else {
-      Fn.checkCheckboxes(null, false, entries);
-      this.stopListening(this.subviews.editMultipleEntryMetadata);
-      this.subviews.editMultipleEntryMetadata.destroy();
-    }
-    visible = !visible;
-    return entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px';
-  };
-
-  FacetedSearchResults.prototype.newEntry = function(ev) {
-    var modal;
-    modal = new Views.Modal({
-      title: "Create a new " + (this.project.get('settings').get('entry.term_singular')),
-      html: '<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>',
-      submitValue: "Create " + (this.project.get('settings').get('entry.term_singular')),
-      width: '300px'
-    });
-    return modal.on('submit', (function(_this) {
-      return function() {
-        var entry;
-        modal.message('success', "Creating a new " + (_this.project.get('settings').get('entry.term_singular')) + "...");
-        entry = new Entry({
-          name: modal.$('input[name="name"]').val()
-        }, {
-          projectID: _this.project.id
-        });
-        return entry.save([], {
-          success: function(model) {
-            _this.stopListening();
-            _this.project.get('entries').add(model);
-            modal.close();
-            _this.publish('message', "New " + (_this.project.get('settings').get('entry.term_singular')) + " added to project.");
-            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
-              trigger: true
-            });
-          }
-        });
-      };
-    })(this));
   };
 
   FacetedSearchResults.prototype.changePage = function(ev) {
@@ -2055,55 +1933,37 @@ FacetedSearchResults = (function(_super) {
     return Fn.checkCheckboxes('.entries input[type="checkbox"]', false, this.el);
   };
 
-  FacetedSearchResults.prototype.destroy = function() {
-    var key, view, _ref;
-    _ref = this.subviews;
-    for (key in _ref) {
-      if (!__hasProp.call(_ref, key)) continue;
-      view = _ref[key];
-      view.destroy();
-    }
-    return this.remove();
+  FacetedSearchResults.prototype.reset = function() {
+    return this.subviews.facetedSearch.reset();
   };
 
-  FacetedSearchResults.prototype.activatePublishDraftButton = function() {
-    var busyText, button;
-    busyText = 'Publishing draft...';
-    button = this.el.querySelector('li[data-key="publish"]');
-    if (button.innerHTML === busyText) {
-      return false;
-    }
-    button.innerHTML = busyText;
-    return button.classList.add('active');
-  };
-
-  FacetedSearchResults.prototype.deactivatePublishDraftButton = function() {
-    var button;
-    button = this.el.querySelector('li[data-key="publish"]');
-    button.innerHTML = 'Publish draft';
-    return button.classList.remove('active');
-  };
-
-  FacetedSearchResults.prototype.publishDraft = function(ev) {
-    this.activatePublishDraftButton();
-    return this.project.publishDraft((function(_this) {
-      return function() {
-        return _this.deactivatePublishDraftButton();
-      };
-    })(this));
-  };
-
-  FacetedSearchResults.prototype.pollDraft = function() {
-    var locationUrl;
-    locationUrl = localStorage.getItem('publishDraftLocation');
-    if (locationUrl != null) {
-      this.activatePublishDraftButton();
-      return this.project.pollDraft(locationUrl, (function(_this) {
+  FacetedSearchResults.prototype.toggleEditMultipleMetadata = function() {
+    var entries;
+    entries = this.el.querySelector('ul.entries');
+    this.$('.resultview').toggleClass('edit-multiple-entry-metadata');
+    if (this.$('.resultview').hasClass('edit-multiple-entry-metadata')) {
+      this.subviews.editMultipleEntryMetadata = new Views.EditMultipleMetadata({
+        entryMetadataFields: this.options.entryMetadataFields,
+        editMultipleMetadataUrl: this.options.editMultipleMetadataUrl
+      });
+      this.$('.editselection-placeholder').html(this.subviews.editMultipleEntryMetadata.el);
+      this.listenToOnce(this.subviews.editMultipleEntryMetadata, 'close', (function(_this) {
         return function() {
-          return _this.deactivatePublishDraftButton();
+          return _this.toggleEditMultipleMetadata();
         };
       })(this));
+      this.listenToOnce(this.subviews.editMultipleEntryMetadata, 'saved', (function(_this) {
+        return function(entryIds) {
+          _this.subviews.facetedSearch.refresh();
+          return _this.trigger('editmultipleentrymetadata:saved', entryIds);
+        };
+      })(this));
+    } else {
+      Fn.checkCheckboxes(null, false, entries);
+      this.stopListening(this.subviews.editMultipleEntryMetadata);
+      this.subviews.editMultipleEntryMetadata.destroy();
     }
+    return entries.style.height = document.documentElement.clientHeight - dom(entries).position().top + 'px';
   };
 
   return FacetedSearchResults;
@@ -2113,14 +1973,14 @@ FacetedSearchResults = (function(_super) {
 module.exports = FacetedSearchResults;
 
 
-},{"../../models/config":3,"../../models/entry":4,"../sort-levels":11,"./templates/main.jade":8,"./views/edit-multiple-metadata":9,"./views/entry-list-item":10,"faceted-search":33,"hilib/src/managers/token":69,"hilib/src/utils/dom":78,"hilib/src/utils/general":79,"hilib/src/views/base":82,"hilib/src/views/modal/main":92,"hilib/src/views/pagination/main":94}],6:[function(require,module,exports){
+},{"../../models/config":3,"../../models/entry":4,"../search-result":9,"./templates/main.jade":7,"./views/edit-multiple-metadata":8,"faceted-search":35,"hilib/src/managers/token":71,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],6:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
-var locals_ = (locals || {}),settings = locals_.settings,entrymetadatafields = locals_.entrymetadatafields;
-buf.push("<h3>" + (jade.escape(null == (jade.interp = 'Edit metadata of multiple ' + settings.get('entry.term_plural')) ? "" : jade.interp)) + "</h3><div class=\"row span2\"><div class=\"cell span1\"><form><ul>");
+var locals_ = (locals || {}),config = locals_.config,entrymetadatafields = locals_.entrymetadatafields;
+buf.push("<h3>" + (jade.escape(null == (jade.interp = 'Edit metadata of multiple ' + config.get('entryTermPlural')) ? "" : jade.interp)) + "</h3><div class=\"row span2\"><div class=\"cell span1\"><form><ul>");
 // iterate entrymetadatafields
 ;(function(){
   var $$obj = entrymetadatafields;
@@ -2180,134 +2040,21 @@ buf.push("<li><label>" + (jade.escape(null == (jade.interp = field) ? "" : jade.
 
 buf.push("<li><label>Publishable</label><i data-name=\"Publishable\" class=\"fa fa-square-o\"></i><input style=\"margin-right: 137px\" type=\"checkbox\" name=\"Publishable\"" + (jade.attr("tabindex", entrymetadatafields.length * 2 + 4, true, false)) + "/></li></ul></form></div></div><footer><button name=\"cancel\"" + (jade.attr("tabindex", entrymetadatafields.length * 2 + 5, true, false)) + ">Cancel</button><span>or</span><button name=\"savemetadata\"" + (jade.attr("tabindex", entrymetadatafields.length * 2 + 6, true, false)) + " class=\"simple inactive\">Save metadata</button></footer>");;return buf.join("");
 };
-},{"jade/runtime":99}],7:[function(require,module,exports){
+},{"jade/runtime":101}],7:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
-var locals_ = (locals || {}),randomID = locals_.randomID,generateID = locals_.generateID,entry = locals_.entry,fulltext = locals_.fulltext,found = locals_.found;
-randomID = generateID()
-buf.push("<div class=\"edit-mode\"><input type=\"checkbox\"" + (jade.attr("data-id", entry.id, true, false)) + (jade.attr("id", randomID, true, false)) + "/><label" + (jade.attr("for", randomID, true, false)) + ">" + (jade.escape(null == (jade.interp = entry.name) ? "" : jade.interp)) + "</label></div><div class=\"default-mode\"><label>" + (jade.escape(null == (jade.interp = entry.name) ? "" : jade.interp)) + "</label></div>");
-if ( fulltext)
-{
-buf.push("<div class=\"found\">" + (jade.escape(null == (jade.interp = found) ? "" : jade.interp)) + "</div>");
-}
-buf.push("<div class=\"metadata\"><ul>");
-// iterate entry.metadata
-;(function(){
-  var $$obj = entry.metadata;
-  if ('number' == typeof $$obj.length) {
 
-    for (var key = 0, $$l = $$obj.length; key < $$l; key++) {
-      var value = $$obj[key];
-
-buf.push("<li><span class=\"key\">" + (jade.escape(null == (jade.interp = key+': ') ? "" : jade.interp)) + "</span><span class=\"value\">" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span></li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var key in $$obj) {
-      $$l++;      var value = $$obj[key];
-
-buf.push("<li><span class=\"key\">" + (jade.escape(null == (jade.interp = key+': ') ? "" : jade.interp)) + "</span><span class=\"value\">" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span></li>");
-    }
-
-  }
-}).call(this);
-
-buf.push("</ul></div>");
-if ( fulltext)
-{
-buf.push("<div class=\"keywords\"><ul>");
-if ( entry._kwic != null)
-{
-// iterate entry._kwic
-;(function(){
-  var $$obj = entry._kwic;
-  if ('number' == typeof $$obj.length) {
-
-    for (var container = 0, $$l = $$obj.length; container < $$l; container++) {
-      var kwic = $$obj[container];
-
-// iterate kwic
-;(function(){
-  var $$obj = kwic;
-  if ('number' == typeof $$obj.length) {
-
-    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
-      var row = $$obj[$index];
-
-buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var $index in $$obj) {
-      $$l++;      var row = $$obj[$index];
-
-buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
-    }
-
-  }
-}).call(this);
-
-    }
-
-  } else {
-    var $$l = 0;
-    for (var container in $$obj) {
-      $$l++;      var kwic = $$obj[container];
-
-// iterate kwic
-;(function(){
-  var $$obj = kwic;
-  if ('number' == typeof $$obj.length) {
-
-    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
-      var row = $$obj[$index];
-
-buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var $index in $$obj) {
-      $$l++;      var row = $$obj[$index];
-
-buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
-    }
-
-  }
-}).call(this);
-
-    }
-
-  }
-}).call(this);
-
-}
-buf.push("</ul></div>");
-};return buf.join("");
+buf.push("<div class=\"faceted-search-placeholder\"></div><div class=\"resultview\"></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],8:[function(require,module,exports){
-var jade = require("jade/runtime");
-
-module.exports = function template(locals) {
-var buf = [];
-var jade_mixins = {};
-var locals_ = (locals || {}),user = locals_.user,settings = locals_.settings;
-buf.push("<div class=\"submenu\"><div class=\"row span3\"><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li></ul></div>");
-if ( user.get('role') === 'ADMIN')
-{
-buf.push("<div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">" + (jade.escape(null == (jade.interp = 'New '+settings.get('entry.term_singular')) ? "" : jade.interp)) + "</li><li data-key=\"editmetadata\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\"><li data-key=\"publish\">Publish draft</li></ul></div>");
-}
-buf.push("</div></div><div class=\"faceted-search-placeholder\"></div><div class=\"resultview\"><header><div class=\"editselection-placeholder\"></div><h3 class=\"numfound\"></h3><nav><ul><li class=\"levels\"></li><li class=\"display-keywords\"><input id=\"a9f7fg6\" type=\"checkbox\"/><label for=\"a9f7fg6\">Display keywords</label></li><li class=\"select-all\"><input id=\"i9d8sdf\" type=\"checkbox\"/><label for=\"i9d8sdf\">Select all</label></li></ul></nav><div class=\"pagination\"></div></header><ul class=\"entries\"></ul></div>");;return buf.join("");
-};
-},{"jade/runtime":99}],9:[function(require,module,exports){
-var EditMultipleMetadata, Views, ajax, config, token, tpl, _,
+},{"jade/runtime":101}],8:[function(require,module,exports){
+var $, EditMultipleMetadata, Views, ajax, config, token, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+$ = require('jquery');
 
 _ = require('underscore');
 
@@ -2337,7 +2084,10 @@ EditMultipleMetadata = (function(_super) {
 
   EditMultipleMetadata.prototype.render = function() {
     var rtpl;
-    rtpl = tpl(this.model.attributes);
+    rtpl = tpl({
+      entrymetadatafields: this.options.entryMetadataFields,
+      config: config
+    });
     this.el.innerHTML = rtpl;
     return this;
   };
@@ -2459,7 +2209,7 @@ EditMultipleMetadata = (function(_super) {
         saveButton.addClass('loader');
         ajax.token = token.get();
         jqXHR = ajax.put({
-          url: config.baseUrl + ("projects/" + this.model.id + "/multipleentrysettings"),
+          url: this.options.editMultipleMetadataUrl,
           data: JSON.stringify({
             projectEntryIds: entryIDs,
             settings: this.settings
@@ -2468,10 +2218,9 @@ EditMultipleMetadata = (function(_super) {
         });
         jqXHR.done((function(_this) {
           return function() {
-            _this.model.get('entries').changed = _.union(_this.model.get('entries').changed, entryIDs);
-            saveButton.removeClass('loader');
             _this.publish('message', 'Metadata of multiple entries saved.');
-            _this.trigger('saved');
+            saveButton.removeClass('loader');
+            _this.trigger('saved', entryIDs);
             return _this.trigger('close');
           };
         })(this));
@@ -2495,12 +2244,228 @@ EditMultipleMetadata = (function(_super) {
 module.exports = EditMultipleMetadata;
 
 
-},{"../../../models/config":3,"../templates/edit-multiple-metadata.jade":6,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/views/base":82,"underscore":102}],10:[function(require,module,exports){
-var Backbone, Base, EntryListItem, Fn, tpl, _,
+},{"../../../models/config":3,"../templates/edit-multiple-metadata.jade":6,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/views/base":84,"jquery":17,"underscore":104}],9:[function(require,module,exports){
+var SearchResult, Views, config, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-Backbone = require('backbone');
+dom = require('hilib/src/utils/dom');
+
+config = require('../../models/config');
+
+Views = {
+  Base: require('hilib/src/views/base'),
+  EntryListItem: require('./views/entry-list-item'),
+  SortLevels: require('../sort-levels'),
+  Pagination: require('hilib/src/views/pagination/main')
+};
+
+tpl = require('./templates/main.jade');
+
+SearchResult = (function(_super) {
+  __extends(SearchResult, _super);
+
+  function SearchResult() {
+    return SearchResult.__super__.constructor.apply(this, arguments);
+  }
+
+  SearchResult.prototype.initialize = function() {
+    SearchResult.__super__.initialize.apply(this, arguments);
+    return this.render();
+  };
+
+  SearchResult.prototype.render = function() {
+    var entryListItem, frag, fulltext, queryOptions, result, ulentries, _i, _len, _ref, _ref1;
+    this.$el.html(tpl());
+    this.renderHeader();
+    queryOptions = (_ref = this.options.responseModel.options.queryOptions) != null ? _ref : {};
+    fulltext = (queryOptions.term != null) && queryOptions.term !== '';
+    frag = document.createDocumentFragment();
+    _ref1 = this.options.responseModel.get('results');
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      result = _ref1[_i];
+      entryListItem = new Views.EntryListItem({
+        entryData: result,
+        fulltext: fulltext
+      });
+      this.listenTo(entryListItem, 'click', function(id) {
+        return this.trigger('navigate:entry', id);
+      });
+      frag.appendChild(entryListItem.el);
+    }
+    ulentries = this.el.querySelector('ul.entries');
+    ulentries.innerHTML = '';
+    ulentries.appendChild(frag);
+    ulentries.style.height = document.documentElement.clientHeight - dom(ulentries).position().top + 'px';
+    return this;
+  };
+
+  SearchResult.prototype.renderHeader = function() {
+    this.el.querySelector('h3.numfound').innerHTML = this.options.responseModel.get('numFound') + (" " + (config.get('entryTermPlural')) + " found");
+    this.renderLevels();
+    return this.renderPagination();
+  };
+
+  SearchResult.prototype.renderLevels = function() {
+    if (this.subviews.sortLevels != null) {
+      this.stopListening(this.subviews.sortLevels);
+      this.subviews.sortLevels.destroy();
+    }
+    this.subviews.sortLevels = new Views.SortLevels({
+      levels: this.options.levels,
+      entryMetadataFields: this.options.entryMetadataFields
+    });
+    this.$('header li.levels').html(this.subviews.sortLevels.$el);
+    return this.listenTo(this.subviews.sortLevels, 'change', (function(_this) {
+      return function(sortParameters) {
+        return _this.trigger('change:sort-levels', sortParameters);
+      };
+    })(this));
+  };
+
+  SearchResult.prototype.renderPagination = function() {
+    if (this.subviews.pagination != null) {
+      this.stopListening(this.subviews.pagination);
+      this.subviews.pagination.destroy();
+    }
+    this.subviews.pagination = new Views.Pagination({
+      start: this.options.responseModel.get('start'),
+      rowCount: this.options.resultRows,
+      resultCount: this.options.responseModel.get('numFound')
+    });
+    this.listenTo(this.subviews.pagination, 'change:pagenumber', (function(_this) {
+      return function(pagenumber) {
+        return _this.trigger('change:pagination', pagenumber);
+      };
+    })(this));
+    return this.$('header .pagination').html(this.subviews.pagination.el);
+  };
+
+  return SearchResult;
+
+})(Views.Base);
+
+module.exports = SearchResult;
+
+
+},{"../../models/config":3,"../sort-levels":13,"./templates/main.jade":11,"./views/entry-list-item":12,"hilib/src/utils/dom":80,"hilib/src/views/base":84,"hilib/src/views/pagination/main":96}],10:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var locals_ = (locals || {}),randomID = locals_.randomID,generateID = locals_.generateID,entryData = locals_.entryData,fulltext = locals_.fulltext,found = locals_.found;
+randomID = generateID()
+buf.push("<div class=\"edit-mode\"><input type=\"checkbox\"" + (jade.attr("data-id", entryData.id, true, false)) + (jade.attr("id", randomID, true, false)) + "/><label" + (jade.attr("for", randomID, true, false)) + ">" + (jade.escape(null == (jade.interp = entryData.name) ? "" : jade.interp)) + "</label></div><div class=\"default-mode\"><label>" + (jade.escape(null == (jade.interp = entryData.name) ? "" : jade.interp)) + "</label></div><div class=\"metadata\"><ul>");
+// iterate entryData.metadata
+;(function(){
+  var $$obj = entryData.metadata;
+  if ('number' == typeof $$obj.length) {
+
+    for (var key = 0, $$l = $$obj.length; key < $$l; key++) {
+      var value = $$obj[key];
+
+buf.push("<li><span class=\"key\">" + (jade.escape(null == (jade.interp = key+': ') ? "" : jade.interp)) + "</span><span class=\"value\">" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span></li>");
+    }
+
+  } else {
+    var $$l = 0;
+    for (var key in $$obj) {
+      $$l++;      var value = $$obj[key];
+
+buf.push("<li><span class=\"key\">" + (jade.escape(null == (jade.interp = key+': ') ? "" : jade.interp)) + "</span><span class=\"value\">" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span></li>");
+    }
+
+  }
+}).call(this);
+
+buf.push("</ul></div>");
+if ( fulltext)
+{
+buf.push("<div class=\"found\">" + (jade.escape(null == (jade.interp = found) ? "" : jade.interp)) + "</div><div class=\"keywords\"><ul>");
+if ( entryData._kwic != null)
+{
+// iterate entryData._kwic
+;(function(){
+  var $$obj = entryData._kwic;
+  if ('number' == typeof $$obj.length) {
+
+    for (var container = 0, $$l = $$obj.length; container < $$l; container++) {
+      var kwic = $$obj[container];
+
+// iterate kwic
+;(function(){
+  var $$obj = kwic;
+  if ('number' == typeof $$obj.length) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var row = $$obj[$index];
+
+buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj) {
+      $$l++;      var row = $$obj[$index];
+
+buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
+    }
+
+  }
+}).call(this);
+
+    }
+
+  } else {
+    var $$l = 0;
+    for (var container in $$obj) {
+      $$l++;      var kwic = $$obj[container];
+
+// iterate kwic
+;(function(){
+  var $$obj = kwic;
+  if ('number' == typeof $$obj.length) {
+
+    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
+      var row = $$obj[$index];
+
+buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
+    }
+
+  } else {
+    var $$l = 0;
+    for (var $index in $$obj) {
+      $$l++;      var row = $$obj[$index];
+
+buf.push("<li>" + (null == (jade.interp = '<span class="container">'+container + ':</span> '+ row) ? "" : jade.interp) + "</li>");
+    }
+
+  }
+}).call(this);
+
+    }
+
+  }
+}).call(this);
+
+}
+buf.push("</ul></div>");
+};return buf.join("");
+};
+},{"jade/runtime":101}],11:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+
+buf.push("<header><div class=\"editselection-placeholder\"></div><h3 class=\"numfound\"></h3><nav><ul><li class=\"levels\"></li><li class=\"display-keywords\"><input id=\"a9f7fg6\" type=\"checkbox\"/><label for=\"a9f7fg6\">Display keywords</label></li><li class=\"select-all\"><input id=\"i9d8sdf\" type=\"checkbox\"/><label for=\"i9d8sdf\">Select all</label></li></ul></nav><div class=\"pagination\"></div></header><ul class=\"entries\"></ul>");;return buf.join("");
+};
+},{"jade/runtime":101}],12:[function(require,module,exports){
+var Base, EntryListItem, Fn, tpl, _,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 _ = require('underscore');
 
@@ -2531,11 +2496,18 @@ EntryListItem = (function(_super) {
   };
 
   EntryListItem.prototype.render = function() {
-    var data, rtpl;
+    var count, data, found, rtpl, term, _ref;
+    found = [];
+    _ref = this.options.entryData.terms;
+    for (term in _ref) {
+      if (!__hasProp.call(_ref, term)) continue;
+      count = _ref[term];
+      found.push("" + count + "x " + term);
+    }
     data = _.extend(this.options, {
-      entry: this.model.toJSON(),
-      projectName: this.model.project.get('name'),
-      generateID: Fn.generateID
+      entryData: this.options.entryData,
+      generateID: Fn.generateID,
+      found: found.join(', ')
     });
     rtpl = tpl(data);
     this.$el.html(rtpl);
@@ -2546,9 +2518,7 @@ EntryListItem = (function(_super) {
     return {
       'click': function(ev) {
         if (this.$('.default-mode').is(":visible")) {
-          return Backbone.history.navigate('projects/' + this.model.project.get('name') + '/entries/' + this.model.id, {
-            trigger: true
-          });
+          return this.trigger('click', this.options.entryData.id);
         } else if (this.$('.edit-mode').is(":visible")) {
           return this.$('input')[0].checked = !this.$('input')[0].checked;
         }
@@ -2563,7 +2533,7 @@ EntryListItem = (function(_super) {
 module.exports = EntryListItem;
 
 
-},{"../templates/entry-list-item.jade":7,"backbone":13,"hilib/src/utils/general":79,"hilib/src/views/base":82,"underscore":102}],11:[function(require,module,exports){
+},{"../templates/entry-list-item.jade":10,"hilib/src/utils/general":81,"hilib/src/views/base":84,"underscore":104}],13:[function(require,module,exports){
 var $, SortLevels, Views, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2588,9 +2558,12 @@ SortLevels = (function(_super) {
   };
 
   SortLevels.prototype.render = function() {
-    this.$el.html(tpl({
-      project: this.options.project
-    }));
+    var rtpl;
+    rtpl = tpl({
+      levels: this.options.levels,
+      entryMetadataFields: this.options.entryMetadataFields
+    });
+    this.$el.html(rtpl);
     return this.$el.mouseleave((function(_this) {
       return function(ev) {
         if (ev.target.tagName !== 'SELECT') {
@@ -2610,13 +2583,11 @@ SortLevels = (function(_super) {
   };
 
   SortLevels.prototype.toggleLevels = function(ev) {
-    console.log('a');
     return this.$('ul.levels').toggle();
   };
 
   SortLevels.prototype.changeLevels = function(ev) {
     var $target, i, select, target, _i, _j, _len, _len1, _ref, _ref1, _results;
-    console.log('b');
     this.$('ul.levels').addClass('show-save-button');
     target = ev.currentTarget;
     _ref = this.el.querySelectorAll('ul.levels select');
@@ -2639,7 +2610,6 @@ SortLevels = (function(_super) {
 
   SortLevels.prototype.changeAlphaSort = function(ev) {
     var $target;
-    console.log('c');
     this.$('ul.levels').addClass('show-save-button');
     $target = this.$(ev.currentTarget);
     $target.toggleClass('fa-sort-alpha-asc');
@@ -2648,7 +2618,6 @@ SortLevels = (function(_super) {
 
   SortLevels.prototype.saveLevels = function() {
     var li, select, sortParameter, sortParameters, _i, _len, _ref;
-    console.log('d');
     sortParameters = [];
     _ref = this.el.querySelectorAll('ul.levels li[name]');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -2669,13 +2638,13 @@ SortLevels = (function(_super) {
 module.exports = SortLevels;
 
 
-},{"./templates/main.jade":12,"hilib/src/views/base":82,"jquery":15}],12:[function(require,module,exports){
+},{"./templates/main.jade":14,"hilib/src/views/base":84,"jquery":17}],14:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
-var locals_ = (locals || {}),project = locals_.project;
+var locals_ = (locals || {}),entryMetadataFields = locals_.entryMetadataFields,levels = locals_.levels;
 buf.push("<button class=\"toggle\">Levels<i class=\"fa fa-caret-down\"></i></button><ul class=\"levels\">");
 // iterate [1, 2, 3]
 ;(function(){
@@ -2686,15 +2655,15 @@ buf.push("<button class=\"toggle\">Levels<i class=\"fa fa-caret-down\"></i></but
       var i = $$obj[$index];
 
 buf.push("<li" + (jade.attr("name", 'level'+i, true, false)) + "><label>" + (jade.escape(null == (jade.interp = 'Level '+i) ? "" : jade.interp)) + "</label><select" + (jade.attr("name", 'level'+i, true, false)) + "><option></option>");
-// iterate project.get('entrymetadatafields')
+// iterate entryMetadataFields
 ;(function(){
-  var $$obj = project.get('entrymetadatafields');
+  var $$obj = entryMetadataFields;
   if ('number' == typeof $$obj.length) {
 
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var field = $$obj[$index];
 
-buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==project.get('level'+i), true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
+buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==levels[i-1], true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
     }
 
   } else {
@@ -2702,7 +2671,7 @@ buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("sele
     for (var $index in $$obj) {
       $$l++;      var field = $$obj[$index];
 
-buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==project.get('level'+i), true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
+buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==levels[i-1], true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
     }
 
   }
@@ -2717,15 +2686,15 @@ buf.push("</select><i class=\"fa fa-sort-alpha-asc\"></i></li>");
       $$l++;      var i = $$obj[$index];
 
 buf.push("<li" + (jade.attr("name", 'level'+i, true, false)) + "><label>" + (jade.escape(null == (jade.interp = 'Level '+i) ? "" : jade.interp)) + "</label><select" + (jade.attr("name", 'level'+i, true, false)) + "><option></option>");
-// iterate project.get('entrymetadatafields')
+// iterate entryMetadataFields
 ;(function(){
-  var $$obj = project.get('entrymetadatafields');
+  var $$obj = entryMetadataFields;
   if ('number' == typeof $$obj.length) {
 
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var field = $$obj[$index];
 
-buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==project.get('level'+i), true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
+buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==levels[i-1], true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
     }
 
   } else {
@@ -2733,7 +2702,7 @@ buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("sele
     for (var $index in $$obj) {
       $$l++;      var field = $$obj[$index];
 
-buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==project.get('level'+i), true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
+buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("selected", field==levels[i-1], true, false)) + ">" + (jade.escape(null == (jade.interp = field) ? "" : jade.interp)) + "</option>");
     }
 
   }
@@ -2747,9 +2716,9 @@ buf.push("</select><i class=\"fa fa-sort-alpha-asc\"></i></li>");
 
 buf.push("<li><button class=\"search\">Search</button></li></ul>");;return buf.join("");
 };
-},{"jade/runtime":99}],13:[function(require,module,exports){
+},{"jade/runtime":101}],15:[function(require,module,exports){
 module.exports=require(1)
-},{"underscore":14}],14:[function(require,module,exports){
+},{"underscore":16}],16:[function(require,module,exports){
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4094,7 +4063,7 @@ module.exports=require(1)
   }
 }).call(this);
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.0
  * http://jquery.com/
@@ -13207,15 +13176,15 @@ return jQuery;
 
 }));
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"underscore":28}],17:[function(require,module,exports){
+},{"underscore":30}],19:[function(require,module,exports){
 module.exports=require(1)
-},{"underscore":19}],18:[function(require,module,exports){
-module.exports=require(15)
-},{}],19:[function(require,module,exports){
-module.exports=require(14)
-},{}],20:[function(require,module,exports){
+},{"underscore":21}],20:[function(require,module,exports){
+module.exports=require(17)
+},{}],21:[function(require,module,exports){
+module.exports=require(16)
+},{}],22:[function(require,module,exports){
 var $, defaultOptions, token;
 
 $ = require('jquery');
@@ -13289,7 +13258,7 @@ module.exports = {
 };
 
 
-},{"./token":21,"jquery":18}],21:[function(require,module,exports){
+},{"./token":23,"jquery":20}],23:[function(require,module,exports){
 var Token;
 
 Token = (function() {
@@ -13329,7 +13298,7 @@ Token = (function() {
 module.exports = new Token();
 
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var Backbone;
 
 Backbone = require('backbone');
@@ -13344,7 +13313,7 @@ module.exports = {
 };
 
 
-},{"backbone":17}],23:[function(require,module,exports){
+},{"backbone":19}],25:[function(require,module,exports){
 var DOM, _;
 
 _ = require('underscore');
@@ -13537,7 +13506,7 @@ module.exports = DOM = function(el) {
 };
 
 
-},{"underscore":19}],24:[function(require,module,exports){
+},{"underscore":21}],26:[function(require,module,exports){
 var $,
   __hasProp = {}.hasOwnProperty;
 
@@ -13870,7 +13839,7 @@ module.exports = {
 };
 
 
-},{"jquery":18}],25:[function(require,module,exports){
+},{"jquery":20}],27:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -13939,7 +13908,7 @@ module.exports = {
 };
 
 
-},{"jquery":18}],26:[function(require,module,exports){
+},{"jquery":20}],28:[function(require,module,exports){
 (function (global){
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jade=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
@@ -14152,9 +14121,9 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
 (1)
 });
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"fs":2}],27:[function(require,module,exports){
-module.exports=require(15)
-},{}],28:[function(require,module,exports){
+},{"fs":2}],29:[function(require,module,exports){
+module.exports=require(17)
+},{}],30:[function(require,module,exports){
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
@@ -15382,7 +15351,7 @@ module.exports=require(15)
 
 }).call(this);
 
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 var Backbone, ListOptions, Models, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15476,7 +15445,7 @@ ListOptions = (function(_super) {
 module.exports = ListOptions;
 
 
-},{"../models/list.option":38,"backbone":16,"underscore":28}],30:[function(require,module,exports){
+},{"../models/list.option":40,"backbone":18,"underscore":30}],32:[function(require,module,exports){
 var Backbone, SearchResult, SearchResults, ajax, config, pubsub, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15578,7 +15547,7 @@ SearchResults = (function(_super) {
 module.exports = SearchResults;
 
 
-},{"../config":31,"../models/searchresult":42,"backbone":16,"hilib/src/managers/ajax":20,"hilib/src/managers/token":21,"hilib/src/mixins/pubsub":22,"underscore":28}],31:[function(require,module,exports){
+},{"../config":33,"../models/searchresult":44,"backbone":18,"hilib/src/managers/ajax":22,"hilib/src/managers/token":23,"hilib/src/mixins/pubsub":24,"underscore":30}],33:[function(require,module,exports){
 module.exports = {
   baseUrl: '',
   searchPath: '',
@@ -15589,7 +15558,7 @@ module.exports = {
 };
 
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = {
   BOOLEAN: require('./views/facets/boolean'),
   DATE: require('./views/facets/date'),
@@ -15598,7 +15567,7 @@ module.exports = {
 };
 
 
-},{"./views/facets/boolean":43,"./views/facets/date":44,"./views/facets/list":45,"./views/facets/range":48}],33:[function(require,module,exports){
+},{"./views/facets/boolean":45,"./views/facets/date":46,"./views/facets/list":47,"./views/facets/range":50}],35:[function(require,module,exports){
 var $, Backbone, Fn, MainModel, MainView, Views, config, dom, facetViewMap, pubsub, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15855,7 +15824,7 @@ MainView = (function(_super) {
 module.exports = MainView;
 
 
-},{"../jade/main.jade":59,"./config":31,"./facetviewmap":32,"./models/main":39,"./views/facets/boolean":43,"./views/facets/date":44,"./views/facets/list":45,"./views/search":49,"backbone":16,"hilib/src/mixins/pubsub":22,"hilib/src/utils/dom":23,"hilib/src/utils/general":24,"jquery":27,"underscore":28}],34:[function(require,module,exports){
+},{"../jade/main.jade":61,"./config":33,"./facetviewmap":34,"./models/main":41,"./views/facets/boolean":45,"./views/facets/date":46,"./views/facets/list":47,"./views/search":51,"backbone":18,"hilib/src/mixins/pubsub":24,"hilib/src/utils/dom":25,"hilib/src/utils/general":26,"jquery":29,"underscore":30}],36:[function(require,module,exports){
 var BooleanFacet, Models,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15899,7 +15868,7 @@ BooleanFacet = (function(_super) {
 module.exports = BooleanFacet;
 
 
-},{"./facet":36}],35:[function(require,module,exports){
+},{"./facet":38}],37:[function(require,module,exports){
 var DateFacet, Models,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15931,7 +15900,7 @@ DateFacet = (function(_super) {
 module.exports = DateFacet;
 
 
-},{"../models/facet":36}],36:[function(require,module,exports){
+},{"../models/facet":38}],38:[function(require,module,exports){
 var Backbone, Facet, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15965,7 +15934,7 @@ Facet = (function(_super) {
 module.exports = Facet;
 
 
-},{"../config":31,"backbone":16}],37:[function(require,module,exports){
+},{"../config":33,"backbone":18}],39:[function(require,module,exports){
 var List, Models,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15988,7 +15957,7 @@ List = (function(_super) {
 module.exports = List;
 
 
-},{"./facet":36}],38:[function(require,module,exports){
+},{"./facet":38}],40:[function(require,module,exports){
 var Backbone, ListOption,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16025,7 +15994,7 @@ ListOption = (function(_super) {
 module.exports = ListOption;
 
 
-},{"backbone":16}],39:[function(require,module,exports){
+},{"backbone":18}],41:[function(require,module,exports){
 var Backbone, MainModel, SearchResults, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16113,7 +16082,7 @@ MainModel = (function(_super) {
 module.exports = MainModel;
 
 
-},{"../collections/searchresults":30,"backbone":16,"underscore":28}],40:[function(require,module,exports){
+},{"../collections/searchresults":32,"backbone":18,"underscore":30}],42:[function(require,module,exports){
 var FacetModel, RangeFacet,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16143,7 +16112,7 @@ RangeFacet = (function(_super) {
 module.exports = RangeFacet;
 
 
-},{"../models/facet":36}],41:[function(require,module,exports){
+},{"../models/facet":38}],43:[function(require,module,exports){
 var Backbone, Search, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16184,7 +16153,7 @@ Search = (function(_super) {
 module.exports = Search;
 
 
-},{"backbone":16,"underscore":28}],42:[function(require,module,exports){
+},{"backbone":18,"underscore":30}],44:[function(require,module,exports){
 var Backbone, SearchResult, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16303,7 +16272,7 @@ SearchResult = (function(_super) {
 module.exports = SearchResult;
 
 
-},{"../config":31,"backbone":16,"hilib/src/managers/ajax":20,"hilib/src/managers/token":21}],43:[function(require,module,exports){
+},{"../config":33,"backbone":18,"hilib/src/managers/ajax":22,"hilib/src/managers/token":23}],45:[function(require,module,exports){
 var BooleanFacet, Models, StringFn, Views, bodyTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16396,7 +16365,7 @@ BooleanFacet = (function(_super) {
 module.exports = BooleanFacet;
 
 
-},{"../../../jade/facets/boolean.body.jade":50,"../../models/boolean":34,"./main":47,"hilib/src/utils/string":25,"underscore":28}],44:[function(require,module,exports){
+},{"../../../jade/facets/boolean.body.jade":52,"../../models/boolean":36,"./main":49,"hilib/src/utils/string":27,"underscore":30}],46:[function(require,module,exports){
 var DateFacet, Models, StringFn, Views, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16452,7 +16421,7 @@ DateFacet = (function(_super) {
 module.exports = DateFacet;
 
 
-},{"../../../jade/facets/date.jade":51,"../../models/date":35,"./main":47,"hilib/src/utils/string":25}],45:[function(require,module,exports){
+},{"../../../jade/facets/date.jade":53,"../../models/date":37,"./main":49,"hilib/src/utils/string":27}],47:[function(require,module,exports){
 var Collections, Fn, ListFacet, Models, Views, bodyTpl, menuTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16584,7 +16553,7 @@ ListFacet = (function(_super) {
 module.exports = ListFacet;
 
 
-},{"../../../jade/facets/list.body.jade":52,"../../../jade/facets/list.menu.jade":53,"../../collections/list.options":29,"../../models/list":37,"./list.options":46,"./main":47,"hilib/src/utils/general":24,"underscore":28}],46:[function(require,module,exports){
+},{"../../../jade/facets/list.body.jade":54,"../../../jade/facets/list.menu.jade":55,"../../collections/list.options":31,"../../models/list":39,"./list.options":48,"./main":49,"hilib/src/utils/general":26,"underscore":30}],48:[function(require,module,exports){
 var Backbone, Fn, ListFacetOptions, Models, optionTpl, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -16753,7 +16722,7 @@ ListFacetOptions = (function(_super) {
 module.exports = ListFacetOptions;
 
 
-},{"../../../jade/facets/list.option.jade":54,"../../models/list":37,"backbone":16,"hilib/src/utils/general":24,"underscore":28}],47:[function(require,module,exports){
+},{"../../../jade/facets/list.option.jade":56,"../../models/list":39,"backbone":18,"hilib/src/utils/general":26,"underscore":30}],49:[function(require,module,exports){
 var $, Backbone, Facet, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16844,7 +16813,7 @@ Facet = (function(_super) {
 module.exports = Facet;
 
 
-},{"../../../jade/facets/main.jade":55,"backbone":16,"jquery":27}],48:[function(require,module,exports){
+},{"../../../jade/facets/main.jade":57,"backbone":18,"jquery":29}],50:[function(require,module,exports){
 var Models, RangeFacet, Views, bodyTpl, handleSize,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -17036,7 +17005,7 @@ RangeFacet = (function(_super) {
 module.exports = RangeFacet;
 
 
-},{"../../../jade/facets/range.body.jade":56,"../../models/range":40,"./main":47}],49:[function(require,module,exports){
+},{"../../../jade/facets/range.body.jade":58,"../../models/range":42,"./main":49}],51:[function(require,module,exports){
 var Models, SearchView, Views, bodyTpl, config, menuTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -17164,7 +17133,7 @@ SearchView = (function(_super) {
 module.exports = SearchView;
 
 
-},{"../../jade/facets/search.body.jade":57,"../../jade/facets/search.menu.jade":58,"../config":31,"../models/search":41,"./facets/main":47,"underscore":28}],50:[function(require,module,exports){
+},{"../../jade/facets/search.body.jade":59,"../../jade/facets/search.menu.jade":60,"../config":33,"../models/search":43,"./facets/main":49,"underscore":30}],52:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17196,7 +17165,7 @@ buf.push("<li><div class=\"row span6\"><div class=\"cell span5\"><i" + (jade.att
 
 buf.push("</ul>");;return buf.join("");
 };
-},{"jade/runtime":26}],51:[function(require,module,exports){
+},{"jade/runtime":28}],53:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17251,7 +17220,7 @@ buf.push("<option>" + (jade.escape(null == (jade.interp = option) ? "" : jade.in
 
 buf.push("</select></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],52:[function(require,module,exports){
+},{"jade/runtime":28}],54:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17260,7 +17229,7 @@ var jade_mixins = {};
 
 buf.push("<ul></ul>");;return buf.join("");
 };
-},{"jade/runtime":26}],53:[function(require,module,exports){
+},{"jade/runtime":28}],55:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17269,7 +17238,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),selectAll = locals_.selectAll;
 buf.push("<input type=\"checkbox\" name=\"all\"" + (jade.attr("style", selectAll?'visibility:visible':'visibility:hidden', true, false)) + "/><input type=\"text\" name=\"filter\"/><small class=\"optioncount\"></small><div class=\"orderby\"><i class=\"alpha fa fa-sort-alpha-asc\"></i><i class=\"amount active fa fa-sort-amount-desc\"></i></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],54:[function(require,module,exports){
+},{"jade/runtime":28}],56:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17278,7 +17247,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),option = locals_.option;
 buf.push("<li" + (jade.attr("data-count", option.get('count'), true, false)) + "><i" + (jade.attr("data-value", option.id, true, false)) + (jade.cls([option.get('checked')?'fa fa-check-square-o':'fa fa-square-o'], [true])) + "></i><label" + (jade.attr("data-value", option.id, true, false)) + ">" + (null == (jade.interp = option.id === ':empty' ? '<em>(empty)</em>' : option.id) ? "" : jade.interp) + "</label><div class=\"count\">" + (jade.escape(null == (jade.interp = option.get('count') === 0 ? option.get('total') : option.get('count')) ? "" : jade.interp)) + "</div></li>");;return buf.join("");
 };
-},{"jade/runtime":26}],55:[function(require,module,exports){
+},{"jade/runtime":28}],57:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17287,7 +17256,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),name = locals_.name,title = locals_.title;
 buf.push("<div class=\"placeholder pad4\"><header><h3" + (jade.attr("data-name", name, true, false)) + ">" + (jade.escape(null == (jade.interp = title) ? "" : jade.interp)) + "</h3><i class=\"openclose fa fa-plus-square-o\"></i><div class=\"options\"></div></header><div class=\"body\"></div></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],56:[function(require,module,exports){
+},{"jade/runtime":28}],58:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17296,7 +17265,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),options = locals_.options;
 buf.push("<div class=\"slider\"><div class=\"min-handle\"></div><div class=\"max-handle\"></div><div class=\"bar\">&nbsp;</div><div class=\"min-value\">" + (jade.escape(null == (jade.interp = options.lowerLimit) ? "" : jade.interp)) + "</div><div class=\"max-value\">" + (jade.escape(null == (jade.interp = options.upperLimit) ? "" : jade.interp)) + "</div><button>Search?</button></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],57:[function(require,module,exports){
+},{"jade/runtime":28}],59:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17305,7 +17274,7 @@ var jade_mixins = {};
 
 buf.push("<div class=\"row span4 align middle\"><div class=\"cell span3\"><div class=\"padr4\"><input type=\"text\" name=\"search\"/></div></div><div class=\"cell span1\"><button class=\"search\">Search</button></div></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],58:[function(require,module,exports){
+},{"jade/runtime":28}],60:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17355,7 +17324,7 @@ buf.push("<li class=\"searchin\"><input id=\"cb_searchin_annotations\" type=\"ch
 buf.push("</ul>");
 };return buf.join("");
 };
-},{"jade/runtime":26}],59:[function(require,module,exports){
+},{"jade/runtime":28}],61:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17364,15 +17333,15 @@ var jade_mixins = {};
 
 buf.push("<div class=\"overlay\"><div><i class=\"fa fa-spinner fa-spin fa-2x\"></i></div></div><div class=\"faceted-search\"><i class=\"fa fa-compress\"></i><form><div class=\"search-placeholder\"></div><div class=\"facets\"><div class=\"loader\"><h4>Loading facets...</h4><br/><i class=\"fa fa-spinner fa-spin fa-2x\"></i></div></div></form></div>");;return buf.join("");
 };
-},{"jade/runtime":26}],60:[function(require,module,exports){
+},{"jade/runtime":28}],62:[function(require,module,exports){
 module.exports=require(1)
-},{"underscore":63}],61:[function(require,module,exports){
-module.exports=require(26)
-},{"fs":2}],62:[function(require,module,exports){
-module.exports=require(15)
-},{}],63:[function(require,module,exports){
-module.exports=require(14)
-},{}],64:[function(require,module,exports){
+},{"underscore":65}],63:[function(require,module,exports){
+module.exports=require(28)
+},{"fs":2}],64:[function(require,module,exports){
+module.exports=require(17)
+},{}],65:[function(require,module,exports){
+module.exports=require(16)
+},{}],66:[function(require,module,exports){
 var Backbone, Base, Pubsub, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -17415,7 +17384,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"../mixins/pubsub":76,"backbone":60,"underscore":63}],65:[function(require,module,exports){
+},{"../mixins/pubsub":78,"backbone":62,"underscore":65}],67:[function(require,module,exports){
 var $, defaultOptions, token;
 
 $ = require('jquery');
@@ -17489,7 +17458,7 @@ module.exports = {
 };
 
 
-},{"./token":69,"jquery":62}],66:[function(require,module,exports){
+},{"./token":71,"jquery":64}],68:[function(require,module,exports){
 var Async, Backbone, _;
 
 Backbone = require('backbone');
@@ -17529,7 +17498,7 @@ Async = (function() {
 module.exports = Async;
 
 
-},{"backbone":60,"underscore":63}],67:[function(require,module,exports){
+},{"backbone":62,"underscore":65}],69:[function(require,module,exports){
 var History;
 
 History = (function() {
@@ -17559,7 +17528,7 @@ History = (function() {
 module.exports = new History();
 
 
-},{}],68:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 var $, ModalManager;
 
 $ = require('jquery');
@@ -17601,7 +17570,7 @@ ModalManager = (function() {
 module.exports = new ModalManager();
 
 
-},{"jquery":62}],69:[function(require,module,exports){
+},{"jquery":64}],71:[function(require,module,exports){
 var Token;
 
 Token = (function() {
@@ -17641,7 +17610,7 @@ Token = (function() {
 module.exports = new Token();
 
 
-},{}],70:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 var StringFn, ViewManager;
 
 StringFn = require('../utils/string');
@@ -17693,7 +17662,7 @@ ViewManager = (function() {
 module.exports = new ViewManager();
 
 
-},{"../utils/string":81}],71:[function(require,module,exports){
+},{"../utils/string":83}],73:[function(require,module,exports){
 var $, Backbone, Fn, mainTpl, optionMixin, _;
 
 Backbone = require('backbone');
@@ -17883,7 +17852,7 @@ module.exports = {
 };
 
 
-},{"../../utils/general":79,"./main.jade":72,"./options":73,"backbone":60,"jquery":62,"underscore":63}],72:[function(require,module,exports){
+},{"../../utils/general":81,"./main.jade":74,"./options":75,"backbone":62,"jquery":64,"underscore":65}],74:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17913,7 +17882,7 @@ buf.push("<li" + (jade.attr("data-id", model.id, true, false)) + (jade.cls(['lis
 }).call(this);
 ;return buf.join("");
 };
-},{"jade/runtime":61}],73:[function(require,module,exports){
+},{"jade/runtime":63}],75:[function(require,module,exports){
 module.exports = {
   dropdownOptionsInitialize: function() {
     return this.resetCurrentOption();
@@ -17944,7 +17913,7 @@ module.exports = {
 };
 
 
-},{}],74:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 module.exports = function(attrs) {
   return {
     changedSinceLastSave: null,
@@ -17980,7 +17949,7 @@ module.exports = function(attrs) {
 };
 
 
-},{}],75:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 var ajax, token;
 
 ajax = require('../managers/ajax');
@@ -18047,7 +18016,7 @@ module.exports = {
 };
 
 
-},{"../managers/ajax":65,"../managers/token":69}],76:[function(require,module,exports){
+},{"../managers/ajax":67,"../managers/token":71}],78:[function(require,module,exports){
 var Backbone;
 
 Backbone = require('backbone');
@@ -18062,7 +18031,7 @@ module.exports = {
 };
 
 
-},{"backbone":60}],77:[function(require,module,exports){
+},{"backbone":62}],79:[function(require,module,exports){
 var Fn,
   __hasProp = {}.hasOwnProperty;
 
@@ -18161,7 +18130,7 @@ module.exports = {
 };
 
 
-},{"../utils/general":79}],78:[function(require,module,exports){
+},{"../utils/general":81}],80:[function(require,module,exports){
 var DOM, _;
 
 _ = require('underscore');
@@ -18354,7 +18323,7 @@ module.exports = DOM = function(el) {
 };
 
 
-},{"underscore":63}],79:[function(require,module,exports){
+},{"underscore":65}],81:[function(require,module,exports){
 var $,
   __hasProp = {}.hasOwnProperty;
 
@@ -18687,7 +18656,7 @@ module.exports = {
 };
 
 
-},{"jquery":62}],80:[function(require,module,exports){
+},{"jquery":64}],82:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -18774,7 +18743,7 @@ $ = require('jquery');
 })($);
 
 
-},{"jquery":62}],81:[function(require,module,exports){
+},{"jquery":64}],83:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -18843,7 +18812,7 @@ module.exports = {
 };
 
 
-},{"jquery":62}],82:[function(require,module,exports){
+},{"jquery":64}],84:[function(require,module,exports){
 var Backbone, BaseView, Pubsub, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -18883,7 +18852,7 @@ BaseView = (function(_super) {
 module.exports = BaseView;
 
 
-},{"../mixins/pubsub":76,"backbone":60,"underscore":63}],83:[function(require,module,exports){
+},{"../mixins/pubsub":78,"backbone":62,"underscore":65}],85:[function(require,module,exports){
 var Backbone, Collections, ComboList, Views, dom, dropdown, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -19052,7 +19021,7 @@ ComboList = (function(_super) {
 module.exports = ComboList;
 
 
-},{"../../../collections/base":64,"../../../mixins/dropdown/main":71,"../../../utils/dom":78,"../../base":82,"./main.jade":84,"backbone":60,"underscore":63}],84:[function(require,module,exports){
+},{"../../../collections/base":66,"../../../mixins/dropdown/main":73,"../../../utils/dom":80,"../../base":84,"./main.jade":86,"backbone":62,"underscore":65}],86:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -19101,7 +19070,7 @@ else
 buf.push("<div class=\"empty\">The list is empty.</div>");
 };return buf.join("");
 };
-},{"jade/runtime":61}],85:[function(require,module,exports){
+},{"jade/runtime":63}],87:[function(require,module,exports){
 var Collections, EditableList, Views, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -19229,7 +19198,7 @@ EditableList = (function(_super) {
 module.exports = EditableList;
 
 
-},{"../../../collections/base":64,"../../base":82,"./main.jade":86,"underscore":63}],86:[function(require,module,exports){
+},{"../../../collections/base":66,"../../base":84,"./main.jade":88,"underscore":65}],88:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -19269,7 +19238,7 @@ else
 buf.push("<div class=\"empty\">The list is empty.</div>");
 };return buf.join("");
 };
-},{"jade/runtime":61}],87:[function(require,module,exports){
+},{"jade/runtime":63}],89:[function(require,module,exports){
 var Backbone, Fn, Form, Views, dom, validation, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -19535,7 +19504,7 @@ Form = (function(_super) {
 module.exports = Form;
 
 
-},{"../../mixins/validation":77,"../../utils/dom":78,"../../utils/general":79,"../base":82,"backbone":60,"underscore":63}],88:[function(require,module,exports){
+},{"../../mixins/validation":79,"../../utils/dom":80,"../../utils/general":81,"../base":84,"backbone":62,"underscore":65}],90:[function(require,module,exports){
 module.exports = {
   65: 'a',
   66: 'b',
@@ -19567,7 +19536,7 @@ module.exports = {
 };
 
 
-},{}],89:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 module.exports = {
   'A': 'ĀĂÀÁÂÃÄÅĄⱭ∀Æ',
   'B': 'Ɓ',
@@ -19630,7 +19599,7 @@ module.exports = {
 };
 
 
-},{}],90:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 var Fn, Longpress, Views, codes, diacritics, shiftcodes,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -19796,7 +19765,7 @@ Longpress = (function(_super) {
 module.exports = Longpress;
 
 
-},{"../../utils/general":79,"../base":82,"./codes":88,"./diacritics":89,"./shiftcodes":91}],91:[function(require,module,exports){
+},{"../../utils/general":81,"../base":84,"./codes":90,"./diacritics":91,"./shiftcodes":93}],93:[function(require,module,exports){
 module.exports = {
   65: 'A',
   66: 'B',
@@ -19832,7 +19801,7 @@ module.exports = {
 };
 
 
-},{}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 var Backbone, Modal, dom, modalManager, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -19988,7 +19957,7 @@ Modal = (function(_super) {
 module.exports = Modal;
 
 
-},{"../../managers/modal":68,"../../utils/dom":78,"./main.jade":93,"backbone":60,"underscore":63}],93:[function(require,module,exports){
+},{"../../managers/modal":70,"../../utils/dom":80,"./main.jade":95,"backbone":62,"underscore":65}],95:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -20007,7 +19976,7 @@ buf.push("<footer><button class=\"cancel\">" + (jade.escape(null == (jade.interp
 }
 buf.push("</div>");;return buf.join("");
 };
-},{"jade/runtime":61}],94:[function(require,module,exports){
+},{"jade/runtime":63}],96:[function(require,module,exports){
 var Fn, Pagination, Views, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -20100,7 +20069,7 @@ Pagination = (function(_super) {
 module.exports = Pagination;
 
 
-},{"../../utils/general":79,"../base":82,"./main.jade":95}],95:[function(require,module,exports){
+},{"../../utils/general":81,"../base":84,"./main.jade":97}],97:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -20119,7 +20088,7 @@ buf.push("<li" + (jade.cls(['next10',currentPage<=pageCount-10?'active':''], [nu
 }
 buf.push("</ul>");;return buf.join("");
 };
-},{"jade/runtime":61}],96:[function(require,module,exports){
+},{"jade/runtime":63}],98:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -20151,7 +20120,7 @@ buf.push("<li>" + (jade.escape(null == (jade.interp = diacritic) ? "" : jade.int
 
 buf.push("</ul>");;return buf.join("");
 };
-},{"jade/runtime":61}],97:[function(require,module,exports){
+},{"jade/runtime":63}],99:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -20160,7 +20129,7 @@ var jade_mixins = {};
 
 buf.push("<div class=\"ste-header\"></div><div class=\"ste-body\"></div>");;return buf.join("");
 };
-},{"jade/runtime":61}],98:[function(require,module,exports){
+},{"jade/runtime":63}],100:[function(require,module,exports){
 var $, Fn, Longpress, StringFn, SuperTinyEditor, Views, diacriticsTpl, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -20436,11 +20405,11 @@ SuperTinyEditor = (function(_super) {
 module.exports = SuperTinyEditor;
 
 
-},{"../../utils/general":79,"../../utils/jquery.mixin":80,"../../utils/string":81,"../base":82,"../longpress/main":90,"./diacritics.jade":96,"./main.jade":97,"jquery":62}],99:[function(require,module,exports){
-module.exports=require(26)
-},{"fs":2}],100:[function(require,module,exports){
-module.exports=require(15)
-},{}],101:[function(require,module,exports){
+},{"../../utils/general":81,"../../utils/jquery.mixin":82,"../../utils/string":83,"../base":84,"../longpress/main":92,"./diacritics.jade":98,"./main.jade":99,"jquery":64}],101:[function(require,module,exports){
+module.exports=require(28)
+},{"fs":2}],102:[function(require,module,exports){
+module.exports=require(17)
+},{}],103:[function(require,module,exports){
 //  Underscore.string
 //  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 //  Underscore.string is freely distributable under the terms of the MIT license.
@@ -21115,9 +21084,9 @@ module.exports=require(15)
   root._.string = root._.str = _s;
 }(this, String);
 
-},{}],102:[function(require,module,exports){
-module.exports=require(14)
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
+module.exports=require(16)
+},{}],105:[function(require,module,exports){
 var $, Backbone, MainRouter, Views, history, projects;
 
 Backbone = require('backbone');
@@ -21170,7 +21139,7 @@ module.exports = function() {
 };
 
 
-},{"./collections/projects":110,"./routers/main":130,"./views/ui/header":147,"backbone":1,"hilib/src/managers/history":67,"jquery":100}],104:[function(require,module,exports){
+},{"./collections/projects":112,"./routers/main":132,"./views/ui/header":150,"backbone":1,"hilib/src/managers/history":69,"jquery":102}],106:[function(require,module,exports){
 var Annotations, Base, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21207,7 +21176,7 @@ Annotations = (function(_super) {
 module.exports = Annotations;
 
 
-},{"../config":113,"../models/annotation":116,"./base":105}],105:[function(require,module,exports){
+},{"../config":115,"../models/annotation":118,"./base":107}],107:[function(require,module,exports){
 var Backbone, Base, Pubsub, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21255,7 +21224,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"backbone":1,"hilib/src/managers/token":69,"hilib/src/mixins/pubsub":76,"underscore":102}],106:[function(require,module,exports){
+},{"backbone":1,"hilib/src/managers/token":71,"hilib/src/mixins/pubsub":78,"underscore":104}],108:[function(require,module,exports){
 var Base, Entries, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21316,7 +21285,7 @@ Entries = (function(_super) {
 module.exports = Entries;
 
 
-},{"../config":113,"../models/entry":119,"./base":105}],107:[function(require,module,exports){
+},{"../config":115,"../models/entry":121,"./base":107}],109:[function(require,module,exports){
 var Base, Facsimiles, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21371,7 +21340,7 @@ Facsimiles = (function(_super) {
 module.exports = Facsimiles;
 
 
-},{"../config":113,"../models/facsimile":121,"./base":105}],108:[function(require,module,exports){
+},{"../config":115,"../models/facsimile":123,"./base":107}],110:[function(require,module,exports){
 var AnnotationTypes, Base, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21408,7 +21377,7 @@ AnnotationTypes = (function(_super) {
 module.exports = AnnotationTypes;
 
 
-},{"../../config":113,"../../models/project/annotationtype":122,"../base":105}],109:[function(require,module,exports){
+},{"../../config":115,"../../models/project/annotationtype":124,"../base":107}],111:[function(require,module,exports){
 var ProjectHistory, ajax, config, token;
 
 config = require('../../config');
@@ -21442,7 +21411,7 @@ ProjectHistory = (function() {
 module.exports = ProjectHistory;
 
 
-},{"../../config":113,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],110:[function(require,module,exports){
+},{"../../config":115,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],112:[function(require,module,exports){
 var Backbone, Base, Models, Projects, config, history, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21535,7 +21504,7 @@ Projects = (function(_super) {
 module.exports = new Projects();
 
 
-},{"../config":113,"../models/project/main":123,"./base":105,"backbone":1,"hilib/src/managers/history":67,"underscore":102}],111:[function(require,module,exports){
+},{"../config":115,"../models/project/main":125,"./base":107,"backbone":1,"hilib/src/managers/history":69,"underscore":104}],113:[function(require,module,exports){
 var Base, Models, StringFn, Transcriptions, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21609,7 +21578,7 @@ Transcriptions = (function(_super) {
 module.exports = Transcriptions;
 
 
-},{"../config":113,"../models/transcription":126,"./base":105,"hilib/src/utils/string":81,"underscore":102}],112:[function(require,module,exports){
+},{"../config":115,"../models/transcription":128,"./base":107,"hilib/src/utils/string":83,"underscore":104}],114:[function(require,module,exports){
 var Collections, User, Users, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21652,7 +21621,7 @@ Users = (function(_super) {
 module.exports = Users;
 
 
-},{"../config":113,"../models/user":127,"./base":105}],113:[function(require,module,exports){
+},{"../config":115,"../models/user":129,"./base":107}],115:[function(require,module,exports){
 module.exports = {
   baseUrl: 'http://rest.elaborate.huygens.knaw.nl/',
   baseURL: 'http://rest.elaborate.huygens.knaw.nl/',
@@ -21665,7 +21634,7 @@ module.exports = {
 };
 
 
-},{}],114:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 var EntryMetadata, ajax, config, token;
 
 config = require('./config');
@@ -21717,7 +21686,7 @@ EntryMetadata = (function() {
 module.exports = EntryMetadata;
 
 
-},{"./config":113,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],115:[function(require,module,exports){
+},{"./config":115,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],117:[function(require,module,exports){
 var $, app;
 
 $ = require('jquery');
@@ -21729,7 +21698,7 @@ $(function() {
 });
 
 
-},{"./app":103,"jquery":100}],116:[function(require,module,exports){
+},{"./app":105,"jquery":102}],118:[function(require,module,exports){
 var Annotation, Backbone, Models, ajax, changedSinceLastSave, config, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21895,7 +21864,7 @@ Annotation = (function(_super) {
 module.exports = Annotation;
 
 
-},{"../config":113,"./base":117,"backbone":1,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/mixins/model.changedsincelastsave":74,"underscore":102}],117:[function(require,module,exports){
+},{"../config":115,"./base":119,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/mixins/model.changedsincelastsave":76,"underscore":104}],119:[function(require,module,exports){
 var Backbone, Base, Pubsub, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -21935,7 +21904,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"backbone":1,"hilib/src/managers/token":69,"hilib/src/mixins/pubsub":76,"underscore":102}],118:[function(require,module,exports){
+},{"backbone":1,"hilib/src/managers/token":71,"hilib/src/mixins/pubsub":78,"underscore":104}],120:[function(require,module,exports){
 var $, Collections, CurrentUser, Models, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22107,7 +22076,7 @@ CurrentUser = (function(_super) {
 module.exports = new CurrentUser();
 
 
-},{"../collections/base":105,"../config":113,"./base":117,"hilib/src/managers/token":69,"jquery":100}],119:[function(require,module,exports){
+},{"../collections/base":107,"../config":115,"./base":119,"hilib/src/managers/token":71,"jquery":102}],121:[function(require,module,exports){
 var Collections, Entry, Models, ajax, config, syncOverride, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22140,7 +22109,7 @@ Entry = (function(_super) {
   }
 
   Entry.prototype.urlRoot = function() {
-    return config.baseUrl + ("projects/" + this.project.id + "/entries");
+    return "" + config.baseUrl + "projects/" + this.project.id + "/entries";
   };
 
   Entry.prototype.defaults = function() {
@@ -22328,7 +22297,7 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"../collections/facsimiles":107,"../collections/transcriptions":111,"../config":113,"./base":117,"./entry.settings":120,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/mixins/model.sync":75,"underscore":102}],120:[function(require,module,exports){
+},{"../collections/facsimiles":109,"../collections/transcriptions":113,"../config":115,"./base":119,"./entry.settings":122,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/mixins/model.sync":77,"underscore":104}],122:[function(require,module,exports){
 var EntrySettings, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22369,7 +22338,7 @@ EntrySettings = (function(_super) {
 module.exports = EntrySettings;
 
 
-},{"../config":113,"./base":117}],121:[function(require,module,exports){
+},{"../config":115,"./base":119}],123:[function(require,module,exports){
 var Facsimile, Models, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22448,7 +22417,7 @@ Facsimile = (function(_super) {
 module.exports = Facsimile;
 
 
-},{"../config":113,"./base":117,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],122:[function(require,module,exports){
+},{"../config":115,"./base":119,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],124:[function(require,module,exports){
 var AnnotationType, Models, ajax, config, syncOverride, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22569,7 +22538,7 @@ AnnotationType = (function(_super) {
 module.exports = AnnotationType;
 
 
-},{"../../config":113,"../base":117,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/mixins/model.sync":75,"underscore":102}],123:[function(require,module,exports){
+},{"../../config":115,"../base":119,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/mixins/model.sync":77,"underscore":104}],125:[function(require,module,exports){
 var Async, Collections, EntryMetadata, Fn, Models, Project, ProjectAnnotationTypeIDs, ProjectUserIDs, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22847,7 +22816,7 @@ Project = (function(_super) {
 module.exports = Project;
 
 
-},{"../../collections/entries":106,"../../collections/project/annotationtypes":108,"../../collections/users":112,"../../config":113,"../../entry.metadata":114,"../../project.annotationtype.ids":128,"../../project.user.ids":129,"../base":117,"./settings":124,"hilib/src/managers/ajax":65,"hilib/src/managers/async":66,"hilib/src/managers/token":69,"hilib/src/utils/general":79}],124:[function(require,module,exports){
+},{"../../collections/entries":108,"../../collections/project/annotationtypes":110,"../../collections/users":114,"../../config":115,"../../entry.metadata":116,"../../project.annotationtype.ids":130,"../../project.user.ids":131,"../base":119,"./settings":126,"hilib/src/managers/ajax":67,"hilib/src/managers/async":68,"hilib/src/managers/token":71,"hilib/src/utils/general":81}],126:[function(require,module,exports){
 var Models, ProjectSettings, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22927,7 +22896,7 @@ ProjectSettings = (function(_super) {
 module.exports = ProjectSettings;
 
 
-},{"../../config":113,"../base":117,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],125:[function(require,module,exports){
+},{"../../config":115,"../base":119,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],127:[function(require,module,exports){
 var Backbone, Base, ProjectStatistics, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22992,10 +22961,14 @@ ProjectStatistics = (function(_super) {
 module.exports = ProjectStatistics;
 
 
-},{"../../config":113,"../base":117,"backbone":1,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],126:[function(require,module,exports){
-var Collections, Models, Transcription, ajax, changedSinceLastSave, config, token, _,
+},{"../../config":115,"../base":119,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],128:[function(require,module,exports){
+var $, Backbone, Collections, Models, Transcription, ajax, changedSinceLastSave, config, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Backbone = require('backbone');
+
+$ = require('jquery');
 
 _ = require('underscore');
 
@@ -23220,7 +23193,7 @@ Transcription = (function(_super) {
 module.exports = Transcription;
 
 
-},{"../collections/annotations":104,"../config":113,"./base":117,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/mixins/model.changedsincelastsave":74,"underscore":102}],127:[function(require,module,exports){
+},{"../collections/annotations":106,"../config":115,"./base":119,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/mixins/model.changedsincelastsave":76,"jquery":102,"underscore":104}],129:[function(require,module,exports){
 var Models, User, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23356,7 +23329,7 @@ User = (function(_super) {
 module.exports = User;
 
 
-},{"../config":113,"./base":117,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],128:[function(require,module,exports){
+},{"../config":115,"./base":119,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],130:[function(require,module,exports){
 var AnnotationTypeIDs, ajax, config, token;
 
 config = require('./config');
@@ -23411,7 +23384,7 @@ AnnotationTypeIDs = (function() {
 module.exports = AnnotationTypeIDs;
 
 
-},{"./config":113,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],129:[function(require,module,exports){
+},{"./config":115,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],131:[function(require,module,exports){
 var ProjectUserIDs, ajax, config, token;
 
 config = require('./config');
@@ -23466,7 +23439,7 @@ ProjectUserIDs = (function() {
 module.exports = ProjectUserIDs;
 
 
-},{"./config":113,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69}],130:[function(require,module,exports){
+},{"./config":115,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71}],132:[function(require,module,exports){
 var $, Backbone, Collections, Fn, MainRouter, Models, Pubsub, Views, history, viewManager, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23495,7 +23468,7 @@ Collections = {
 
 Views = {
   Login: require('../views/login'),
-  ProjectMain: require('../views/project/main'),
+  ProjectMain: require('../views/project/search'),
   ProjectSettings: require('../views/project/settings/main'),
   ProjectHistory: require('../views/project/history'),
   Statistics: require('../views/project/statistics'),
@@ -23630,10 +23603,12 @@ MainRouter = (function(_super) {
 module.exports = MainRouter;
 
 
-},{"../collections/projects":110,"../models/currentUser":118,"../views/entry/main":133,"../views/login":139,"../views/project/history":140,"../views/project/main":141,"../views/project/settings/main":143,"../views/project/statistics":146,"../views/ui/header":147,"backbone":1,"hilib/src/managers/history":67,"hilib/src/managers/view2":70,"hilib/src/mixins/pubsub":76,"hilib/src/utils/general":79,"jquery":100,"underscore":102}],131:[function(require,module,exports){
-var AnnotationEditor, Collections, Views, tpl, viewManager,
+},{"../collections/projects":112,"../models/currentUser":120,"../views/entry/main":135,"../views/login":141,"../views/project/history":142,"../views/project/search":143,"../views/project/settings/main":146,"../views/project/statistics":149,"../views/ui/header":150,"backbone":1,"hilib/src/managers/history":69,"hilib/src/managers/view2":72,"hilib/src/mixins/pubsub":78,"hilib/src/utils/general":81,"jquery":102,"underscore":104}],133:[function(require,module,exports){
+var AnnotationEditor, Backbone, Collections, Views, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Backbone = require('backbone');
 
 viewManager = require('hilib/src/managers/view2');
 
@@ -23804,7 +23779,7 @@ AnnotationEditor = (function(_super) {
 module.exports = AnnotationEditor;
 
 
-},{"../../../../jade/entry/annotation.metadata.jade":148,"../../../collections/projects":110,"hilib/src/managers/view2":70,"hilib/src/views/base":82,"hilib/src/views/form/main":87,"hilib/src/views/modal/main":92,"hilib/src/views/supertinyeditor/supertinyeditor":98}],132:[function(require,module,exports){
+},{"../../../../jade/entry/annotation.metadata.jade":151,"../../../collections/projects":112,"backbone":1,"hilib/src/managers/view2":72,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],134:[function(require,module,exports){
 var Backbone, LayerEditor, StringFn, Views, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23916,7 +23891,7 @@ LayerEditor = (function(_super) {
 module.exports = LayerEditor;
 
 
-},{"backbone":1,"hilib/src/managers/view2":70,"hilib/src/utils/string":81,"hilib/src/views/base":82,"hilib/src/views/modal/main":92,"hilib/src/views/supertinyeditor/supertinyeditor":98}],133:[function(require,module,exports){
+},{"backbone":1,"hilib/src/managers/view2":72,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal/main":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],135:[function(require,module,exports){
 var $, Async, Backbone, Collections, Entry, Fn, Models, StringFn, Views, config, dom, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23989,16 +23964,15 @@ Entry = (function(_super) {
             projectID: _this.project.id
           });
           _this.project.get('entries').add(_this.entry);
-          _this.entry.project = _this.project;
         }
+        _this.entry.project = _this.project;
         jqXHR = _this.entry.fetch({
           success: function(model, response, options) {
             _this.entry.fetchTranscriptions(_this.options.transcriptionName, function(currentTranscription) {
               _this.currentTranscription = currentTranscription;
               return async.called('transcriptions');
             });
-            _this.entry.fetchFacsimiles(function(currentFacsimile) {
-              _this.currentFacsimile = currentFacsimile;
+            _this.entry.fetchFacsimiles(function() {
               return async.called('facsimiles');
             });
             return _this.entry.fetchSettings(function() {
@@ -24050,13 +24024,15 @@ Entry = (function(_super) {
   };
 
   Entry.prototype.renderFacsimile = function() {
-    var url;
+    var $iframe, url;
     this.el.querySelector('.left-pane iframe').style.display = 'block';
     this.el.querySelector('.left-pane .preview-placeholder').style.display = 'none';
+    $iframe = this.$('.left-pane iframe');
+    $iframe.attr('src', '');
     if (this.entry.get('facsimiles').current != null) {
       url = this.entry.get('facsimiles').current.get('zoomableUrl');
-      this.$('.left-pane iframe').attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id=' + url);
-      return this.$('.left-pane iframe').height(document.documentElement.clientHeight - 89);
+      $iframe.attr('src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id=' + url);
+      return $iframe.height(document.documentElement.clientHeight - 89);
     }
   };
 
@@ -24288,28 +24264,11 @@ Entry = (function(_super) {
     })(this));
     this.listenTo(this.entry.get('facsimiles'), 'current:change', (function(_this) {
       return function(current) {
-        _this.currentFacsimile = current;
         return _this.renderFacsimile();
       };
     })(this));
-    this.listenTo(this.entry.get('facsimiles'), 'add', (function(_this) {
-      return function(facsimile, collection) {
-        var li;
-        _this.$('li[data-key="facsimiles"] span').html("(" + collection.length + ")");
-        li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
-        _this.$('.submenu .facsimiles').append(li);
-        _this.changeFacsimile(facsimile.id);
-        _this.subsubmenu.close();
-        return _this.publish('message', "Added facsimile: \"" + (facsimile.get('name')) + "\".");
-      };
-    })(this));
-    this.listenTo(this.entry.get('facsimiles'), 'remove', (function(_this) {
-      return function(facsimile, collection) {
-        _this.$('li[data-key="facsimiles"] span').html("(" + collection.length + ")");
-        _this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
-        return _this.publish('message', "Removed facsimile: \"" + (facsimile.get('name')) + "\".");
-      };
-    })(this));
+    this.listenTo(this.entry.get('facsimiles'), 'add', this.addFacsimile);
+    this.listenTo(this.entry.get('facsimiles'), 'remove', this.removeFacsimile);
     this.listenTo(this.entry.get('transcriptions'), 'current:change', (function(_this) {
       return function(current) {
         _this.currentTranscription = current;
@@ -24318,22 +24277,8 @@ Entry = (function(_super) {
         });
       };
     })(this));
-    this.listenTo(this.entry.get('transcriptions'), 'add', (function(_this) {
-      return function(transcription) {
-        var li;
-        li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
-        _this.$('.submenu .textlayers').append(li);
-        _this.changeTranscription(transcription.id);
-        _this.subsubmenu.close();
-        return _this.publish('message', "Added text layer: \"" + (transcription.get('textLayer')) + "\".");
-      };
-    })(this));
-    this.listenTo(this.entry.get('transcriptions'), 'remove', (function(_this) {
-      return function(transcription) {
-        _this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
-        return _this.publish('message', "Removed text layer: \"" + (transcription.get('textLayer')) + "\".");
-      };
-    })(this));
+    this.listenTo(this.entry.get('transcriptions'), 'add', this.addTranscription);
+    this.listenTo(this.entry.get('transcriptions'), 'remove', this.removeTranscription);
     return window.addEventListener('resize', (function(_this) {
       return function(ev) {
         return Fn.timeoutWithReset(600, function() {
@@ -24350,6 +24295,39 @@ Entry = (function(_super) {
     })(this));
   };
 
+  Entry.prototype.addFacsimile = function(facsimile, collection) {
+    var li;
+    this.$('li[data-key="facsimiles"] span').html("(" + collection.length + ")");
+    li = $("<li data-key='facsimile' data-value='" + facsimile.id + "'>" + (facsimile.get('name')) + "</li>");
+    this.$('.submenu .facsimiles').append(li);
+    this.changeFacsimile(facsimile.id);
+    this.subsubmenu.close();
+    return this.publish('message', "Added facsimile: \"" + (facsimile.get('name')) + "\".");
+  };
+
+  Entry.prototype.removeFacsimile = function(facsimile, collection) {
+    if (this.entry.get('facsimiles').current === facsimile) {
+      this.entry.get('facsimiles').setCurrent();
+    }
+    this.$('li[data-key="facsimiles"] span').html("(" + collection.length + ")");
+    this.$('.submenu .facsimiles [data-value="' + facsimile.id + '"]').remove();
+    return this.publish('message', "Removed facsimile: \"" + (facsimile.get('name')) + "\".");
+  };
+
+  Entry.prototype.removeTranscription = function(transcription) {
+    this.$('.submenu .textlayers [data-value="' + transcription.id + '"]').remove();
+    return this.publish('message', "Removed text layer: \"" + (transcription.get('textLayer')) + "\".");
+  };
+
+  Entry.prototype.addTranscription = function(transcription) {
+    var li;
+    li = $("<li data-key='transcription' data-value='" + transcription.id + "'>" + (transcription.get('textLayer')) + " layer</li>");
+    this.$('.submenu .textlayers').append(li);
+    this.changeTranscription(transcription.id);
+    this.subsubmenu.close();
+    return this.publish('message', "Added text layer: \"" + (transcription.get('textLayer')) + "\".");
+  };
+
   return Entry;
 
 })(Views.Base);
@@ -24357,7 +24335,7 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"../../../jade/entry/main.jade":149,"../../collections/projects":110,"../../config":113,"../../models/currentUser":118,"../../models/entry":119,"./editors/annotation":131,"./editors/layer":132,"./preview/main":136,"./submenu":137,"./subsubmenu/facsimiles.edit":138,"backbone":1,"hilib/src/managers/async":66,"hilib/src/managers/view2":70,"hilib/src/utils/dom":78,"hilib/src/utils/general":79,"hilib/src/utils/jquery.mixin":80,"hilib/src/utils/string":81,"hilib/src/views/base":82,"hilib/src/views/modal/main":92,"jquery":100}],134:[function(require,module,exports){
+},{"../../../jade/entry/main.jade":152,"../../collections/projects":112,"../../config":115,"../../models/currentUser":120,"../../models/entry":121,"./editors/annotation":133,"./editors/layer":134,"./preview/main":138,"./submenu":139,"./subsubmenu/facsimiles.edit":140,"backbone":1,"hilib/src/managers/async":68,"hilib/src/managers/view2":72,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/utils/jquery.mixin":82,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal/main":94,"jquery":102}],136:[function(require,module,exports){
 var AddAnnotationTooltip, Annotation, BaseView, Fn, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -24463,7 +24441,7 @@ AddAnnotationTooltip = (function(_super) {
 module.exports = AddAnnotationTooltip;
 
 
-},{"../../../../jade/entry/tooltip.add.annotation.jade":154,"../../../models/annotation":116,"hilib/src/utils/dom":78,"hilib/src/utils/general":79,"hilib/src/views/base":82}],135:[function(require,module,exports){
+},{"../../../../jade/entry/tooltip.add.annotation.jade":157,"../../../models/annotation":118,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],137:[function(require,module,exports){
 var BaseView, EditAnnotationTooltip, Fn, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -24618,10 +24596,12 @@ EditAnnotationTooltip = (function(_super) {
 module.exports = EditAnnotationTooltip;
 
 
-},{"../../../../jade/ui/tooltip.jade":166,"hilib/src/utils/dom":78,"hilib/src/utils/general":79,"hilib/src/views/base":82}],136:[function(require,module,exports){
-var EntryPreview, Fn, Views, config, dom, tpl,
+},{"../../../../jade/ui/tooltip.jade":170,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],138:[function(require,module,exports){
+var $, EntryPreview, Fn, Views, config, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+$ = require('jquery');
 
 Fn = require('hilib/src/utils/general');
 
@@ -24984,12 +24964,14 @@ EntryPreview = (function(_super) {
 module.exports = EntryPreview;
 
 
-},{"../../../../jade/entry/preview.jade":151,"../../../config":113,"./annotation.add.tooltip":134,"./annotation.edit.tooltip":135,"hilib/src/utils/dom":78,"hilib/src/utils/general":79,"hilib/src/views/base":82}],137:[function(require,module,exports){
-var Async, Backbone, Base, EntrySubmenu, Fn, StringFn, Views, metadataTpl, tpl,
+},{"../../../../jade/entry/preview.jade":154,"../../../config":115,"./annotation.add.tooltip":136,"./annotation.edit.tooltip":137,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84,"jquery":102}],139:[function(require,module,exports){
+var Async, Backbone, Base, EntrySubmenu, Fn, StringFn, Views, metadataTpl, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Backbone = require('backbone');
+
+_ = require('underscore');
 
 Fn = require('hilib/src/utils/general');
 
@@ -25179,10 +25161,12 @@ EntrySubmenu = (function(_super) {
 module.exports = EntrySubmenu;
 
 
-},{"../../../jade/entry/metadata.jade":150,"../../../jade/entry/submenu.jade":152,"backbone":1,"hilib/src/managers/async":66,"hilib/src/utils/general":79,"hilib/src/utils/string":81,"hilib/src/views/base":82,"hilib/src/views/form/main":87,"hilib/src/views/modal/main":92}],138:[function(require,module,exports){
-var EditFacsimiles, Fn, Views, ajax, token, tpl,
+},{"../../../jade/entry/metadata.jade":153,"../../../jade/entry/submenu.jade":155,"backbone":1,"hilib/src/managers/async":68,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"underscore":104}],140:[function(require,module,exports){
+var $, EditFacsimiles, Fn, Views, ajax, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+$ = require('jquery');
 
 Fn = require('hilib/src/utils/general');
 
@@ -25292,7 +25276,7 @@ EditFacsimiles = (function(_super) {
 module.exports = EditFacsimiles;
 
 
-},{"../../../../jade/entry/subsubmenu/facsimiles.edit.jade":153,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/utils/general":79,"hilib/src/views/base":82}],139:[function(require,module,exports){
+},{"../../../../jade/entry/subsubmenu/facsimiles.edit.jade":156,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/utils/general":81,"hilib/src/views/base":84,"jquery":102}],141:[function(require,module,exports){
 var BaseView, Login, ajax, currentUser, history, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25389,7 +25373,7 @@ Login = (function(_super) {
 module.exports = Login;
 
 
-},{"../../jade/login.jade":155,"../models/currentUser":118,"hilib/src/managers/ajax":65,"hilib/src/managers/history":67,"hilib/src/managers/token":69,"hilib/src/views/base":82}],140:[function(require,module,exports){
+},{"../../jade/login.jade":158,"../models/currentUser":120,"hilib/src/managers/ajax":67,"hilib/src/managers/history":69,"hilib/src/managers/token":71,"hilib/src/views/base":84}],142:[function(require,module,exports){
 var BaseView, Collections, ProjectHistory, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25467,19 +25451,22 @@ ProjectHistory = (function(_super) {
 module.exports = ProjectHistory;
 
 
-},{"../../../jade/project/history.jade":156,"../../collections/project/history":109,"../../collections/projects":110,"hilib/src/views/base":82,"underscore":102}],141:[function(require,module,exports){
-var FacetedSearchResults, Search, Views, currentUser, projects,
+},{"../../../jade/project/history.jade":159,"../../collections/project/history":111,"../../collections/projects":112,"hilib/src/views/base":84,"underscore":104}],143:[function(require,module,exports){
+var Backbone, FacetedSearchResults, Search, Views, config, projects,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+Backbone = require('backbone');
+
 FacetedSearchResults = require('elaborate-modules/modules/views/faceted-search-results');
 
-currentUser = require('../../models/currentUser');
+config = require('elaborate-modules/modules/models/config');
 
 projects = require('../../collections/projects');
 
 Views = {
-  Base: require('hilib/src/views/base')
+  Base: require('hilib/src/views/base'),
+  Submenu: require('./search.submenu')
 };
 
 Search = (function(_super) {
@@ -25489,17 +25476,36 @@ Search = (function(_super) {
     return Search.__super__.constructor.apply(this, arguments);
   }
 
+  Search.prototype.className = 'search';
+
   Search.prototype.initialize = function() {
-    return this.render();
+    Search.__super__.initialize.apply(this, arguments);
+    return projects.getCurrent((function(_this) {
+      return function(project) {
+        _this.project = project;
+        return _this.render();
+      };
+    })(this));
   };
 
   Search.prototype.render = function() {
-    var fsr;
-    fsr = new FacetedSearchResults({
-      currentUser: currentUser,
-      projects: projects
+    var fsr, submenu;
+    submenu = new Views.Submenu();
+    this.$el.html(submenu.$el);
+    this.listenTo(submenu, 'newsearch', function() {
+      return fsr.reset();
     });
-    this.$el.html(fsr.$el);
+    this.listenTo(submenu, 'editmetadata', function() {
+      return fsr.toggleEditMultipleMetadata();
+    });
+    fsr = new FacetedSearchResults({
+      levels: [this.project.get('level1'), this.project.get('level2'), this.project.get('level3')],
+      entryMetadataFields: this.project.get('entrymetadatafields'),
+      textLayers: this.project.get('textLayers'),
+      searchUrl: "" + (config.get('baseUrl')) + "projects/" + this.project.id + "/search",
+      editMultipleMetadataUrl: "" + (config.get('baseUrl')) + "projects/" + this.project.id + "/multipleentrysettings"
+    });
+    this.$el.append(fsr.$el);
     this.listenTo(fsr, 'change:results', (function(_this) {
       return function(responseModel) {
         var project;
@@ -25510,6 +25516,17 @@ Search = (function(_super) {
         });
       };
     })(this));
+    this.listenTo(fsr, 'navigate:entry', (function(_this) {
+      return function(id) {
+        return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + id, {
+          trigger: true
+        });
+      };
+    })(this));
+    this.listenTo(fsr, 'editmultiplemetadata:saved', function(entryIds) {
+      console.log(entryIds);
+      return this.project.get('entries').changed = _.union(this.project.get('entries').changed, entryIDs);
+    });
     return this;
   };
 
@@ -25520,7 +25537,150 @@ Search = (function(_super) {
 module.exports = Search;
 
 
-},{"../../collections/projects":110,"../../models/currentUser":118,"elaborate-modules/modules/views/faceted-search-results":5,"hilib/src/views/base":82}],142:[function(require,module,exports){
+},{"../../collections/projects":112,"./search.submenu":144,"backbone":1,"elaborate-modules/modules/models/config":3,"elaborate-modules/modules/views/faceted-search-results":5,"hilib/src/views/base":84}],144:[function(require,module,exports){
+var Backbone, Entry, SearchSubmenu, Views, config, currentUser, projects, tpl,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Backbone = require('backbone');
+
+config = require('elaborate-modules/modules/models/config');
+
+currentUser = require('../../models/currentUser');
+
+projects = require('../../collections/projects');
+
+Entry = require('../../models/entry');
+
+Views = {
+  Base: require('hilib/src/views/base'),
+  Modal: require('hilib/src/views/modal/main')
+};
+
+tpl = require('../../../jade/project/search.submenu.jade');
+
+SearchSubmenu = (function(_super) {
+  __extends(SearchSubmenu, _super);
+
+  function SearchSubmenu() {
+    return SearchSubmenu.__super__.constructor.apply(this, arguments);
+  }
+
+  SearchSubmenu.prototype.className = 'submenu';
+
+  SearchSubmenu.prototype.initialize = function() {
+    SearchSubmenu.__super__.initialize.apply(this, arguments);
+    return projects.getCurrent((function(_this) {
+      return function(project) {
+        _this.project = project;
+        return _this.render();
+      };
+    })(this));
+  };
+
+  SearchSubmenu.prototype.render = function() {
+    var rtpl;
+    rtpl = tpl({
+      user: currentUser,
+      config: config
+    });
+    this.$el.html(rtpl);
+    this.pollDraft();
+    return this;
+  };
+
+  SearchSubmenu.prototype.events = function() {
+    return {
+      'click li[data-key="newsearch"]': function() {
+        return this.trigger('newsearch');
+      },
+      'click li[data-key="newentry"]': 'newEntry',
+      'click li[data-key="editmetadata"]': function() {
+        return this.trigger('editmetadata');
+      },
+      'click li[data-key="publish"]': 'publishDraft'
+    };
+  };
+
+  SearchSubmenu.prototype.publishDraft = function(ev) {
+    this.activatePublishDraftButton();
+    return this.project.publishDraft((function(_this) {
+      return function() {
+        return _this.deactivatePublishDraftButton();
+      };
+    })(this));
+  };
+
+  SearchSubmenu.prototype.newEntry = function(ev) {
+    var modal;
+    modal = new Views.Modal({
+      title: "Create a new " + (this.project.get('settings').get('entry.term_singular')),
+      html: '<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>',
+      submitValue: "Create " + (this.project.get('settings').get('entry.term_singular')),
+      width: '300px'
+    });
+    return modal.on('submit', (function(_this) {
+      return function() {
+        var entry;
+        modal.message('success', "Creating a new " + (_this.project.get('settings').get('entry.term_singular')) + "...");
+        entry = new Entry({
+          name: modal.$('input[name="name"]').val()
+        });
+        entry.project = _this.project;
+        return entry.save([], {
+          success: function(model) {
+            _this.stopListening();
+            _this.project.get('entries').add(model);
+            modal.close();
+            _this.publish('message', "New " + (_this.project.get('settings').get('entry.term_singular')) + " added to project.");
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')) + "/entries/" + entry.id, {
+              trigger: true
+            });
+          }
+        });
+      };
+    })(this));
+  };
+
+  SearchSubmenu.prototype.activatePublishDraftButton = function() {
+    var busyText, button;
+    busyText = 'Publishing draft...';
+    button = this.el.querySelector('li[data-key="publish"]');
+    if (button.innerHTML === busyText) {
+      return false;
+    }
+    button.innerHTML = busyText;
+    return button.classList.add('active');
+  };
+
+  SearchSubmenu.prototype.deactivatePublishDraftButton = function() {
+    var button;
+    button = this.el.querySelector('li[data-key="publish"]');
+    button.innerHTML = 'Publish draft';
+    return button.classList.remove('active');
+  };
+
+  SearchSubmenu.prototype.pollDraft = function() {
+    var locationUrl;
+    locationUrl = localStorage.getItem('publishDraftLocation');
+    if (locationUrl != null) {
+      this.activatePublishDraftButton();
+      return this.project.pollDraft(locationUrl, (function(_this) {
+        return function() {
+          return _this.deactivatePublishDraftButton();
+        };
+      })(this));
+    }
+  };
+
+  return SearchSubmenu;
+
+})(Views.Base);
+
+module.exports = SearchSubmenu;
+
+
+},{"../../../jade/project/search.submenu.jade":160,"../../collections/projects":112,"../../models/currentUser":120,"../../models/entry":121,"backbone":1,"elaborate-modules/modules/models/config":3,"hilib/src/views/base":84,"hilib/src/views/modal/main":94}],145:[function(require,module,exports){
 var EntryMetadata, ProjectSettingsEntries, Views, ajax, config, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25651,7 +25811,7 @@ ProjectSettingsEntries = (function(_super) {
 module.exports = ProjectSettingsEntries;
 
 
-},{"../../../../jade/project/settings/entries.jade":159,"../../../config":113,"../../../entry.metadata":114,"hilib/src/managers/ajax":65,"hilib/src/views/base":82,"hilib/src/views/form/editablelist/main":85}],143:[function(require,module,exports){
+},{"../../../../jade/project/settings/entries.jade":163,"../../../config":115,"../../../entry.metadata":116,"hilib/src/managers/ajax":67,"hilib/src/views/base":84,"hilib/src/views/form/editablelist/main":87}],146:[function(require,module,exports){
 var $, Async, Backbone, Collections, EntryMetadata, Models, ProjectSettings, ProjectUserIDs, Views, addAnnotationTypeTpl, ajax, config, token, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25892,7 +26052,7 @@ ProjectSettings = (function(_super) {
 module.exports = ProjectSettings;
 
 
-},{"../../../../jade/project/settings/addannotationtype.jade":157,"../../../../jade/project/settings/main.jade":160,"../../../collections/projects":110,"../../../config":113,"../../../entry.metadata":114,"../../../models/project/annotationtype":122,"../../../models/project/settings":124,"../../../models/project/statistics":125,"../../../models/user":127,"../../../project.user.ids":129,"./entries":142,"./textlayers":144,"./users":145,"backbone":1,"hilib/src/managers/ajax":65,"hilib/src/managers/async":66,"hilib/src/managers/token":69,"hilib/src/views/base":82,"hilib/src/views/form/combolist/main":83,"hilib/src/views/form/editablelist/main":85,"hilib/src/views/form/main":87,"hilib/src/views/modal/main":92,"jquery":100,"underscore":102}],144:[function(require,module,exports){
+},{"../../../../jade/project/settings/addannotationtype.jade":161,"../../../../jade/project/settings/main.jade":164,"../../../collections/projects":112,"../../../config":115,"../../../entry.metadata":116,"../../../models/project/annotationtype":124,"../../../models/project/settings":126,"../../../models/project/statistics":127,"../../../models/user":129,"../../../project.user.ids":131,"./entries":145,"./textlayers":147,"./users":148,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/async":68,"hilib/src/managers/token":71,"hilib/src/views/base":84,"hilib/src/views/form/combolist/main":85,"hilib/src/views/form/editablelist/main":87,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"jquery":102,"underscore":104}],147:[function(require,module,exports){
 var ProjectSettingsTextlayers, Views, ajax, config, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25963,7 +26123,7 @@ ProjectSettingsTextlayers = (function(_super) {
 module.exports = ProjectSettingsTextlayers;
 
 
-},{"../../../../jade/project/settings/textlayers.jade":161,"../../../config":113,"hilib/src/managers/ajax":65,"hilib/src/views/base":82,"hilib/src/views/form/editablelist/main":85}],145:[function(require,module,exports){
+},{"../../../../jade/project/settings/textlayers.jade":165,"../../../config":115,"hilib/src/managers/ajax":67,"hilib/src/views/base":84,"hilib/src/views/form/editablelist/main":87}],148:[function(require,module,exports){
 var Models, ProjectSettingsUsers, Views, addUserTpl, rolesTpl, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -26109,7 +26269,7 @@ ProjectSettingsUsers = (function(_super) {
 module.exports = ProjectSettingsUsers;
 
 
-},{"../../../../jade/project/settings/adduser.jade":158,"../../../../jade/project/settings/userroles.jade":162,"../../../../jade/project/settings/users.jade":163,"../../../models/user":127,"hilib/src/views/base":82,"hilib/src/views/form/combolist/main":83,"hilib/src/views/form/main":87,"underscore":102}],146:[function(require,module,exports){
+},{"../../../../jade/project/settings/adduser.jade":162,"../../../../jade/project/settings/userroles.jade":166,"../../../../jade/project/settings/users.jade":167,"../../../models/user":129,"hilib/src/views/base":84,"hilib/src/views/form/combolist/main":85,"hilib/src/views/form/main":89,"underscore":104}],149:[function(require,module,exports){
 var BaseView, Collections, Models, Statistics, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -26173,7 +26333,7 @@ Statistics = (function(_super) {
 module.exports = Statistics;
 
 
-},{"../../../jade/project/statistics.jade":164,"../../collections/projects":110,"../../models/project/statistics":125,"hilib/src/views/base":82}],147:[function(require,module,exports){
+},{"../../../jade/project/statistics.jade":168,"../../collections/projects":112,"../../models/project/statistics":127,"hilib/src/views/base":84}],150:[function(require,module,exports){
 var Backbone, BaseView, Collections, Fn, Header, Models, StringFn, ajax, config, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -26311,7 +26471,7 @@ Header = (function(_super) {
 module.exports = Header;
 
 
-},{"../../../jade/ui/header.jade":165,"../../collections/projects":110,"../../config":113,"../../models/currentUser":118,"backbone":1,"hilib/src/managers/ajax":65,"hilib/src/managers/token":69,"hilib/src/utils/general":79,"hilib/src/utils/string":81,"hilib/src/views/base":82}],148:[function(require,module,exports){
+},{"../../../jade/ui/header.jade":169,"../../collections/projects":112,"../../config":115,"../../models/currentUser":120,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84}],151:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26371,7 +26531,7 @@ buf.push("<li><label" + (jade.attr("title", metadata.description, true, false)) 
 }
 buf.push("</ul></form>");;return buf.join("");
 };
-},{"jade/runtime":99}],149:[function(require,module,exports){
+},{"jade/runtime":101}],152:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26380,7 +26540,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),user = locals_.user;
 buf.push("<div class=\"subsubmenu\"><div class=\"editfacsimiles\"></div></div><div" + (jade.cls(['row','container',(user.get('roleNo') >= 20)?'span7':'span5'], [null,null,true])) + "><div class=\"cell span3 left-pane\"><iframe id=\"viewer_iframe\" name=\"viewer_iframe\" scrolling=\"no\" width=\"100%\" frameborder=\"0\"></iframe><div class=\"preview-placeholder\"></div></div><div" + (jade.attr("style", (user.get('roleNo') < 20)?'display:none':'', true, false)) + " class=\"cell span2 middle-pane\"><div class=\"transcription-placeholder\"><div class=\"transcription-editor\"></div></div><div class=\"annotation-placeholder\"><div class=\"annotation-editor\"></div></div><div class=\"annotationmetadata-placeholder\"><div class=\"annotationmetadata\"></div></div></div><div class=\"cell span2 right-pane\"><div class=\"preview-placeholder\"></div></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],150:[function(require,module,exports){
+},{"jade/runtime":101}],153:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26456,7 +26616,7 @@ buf.push("<span>" + (jade.escape(null == (jade.interp = model.get('publishable')
 }
 buf.push("</li></ul></form>");;return buf.join("");
 };
-},{"jade/runtime":99}],151:[function(require,module,exports){
+},{"jade/runtime":101}],154:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26477,7 +26637,7 @@ lineNumber++
 }
 buf.push("</ul></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],152:[function(require,module,exports){
+},{"jade/runtime":101}],155:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26571,7 +26731,7 @@ buf.push("<li data-key=\"transcription\"" + (jade.attr("data-value", transcripti
 
 buf.push("</ul></li></ul></div><div class=\"cell span2 alignright right-menu\"><ul class=\"horizontal menu\"><li data-key=\"metadata\">Metadata</li></ul></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],153:[function(require,module,exports){
+},{"jade/runtime":101}],156:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26603,7 +26763,7 @@ buf.push("<li" + (jade.attr("data-id", facsimile.id, true, false)) + " class=\"f
 
 buf.push("</ul></div></div><div class=\"cell span2\"><div class=\"pad2\"><h3>Upload new facsimile</h3><ul class=\"form addfacsimile\"><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><form enctype=\"multipart/form-data\" class=\"addfile\"><input type=\"file\" name=\"filename\"/></form></li><li><button class=\"addfacsimile\">Add facsimile</button></li></ul></div></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],154:[function(require,module,exports){
+},{"jade/runtime":101}],157:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26635,7 +26795,7 @@ buf.push("<option" + (jade.attr("value", annotationType.id, true, false)) + ">" 
 
 buf.push("</select><button>Add annotation</button>");;return buf.join("");
 };
-},{"jade/runtime":99}],155:[function(require,module,exports){
+},{"jade/runtime":101}],158:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26644,7 +26804,7 @@ var jade_mixins = {};
 
 buf.push("<div class=\"cell span2\"><div class=\"padl5 padr5\"><p>\t\neLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. \nAccess to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/</p><p>eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission \nto members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. \nThe edition will then become available online in a sober design which will be elaborated on step by step in the next few years.</p><p><p>The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. \nThe new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of <a href=\"http://alfalab.ehumanities.nl\">Alfalab</a>.</p></p><p><p>Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.\nFor more information: <a href=\"info-elaborate@huygens.knaw.nl\">info-elaborate@huygens.knaw.nl</a></p></p><h2>eLaborate2</h2><p>Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/\nIn the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.</p><h2>Links</h2><p>More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)</p><p><p>Links to digital editions prepared in eLaborate2 are listed at <a href=\"http://www.e-laborate.nl/en/\">http://www.e-laborate.nl/en/</a></p></p><p><p>Information about tools for digital text analysis can be found in Alfalab&#39;s Textlab. <a href=\"http://alfalab.ehumanities.nl/textlab\">http://alfalab.ehumanities.nl/textlab</a></p></p><p><p>Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at <a href=\"http://www.textualscholarship.nl/\">http://www.textualscholarship.nl/</a></p></p><p><p>More about Huygens ING at <a href=\"http://www.huygens.knaw.nl/\">http://www.huygens.knaw.nl/</a></p></p></div></div><div class=\"cell span1\"><div class=\"padl5 padr5 alignright\"><h2>Regular login</h2><form class=\"login region\"><ul class=\"message\"><li></li></ul><ul><li><label>Username</label><input id=\"username\" type=\"text\" name=\"username\" value=\"root\"/></li><li><label>Password</label><input id=\"password\" type=\"password\" name=\"password\" value=\"toor\"/></li><li class=\"login\"><input id=\"submit\" type=\"submit\" value=\"Login\" style=\"width: 75px\"/></li><li class=\"loggingin\">Logging in...<img src=\"/images/loader.gif\"/></li></ul></form></div><div class=\"federated\"><h2>Federate login</h2><button class=\"simple federated-login\">Login</button></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],156:[function(require,module,exports){
+},{"jade/runtime":101}],159:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26722,7 +26882,21 @@ buf.push("</ul>");
 
 buf.push("</div><button class=\"simple more\">Show the next 500 entries</button>");;return buf.join("");
 };
-},{"jade/runtime":99}],157:[function(require,module,exports){
+},{"jade/runtime":101}],160:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var locals_ = (locals || {}),user = locals_.user,config = locals_.config;
+buf.push("<div class=\"row span3\"><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li></ul></div>");
+if ( user.get('role') === 'ADMIN')
+{
+buf.push("<div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">" + (jade.escape(null == (jade.interp = 'New '+config.get('entryTermSingular')) ? "" : jade.interp)) + "</li><li data-key=\"editmetadata\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\"><li data-key=\"publish\">Publish draft</li></ul></div>");
+}
+buf.push("</div>");;return buf.join("");
+};
+},{"jade/runtime":101}],161:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26731,7 +26905,7 @@ var jade_mixins = {};
 
 buf.push("<form><ul data-model-id=\"<%= model.cid %>\"><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><label>Description</label><input type=\"text\" name=\"description\"/></li><li><button name=\"submit\" class=\"simple\">Add annotation type</button></li></ul></form>");;return buf.join("");
 };
-},{"jade/runtime":99}],158:[function(require,module,exports){
+},{"jade/runtime":101}],162:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26740,7 +26914,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),model = locals_.model;
 buf.push("<form><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Username</label><input type=\"text\" name=\"username\"/></li><li><label>E-mail</label><input type=\"text\" name=\"email\"/></li><li><label>First name</label><input type=\"text\" name=\"firstName\"/></li><li><label>Last name</label><input type=\"text\" name=\"lastName\"/></li><li><label>Password</label><input type=\"password\" name=\"password\"/></li><li><label>Role</label><select name=\"role\"><option value=\"USER\">USER</option><option value=\"READER\">READER</option><option value=\"PROJECTLEADER\">PROJECTLEADER</option><option value=\"ADMIN\">ADMIN</option></select></li><li><button name=\"submit\" class=\"simple\">Add user</button></li></ul></form>");;return buf.join("");
 };
-},{"jade/runtime":99}],159:[function(require,module,exports){
+},{"jade/runtime":101}],163:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26818,7 +26992,7 @@ buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("sele
 
 buf.push("</select></li><li><button class=\"simple savesortlevels inactive\">Save sort levels</button></li></ul></form></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],160:[function(require,module,exports){
+},{"jade/runtime":101}],164:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26834,7 +27008,8 @@ buf.push("<div class=\"padl5 padr5\"><h2>Settings</h2><ul class=\"horizontal tab
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var member = $$obj[$index];
 
-buf.push("<sel>= member.id === parseInt(settings['Project leader'], 10)</sel><option" + (jade.attr("value", member.id, true, false)) + (jade.attr("selected", sel, true, false)) + ">" + (jade.escape(null == (jade.interp = member.get('title')) ? "" : jade.interp)) + "</option>");
+sel = member.id === +settings['Project leader']
+buf.push("<option" + (jade.attr("value", member.id, true, false)) + (jade.attr("selected", sel, true, false)) + ">" + (jade.escape(null == (jade.interp = member.get('title')) ? "" : jade.interp)) + "</option>");
     }
 
   } else {
@@ -26842,7 +27017,8 @@ buf.push("<sel>= member.id === parseInt(settings['Project leader'], 10)</sel><op
     for (var $index in $$obj) {
       $$l++;      var member = $$obj[$index];
 
-buf.push("<sel>= member.id === parseInt(settings['Project leader'], 10)</sel><option" + (jade.attr("value", member.id, true, false)) + (jade.attr("selected", sel, true, false)) + ">" + (jade.escape(null == (jade.interp = member.get('title')) ? "" : jade.interp)) + "</option>");
+sel = member.id === +settings['Project leader']
+buf.push("<option" + (jade.attr("value", member.id, true, false)) + (jade.attr("selected", sel, true, false)) + ">" + (jade.escape(null == (jade.interp = member.get('title')) ? "" : jade.interp)) + "</option>");
     }
 
   }
@@ -26857,7 +27033,7 @@ buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, t
 }
 buf.push("</div><div data-tab=\"textlayers\"></div><div data-tab=\"entries\"></div><div data-tab=\"annotationtypes\"><div class=\"row span3\"><div class=\"cell span1 annotationtypelist\"><h3>Add / remove annotation types</h3></div><div class=\"cell span1 addannotationtype\"><h3>Add annotation type to project</h3></div><div class=\"cell span1 setnames\"><h3>Set custom names for tags</h3><p style=\"color:gray\"><strong>The custom names are only applicable to the <u>diplomatic</u> layer!</strong></p><form><ul><li><b>Bold</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.b.name\"" + (jade.attr("value", settings['annotationType.b.name'], true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.b.description\"" + (jade.attr("value", settings['annotationType.b.description'], true, false)) + "/></li><li><b>Italic</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.i.name\"" + (jade.attr("value", settings['annotationType.i.name'], true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.i.description\"" + (jade.attr("value", settings['annotationType.i.description'], true, false)) + "/></li><li><b>Underline</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.u.name\"" + (jade.attr("value", settings['annotationType.u.name'], true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.u.description\"" + (jade.attr("value", settings['annotationType.u.description'], true, false)) + "/></li><li><b>Strikethrough</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.strike.name\"" + (jade.attr("value", settings['annotationType.strike.name'], true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.strike.description\"" + (jade.attr("value", settings['annotationType.strike.description'], true, false)) + "/></li><li><input type=\"submit\" value=\"Save settings\" class=\"inactive\"/></li></ul></form></div></div></div><div data-tab=\"users\"></div></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],161:[function(require,module,exports){
+},{"jade/runtime":101}],165:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26866,7 +27042,7 @@ var jade_mixins = {};
 
 buf.push("<h3>Add / remove text layers</h3>");;return buf.join("");
 };
-},{"jade/runtime":99}],162:[function(require,module,exports){
+},{"jade/runtime":101}],166:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26904,7 +27080,7 @@ buf.push("<li><select" + (jade.attr("data-id", member.id, true, false)) + "><opt
 }).call(this);
 ;return buf.join("");
 };
-},{"jade/runtime":99}],163:[function(require,module,exports){
+},{"jade/runtime":101}],167:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26913,7 +27089,7 @@ var jade_mixins = {};
 
 buf.push("<div class=\"userroles\"><h3>Change user roles</h3><ul></ul></div><div class=\"userlist\"><h3>Add / remove project members</h3></div><div class=\"adduser\"><h3>Add user to project</h3></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],164:[function(require,module,exports){
+},{"jade/runtime":101}],168:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26922,7 +27098,7 @@ var jade_mixins = {};
 var locals_ = (locals || {}),statistics = locals_.statistics;
 buf.push("<h2>Statistics</h2><div class=\"statistics\"><pre>" + (jade.escape(null == (jade.interp = statistics) ? "" : jade.interp)) + "</pre></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],165:[function(require,module,exports){
+},{"jade/runtime":101}],169:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26959,7 +27135,7 @@ buf.push("<li" + (jade.attr("data-id", project.id, true, false)) + (jade.cls(['p
 
 buf.push("</ul></li><li class=\"logout\">Logout</li></ul></li></ul><img src=\"/images/logo.huygens.png\"/></div>");;return buf.join("");
 };
-},{"jade/runtime":99}],166:[function(require,module,exports){
+},{"jade/runtime":101}],170:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26968,4 +27144,4 @@ var jade_mixins = {};
 var locals_ = (locals || {}),interactive = locals_.interactive;
 buf.push("<ul" + (jade.attr("style", interactive?'visibility:visible':'visibility:hidden', true, false)) + " class=\"horizontal menu left\"><li class=\"edit\"><img src=\"/images/icon.edit.png\" title=\"Edit annotation\"/></li><li class=\"delete\"><img src=\"/images/icon.bin.png\" title=\"Delete annotation\"/></li></ul><div class=\"annotation-type\"></div><ul class=\"horizontal menu right\"><li class=\"close\"><img src=\"/images/icon.close.png\" title=\"Close annotation\"/></li></ul><div class=\"tooltip-body\"></div>");;return buf.join("");
 };
-},{"jade/runtime":99}]},{},[115])
+},{"jade/runtime":101}]},{},[117])

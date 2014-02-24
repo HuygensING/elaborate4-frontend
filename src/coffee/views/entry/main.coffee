@@ -51,15 +51,13 @@ class Entry extends Views.Base
 					id: @options.entryId
 					projectID: @project.id
 				@project.get('entries').add @entry
-				@entry.project = @project
-			# @entry.options ?= {}
-			# @entry.options.projectID = @project.id
+			
+			@entry.project = @project
 
-			# console.log @entry
 			jqXHR = @entry.fetch
 				success: (model, response, options) =>
 					@entry.fetchTranscriptions @options.transcriptionName, (@currentTranscription) => async.called 'transcriptions'
-					@entry.fetchFacsimiles (@currentFacsimile) => async.called 'facsimiles'
+					@entry.fetchFacsimiles => async.called 'facsimiles'
 					@entry.fetchSettings => async.called 'settings'
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
@@ -105,16 +103,19 @@ class Entry extends Views.Base
 	renderFacsimile: ->
 		@el.querySelector('.left-pane iframe').style.display = 'block'
 		@el.querySelector('.left-pane .preview-placeholder').style.display = 'none'
-		# $('.left-pane iframe').show()
-		# $('.left-pane .transcription').hide()
+
+		# Reset the src of the iframe. This is needed to remove the current facsimile from the view
+		# if it is deleted by the user and is the last facsimile in the collection.
+		$iframe = @$('.left-pane iframe')
+		$iframe.attr 'src', ''
 
 		# Only load the iframe with the current facsimile if there is a current facsimile
 		if @entry.get('facsimiles').current?
 			url = @entry.get('facsimiles').current.get 'zoomableUrl'
-			@$('.left-pane iframe').attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id='+ url
+			$iframe.attr 'src', 'https://tomcat.tiler01.huygens.knaw.nl/adore-huygens-viewer-2.1/viewer.html?rft_id='+ url
 
 			# Set the height of EntryPreview to the clientHeight - menu & submenu (89px)
-			@$('.left-pane iframe').height document.documentElement.clientHeight - 89
+			$iframe.height document.documentElement.clientHeight - 89
 			
 	renderPreview: ->
 		if @subviews.preview?
@@ -325,50 +326,20 @@ class Entry extends Views.Base
 		@listenTo @subviews.layerEditor, 'wrap', (wrap) => @subviews.preview.toggleWrap wrap
 
 
-		@listenTo @entry.get('facsimiles'), 'current:change', (current) =>
-			@currentFacsimile = current
-			@renderFacsimile()
-		@listenTo @entry.get('facsimiles'), 'add', (facsimile, collection) =>
-			# Update facsimile count in submenu
-			@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
+		@listenTo @entry.get('facsimiles'), 'current:change', (current) => @renderFacsimile()
 
-			# Add the new facsimile to the menu
-			li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
-			@$('.submenu .facsimiles').append li
-
-			# Change the facsimile to the newly added facsimile
-			@changeFacsimile facsimile.id
-			@subsubmenu.close()
-			@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
-		@listenTo @entry.get('facsimiles'), 'remove', (facsimile, collection) =>
-			# Update facsimile count in submenu
-			@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
-
-			# Remove the facsimile from the submenu
-			@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
-
-			@publish 'message', "Removed facsimile: \"#{facsimile.get('name')}\"."
+		@listenTo @entry.get('facsimiles'), 'add', @addFacsimile
+		@listenTo @entry.get('facsimiles'), 'remove', @removeFacsimile
 
 		@listenTo @entry.get('transcriptions'), 'current:change', (current) =>			
 			@currentTranscription = current
 			# getAnnotations is async, but we can render the transcription anyway and make the assumption (yeah, i know)
 			# the user is not fast enough to click an annotation
 			@currentTranscription.getAnnotations (annotations) => @renderTranscriptionEditor()
-		@listenTo @entry.get('transcriptions'), 'add', (transcription) =>
-			# Add the new text layer to the submenu
-			li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
-			@$('.submenu .textlayers').append li
-			
-			# Change the transcription to the newly added transcription
-			@changeTranscription transcription.id
-			@subsubmenu.close()
-			@publish 'message', "Added text layer: \"#{transcription.get('textLayer')}\"."
+
+		@listenTo @entry.get('transcriptions'), 'add', @addTranscription
+		@listenTo @entry.get('transcriptions'), 'remove', @removeTranscription
 		
-		@listenTo @entry.get('transcriptions'), 'remove', (transcription) => 
-			@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
-			@publish 'message', "Removed text layer: \"#{transcription.get('textLayer')}\"."
-
-
 		window.addEventListener 'resize', (ev) => Fn.timeoutWithReset 600, =>
 			@renderFacsimile()
 			@subviews.preview.resize()
@@ -379,5 +350,43 @@ class Entry extends Views.Base
 			if @subviews.annotationEditor?
 				@subviews.annotationEditor.subviews.editor.setIframeHeight @subviews.preview.$el.innerHeight()
 				@subviews.annotationEditor.subviews.editor.setIframeWidth @subviews.preview.$el.width() - 4
+
+	addFacsimile: (facsimile, collection) ->
+		# Update facsimile count in submenu
+		@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
+
+		# Add the new facsimile to the menu
+		li = $("<li data-key='facsimile' data-value='#{facsimile.id}'>#{facsimile.get('name')}</li>")
+		@$('.submenu .facsimiles').append li
+
+		# Change the facsimile to the newly added facsimile
+		@changeFacsimile facsimile.id
+		@subsubmenu.close()
+		@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
+
+	removeFacsimile: (facsimile, collection) ->
+		@entry.get('facsimiles').setCurrent() if @entry.get('facsimiles').current is facsimile
+		
+		# Update facsimile count in submenu
+		@$('li[data-key="facsimiles"] span').html "(#{collection.length})"
+
+		# Remove the facsimile from the submenu
+		@$('.submenu .facsimiles [data-value="'+facsimile.id+'"]').remove()
+
+		@publish 'message', "Removed facsimile: \"#{facsimile.get('name')}\"."
+
+	removeTranscription: (transcription) ->
+		@$('.submenu .textlayers [data-value="'+transcription.id+'"]').remove()
+		@publish 'message', "Removed text layer: \"#{transcription.get('textLayer')}\"."
+
+	addTranscription: (transcription) ->
+		# Add the new text layer to the submenu
+		li = $("<li data-key='transcription' data-value='#{transcription.id}'>#{transcription.get('textLayer')} layer</li>")
+		@$('.submenu .textlayers').append li
+		
+		# Change the transcription to the newly added transcription
+		@changeTranscription transcription.id
+		@subsubmenu.close()
+		@publish 'message', "Added text layer: \"#{transcription.get('textLayer')}\"."
 
 module.exports = Entry

@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+$ = require 'jquery'
 _ = require 'underscore'
 
 config = require '../config'

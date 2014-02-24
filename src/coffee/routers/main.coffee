@@ -15,7 +15,7 @@ Collections =
 
 Views =
 	Login: require '../views/login'
-	ProjectMain: require '../views/project/main'
+	ProjectMain: require '../views/project/search'
 	ProjectSettings: require '../views/project/settings/main'
 	ProjectHistory: require '../views/project/history'
 	Statistics: require '../views/project/statistics'
