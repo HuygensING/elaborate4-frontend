@@ -1606,7 +1606,7 @@ Config = (function(_super) {
       appRootElement: '#app',
       entryTermSingular: 'entry',
       entryTermPlural: 'entries',
-      searchPath: 'http://demo7.huygens.knaw.nl/elab4-gemeentearchief_kampen/api/search',
+      searchPath: "" + basePath + "/api/search",
       resultRows: 25,
       annotationsIndexPath: "" + basePath + "/data/annotation_index.json",
       roles: {
@@ -1857,7 +1857,8 @@ FacetedSearchResults = (function(_super) {
         searchInTranscriptions: true
       },
       queryOptions: {
-        resultRows: this.resultRows
+        resultRows: this.resultRows,
+        resultFields: this.options.levels
       }
     });
     this.$('.faceted-search-placeholder').html(this.subviews.facetedSearch.el);
@@ -1891,9 +1892,14 @@ FacetedSearchResults = (function(_super) {
         });
       };
     })(this));
-    return this.listenTo(this.subviews.searchResult, 'change:pagination', (function(_this) {
+    this.listenTo(this.subviews.searchResult, 'change:pagination', (function(_this) {
       return function(pagenumber) {
         return _this.subviews.facetedSearch.page(pagenumber);
+      };
+    })(this));
+    return this.listenTo(this.subviews.searchResult, 'navigate:entry', (function(_this) {
+      return function(id) {
+        return _this.trigger('navigate:entry', id);
       };
     })(this));
   };
@@ -2275,15 +2281,15 @@ SearchResult = (function(_super) {
   };
 
   SearchResult.prototype.render = function() {
-    var entryListItem, frag, fulltext, queryOptions, result, ulentries, _i, _len, _ref, _ref1;
+    var entryListItem, frag, fulltext, queryOptions, result, ulentries, _i, _len, _ref, _ref1, _ref2;
     this.$el.html(tpl());
     this.renderHeader();
-    queryOptions = (_ref = this.options.responseModel.options.queryOptions) != null ? _ref : {};
+    queryOptions = (_ref = (_ref1 = this.options.responseModel.options) != null ? _ref1.queryOptions : void 0) != null ? _ref : {};
     fulltext = (queryOptions.term != null) && queryOptions.term !== '';
     frag = document.createDocumentFragment();
-    _ref1 = this.options.responseModel.get('results');
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      result = _ref1[_i];
+    _ref2 = this.options.responseModel.get('results');
+    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+      result = _ref2[_i];
       entryListItem = new Views.EntryListItem({
         entryData: result,
         fulltext: fulltext
@@ -16063,15 +16069,12 @@ MainModel = (function(_super) {
   };
 
   MainModel.prototype.refresh = function(newQueryOptions) {
-    var key, value;
     if (newQueryOptions == null) {
       newQueryOptions = {};
     }
-    for (key in newQueryOptions) {
-      if (!__hasProp.call(newQueryOptions, key)) continue;
-      value = newQueryOptions[key];
-      this.set(key, value);
-    }
+    this.set(newQueryOptions, {
+      silent: true
+    });
     return this.searchResults.runQuery(_.clone(this.attributes), false);
   };
 
