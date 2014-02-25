@@ -9,6 +9,7 @@
 				span= '(' + entry.get('facsimiles').length + ')'
 				ul.vertical.menu.facsimiles
 					li.spacer &nbsp;
+					//- >= USER
 					if user.get('roleNo') >= 20
 						li.subsub(data-key="editfacsimiles") Add &amp; remove...
 					each facsimile, index in entry.get('facsimiles').models
@@ -20,6 +21,7 @@
 						li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
 	.cell.span2.alignright.middle-menu
 		ul.horizontal.menu
+			//- >= USER
 			if user.get('roleNo') >= 20
 				li(data-key="print") Print
 			li.arrowdown(data-key="layer", data-value=currentTranscription.id)= currentTranscription.get('textLayer') + ' layer'
@@ -30,4 +32,7 @@
 							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
 	.cell.span2.alignright.right-menu
 		ul.horizontal.menu
+			//- >= PROJECT_LEADER
+			if user.get('roleNo') >= 30
+				li(data-key="delete") Remove
 			li(data-key="metadata") Metadata

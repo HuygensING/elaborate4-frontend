@@ -9,6 +9,7 @@ Fn = require 'hilib/src/utils/general'
 
 Models =
 	currentUser: require '../models/currentUser'
+	config: require 'elaborate-modules/modules/models/config'
 
 Collections =
 	projects: require '../collections/projects'
@@ -37,6 +38,9 @@ class MainRouter extends Backbone.Router
 			authorized: =>
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
+					Models.config.set 'entryTermSingular', @project.get('settings').get('entry.term_singular')
+					Models.config.set 'entryTermPlural', @project.get('settings').get('entry.term_plural')
+
 					# Route to correct url
 					url = history.last() ? 'projects/'+@project.get('name')
 					@navigate url, trigger: true

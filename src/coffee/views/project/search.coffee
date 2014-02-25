@@ -10,6 +10,7 @@ Views =
 	Base: require 'hilib/src/views/base'
 	Submenu: require './search.submenu'
 
+# TODO: Destroy view
 class Search extends Views.Base
 
 	className: 'search'
@@ -41,8 +42,9 @@ class Search extends Views.Base
 		@listenTo fsr, 'navigate:entry', (id) =>
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{id}", trigger: true
 		@listenTo fsr, 'editmultiplemetadata:saved', (entryIds) ->
-			console.log entryIds
 			@project.get('entries').changed = _.union @project.get('entries').changed, entryIDs
+
+		@subscribe 'faceted-search:refresh', => fsr.refresh()
 
 		@
 

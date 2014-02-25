@@ -7,7 +7,7 @@ StringFn = require 'hilib/src/utils/string'
 Views = 
 	Base: require 'hilib/src/views/base'
 	SuperTinyEditor: require 'hilib/src/views/supertinyeditor/supertinyeditor'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 
 # ## LayerEditor
 class LayerEditor extends Views.Base

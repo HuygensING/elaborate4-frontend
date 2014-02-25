@@ -2921,66 +2921,6 @@ ul.pagination li.text {
   margin: 0 8px 0 4px;
 }
 
-.projectsearch .resultview ul.entries li {
-  margin-bottom: 12px;
-  cursor: pointer;
-}
-.projectsearch .resultview ul.entries li:hover label {
-  background: #c6e7e7;
-}
-.projectsearch .resultview ul.entries li .edit-mode {
-  display: none;
-}
-.projectsearch .resultview ul.entries li .edit-mode input {
-  display: inline-block;
-  margin-right: 4px;
-}
-.projectsearch .resultview ul.entries li label {
-  text-decoration: none;
-  color: #000;
-  font-size: 1.2rem;
-  padding: 2px 4px;
-  border-radius: 2px;
-}
-.projectsearch .resultview ul.entries li .found {
-  color: #fff;
-  background: #999;
-  border-radius: 2px;
-  display: inline-block;
-  padding: 0 2px;
-  margin: 6px 0 0 13px;
-}
-.projectsearch .resultview ul.entries li .metadata ul {
-  list-style: none;
-  padding: 4px 0 0 12px;
-}
-.projectsearch .resultview ul.entries li .metadata ul li {
-  margin-bottom: 0px;
-}
-.projectsearch .resultview ul.entries li .metadata ul li span.key {
-  color: #999;
-}
-.projectsearch .resultview ul.entries li .keywords {
-  color: #999;
-}
-.projectsearch .resultview ul.entries li .keywords ul {
-  list-style: none;
-}
-.projectsearch .resultview ul.entries li .keywords ul li {
-  padding: 2px 0;
-  margin: 0;
-  margin-left: 13px;
-  overflow-x: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.projectsearch .resultview ul.entries li .keywords ul li span.container {
-  text-decoration: underline;
-}
-.projectsearch .resultview ul.entries li .keywords ul li em {
-  color: #ffbefc;
-}
-
 .projectsearch {
   position: absolute;
   top: 88px;
@@ -3010,52 +2950,113 @@ ul.pagination li.text {
   padding: 4px 20px 20px 10px;
   overflow-y: auto;
 }
-.projectsearch .resultview {
+
+.resultview ul.entries li {
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.resultview ul.entries li:hover label {
+  background: #c6e7e7;
+}
+.resultview ul.entries li .edit-mode {
+  display: none;
+}
+.resultview ul.entries li .edit-mode input {
+  display: inline-block;
+  margin-right: 4px;
+}
+.resultview ul.entries li label {
+  text-decoration: none;
+  color: #000;
+  font-size: 1.2rem;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.resultview ul.entries li .found {
+  color: #fff;
+  background: #999;
+  border-radius: 2px;
+  display: inline-block;
+  padding: 0 2px;
+  margin: 6px 0 0 13px;
+}
+.resultview ul.entries li .metadata ul {
+  list-style: none;
+  padding: 4px 0 0 12px;
+}
+.resultview ul.entries li .metadata ul li {
+  margin-bottom: 0px;
+}
+.resultview ul.entries li .metadata ul li span.key {
+  color: #999;
+}
+.resultview ul.entries li .keywords {
+  color: #999;
+}
+.resultview ul.entries li .keywords ul {
+  list-style: none;
+}
+.resultview ul.entries li .keywords ul li {
+  padding: 2px 0;
+  margin: 0;
+  margin-left: 13px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.resultview ul.entries li .keywords ul li span.container {
+  text-decoration: underline;
+}
+.resultview ul.entries li .keywords ul li em {
+  color: #ffbefc;
+}
+
+.resultview {
   position: absolute;
   left: 360px;
   top: 20px;
   bottom: 10px;
   right: 0px;
 }
-.projectsearch .resultview header {
+.resultview header {
   background: #fff;
   padding: 0 18px 12px 0;
   border-bottom: 1px solid #ddd;
 }
-.projectsearch .resultview header h3,
-.projectsearch .resultview header nav {
+.resultview header h3,
+.resultview header nav {
   display: inline-block;
 }
-.projectsearch .resultview header h3 {
+.resultview header h3 {
   margin-top: 0;
 }
-.projectsearch .resultview header nav {
-  color: #46aaa8;
+.resultview header nav {
+  color: spotcolor;
 }
-.projectsearch .resultview header nav > ul > li {
+.resultview header nav > ul > li {
   margin-left: 6px;
   cursor: pointer;
   display: inline-block;
 }
-.projectsearch .resultview header nav > ul > li.display-keywords {
+.resultview header nav > ul > li.display-keywords {
   display: none;
 }
-.projectsearch .resultview header nav > ul > li.display-keywords input {
+.resultview header nav > ul > li.display-keywords input {
   margin-right: 2px;
 }
-.projectsearch .resultview header nav > ul > li.select-all {
+.resultview header nav > ul > li.select-all {
   display: none;
 }
-.projectsearch .resultview header nav > ul > li.levels button i.fa {
+.resultview header nav > ul > li.levels button i.fa {
   margin-left: 4px;
 }
-.projectsearch .resultview header nav > ul > li.levels button,
-.projectsearch .resultview header nav > ul > li.levels select {
+.resultview header nav > ul > li.levels button,
+.resultview header nav > ul > li.levels select {
   background: #fff;
   border: 1px solid #e0e0e0;
   outline: none;
 }
-.projectsearch .resultview header nav > ul > li.levels ul {
+.resultview header nav > ul > li.levels ul {
   display: none;
   list-style: none;
   position: absolute;
@@ -3067,49 +3068,49 @@ ul.pagination li.text {
   border-top-right-radius: 4px;
   margin-top: -1px;
 }
-.projectsearch .resultview header nav > ul > li.levels ul.show-save-button {
+.resultview header nav > ul > li.levels ul.show-save-button {
   padding-bottom: 14px;
 }
-.projectsearch .resultview header nav > ul > li.levels ul.show-save-button li button {
+.resultview header nav > ul > li.levels ul.show-save-button li button {
   display: block;
 }
-.projectsearch .resultview header nav > ul > li.levels ul li {
+.resultview header nav > ul > li.levels ul li {
   margin-bottom: 10px;
 }
-.projectsearch .resultview header nav > ul > li.levels ul li label,
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
+.resultview header nav > ul > li.levels ul li label,
+.resultview header nav > ul > li.levels ul li i.fa {
   color: #808080;
   line-height: 18px;
 }
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa:hover {
+.resultview header nav > ul > li.levels ul li i.fa:hover {
   color: #000;
 }
-.projectsearch .resultview header nav > ul > li.levels ul li select,
-.projectsearch .resultview header nav > ul > li.levels ul li i.fa {
+.resultview header nav > ul > li.levels ul li select,
+.resultview header nav > ul > li.levels ul li i.fa {
   margin-left: 6px;
   height: 18px;
 }
-.projectsearch .resultview header nav > ul > li.levels ul li button {
+.resultview header nav > ul > li.levels ul li button {
   display: none;
   float: right;
 }
-.projectsearch .resultview header nav > ul > li label {
+.resultview header nav > ul > li label {
   color: #000;
   cursor: default;
 }
-.projectsearch .resultview header .pagination-placeholder .pagination {
+.resultview header .pagination-placeholder .pagination {
   display: none;
 }
-.projectsearch .resultview header .pagination-placeholder .pagination li {
-  color: #46aaa8;
+.resultview header .pagination-placeholder .pagination li {
+  color: spotcolor;
   padding: 4px;
 }
-.projectsearch .resultview header .pagination-placeholder .pagination .inactive,
-.projectsearch .resultview header .pagination-placeholder .pagination .text {
+.resultview header .pagination-placeholder .pagination .inactive,
+.resultview header .pagination-placeholder .pagination .text {
   color: #bbb;
   cursor: default;
 }
-.projectsearch .resultview ul.entries {
+.resultview ul.entries {
   margin-top: 20px;
   overflow-y: auto;
   list-style: square;
@@ -5178,7 +5179,7 @@ header.main ul.horizontal.menu li.projects {
 }
 header.main ul.horizontal.menu li.projects ul.vertical.menu {
   position: absolute;
-  margin: 0 0 0 -430px;
+  margin: 0 0 0 -432px;
   width: auto;
   max-height: 326px;
   overflow-y: auto;
@@ -5429,6 +5430,11 @@ header.main .projecttitle {
   color: #388886;
   display: inline-block;
   margin-top: -3px;
+}
+.submenu .cell .horizontal.menu > li[data-key="delete"] {
+  background: #a00;
+  color: #eee;
+  box-shadow: none;
 }
 .submenu .cell .vertical.menu {
   border-bottom-left-radius: 6px;

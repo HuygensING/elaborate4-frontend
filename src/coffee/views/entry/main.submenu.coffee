@@ -8,12 +8,12 @@ Async = require 'hilib/src/managers/async'
 Base = require 'hilib/src/views/base'
 
 # Tpl = require 'text!html/entry/metadata.html'
-tpl = require '../../../jade/entry/submenu.jade'
+tpl = require '../../../jade/entry/main.submenu.jade'
 metadataTpl = require '../../../jade/entry/metadata.jade'
 
 Views =
 	Form: require 'hilib/src/views/form/main'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 
 # ## EntryMetadata
 class EntrySubmenu extends Base
@@ -44,8 +44,9 @@ class EntrySubmenu extends Base
 	events: ->
 		'click .menu li.active[data-key="previous"]': 'previousEntry'
 		'click .menu li.active[data-key="next"]': 'nextEntry'
-		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 		'click .menu li[data-key="print"]': 'printEntry'
+		'click .menu li[data-key="delete"]': 'deleteEntry'
+		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 
 	activatePrevNext: ->
 		@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
@@ -62,37 +63,6 @@ class EntrySubmenu extends Base
 		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
 		Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.nextID}/transcriptions/#{transcription}", trigger: true
-
-	editEntryMetadata: do ->
-		# Create a reference to the modal, so we can check if a modal is active.
-		modal = null
-
-		(ev) ->
-			return if modal?
-
-			entryMetadata = new Views.Form
-				tpl: metadataTpl
-				tplData:
-					user: @user
-					generateID: Fn.generateID
-				model: @entry.clone()
-
-			modal = new Views.Modal
-				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
-				html: entryMetadata.el
-				submitValue: 'Save metadata'
-				width: '300px'
-			modal.on 'submit', =>
-				@entry.updateFromClone entryMetadata.model
-
-				async = new Async ['entry', 'settings']
-				@listenToOnce async, 'ready', => 
-					modal.close()
-					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
-
-				@entry.get('settings').save null, success: ->  async.called 'settings'
-				@entry.save null, success: -> async.called 'entry'
-			modal.on 'close', -> modal = null
 
 	# When the user wants to print we create a div#printpreview directly under <body> and show
 	# a clone of the preview body and an ordered list of the annotations.
@@ -137,5 +107,57 @@ class EntrySubmenu extends Base
 		document.body.appendChild mainDiv
 
 		window.print()
+
+	deleteEntry: do ->
+		modal = null
+
+		(ev) ->
+			return if modal?
+
+			modal = new Views.Modal
+				title: 'Caution!'
+				html: "You are about to <b>REMOVE</b> entry: \"#{@entry.get('name')}\" <small>(id: #{@entry.id})</small>.<br><br>All text and annotations will be <b>PERMANENTLY</b> removed!"
+				submitValue: 'Remove entry'
+				width: 'auto'
+			modal.on 'submit', => 
+				jqXHR = @entry.destroy()
+				jqXHR.done =>
+					modal.close()
+					@publish 'faceted-search:refresh'
+					@publish 'message', "Removed entry #{@entry.id} from project."
+					Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+			modal.on 'close', -> modal = null
+
+
+	editEntryMetadata: do ->
+		# Create a reference to the modal, so we can check if a modal is active.
+		modal = null
+
+		(ev) ->
+			return if modal?
+
+			entryMetadata = new Views.Form
+				tpl: metadataTpl
+				tplData:
+					user: @user
+					generateID: Fn.generateID
+				model: @entry.clone()
+
+			modal = new Views.Modal
+				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
+				html: entryMetadata.el
+				submitValue: 'Save metadata'
+				width: '300px'
+			modal.on 'submit', =>
+				@entry.updateFromClone entryMetadata.model
+
+				async = new Async ['entry', 'settings']
+				@listenToOnce async, 'ready', => 
+					modal.close()
+					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
+
+				@entry.get('settings').save null, success: ->  async.called 'settings'
+				@entry.save null, success: -> async.called 'entry'
+			modal.on 'close', -> modal = null
 
 module.exports = EntrySubmenu

@@ -170,4 +170,24 @@ class Project extends Models.Base
 		jqXHR.done => done()
 		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
+	sync: (method, model, options) ->
+		if method is 'create'
+			jqXHR = ajax.post
+				url: @url()
+				data: JSON.stringify
+					title: @get 'title'
+				dataType: 'text'
+
+			jqXHR.done (data, textStatus, jqXHR) =>
+				if jqXHR.status is 201
+					xhr = ajax.get url: jqXHR.getResponseHeader('Location')
+					xhr.done (data, textStatus, jqXHR) =>
+						options.success data
+					xhr.fail => console.log arguments
+
+			jqXHR.fail (response) =>
+				Backbone.history.navigate 'login', trigger: true if response.status is 401
+		else
+			super
+
 module.exports = Project

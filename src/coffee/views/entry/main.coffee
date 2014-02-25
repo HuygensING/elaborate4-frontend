@@ -20,10 +20,10 @@ Collections =
 
 Views = 
 	Base: require 'hilib/src/views/base'
-	Submenu: require './submenu'
+	Submenu: require './main.submenu'
 	Preview: require './preview/main'
 	EditFacsimiles: require './subsubmenu/facsimiles.edit'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 	AnnotationEditor: require './editors/annotation'
 	LayerEditor: require './editors/layer'
 

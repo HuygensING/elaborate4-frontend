@@ -2,11 +2,15 @@
 	.cell.span1
 		ul.horizontal.menu
 			li(data-key="newsearch") New search
-	if user.get('role') === 'ADMIN'
+	//- >= PROJECT_LEADER
+	if user.get('roleNo') >= 30
 		.cell.span1
 			ul.horizontal.menu
 				li(data-key="newentry")= 'New '+config.get('entryTermSingular')
 				li(data-key="editmetadata") Edit metadata
 		.cell.span1.alignright
 			ul.horizontal.menu
+				//- >= ADMIN
+				if user.get('roleNo') >= 40
+					li(data-key="delete") Remove
 				li(data-key="publish") Publish draft

@@ -8,7 +8,7 @@ Collections =
 Views = 
 	Base: require 'hilib/src/views/base'
 	SuperTinyEditor: require 'hilib/src/views/supertinyeditor/supertinyeditor'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 	Form: require 'hilib/src/views/form/main'
 
 # Templates =

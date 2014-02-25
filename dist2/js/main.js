@@ -1943,6 +1943,10 @@ FacetedSearchResults = (function(_super) {
     return this.subviews.facetedSearch.reset();
   };
 
+  FacetedSearchResults.prototype.refresh = function(queryOptions) {
+    return this.subviews.facetedSearch.refresh(queryOptions);
+  };
+
   FacetedSearchResults.prototype.toggleEditMultipleMetadata = function() {
     var entries;
     entries = this.el.querySelector('ul.entries');
@@ -13331,10 +13335,10 @@ module.exports = DOM = function(el) {
   return {
     el: el,
     q: function(query) {
-      return DOM(el.querySelector(query));
+      return DOM(query);
     },
     find: function(query) {
-      return DOM(el.querySelector(query));
+      return DOM(query);
     },
     findAll: function(query) {
       return DOM(el.querySelectorAll(query));
@@ -13358,6 +13362,7 @@ module.exports = DOM = function(el) {
       if (displayType == null) {
         displayType = 'block';
       }
+      console.log('show');
       el.style.display = displayType;
       return this;
     },
@@ -13513,10 +13518,12 @@ module.exports = DOM = function(el) {
 
 
 },{"underscore":21}],26:[function(require,module,exports){
-var $,
+var $, _,
   __hasProp = {}.hasOwnProperty;
 
 $ = require('jquery');
+
+_ = require('underscore');
 
 module.exports = {
   closest: function(el, selector) {
@@ -13845,7 +13852,7 @@ module.exports = {
 };
 
 
-},{"jquery":20}],27:[function(require,module,exports){
+},{"jquery":20,"underscore":21}],27:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -18145,10 +18152,10 @@ module.exports = DOM = function(el) {
   return {
     el: el,
     q: function(query) {
-      return DOM(el.querySelector(query));
+      return DOM(query);
     },
     find: function(query) {
-      return DOM(el.querySelector(query));
+      return DOM(query);
     },
     findAll: function(query) {
       return DOM(el.querySelectorAll(query));
@@ -18172,6 +18179,7 @@ module.exports = DOM = function(el) {
       if (displayType == null) {
         displayType = 'block';
       }
+      console.log('show');
       el.style.display = displayType;
       return this;
     },
@@ -18327,10 +18335,12 @@ module.exports = DOM = function(el) {
 
 
 },{"underscore":65}],81:[function(require,module,exports){
-var $,
+var $, _,
   __hasProp = {}.hasOwnProperty;
 
 $ = require('jquery');
+
+_ = require('underscore');
 
 module.exports = {
   closest: function(el, selector) {
@@ -18659,7 +18669,7 @@ module.exports = {
 };
 
 
-},{"jquery":64}],82:[function(require,module,exports){
+},{"jquery":64,"underscore":65}],82:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -18938,14 +18948,17 @@ ComboList = (function(_super) {
     return _.extend(this.dropdownEvents(), {
       'click li.selected span': 'removeSelected',
       'click button.add': 'createModel',
-      'keyup input': 'toggleButton'
+      'keyup input': 'toggleAddButton'
     });
   };
 
-  ComboList.prototype.toggleButton = function(ev) {
+  ComboList.prototype.toggleAddButton = function(ev) {
     var button;
+    if (!this.settings.mutable) {
+      return;
+    }
     button = dom(this.el).q('button');
-    if ((button != null) && ev.currentTarget.value.length > 1 && ev.keyCode !== 13) {
+    if (ev.currentTarget.value.length > 1 && ev.keyCode !== 13) {
       return button.show('inline-block');
     } else {
       return button.hide();
@@ -19805,7 +19818,7 @@ module.exports = {
 
 
 },{}],94:[function(require,module,exports){
-var Backbone, Modal, dom, modalManager, tpl, _,
+var $, Backbone, Modal, modalManager, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -19813,9 +19826,9 @@ Backbone = require('backbone');
 
 _ = require('underscore');
 
-tpl = require('./main.jade');
+$ = require('jquery');
 
-dom = require('../../utils/dom');
+tpl = require('./main.jade');
 
 modalManager = require('../../managers/modal');
 
@@ -19850,8 +19863,8 @@ Modal = (function(_super) {
     data = _.extend(this.defaultOptions(), this.options);
     rtpl = tpl(data);
     this.$el.html(rtpl);
-    body = dom(this.el).q('.body');
-    if (this.options.html) {
+    body = this.$('.body');
+    if (this.options.html != null) {
       body.html(this.options.html);
     } else {
       body.hide();
@@ -19881,7 +19894,8 @@ Modal = (function(_super) {
       offsetTop = bodyTop - 20;
     }
     this.$('.modalbody').css('margin-top', -1 * offsetTop);
-    return this.$('.modalbody .body').css('max-height', viewportHeight - 100);
+    this.$('.modalbody .body').css('max-height', viewportHeight - 175);
+    return this;
   };
 
   Modal.prototype.events = {
@@ -19901,11 +19915,11 @@ Modal = (function(_super) {
   };
 
   Modal.prototype.submit = function(ev) {
-    var el;
-    el = dom(ev.currentTarget);
-    if (!el.hasClass('loader')) {
-      this.el.querySelector('button.cancel').style.display = 'none';
-      el.addClass('loader');
+    var target;
+    target = $(ev.currentTarget);
+    if (!target.hasClass('loader')) {
+      target.addClass('loader');
+      this.$('button.cancel').hide();
       return this.trigger('submit');
     }
   };
@@ -19960,7 +19974,7 @@ Modal = (function(_super) {
 module.exports = Modal;
 
 
-},{"../../managers/modal":70,"../../utils/dom":80,"./main.jade":95,"backbone":62,"underscore":65}],95:[function(require,module,exports){
+},{"../../managers/modal":70,"./main.jade":95,"backbone":62,"jquery":64,"underscore":65}],95:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -21482,8 +21496,11 @@ Projects = (function(_super) {
 
   Projects.prototype.setCurrent = function(id) {
     var fragmentPart;
+    if (id instanceof Backbone.Model) {
+      id = id.id;
+    }
     fragmentPart = history.last() != null ? history.last().split('/') : [];
-    if ((id != null) && _.isString(id)) {
+    if (_.isNumber(id)) {
       this.current = this.get(id);
     } else if (fragmentPart[1] === 'projects') {
       this.current = this.find(function(p) {
@@ -21912,7 +21929,7 @@ var $, Collections, CurrentUser, Models, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-config = require('../config');
+config = require('elaborate-modules/modules/models/config');
 
 token = require('hilib/src/managers/token');
 
@@ -21959,7 +21976,7 @@ CurrentUser = (function(_super) {
     if (attrs.title == null) {
       attrs.title = attrs.username;
     }
-    attrs.roleNo = config.roles[attrs.role];
+    attrs.roleNo = config.get('roles')[attrs.role];
     return attrs;
   };
 
@@ -22017,7 +22034,7 @@ CurrentUser = (function(_super) {
     var jqXHR;
     jqXHR = $.ajax({
       type: 'post',
-      url: config.baseUrl + ("sessions/" + (token.get()) + "/logout")
+      url: config.get('baseUrl') + ("sessions/" + (token.get()) + "/logout")
     });
     jqXHR.done(function() {
       sessionStorage.clear();
@@ -22049,7 +22066,7 @@ CurrentUser = (function(_super) {
       }
       jqXHR = $.ajax({
         type: 'post',
-        url: config.baseUrl + 'sessions/login',
+        url: config.get('baseUrl') + 'sessions/login',
         data: postData
       });
       jqXHR.done((function(_this) {
@@ -22079,7 +22096,7 @@ CurrentUser = (function(_super) {
 module.exports = new CurrentUser();
 
 
-},{"../collections/base":107,"../config":115,"./base":119,"hilib/src/managers/token":71,"jquery":102}],121:[function(require,module,exports){
+},{"../collections/base":107,"./base":119,"elaborate-modules/modules/models/config":3,"hilib/src/managers/token":71,"jquery":102}],121:[function(require,module,exports){
 var Collections, Entry, Models, ajax, config, syncOverride, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -22812,6 +22829,46 @@ Project = (function(_super) {
     })(this));
   };
 
+  Project.prototype.sync = function(method, model, options) {
+    var jqXHR;
+    if (method === 'create') {
+      jqXHR = ajax.post({
+        url: this.url(),
+        data: JSON.stringify({
+          title: this.get('title')
+        }),
+        dataType: 'text'
+      });
+      jqXHR.done((function(_this) {
+        return function(data, textStatus, jqXHR) {
+          var xhr;
+          if (jqXHR.status === 201) {
+            xhr = ajax.get({
+              url: jqXHR.getResponseHeader('Location')
+            });
+            xhr.done(function(data, textStatus, jqXHR) {
+              return options.success(data);
+            });
+            return xhr.fail(function() {
+              return console.log(arguments);
+            });
+          }
+        };
+      })(this));
+      return jqXHR.fail((function(_this) {
+        return function(response) {
+          if (response.status === 401) {
+            return Backbone.history.navigate('login', {
+              trigger: true
+            });
+          }
+        };
+      })(this));
+    } else {
+      return Project.__super__.sync.apply(this, arguments);
+    }
+  };
+
   return Project;
 
 })(Models.Base);
@@ -23462,7 +23519,8 @@ Pubsub = require('hilib/src/mixins/pubsub');
 Fn = require('hilib/src/utils/general');
 
 Models = {
-  currentUser: require('../models/currentUser')
+  currentUser: require('../models/currentUser'),
+  config: require('elaborate-modules/modules/models/config')
 };
 
 Collections = {
@@ -23503,6 +23561,8 @@ MainRouter = (function(_super) {
           return Collections.projects.getCurrent(function(project) {
             var header, url, _ref;
             _this.project = project;
+            Models.config.set('entryTermSingular', _this.project.get('settings').get('entry.term_singular'));
+            Models.config.set('entryTermPlural', _this.project.get('settings').get('entry.term_plural'));
             url = (_ref = history.last()) != null ? _ref : 'projects/' + _this.project.get('name');
             _this.navigate(url, {
               trigger: true
@@ -23606,7 +23666,7 @@ MainRouter = (function(_super) {
 module.exports = MainRouter;
 
 
-},{"../collections/projects":112,"../models/currentUser":120,"../views/entry/main":135,"../views/login":141,"../views/project/history":142,"../views/project/search":143,"../views/project/settings/main":146,"../views/project/statistics":149,"../views/ui/header":150,"backbone":1,"hilib/src/managers/history":69,"hilib/src/managers/view2":72,"hilib/src/mixins/pubsub":78,"hilib/src/utils/general":81,"jquery":102,"underscore":104}],133:[function(require,module,exports){
+},{"../collections/projects":112,"../models/currentUser":120,"../views/entry/main":135,"../views/login":141,"../views/project/history":142,"../views/project/search":143,"../views/project/settings/main":146,"../views/project/statistics":149,"../views/ui/header":150,"backbone":1,"elaborate-modules/modules/models/config":3,"hilib/src/managers/history":69,"hilib/src/managers/view2":72,"hilib/src/mixins/pubsub":78,"hilib/src/utils/general":81,"jquery":102,"underscore":104}],133:[function(require,module,exports){
 var AnnotationEditor, Backbone, Collections, Views, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23622,7 +23682,7 @@ Collections = {
 Views = {
   Base: require('hilib/src/views/base'),
   SuperTinyEditor: require('hilib/src/views/supertinyeditor/supertinyeditor'),
-  Modal: require('hilib/src/views/modal/main'),
+  Modal: require('hilib/src/views/modal'),
   Form: require('hilib/src/views/form/main')
 };
 
@@ -23782,7 +23842,7 @@ AnnotationEditor = (function(_super) {
 module.exports = AnnotationEditor;
 
 
-},{"../../../../jade/entry/annotation.metadata.jade":151,"../../../collections/projects":112,"backbone":1,"hilib/src/managers/view2":72,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],134:[function(require,module,exports){
+},{"../../../../jade/entry/annotation.metadata.jade":151,"../../../collections/projects":112,"backbone":1,"hilib/src/managers/view2":72,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],134:[function(require,module,exports){
 var Backbone, LayerEditor, StringFn, Views, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23796,7 +23856,7 @@ StringFn = require('hilib/src/utils/string');
 Views = {
   Base: require('hilib/src/views/base'),
   SuperTinyEditor: require('hilib/src/views/supertinyeditor/supertinyeditor'),
-  Modal: require('hilib/src/views/modal/main')
+  Modal: require('hilib/src/views/modal')
 };
 
 LayerEditor = (function(_super) {
@@ -23894,7 +23954,7 @@ LayerEditor = (function(_super) {
 module.exports = LayerEditor;
 
 
-},{"backbone":1,"hilib/src/managers/view2":72,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal/main":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],135:[function(require,module,exports){
+},{"backbone":1,"hilib/src/managers/view2":72,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal":94,"hilib/src/views/supertinyeditor/supertinyeditor":100}],135:[function(require,module,exports){
 var $, Async, Backbone, Collections, Entry, Fn, Models, StringFn, Views, config, dom, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -23928,10 +23988,10 @@ Collections = {
 
 Views = {
   Base: require('hilib/src/views/base'),
-  Submenu: require('./submenu'),
+  Submenu: require('./main.submenu'),
   Preview: require('./preview/main'),
   EditFacsimiles: require('./subsubmenu/facsimiles.edit'),
-  Modal: require('hilib/src/views/modal/main'),
+  Modal: require('hilib/src/views/modal'),
   AnnotationEditor: require('./editors/annotation'),
   LayerEditor: require('./editors/layer')
 };
@@ -24338,7 +24398,238 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"../../../jade/entry/main.jade":152,"../../collections/projects":112,"../../config":115,"../../models/currentUser":120,"../../models/entry":121,"./editors/annotation":133,"./editors/layer":134,"./preview/main":138,"./submenu":139,"./subsubmenu/facsimiles.edit":140,"backbone":1,"hilib/src/managers/async":68,"hilib/src/managers/view2":72,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/utils/jquery.mixin":82,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal/main":94,"jquery":102}],136:[function(require,module,exports){
+},{"../../../jade/entry/main.jade":152,"../../collections/projects":112,"../../config":115,"../../models/currentUser":120,"../../models/entry":121,"./editors/annotation":133,"./editors/layer":134,"./main.submenu":136,"./preview/main":139,"./subsubmenu/facsimiles.edit":140,"backbone":1,"hilib/src/managers/async":68,"hilib/src/managers/view2":72,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/utils/jquery.mixin":82,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal":94,"jquery":102}],136:[function(require,module,exports){
+var Async, Backbone, Base, EntrySubmenu, Fn, StringFn, Views, metadataTpl, tpl, _,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Backbone = require('backbone');
+
+_ = require('underscore');
+
+Fn = require('hilib/src/utils/general');
+
+StringFn = require('hilib/src/utils/string');
+
+Async = require('hilib/src/managers/async');
+
+Base = require('hilib/src/views/base');
+
+tpl = require('../../../jade/entry/main.submenu.jade');
+
+metadataTpl = require('../../../jade/entry/metadata.jade');
+
+Views = {
+  Form: require('hilib/src/views/form/main'),
+  Modal: require('hilib/src/views/modal')
+};
+
+EntrySubmenu = (function(_super) {
+  __extends(EntrySubmenu, _super);
+
+  function EntrySubmenu() {
+    return EntrySubmenu.__super__.constructor.apply(this, arguments);
+  }
+
+  EntrySubmenu.prototype.className = 'submenu';
+
+  EntrySubmenu.prototype.initialize = function() {
+    var _ref;
+    EntrySubmenu.__super__.initialize.apply(this, arguments);
+    return _ref = this.options, this.entry = _ref.entry, this.user = _ref.user, this.project = _ref.project, _ref;
+  };
+
+  EntrySubmenu.prototype.render = function() {
+    var rtpl;
+    rtpl = tpl({
+      entry: this.entry,
+      user: this.user
+    });
+    this.$el.html(rtpl);
+    if (this.project.resultSet != null) {
+      this.entry.setPrevNext((function(_this) {
+        return function() {
+          return _this.activatePrevNext();
+        };
+      })(this));
+    } else {
+      if (!((this.entry.prevID != null) && (this.entry.nextID != null))) {
+        this.entry.fetchPrevNext((function(_this) {
+          return function() {
+            return _this.activatePrevNext();
+          };
+        })(this));
+      }
+    }
+    return this;
+  };
+
+  EntrySubmenu.prototype.events = function() {
+    return {
+      'click .menu li.active[data-key="previous"]': 'previousEntry',
+      'click .menu li.active[data-key="next"]': 'nextEntry',
+      'click .menu li[data-key="print"]': 'printEntry',
+      'click .menu li[data-key="delete"]': 'deleteEntry',
+      'click .menu li[data-key="metadata"]': 'editEntryMetadata'
+    };
+  };
+
+  EntrySubmenu.prototype.activatePrevNext = function() {
+    if (this.entry.prevID > 0) {
+      this.$('li[data-key="previous"]').addClass('active');
+    }
+    if (this.entry.nextID > 0) {
+      return this.$('li[data-key="next"]').addClass('active');
+    }
+  };
+
+  EntrySubmenu.prototype.previousEntry = function() {
+    var projectName, transcription;
+    projectName = this.entry.project.get('name');
+    transcription = StringFn.slugify(this.entry.get('transcriptions').current.get('textLayer'));
+    return Backbone.history.navigate("projects/" + projectName + "/entries/" + this.entry.prevID + "/transcriptions/" + transcription, {
+      trigger: true
+    });
+  };
+
+  EntrySubmenu.prototype.nextEntry = function() {
+    var projectName, transcription;
+    projectName = this.entry.project.get('name');
+    transcription = StringFn.slugify(this.entry.get('transcriptions').current.get('textLayer'));
+    return Backbone.history.navigate("projects/" + projectName + "/entries/" + this.entry.nextID + "/transcriptions/" + transcription, {
+      trigger: true
+    });
+  };
+
+  EntrySubmenu.prototype.printEntry = function(ev) {
+    var annotations, currentTranscription, h1, h2, mainDiv, ol, pp, sups;
+    pp = document.querySelector('#printpreview');
+    if (pp != null) {
+      pp.parentNode.removeChild(pp);
+    }
+    currentTranscription = this.entry.get('transcriptions').current;
+    annotations = currentTranscription.get('annotations');
+    mainDiv = document.createElement('div');
+    mainDiv.id = 'printpreview';
+    h1 = document.createElement('h1');
+    h1.innerHTML = 'Preview entry: ' + this.entry.get('name');
+    h2 = document.createElement('h2');
+    h2.innerHTML = 'Project: ' + this.project.get('title');
+    mainDiv.appendChild(h1);
+    mainDiv.appendChild(h2);
+    mainDiv.appendChild(document.querySelector('.preview').cloneNode(true));
+    ol = document.createElement('ol');
+    ol.className = 'annotations';
+    sups = document.querySelectorAll('sup[data-marker="end"]');
+    _.each(sups, (function(_this) {
+      return function(sup) {
+        var annotation, li;
+        annotation = annotations.findWhere({
+          annotationNo: +sup.getAttribute('data-id')
+        });
+        li = document.createElement('li');
+        li.innerHTML = annotation.get('body');
+        return ol.appendChild(li);
+      };
+    })(this));
+    h2 = document.createElement('h2');
+    h2.innerHTML = 'Annotations';
+    mainDiv.appendChild(h2);
+    mainDiv.appendChild(ol);
+    document.body.appendChild(mainDiv);
+    return window.print();
+  };
+
+  EntrySubmenu.prototype.deleteEntry = (function() {
+    var modal;
+    modal = null;
+    return function(ev) {
+      if (modal != null) {
+        return;
+      }
+      modal = new Views.Modal({
+        title: 'Caution!',
+        html: "You are about to <b>REMOVE</b> entry: \"" + (this.entry.get('name')) + "\" <small>(id: " + this.entry.id + ")</small>.<br><br>All text and annotations will be <b>PERMANENTLY</b> removed!",
+        submitValue: 'Remove entry',
+        width: 'auto'
+      });
+      modal.on('submit', (function(_this) {
+        return function() {
+          var jqXHR;
+          jqXHR = _this.entry.destroy();
+          return jqXHR.done(function() {
+            modal.close();
+            _this.publish('faceted-search:refresh');
+            _this.publish('message', "Removed entry " + _this.entry.id + " from project.");
+            return Backbone.history.navigate("projects/" + (_this.project.get('name')), {
+              trigger: true
+            });
+          });
+        };
+      })(this));
+      return modal.on('close', function() {
+        return modal = null;
+      });
+    };
+  })();
+
+  EntrySubmenu.prototype.editEntryMetadata = (function() {
+    var modal;
+    modal = null;
+    return function(ev) {
+      var entryMetadata;
+      if (modal != null) {
+        return;
+      }
+      entryMetadata = new Views.Form({
+        tpl: metadataTpl,
+        tplData: {
+          user: this.user,
+          generateID: Fn.generateID
+        },
+        model: this.entry.clone()
+      });
+      modal = new Views.Modal({
+        title: "Edit " + (this.project.get('settings').get('entry.term_singular')) + " metadata",
+        html: entryMetadata.el,
+        submitValue: 'Save metadata',
+        width: '300px'
+      });
+      modal.on('submit', (function(_this) {
+        return function() {
+          var async;
+          _this.entry.updateFromClone(entryMetadata.model);
+          async = new Async(['entry', 'settings']);
+          _this.listenToOnce(async, 'ready', function() {
+            modal.close();
+            return _this.publish('message', "Saved metadata for entry: " + (_this.entry.get('name')) + ".");
+          });
+          _this.entry.get('settings').save(null, {
+            success: function() {
+              return async.called('settings');
+            }
+          });
+          return _this.entry.save(null, {
+            success: function() {
+              return async.called('entry');
+            }
+          });
+        };
+      })(this));
+      return modal.on('close', function() {
+        return modal = null;
+      });
+    };
+  })();
+
+  return EntrySubmenu;
+
+})(Base);
+
+module.exports = EntrySubmenu;
+
+
+},{"../../../jade/entry/main.submenu.jade":153,"../../../jade/entry/metadata.jade":154,"backbone":1,"hilib/src/managers/async":68,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal":94,"underscore":104}],137:[function(require,module,exports){
 var AddAnnotationTooltip, Annotation, BaseView, Fn, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -24444,7 +24735,7 @@ AddAnnotationTooltip = (function(_super) {
 module.exports = AddAnnotationTooltip;
 
 
-},{"../../../../jade/entry/tooltip.add.annotation.jade":157,"../../../models/annotation":118,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],137:[function(require,module,exports){
+},{"../../../../jade/entry/tooltip.add.annotation.jade":157,"../../../models/annotation":118,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],138:[function(require,module,exports){
 var BaseView, EditAnnotationTooltip, Fn, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -24599,7 +24890,7 @@ EditAnnotationTooltip = (function(_super) {
 module.exports = EditAnnotationTooltip;
 
 
-},{"../../../../jade/ui/tooltip.jade":170,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],138:[function(require,module,exports){
+},{"../../../../jade/ui/tooltip.jade":170,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84}],139:[function(require,module,exports){
 var $, EntryPreview, Fn, Views, config, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -24967,204 +25258,7 @@ EntryPreview = (function(_super) {
 module.exports = EntryPreview;
 
 
-},{"../../../../jade/entry/preview.jade":154,"../../../config":115,"./annotation.add.tooltip":136,"./annotation.edit.tooltip":137,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84,"jquery":102}],139:[function(require,module,exports){
-var Async, Backbone, Base, EntrySubmenu, Fn, StringFn, Views, metadataTpl, tpl, _,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-Backbone = require('backbone');
-
-_ = require('underscore');
-
-Fn = require('hilib/src/utils/general');
-
-StringFn = require('hilib/src/utils/string');
-
-Async = require('hilib/src/managers/async');
-
-Base = require('hilib/src/views/base');
-
-tpl = require('../../../jade/entry/submenu.jade');
-
-metadataTpl = require('../../../jade/entry/metadata.jade');
-
-Views = {
-  Form: require('hilib/src/views/form/main'),
-  Modal: require('hilib/src/views/modal/main')
-};
-
-EntrySubmenu = (function(_super) {
-  __extends(EntrySubmenu, _super);
-
-  function EntrySubmenu() {
-    return EntrySubmenu.__super__.constructor.apply(this, arguments);
-  }
-
-  EntrySubmenu.prototype.className = 'submenu';
-
-  EntrySubmenu.prototype.initialize = function() {
-    var _ref;
-    EntrySubmenu.__super__.initialize.apply(this, arguments);
-    return _ref = this.options, this.entry = _ref.entry, this.user = _ref.user, this.project = _ref.project, _ref;
-  };
-
-  EntrySubmenu.prototype.render = function() {
-    var rtpl;
-    rtpl = tpl({
-      entry: this.entry,
-      user: this.user
-    });
-    this.$el.html(rtpl);
-    if (this.project.resultSet != null) {
-      this.entry.setPrevNext((function(_this) {
-        return function() {
-          return _this.activatePrevNext();
-        };
-      })(this));
-    } else {
-      if (!((this.entry.prevID != null) && (this.entry.nextID != null))) {
-        this.entry.fetchPrevNext((function(_this) {
-          return function() {
-            return _this.activatePrevNext();
-          };
-        })(this));
-      }
-    }
-    return this;
-  };
-
-  EntrySubmenu.prototype.events = function() {
-    return {
-      'click .menu li.active[data-key="previous"]': 'previousEntry',
-      'click .menu li.active[data-key="next"]': 'nextEntry',
-      'click .menu li[data-key="metadata"]': 'editEntryMetadata',
-      'click .menu li[data-key="print"]': 'printEntry'
-    };
-  };
-
-  EntrySubmenu.prototype.activatePrevNext = function() {
-    if (this.entry.prevID > 0) {
-      this.$('li[data-key="previous"]').addClass('active');
-    }
-    if (this.entry.nextID > 0) {
-      return this.$('li[data-key="next"]').addClass('active');
-    }
-  };
-
-  EntrySubmenu.prototype.previousEntry = function() {
-    var projectName, transcription;
-    projectName = this.entry.project.get('name');
-    transcription = StringFn.slugify(this.entry.get('transcriptions').current.get('textLayer'));
-    return Backbone.history.navigate("projects/" + projectName + "/entries/" + this.entry.prevID + "/transcriptions/" + transcription, {
-      trigger: true
-    });
-  };
-
-  EntrySubmenu.prototype.nextEntry = function() {
-    var projectName, transcription;
-    projectName = this.entry.project.get('name');
-    transcription = StringFn.slugify(this.entry.get('transcriptions').current.get('textLayer'));
-    return Backbone.history.navigate("projects/" + projectName + "/entries/" + this.entry.nextID + "/transcriptions/" + transcription, {
-      trigger: true
-    });
-  };
-
-  EntrySubmenu.prototype.editEntryMetadata = (function() {
-    var modal;
-    modal = null;
-    return function(ev) {
-      var entryMetadata;
-      if (modal != null) {
-        return;
-      }
-      entryMetadata = new Views.Form({
-        tpl: metadataTpl,
-        tplData: {
-          user: this.user,
-          generateID: Fn.generateID
-        },
-        model: this.entry.clone()
-      });
-      modal = new Views.Modal({
-        title: "Edit " + (this.project.get('settings').get('entry.term_singular')) + " metadata",
-        html: entryMetadata.el,
-        submitValue: 'Save metadata',
-        width: '300px'
-      });
-      modal.on('submit', (function(_this) {
-        return function() {
-          var async;
-          _this.entry.updateFromClone(entryMetadata.model);
-          async = new Async(['entry', 'settings']);
-          _this.listenToOnce(async, 'ready', function() {
-            modal.close();
-            return _this.publish('message', "Saved metadata for entry: " + (_this.entry.get('name')) + ".");
-          });
-          _this.entry.get('settings').save(null, {
-            success: function() {
-              return async.called('settings');
-            }
-          });
-          return _this.entry.save(null, {
-            success: function() {
-              return async.called('entry');
-            }
-          });
-        };
-      })(this));
-      return modal.on('close', function() {
-        return modal = null;
-      });
-    };
-  })();
-
-  EntrySubmenu.prototype.printEntry = function(ev) {
-    var annotations, currentTranscription, h1, h2, mainDiv, ol, pp, sups;
-    pp = document.querySelector('#printpreview');
-    if (pp != null) {
-      pp.parentNode.removeChild(pp);
-    }
-    currentTranscription = this.entry.get('transcriptions').current;
-    annotations = currentTranscription.get('annotations');
-    mainDiv = document.createElement('div');
-    mainDiv.id = 'printpreview';
-    h1 = document.createElement('h1');
-    h1.innerHTML = 'Preview entry: ' + this.entry.get('name');
-    h2 = document.createElement('h2');
-    h2.innerHTML = 'Project: ' + this.project.get('title');
-    mainDiv.appendChild(h1);
-    mainDiv.appendChild(h2);
-    mainDiv.appendChild(document.querySelector('.preview').cloneNode(true));
-    ol = document.createElement('ol');
-    ol.className = 'annotations';
-    sups = document.querySelectorAll('sup[data-marker="end"]');
-    _.each(sups, (function(_this) {
-      return function(sup) {
-        var annotation, li;
-        annotation = annotations.findWhere({
-          annotationNo: +sup.getAttribute('data-id')
-        });
-        li = document.createElement('li');
-        li.innerHTML = annotation.get('body');
-        return ol.appendChild(li);
-      };
-    })(this));
-    h2 = document.createElement('h2');
-    h2.innerHTML = 'Annotations';
-    mainDiv.appendChild(h2);
-    mainDiv.appendChild(ol);
-    document.body.appendChild(mainDiv);
-    return window.print();
-  };
-
-  return EntrySubmenu;
-
-})(Base);
-
-module.exports = EntrySubmenu;
-
-
-},{"../../../jade/entry/metadata.jade":153,"../../../jade/entry/submenu.jade":155,"backbone":1,"hilib/src/managers/async":68,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"underscore":104}],140:[function(require,module,exports){
+},{"../../../../jade/entry/preview.jade":155,"../../../config":115,"./annotation.add.tooltip":137,"./annotation.edit.tooltip":138,"hilib/src/utils/dom":80,"hilib/src/utils/general":81,"hilib/src/views/base":84,"jquery":102}],140:[function(require,module,exports){
 var $, EditFacsimiles, Fn, Views, ajax, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25527,9 +25621,13 @@ Search = (function(_super) {
       };
     })(this));
     this.listenTo(fsr, 'editmultiplemetadata:saved', function(entryIds) {
-      console.log(entryIds);
       return this.project.get('entries').changed = _.union(this.project.get('entries').changed, entryIDs);
     });
+    this.subscribe('faceted-search:refresh', (function(_this) {
+      return function() {
+        return fsr.refresh();
+      };
+    })(this));
     return this;
   };
 
@@ -25557,7 +25655,7 @@ Entry = require('../../models/entry');
 
 Views = {
   Base: require('hilib/src/views/base'),
-  Modal: require('hilib/src/views/modal/main')
+  Modal: require('hilib/src/views/modal')
 };
 
 tpl = require('../../../jade/project/search.submenu.jade');
@@ -25601,9 +25699,41 @@ SearchSubmenu = (function(_super) {
       'click li[data-key="editmetadata"]': function() {
         return this.trigger('editmetadata');
       },
+      'click li[data-key="delete"]': 'deleteProject',
       'click li[data-key="publish"]': 'publishDraft'
     };
   };
+
+  SearchSubmenu.prototype.deleteProject = (function() {
+    var modal;
+    modal = null;
+    return function(ev) {
+      if (modal != null) {
+        return;
+      }
+      modal = new Views.Modal({
+        title: 'Caution!',
+        html: "You are about to <b>REMOVE</b> project: \"" + (this.project.get('title')) + "\" <small>(id: " + this.project.id + ")</small>.<br><br>All " + (config.get('entryTermPlural')) + " will be <b>PERMANENTLY</b> removed!",
+        submitValue: 'Remove project',
+        width: 'auto'
+      });
+      modal.on('submit', (function(_this) {
+        return function() {
+          return _this.project.destroy({
+            wait: true,
+            success: function() {
+              modal.close();
+              projects.setCurrent(projects.first().id);
+              return _this.publish('message', "Removed " + (_this.project.get('title')) + ".");
+            }
+          });
+        };
+      })(this));
+      return modal.on('close', function() {
+        return modal = null;
+      });
+    };
+  })();
 
   SearchSubmenu.prototype.publishDraft = function(ev) {
     this.activatePublishDraftButton();
@@ -25683,7 +25813,7 @@ SearchSubmenu = (function(_super) {
 module.exports = SearchSubmenu;
 
 
-},{"../../../jade/project/search.submenu.jade":160,"../../collections/projects":112,"../../models/currentUser":120,"../../models/entry":121,"backbone":1,"elaborate-modules/modules/models/config":3,"hilib/src/views/base":84,"hilib/src/views/modal/main":94}],145:[function(require,module,exports){
+},{"../../../jade/project/search.submenu.jade":160,"../../collections/projects":112,"../../models/currentUser":120,"../../models/entry":121,"backbone":1,"elaborate-modules/modules/models/config":3,"hilib/src/views/base":84,"hilib/src/views/modal":94}],145:[function(require,module,exports){
 var EntryMetadata, ProjectSettingsEntries, Views, ajax, config, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -25840,7 +25970,7 @@ Views = {
   EditableList: require('hilib/src/views/form/editablelist/main'),
   ComboList: require('hilib/src/views/form/combolist/main'),
   Form: require('hilib/src/views/form/main'),
-  Modal: require('hilib/src/views/modal/main'),
+  Modal: require('hilib/src/views/modal'),
   TextlayersTab: require('./textlayers'),
   EntriesTab: require('./entries'),
   UsersTab: require('./users')
@@ -26055,7 +26185,7 @@ ProjectSettings = (function(_super) {
 module.exports = ProjectSettings;
 
 
-},{"../../../../jade/project/settings/addannotationtype.jade":161,"../../../../jade/project/settings/main.jade":164,"../../../collections/projects":112,"../../../config":115,"../../../entry.metadata":116,"../../../models/project/annotationtype":124,"../../../models/project/settings":126,"../../../models/project/statistics":127,"../../../models/user":129,"../../../project.user.ids":131,"./entries":145,"./textlayers":147,"./users":148,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/async":68,"hilib/src/managers/token":71,"hilib/src/views/base":84,"hilib/src/views/form/combolist/main":85,"hilib/src/views/form/editablelist/main":87,"hilib/src/views/form/main":89,"hilib/src/views/modal/main":94,"jquery":102,"underscore":104}],147:[function(require,module,exports){
+},{"../../../../jade/project/settings/addannotationtype.jade":161,"../../../../jade/project/settings/main.jade":164,"../../../collections/projects":112,"../../../config":115,"../../../entry.metadata":116,"../../../models/project/annotationtype":124,"../../../models/project/settings":126,"../../../models/project/statistics":127,"../../../models/user":129,"../../../project.user.ids":131,"./entries":145,"./textlayers":147,"./users":148,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/async":68,"hilib/src/managers/token":71,"hilib/src/views/base":84,"hilib/src/views/form/combolist/main":85,"hilib/src/views/form/editablelist/main":87,"hilib/src/views/form/main":89,"hilib/src/views/modal":94,"jquery":102,"underscore":104}],147:[function(require,module,exports){
 var ProjectSettingsTextlayers, Views, ajax, config, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -26337,15 +26467,17 @@ module.exports = Statistics;
 
 
 },{"../../../jade/project/statistics.jade":168,"../../collections/projects":112,"../../models/project/statistics":127,"hilib/src/views/base":84}],150:[function(require,module,exports){
-var Backbone, BaseView, Collections, Fn, Header, Models, StringFn, ajax, config, token, tpl,
+var $, Backbone, BaseView, Fn, Header, StringFn, Views, ajax, config, currentUser, projects, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Backbone = require('backbone');
 
+$ = require('jquery');
+
 BaseView = require('hilib/src/views/base');
 
-config = require('../../config');
+config = require('elaborate-modules/modules/models/config');
 
 Fn = require('hilib/src/utils/general');
 
@@ -26355,13 +26487,13 @@ ajax = require('hilib/src/managers/ajax');
 
 token = require('hilib/src/managers/token');
 
-Models = {
-  currentUser: require('../../models/currentUser')
+Views = {
+  Modal: require('hilib/src/views/modal')
 };
 
-Collections = {
-  projects: require('../../collections/projects')
-};
+currentUser = require('../../models/currentUser');
+
+projects = require('../../collections/projects');
 
 tpl = require('../../../jade/ui/header.jade');
 
@@ -26377,7 +26509,7 @@ Header = (function(_super) {
   Header.prototype.initialize = function() {
     Header.__super__.initialize.apply(this, arguments);
     this.project = this.options.project;
-    this.listenTo(Collections.projects, 'current:change', (function(_this) {
+    this.listenTo(projects, 'current:change', (function(_this) {
       return function(project) {
         _this.project = project;
         return _this.render();
@@ -26389,9 +26521,10 @@ Header = (function(_super) {
 
   Header.prototype.events = {
     'click .user .logout': function() {
-      return Models.currentUser.logout();
+      return currentUser.logout();
     },
     'click .user .project': 'setProject',
+    'click .user .addproject': 'addProject',
     'click .project .projecttitle': 'navigateToProject',
     'click .project .settings': 'navigateToProjectSettings',
     'click .project .search': 'navigateToProject',
@@ -26429,18 +26562,56 @@ Header = (function(_super) {
   Header.prototype.render = function() {
     var rtpl;
     rtpl = tpl({
-      projects: Collections.projects,
-      user: Models.currentUser,
+      projects: projects,
+      user: currentUser,
       plural: StringFn.ucfirst(this.project.get('settings').get('entry.term_plural'))
     });
     this.$el.html(rtpl);
     return this;
   };
 
+  Header.prototype.addProject = (function() {
+    var modal;
+    modal = null;
+    return function(ev) {
+      if (modal != null) {
+        return;
+      }
+      modal = new Views.Modal({
+        title: "Add project",
+        html: '<label>Name</label><input name="project-title" type="text" />',
+        submitValue: 'Add project',
+        width: '300px'
+      });
+      modal.on('submit', (function(_this) {
+        return function() {
+          return projects.create({
+            title: $('input[name="project-title"]').val()
+          }, {
+            wait: true,
+            success: function(model) {
+              return modal.close();
+            },
+            error: function(response) {
+              if (response.status === 401) {
+                return Backbone.history.navigate('login', {
+                  trigger: true
+                });
+              }
+            }
+          });
+        };
+      })(this));
+      return modal.on('close', function() {
+        return modal = null;
+      });
+    };
+  })();
+
   Header.prototype.setProject = function(ev) {
     var id;
-    id = ev.currentTarget.getAttribute('data-id');
-    return Collections.projects.setCurrent(id);
+    id = ev.hasOwnProperty('currentTarget') ? +ev.currentTarget.getAttribute('data-id') : ev;
+    return projects.setCurrent(id);
   };
 
   Header.prototype.showMessage = function(msg) {
@@ -26474,7 +26645,7 @@ Header = (function(_super) {
 module.exports = Header;
 
 
-},{"../../../jade/ui/header.jade":169,"../../collections/projects":112,"../../config":115,"../../models/currentUser":120,"backbone":1,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84}],151:[function(require,module,exports){
+},{"../../../jade/ui/header.jade":169,"../../collections/projects":112,"../../models/currentUser":120,"backbone":1,"elaborate-modules/modules/models/config":3,"hilib/src/managers/ajax":67,"hilib/src/managers/token":71,"hilib/src/utils/general":81,"hilib/src/utils/string":83,"hilib/src/views/base":84,"hilib/src/views/modal":94,"jquery":102}],151:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26544,103 +26715,6 @@ var locals_ = (locals || {}),user = locals_.user;
 buf.push("<div class=\"subsubmenu\"><div class=\"editfacsimiles\"></div></div><div" + (jade.cls(['row','container',(user.get('roleNo') >= 20)?'span7':'span5'], [null,null,true])) + "><div class=\"cell span3 left-pane\"><iframe id=\"viewer_iframe\" name=\"viewer_iframe\" scrolling=\"no\" width=\"100%\" frameborder=\"0\"></iframe><div class=\"preview-placeholder\"></div></div><div" + (jade.attr("style", (user.get('roleNo') < 20)?'display:none':'', true, false)) + " class=\"cell span2 middle-pane\"><div class=\"transcription-placeholder\"><div class=\"transcription-editor\"></div></div><div class=\"annotation-placeholder\"><div class=\"annotation-editor\"></div></div><div class=\"annotationmetadata-placeholder\"><div class=\"annotationmetadata\"></div></div></div><div class=\"cell span2 right-pane\"><div class=\"preview-placeholder\"></div></div></div>");;return buf.join("");
 };
 },{"jade/runtime":101}],153:[function(require,module,exports){
-var jade = require("jade/runtime");
-
-module.exports = function template(locals) {
-var buf = [];
-var jade_mixins = {};
-var locals_ = (locals || {}),model = locals_.model,id = locals_.id,generateID = locals_.generateID,user = locals_.user;
-buf.push("<small>The last modification of " + (jade.escape((jade.interp = model.get('name')) == null ? '' : jade.interp)) + " was " + (jade.escape((jade.interp = new Date(model.get('modifiedOn')).toDateString()) == null ? '' : jade.interp)) + " by " + (jade.escape((jade.interp = model.get('modifier').title) == null ? '' : jade.interp)) + ".</small><br/><br/><form><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li>");
-id = generateID()
-buf.push("<label" + (jade.attr("for", id, true, false)) + ">Name</label>");
-if ( user.get('roleNo') >= 20)
-{
-buf.push("<input" + (jade.attr("id", id, true, false)) + " type=\"text\" name=\"name\"" + (jade.attr("value", model.get('name'), true, false)) + "/>");
-}
-else
-{
-buf.push("<span>" + (jade.escape(null == (jade.interp = model.get('name')) ? "" : jade.interp)) + "</span>");
-}
-buf.push("</li>");
-// iterate model.get('settings').attributes
-;(function(){
-  var $$obj = model.get('settings').attributes;
-  if ('number' == typeof $$obj.length) {
-
-    for (var key = 0, $$l = $$obj.length; key < $$l; key++) {
-      var value = $$obj[key];
-
-buf.push("<li>");
-id = generateID()
-buf.push("<label" + (jade.attr("for", id, true, false)) + ">" + (jade.escape(null == (jade.interp = key) ? "" : jade.interp)) + "</label>");
-if ( user.get('roleNo') >= 20)
-{
-buf.push("<input" + (jade.attr("id", id, true, false)) + (jade.attr("type", key=='Publishable'?'checkbox':'text', true, false)) + (jade.attr("name", key, true, false)) + (jade.attr("value", value, true, false)) + "/>");
-}
-else
-{
-buf.push("<span>" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span>");
-}
-buf.push("</li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var key in $$obj) {
-      $$l++;      var value = $$obj[key];
-
-buf.push("<li>");
-id = generateID()
-buf.push("<label" + (jade.attr("for", id, true, false)) + ">" + (jade.escape(null == (jade.interp = key) ? "" : jade.interp)) + "</label>");
-if ( user.get('roleNo') >= 20)
-{
-buf.push("<input" + (jade.attr("id", id, true, false)) + (jade.attr("type", key=='Publishable'?'checkbox':'text', true, false)) + (jade.attr("name", key, true, false)) + (jade.attr("value", value, true, false)) + "/>");
-}
-else
-{
-buf.push("<span>" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span>");
-}
-buf.push("</li>");
-    }
-
-  }
-}).call(this);
-
-buf.push("<li>");
-id = generateID()
-buf.push("<label" + (jade.attr("for", id, true, false)) + ">Publishable</label>");
-if ( user.get('roleNo') >= 20)
-{
-buf.push("<input" + (jade.attr("id", id, true, false)) + " type=\"checkbox\" name=\"publishable\"" + (jade.attr("checked", model.get('publishable'), true, false)) + "/>");
-}
-else
-{
-buf.push("<span>" + (jade.escape(null == (jade.interp = model.get('publishable')) ? "" : jade.interp)) + "</span>");
-}
-buf.push("</li></ul></form>");;return buf.join("");
-};
-},{"jade/runtime":101}],154:[function(require,module,exports){
-var jade = require("jade/runtime");
-
-module.exports = function template(locals) {
-var buf = [];
-var jade_mixins = {};
-var locals_ = (locals || {}),textLayer = locals_.textLayer,lineCount = locals_.lineCount,body = locals_.body,lineNumber = locals_.lineNumber;
-buf.push("<h2>" + (jade.escape(null == (jade.interp = textLayer + ' layer') ? "" : jade.interp)) + "</h2>");
-if ( lineCount == 0)
-{
-buf.push("<span class=\"emptylayer\">This layer is empty.</span>");
-}
-buf.push("<div class=\"body-container\"><div class=\"body\">" + (null == (jade.interp = body) ? "" : jade.interp) + "</div><ul class=\"linenumbers\">");
-lineNumber = 1
-while (lineNumber <= lineCount)
-{
-buf.push("<li>" + (jade.escape(null == (jade.interp = lineNumber) ? "" : jade.interp)) + "</li>");
-lineNumber++
-}
-buf.push("</ul></div>");;return buf.join("");
-};
-},{"jade/runtime":101}],155:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -26732,7 +26806,109 @@ buf.push("<li data-key=\"transcription\"" + (jade.attr("data-value", transcripti
   }
 }).call(this);
 
-buf.push("</ul></li></ul></div><div class=\"cell span2 alignright right-menu\"><ul class=\"horizontal menu\"><li data-key=\"metadata\">Metadata</li></ul></div></div>");;return buf.join("");
+buf.push("</ul></li></ul></div><div class=\"cell span2 alignright right-menu\"><ul class=\"horizontal menu\">");
+if ( user.get('roleNo') >= 30)
+{
+buf.push("<li data-key=\"delete\">Remove</li>");
+}
+buf.push("<li data-key=\"metadata\">Metadata</li></ul></div></div>");;return buf.join("");
+};
+},{"jade/runtime":101}],154:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var locals_ = (locals || {}),model = locals_.model,id = locals_.id,generateID = locals_.generateID,user = locals_.user;
+buf.push("<small>The last modification of " + (jade.escape((jade.interp = model.get('name')) == null ? '' : jade.interp)) + " was " + (jade.escape((jade.interp = new Date(model.get('modifiedOn')).toDateString()) == null ? '' : jade.interp)) + " by " + (jade.escape((jade.interp = model.get('modifier').title) == null ? '' : jade.interp)) + ".</small><br/><br/><form><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li>");
+id = generateID()
+buf.push("<label" + (jade.attr("for", id, true, false)) + ">Name</label>");
+if ( user.get('roleNo') >= 20)
+{
+buf.push("<input" + (jade.attr("id", id, true, false)) + " type=\"text\" name=\"name\"" + (jade.attr("value", model.get('name'), true, false)) + "/>");
+}
+else
+{
+buf.push("<span>" + (jade.escape(null == (jade.interp = model.get('name')) ? "" : jade.interp)) + "</span>");
+}
+buf.push("</li>");
+// iterate model.get('settings').attributes
+;(function(){
+  var $$obj = model.get('settings').attributes;
+  if ('number' == typeof $$obj.length) {
+
+    for (var key = 0, $$l = $$obj.length; key < $$l; key++) {
+      var value = $$obj[key];
+
+buf.push("<li>");
+id = generateID()
+buf.push("<label" + (jade.attr("for", id, true, false)) + ">" + (jade.escape(null == (jade.interp = key) ? "" : jade.interp)) + "</label>");
+if ( user.get('roleNo') >= 20)
+{
+buf.push("<input" + (jade.attr("id", id, true, false)) + (jade.attr("type", key=='Publishable'?'checkbox':'text', true, false)) + (jade.attr("name", key, true, false)) + (jade.attr("value", value, true, false)) + "/>");
+}
+else
+{
+buf.push("<span>" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span>");
+}
+buf.push("</li>");
+    }
+
+  } else {
+    var $$l = 0;
+    for (var key in $$obj) {
+      $$l++;      var value = $$obj[key];
+
+buf.push("<li>");
+id = generateID()
+buf.push("<label" + (jade.attr("for", id, true, false)) + ">" + (jade.escape(null == (jade.interp = key) ? "" : jade.interp)) + "</label>");
+if ( user.get('roleNo') >= 20)
+{
+buf.push("<input" + (jade.attr("id", id, true, false)) + (jade.attr("type", key=='Publishable'?'checkbox':'text', true, false)) + (jade.attr("name", key, true, false)) + (jade.attr("value", value, true, false)) + "/>");
+}
+else
+{
+buf.push("<span>" + (jade.escape(null == (jade.interp = value) ? "" : jade.interp)) + "</span>");
+}
+buf.push("</li>");
+    }
+
+  }
+}).call(this);
+
+buf.push("<li>");
+id = generateID()
+buf.push("<label" + (jade.attr("for", id, true, false)) + ">Publishable</label>");
+if ( user.get('roleNo') >= 20)
+{
+buf.push("<input" + (jade.attr("id", id, true, false)) + " type=\"checkbox\" name=\"publishable\"" + (jade.attr("checked", model.get('publishable'), true, false)) + "/>");
+}
+else
+{
+buf.push("<span>" + (jade.escape(null == (jade.interp = model.get('publishable')) ? "" : jade.interp)) + "</span>");
+}
+buf.push("</li></ul></form>");;return buf.join("");
+};
+},{"jade/runtime":101}],155:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var locals_ = (locals || {}),textLayer = locals_.textLayer,lineCount = locals_.lineCount,body = locals_.body,lineNumber = locals_.lineNumber;
+buf.push("<h2>" + (jade.escape(null == (jade.interp = textLayer + ' layer') ? "" : jade.interp)) + "</h2>");
+if ( lineCount == 0)
+{
+buf.push("<span class=\"emptylayer\">This layer is empty.</span>");
+}
+buf.push("<div class=\"body-container\"><div class=\"body\">" + (null == (jade.interp = body) ? "" : jade.interp) + "</div><ul class=\"linenumbers\">");
+lineNumber = 1
+while (lineNumber <= lineCount)
+{
+buf.push("<li>" + (jade.escape(null == (jade.interp = lineNumber) ? "" : jade.interp)) + "</li>");
+lineNumber++
+}
+buf.push("</ul></div>");;return buf.join("");
 };
 },{"jade/runtime":101}],156:[function(require,module,exports){
 var jade = require("jade/runtime");
@@ -26893,9 +27069,14 @@ var buf = [];
 var jade_mixins = {};
 var locals_ = (locals || {}),user = locals_.user,config = locals_.config;
 buf.push("<div class=\"row span3\"><div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li></ul></div>");
-if ( user.get('role') === 'ADMIN')
+if ( user.get('roleNo') >= 30)
 {
-buf.push("<div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">" + (jade.escape(null == (jade.interp = 'New '+config.get('entryTermSingular')) ? "" : jade.interp)) + "</li><li data-key=\"editmetadata\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\"><li data-key=\"publish\">Publish draft</li></ul></div>");
+buf.push("<div class=\"cell span1\"><ul class=\"horizontal menu\"><li data-key=\"newentry\">" + (jade.escape(null == (jade.interp = 'New '+config.get('entryTermSingular')) ? "" : jade.interp)) + "</li><li data-key=\"editmetadata\">Edit metadata</li></ul></div><div class=\"cell span1 alignright\"><ul class=\"horizontal menu\">");
+if ( user.get('roleNo') >= 40)
+{
+buf.push("<li data-key=\"delete\">Remove</li>");
+}
+buf.push("<li data-key=\"publish\">Publish draft</li></ul></div>");
 }
 buf.push("</div>");;return buf.join("");
 };
@@ -27136,7 +27317,7 @@ buf.push("<li" + (jade.attr("data-id", project.id, true, false)) + (jade.cls(['p
   }
 }).call(this);
 
-buf.push("</ul></li><li class=\"logout\">Logout</li></ul></li></ul><img src=\"/images/logo.huygens.png\"/></div>");;return buf.join("");
+buf.push("</ul></li><li class=\"addproject\">Add project</li><li class=\"logout\">Logout</li></ul></li></ul><img src=\"/images/logo.huygens.png\"/></div>");;return buf.join("");
 };
 },{"jade/runtime":101}],170:[function(require,module,exports){
 var jade = require("jade/runtime");

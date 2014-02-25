@@ -1,20 +1,22 @@
 Backbone = require 'backbone'
+$ = require 'jquery'
 
 BaseView = require 'hilib/src/views/base'
 
-config = require '../../config'
+config = require 'elaborate-modules/modules/models/config'
 
 Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
-Models =
-	currentUser: require '../../models/currentUser'
+Views =
+	Modal: require 'hilib/src/views/modal'
+
+currentUser = require '../../models/currentUser'
 	# state: require 'models/state'
 
-Collections =
-	projects: require '../../collections/projects'
+projects = require '../../collections/projects'
 
 tpl = require '../../../jade/ui/header.jade'
 
@@ -28,7 +30,7 @@ class Header extends BaseView
 
 		@project = @options.project
 
-		@listenTo Collections.projects, 'current:change', (@project) =>	@render()
+		@listenTo projects, 'current:change', (@project) =>	@render()
 
 		@subscribe 'message', @showMessage, @
 
@@ -36,8 +38,9 @@ class Header extends BaseView
 
 	# ### Events
 	events:
-		'click .user .logout': -> Models.currentUser.logout() 
+		'click .user .logout': -> currentUser.logout() 
 		'click .user .project': 'setProject'
+		'click .user .addproject': 'addProject'
 		'click .project .projecttitle': 'navigateToProject'
 		'click .project .settings': 'navigateToProjectSettings'
 		'click .project .search': 'navigateToProject'
@@ -53,17 +56,40 @@ class Header extends BaseView
 	# ### Render
 	render: ->
 		rtpl = tpl
-			projects: Collections.projects
-			user: Models.currentUser
+			projects: projects
+			user: currentUser
 			plural: StringFn.ucfirst @project.get('settings').get('entry.term_plural')
 		@$el.html rtpl
 
 		@
 
+	addProject: do ->
+		modal = null
+
+		(ev) ->
+			return if modal?
+
+			modal = new Views.Modal
+				title: "Add project"
+				html: '<label>Name</label><input name="project-title" type="text" />'
+				submitValue: 'Add project'
+				width: '300px'
+			modal.on 'submit', =>
+				projects.create
+					title: $('input[name="project-title"]').val()
+				,
+					wait: true
+					# We don't have to call an update of the UI, because the UI is updated when the current
+					# project changes. This is done by the projects collection listening to the sync event.
+					success: (model) => modal.close()
+					error: (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+			modal.on 'close', -> modal = null
+
+
 	# ### Methods
 	setProject: (ev) ->
-		id = ev.currentTarget.getAttribute 'data-id'
-		Collections.projects.setCurrent id
+		id = if ev.hasOwnProperty 'currentTarget' then +ev.currentTarget.getAttribute 'data-id' else ev
+		projects.setCurrent id
 
 	showMessage: (msg) ->
 		return false if msg.trim().length is 0

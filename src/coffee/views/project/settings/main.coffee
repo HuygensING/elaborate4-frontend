@@ -16,7 +16,7 @@ Views =
 	EditableList: require 'hilib/src/views/form/editablelist/main'
 	ComboList: require 'hilib/src/views/form/combolist/main'
 	Form: require 'hilib/src/views/form/main'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 	TextlayersTab: require './textlayers'
 	EntriesTab: require './entries'
 	UsersTab: require './users'

@@ -20,11 +20,6 @@ class Projects extends Base
 		super
 
 		@on 'sync', @setCurrent, @
-		# @fetch()
-	# fetch: (options={}) ->
-	# 	options.success = => @setCurrent()
-
-	# 	super
 
 	fetch: (options={}) ->
 		unless options.error
@@ -37,10 +32,16 @@ class Projects extends Base
 	getCurrent: (cb) ->
 		if @current? then cb @current else @once 'current:change', => cb @current
 
+	# setCurrent is called everytime the collections syncs, in these cases the parameter id can be
+	# a Backbone.Model (create/POST) or a Backbone.Collection (fetch/GET). If setCurrent is called
+	# with an id, it should be a Number.
 	setCurrent: (id) ->
+		id = id.id if id instanceof Backbone.Model
+
 		fragmentPart = if history.last()? then history.last().split('/') else []
 
-		if id? and _.isString(id)
+		# console.log id, fragmentPart, arguments
+		if _.isNumber(id)
 			@current = @.get id
 		else if fragmentPart[1] is 'projects'
 			@current = @find (p) -> p.get('name') is fragmentPart[2]

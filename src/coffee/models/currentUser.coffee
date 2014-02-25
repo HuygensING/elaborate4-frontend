@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 token = require 'hilib/src/managers/token'
 $ = require 'jquery'
 
@@ -33,7 +33,7 @@ class CurrentUser extends Models.Base
 
 	parse: (attrs) ->
 		attrs.title ?= attrs.username
-		attrs.roleNo = config.roles[attrs.role]
+		attrs.roleNo = config.get('roles')[attrs.role]
 		attrs
 
 	# ### Methods
@@ -80,7 +80,7 @@ class CurrentUser extends Models.Base
 	logout: (args) ->
 		jqXHR = $.ajax
 			type: 'post'
-			url: config.baseUrl + "sessions/#{token.get()}/logout"
+			url: config.get('baseUrl') + "sessions/#{token.get()}/logout"
 
 		jqXHR.done ->
 			sessionStorage.clear()
@@ -106,7 +106,7 @@ class CurrentUser extends Models.Base
 
 			jqXHR = $.ajax
 				type: 'post'
-				url: config.baseUrl + 'sessions/login'
+				url: config.get('baseUrl') + 'sessions/login'
 				data: postData
 
 			jqXHR.done (data) =>

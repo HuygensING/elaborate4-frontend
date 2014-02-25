@@ -15,7 +15,7 @@ Collections =
 Views =
 	Base: require 'hilib/src/views/base'
 	FacetedSearch: require 'faceted-search'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 	Pagination: require 'hilib/src/views/pagination/main'
 	EditSelection: require './editselection'
 	EntryListitem: require '../entry/listitem'

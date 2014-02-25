@@ -8,7 +8,7 @@ Entry = require '../../models/entry'
 
 Views =
 	Base: require 'hilib/src/views/base'
-	Modal: require 'hilib/src/views/modal/main'
+	Modal: require 'hilib/src/views/modal'
 
 tpl = require '../../../jade/project/search.submenu.jade'
 
@@ -38,7 +38,28 @@ class SearchSubmenu extends Views.Base
 		'click li[data-key="newsearch"]': -> @trigger 'newsearch'
 		'click li[data-key="newentry"]': 'newEntry'
 		'click li[data-key="editmetadata"]': -> @trigger 'editmetadata'
+		'click li[data-key="delete"]': 'deleteProject'
 		'click li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
+
+	deleteProject: do ->
+		modal = null
+
+		(ev) ->
+			return if modal?
+
+			modal = new Views.Modal
+				title: 'Caution!'
+				html: "You are about to <b>REMOVE</b> project: \"#{@project.get('title')}\" <small>(id: #{@project.id})</small>.<br><br>All #{config.get('entryTermPlural')} will be <b>PERMANENTLY</b> removed!"
+				submitValue: 'Remove project'
+				width: 'auto'
+			modal.on 'submit', => 
+				@project.destroy
+					wait: true
+					success: =>
+						modal.close()
+						projects.setCurrent(projects.first().id)
+						@publish 'message', "Removed #{@project.get('title')}."
+			modal.on 'close', -> modal = null
 
 	publishDraft: (ev) ->
 		@activatePublishDraftButton()
