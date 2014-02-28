@@ -25,6 +25,7 @@ class SearchSubmenu extends Views.Base
 		rtpl = tpl
 			user: currentUser
 			config: config
+			projects: projects
 
 		@$el.html rtpl
 
@@ -87,6 +88,7 @@ class SearchSubmenu extends Views.Base
 					@stopListening()
 					@project.get('entries').add model
 					modal.close()
+					@publish 'faceted-search:refresh'
 					@publish 'message', "New #{@project.get('settings').get('entry.term_singular')} added to project."
 					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
@@ -94,13 +96,14 @@ class SearchSubmenu extends Views.Base
 
 	# ### Methods
 	activatePublishDraftButton: ->
-		busyText = 'Publishing draft...'
-		button = @el.querySelector('li[data-key="publish"]')
+		busyText = 'Publishing draft'
+		button = @$('li[data-key="publish"]')
 		
-		return false if button.innerHTML is busyText
+		span = button.find('span')
+		return false if span.html() is busyText
 
-		button.innerHTML = busyText
-		button.classList.add 'active'
+		span.html busyText
+		button.addClass 'active'
 
 	deactivatePublishDraftButton: ->
 		button = @el.querySelector('li[data-key="publish"]')

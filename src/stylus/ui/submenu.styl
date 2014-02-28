@@ -10,6 +10,28 @@
 	z-index 49 // render .main above .sub
 	height 40px
 
+	li[data-key="publish"]
+		i.fa
+			line-height 24px
+			display none
+
+		&.active
+			span:after
+				content '...'
+
+			i.fa
+				display inline-block
+				margin-left 8px
+				color white
+			
+			// padding-right 24px
+
+			// &:after
+			// 	position absolute
+			// 	top 3px
+			// 	right 5px
+			// 	content url('/images/loader_transparent.gif')
+
 	.row
 		margin 0 auto
 

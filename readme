@@ -1,5 +1,0 @@
-# generate war in target/
-mvn package 
-
-# rsync front-end:
-rsync --compress --archive --verbose --checksum --chmod=a+r dist2/ elaborate4@hi14hingtest.huygens.knaw.nl:elab4testFE/

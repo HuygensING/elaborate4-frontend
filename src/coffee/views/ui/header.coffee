@@ -71,7 +71,7 @@ class Header extends BaseView
 
 			modal = new Views.Modal
 				title: "Add project"
-				html: '<label>Name</label><input name="project-title" type="text" />'
+				html: '<form><ul><li><label>Name</label><input name="project-title" type="text" /></li></ul></form>'
 				submitValue: 'Add project'
 				width: '300px'
 			modal.on 'submit', =>

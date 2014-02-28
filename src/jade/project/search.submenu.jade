@@ -11,6 +11,8 @@
 		.cell.span1.alignright
 			ul.horizontal.menu
 				//- >= ADMIN
-				if user.get('roleNo') >= 40
+				if user.get('roleNo') >= 40 && projects.length > 1
 					li(data-key="delete") Remove
-				li(data-key="publish") Publish draft
+				li(data-key="publish") 
+					span Publish draft
+					i.fa.fa-spinner.fa-spin

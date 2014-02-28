@@ -1,18 +1,14 @@
 {
   "name": "elaborate-work-environment",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Gijsjan Brouwer",
+    "email": "gijsjan.brouwer@huygens.knaw.nl"
   },
   "main": "app/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/Gijsjan/generator-backbone-amd.git"
-  },
-  "scripts": {
-    "test": "node ./.test/bin/server.js",
-    "start": "coffee ./server.coffee"
+    "url": ""
   },
   "devDependencies": {
     "coffee-script": "*",
@@ -42,6 +38,10 @@
     "markdown": "~0.5.0",
     "brfs": "~0.2.1",
     "gulp-cached": "0.0.1",
-    "gulp-plumber": "^0.5.6"
+    "gulp-plumber": "^0.5.6",
+    "gulp-minify-css": "^0.3.0",
+    "gulp-uglify": "^0.2.1",
+    "watchify": "^0.6.1",
+    "vinyl-source-stream": "^0.1.1"
   }
 }

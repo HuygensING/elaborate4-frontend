@@ -1,0 +1,23 @@
+h3 Sort levels
+form
+	ul
+		li
+			label Level 1
+			select(name="level1")
+				option
+				for field in entrymetadatafields
+					option(value=field, selected=field===level1)= field
+		li
+			label Level 2
+			select(name="level2")
+				option
+				for field in entrymetadatafields
+					option(value=field, selected=field===level2)= field
+		li
+			label Level 3
+			select(name="level3")
+				option
+				for field in entrymetadatafields
+					option(value=field, selected=field===level3)= field
+		li
+			button.simple.savesortlevels.inactive Save sort levels

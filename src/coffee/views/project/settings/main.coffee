@@ -34,6 +34,7 @@ Collections =
 ProjectUserIDs = require '../../../project.user.ids'
 
 tpl = require '../../../../jade/project/settings/main.jade'
+generalTpl = require '../../../../jade/project/settings/general.jade'
 addAnnotationTypeTpl = require '../../../../jade/project/settings/addannotationtype.jade'
 
 class ProjectSettings extends Views.Base
@@ -45,16 +46,21 @@ class ProjectSettings extends Views.Base
 		super
 
 		Collections.projects.getCurrent (@project) =>
+			@listenTo @project.get('members'), 'add', => @renderGeneralTab()
+			@listenTo @project.get('members'), 'remove', => @renderGeneralTab()
+			
 			@model = @project.get 'settings'
+			
 			@render()
+
 
 	# ### Render
 	render: ->
 		rtpl = tpl
 			settings: @model.attributes
-			projectMembers: @project.get('members')
 		@$el.html rtpl
 
+		@renderGeneralTab()
 		@renderUserTab()
 		@renderEntriesTab()
 		@renderTextlayersTab()
@@ -65,6 +71,13 @@ class ProjectSettings extends Views.Base
 		@
 
 		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
+
+	renderGeneralTab: ->
+		console.log @project.get('members').length
+		rtpl = generalTpl
+			settings: @model.attributes
+			projectMembers: @project.get('members')
+		@$('div[data-tab="project"]').html rtpl
 
 	renderEntriesTab: ->
 		entriesTab = new Views.EntriesTab

@@ -1,7 +1,7 @@
 Backbone = require 'backbone'
 _ = require 'underscore'
 
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 
 history = require 'hilib/src/managers/history'
 
@@ -14,7 +14,7 @@ class Projects extends Base
 
 	model: Models.Project
 	
-	url: config.baseUrl+'projects'
+	url: config.get('baseUrl')+'projects'
 
 	initialize: ->
 		super
@@ -48,7 +48,11 @@ class Projects extends Base
 		else
 			@current = @first()
 
-		@current.load => @trigger 'current:change', @current
+		@current.load => 
+			config.set 'entryTermSingular', @current.get('settings').get('entry.term_singular')
+			config.set 'entryTermPlural', @current.get('settings').get('entry.term_plural')
+			
+			@trigger 'current:change', @current
 
 		@current
 

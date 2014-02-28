@@ -9,7 +9,6 @@ Fn = require 'hilib/src/utils/general'
 
 Models =
 	currentUser: require '../models/currentUser'
-	config: require 'elaborate-modules/modules/models/config'
 
 Collections =
 	projects: require '../collections/projects'
@@ -38,9 +37,6 @@ class MainRouter extends Backbone.Router
 			authorized: =>
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
-					Models.config.set 'entryTermSingular', @project.get('settings').get('entry.term_singular')
-					Models.config.set 'entryTermPlural', @project.get('settings').get('entry.term_plural')
-
 					# Route to correct url
 					url = history.last() ? 'projects/'+@project.get('name')
 					@navigate url, trigger: true
@@ -96,7 +92,9 @@ class MainRouter extends Backbone.Router
 
 	statistics: (projectName) ->
 		# See projectMain comment
-		@manageView Views.Statistics, projectName: projectName
+		@manageView Views.Statistics, 
+			projectName: projectName
+			cache: false
 
 	# An entry might be editted outside the entry view (where it would update the DOM),
 	# for instance when editting multiple metadata, so we check the IDs of changed entries

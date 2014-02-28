@@ -1,5 +1,0 @@
-{
-  "glob": ["src/coffee/**/*.coffee", "README.md"],
-  "github": false,
-  "out": "compiled/docs"
-}
