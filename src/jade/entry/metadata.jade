@@ -1,7 +1,7 @@
 small The last modification of #{model.get('name')} was #{new Date(model.get('modifiedOn')).toDateString()} by #{model.get('modifier').title}.
 br
 br
-form
+form.edit-entry-metadata
 	ul(data-model-id=model.cid)
 		li
 			- id = generateID()
@@ -11,9 +11,10 @@ form
 			else
 				span= model.get('name')
 
-		each value, key in model.get('settings').attributes
+		each key in entrymetadatafields
 			li
 				- id = generateID()
+				- value = model.get('settings').get(key)
 				label(for=id)= key
 				if user.get('roleNo') >= 20
 					input(id=id, type=key=='Publishable'?'checkbox':'text', name=key, value=value)

@@ -80,7 +80,7 @@ class CurrentUser extends Models.Base
 	logout: (args) ->
 		jqXHR = $.ajax
 			type: 'post'
-			url: config.get('baseUrl') + "sessions/#{token.get()}/logout"
+			url: config.get('restUrl') + "sessions/#{token.get()}/logout"
 
 		jqXHR.done ->
 			sessionStorage.clear()
@@ -106,7 +106,7 @@ class CurrentUser extends Models.Base
 
 			jqXHR = $.ajax
 				type: 'post'
-				url: config.get('baseUrl') + 'sessions/login'
+				url: config.get('restUrl') + 'sessions/login'
 				data: postData
 
 			jqXHR.done (data) =>

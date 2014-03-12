@@ -14,7 +14,7 @@ class Projects extends Base
 
 	model: Models.Project
 	
-	url: config.get('baseUrl')+'projects'
+	url: config.get('restUrl')+'projects'
 
 	initialize: ->
 		super

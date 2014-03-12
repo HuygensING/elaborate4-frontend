@@ -34,11 +34,15 @@ class SearchSubmenu extends Views.Base
 
 		@
 
+	# The edit multiple metadata button can only function once the faceted search results
+	# have been loaded. This method is called from this views parent after the first results are rendered.
+	enableEditMetadataButton: -> @$('li[data-key="editmetadata"]').addClass 'enabled'
+
 	# ### Events
 	events: ->
 		'click li[data-key="newsearch"]': -> @trigger 'newsearch'
 		'click li[data-key="newentry"]': 'newEntry'
-		'click li[data-key="editmetadata"]': -> @trigger 'editmetadata'
+		'click li[data-key="editmetadata"].enabled': -> @trigger 'editmetadata'
 		'click li[data-key="delete"]': 'deleteProject'
 		'click li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
 

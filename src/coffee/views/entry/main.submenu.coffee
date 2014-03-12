@@ -140,6 +140,8 @@ class EntrySubmenu extends Base
 				tpl: metadataTpl
 				tplData:
 					user: @user
+					# Pass the entrymetadatafields array to keep the same order/sequence as is used on the settings page.
+					entrymetadatafields: @project.get('entrymetadatafields')
 					generateID: Fn.generateID
 				model: @entry.clone()
 
@@ -147,7 +149,7 @@ class EntrySubmenu extends Base
 				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
 				html: entryMetadata.el
 				submitValue: 'Save metadata'
-				width: '300px'
+				width: '500px'
 			modal.on 'submit', =>
 				@entry.updateFromClone entryMetadata.model
 
