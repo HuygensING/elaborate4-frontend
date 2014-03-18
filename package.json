@@ -10,6 +10,11 @@
     "type": "git",
     "url": ""
   },
+  "scripts": {
+    "start": "gulp",
+    "compile": "gulp compile",
+    "build": "gulp build"
+  },
   "devDependencies": {
     "coffee-script": "*",
     "stylus": "*",

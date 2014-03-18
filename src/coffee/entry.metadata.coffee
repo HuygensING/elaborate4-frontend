@@ -27,7 +27,9 @@ class EntryMetadata
 		ajax.token = token.get()
 		jqXHR = ajax.put
 			url: url
+			dataType: 'text'
 			data: JSON.stringify newValues
-		jqXHR.done => options.success() if options.success?
+		jqXHR.done => options.success arguments if options.success?
+		jqXHR.fail => options.error arguments if options.error?
 
 module.exports = EntryMetadata

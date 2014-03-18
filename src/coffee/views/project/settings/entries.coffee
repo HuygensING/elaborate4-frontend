@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+
 config = require '../../../config'
 
 ajax = require 'hilib/src/managers/ajax'
@@ -42,8 +44,9 @@ class ProjectSettingsEntries extends Views.Base
 
 		@listenTo EntryMetadataList, 'change', (values) =>
 			new EntryMetadata(@project.id).save values,
-				success: => 
+				success: =>
 					@project.set 'entrymetadatafields', values
+					Backbone.trigger 'entrymetadatafields:update', values
 					@publish 'message', 'Entry metadata fields updated.'
 					@renderSortLevels()
 		@$('.entrylist').append EntryMetadataList.el
@@ -92,6 +95,6 @@ class ProjectSettingsEntries extends Views.Base
 			@publish 'message', 'Entry sort levels saved.'
 			
 			# Send message to project main view, so it can re-render the levels.
-			@publish 'sortlevels:saved'
+			Backbone.trigger 'sortlevels:update', sortlevels
 
 module.exports = ProjectSettingsEntries

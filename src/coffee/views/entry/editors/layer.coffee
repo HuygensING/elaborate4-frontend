@@ -23,7 +23,7 @@ class LayerEditor extends Views.Base
 	# ### Render
 	render: ->
 		@subviews.editor = new Views.SuperTinyEditor
-			controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'unformat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
+			controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'removeFormat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
 			cssFile:		'/css/main.css'
 			height:			@options.height
 			html:			@model.get 'body'

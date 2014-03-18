@@ -73,7 +73,6 @@ class ProjectSettings extends Views.Base
 		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 
 	renderGeneralTab: ->
-		console.log @project.get('members').length
 		rtpl = generalTpl
 			settings: @model.attributes
 			projectMembers: @project.get('members')
@@ -116,11 +115,6 @@ class ProjectSettings extends Views.Base
 					confirmRemove: true
 		@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
 
-		form = new Views.Form
-			Model: Models.Annotationtype
-			tpl: addAnnotationTypeTpl
-		@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
-
 		@listenTo combolist, 'confirmRemove', (id, confirm) =>
 			@renderConfirmModal confirm,
 				title: 'Caution!'
@@ -128,14 +122,21 @@ class ProjectSettings extends Views.Base
 				submitValue: 'Remove annotation type'
 
 		@listenTo combolist, 'change', (changes) =>
+			console.log changes
 			if changes.added?
-				annotationType = changes.collection.get changes.added
+				selected = new Backbone.Collection changes.selected
+				annotationType = selected.get changes.added
 				@project.addAnnotationType annotationType, =>
 					@publish 'message', "Added #{annotationType.get('name')} to #{@project.get('title')}."
 			else if changes.removed?
 				name = @project.allannotationtypes.get(changes.removed).get('name')
 				@project.removeAnnotationType changes.removed, =>
 					@publish 'message', "Removed #{name} from #{@project.get('title')}."
+
+		form = new Views.Form
+			Model: Models.Annotationtype
+			tpl: addAnnotationTypeTpl
+		@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
 			
 		@listenTo form, 'save:success', (model) => @project.get('annotationtypes').add model
 		@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText

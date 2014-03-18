@@ -21,7 +21,7 @@ class Search extends Views.Base
 		super
 
 		$(window).resize =>
-			entries = @fsr.$el.find('ul.entries')
+			entries = @fsr.$el.find('div.entries')
 			entries.height $(window).height() - entries.offset().top
 
 		projects.getCurrent (@project) => @render()
@@ -42,21 +42,20 @@ class Search extends Views.Base
 			editMultipleMetadataUrl: "#{config.get('restUrl')}projects/#{@project.id}/multipleentrysettings"
 		@$el.append @fsr.$el
 
-		@listenToOnce @fsr, 'change:results', =>
-			submenu.enableEditMetadataButton()
+		@listenToOnce @fsr, 'change:results', => submenu.enableEditMetadataButton()
 
 		@listenTo @fsr, 'change:results', (responseModel) =>
 			project = projects.current
 			project.resultSet = responseModel
 			project.get('entries').add responseModel.get('results'), merge: true
 
-			# Set the height of ul.entries dynamically
-			entries = @fsr.$el.find('ul.entries')
+			# Set the height of div.entries dynamically
+			entries = @fsr.$el.find('div.entries')
 			entries.height $(window).height() - entries.offset().top
-
 
 		@listenTo @fsr, 'navigate:entry', (id) =>
 			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{id}", trigger: true
+
 		@listenTo @fsr, 'editmultiplemetadata:saved', (entryIds) ->
 			@project.get('entries').changed = _.union @project.get('entries').changed, entryIDs
 

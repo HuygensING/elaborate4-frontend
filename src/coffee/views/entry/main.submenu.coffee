@@ -84,7 +84,10 @@ class EntrySubmenu extends Base
 
 		mainDiv.appendChild h1
 		mainDiv.appendChild h2
-		mainDiv.appendChild document.querySelector('.preview').cloneNode true
+
+		clonedPreview = document.querySelector('.preview').cloneNode true
+		clonedPreview.style.height = 'auto'
+		mainDiv.appendChild clonedPreview
 
 		ol = document.createElement('ol')
 		ol.className = 'annotations'
@@ -156,6 +159,7 @@ class EntrySubmenu extends Base
 				async = new Async ['entry', 'settings']
 				@listenToOnce async, 'ready', => 
 					modal.close()
+					@publish 'faceted-search:refresh'
 					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
 				@entry.get('settings').save null, success: ->  async.called 'settings'
