@@ -1,6 +1,8 @@
 Backbone = require 'backbone'
 $ = require 'jquery'
 
+StrFn = require 'hilib/src/utils/string'
+
 FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-results'
 
 config = require 'elaborate-modules/modules/models/config'
@@ -53,8 +55,19 @@ class Search extends Views.Base
 			entries = @fsr.$el.find('div.entries')
 			entries.height $(window).height() - entries.offset().top
 
-		@listenTo @fsr, 'navigate:entry', (id) =>
-			Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{id}", trigger: true
+		@listenTo @fsr, 'navigate:entry', (id, terms, textLayer) =>
+			url = "projects/#{@project.get('name')}/entries/#{id}"
+
+			if textLayer?
+				splitLayer = textLayer.split(' ')
+				if splitLayer[splitLayer.length - 1] is 'annotations'
+					splitLayer.pop()
+					textLayer = splitLayer.join(' ')
+				textLayerSlug = StrFn.slugify textLayer
+
+				url += "/transcriptions/#{textLayerSlug}"
+				
+			Backbone.history.navigate url, trigger: true
 
 		@listenTo @fsr, 'editmultiplemetadata:saved', (entryIds) ->
 			@project.get('entries').changed = _.union @project.get('entries').changed, entryIDs
