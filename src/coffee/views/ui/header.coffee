@@ -88,6 +88,7 @@ class Header extends BaseView
 
 	# ### Methods
 	setProject: (ev) ->
+		@$('span.projecttitle').html $('<i class="fa fa-spinner fa-spin" />')
 		id = if ev.hasOwnProperty 'currentTarget' then +ev.currentTarget.getAttribute 'data-id' else ev
 		projects.setCurrent id
 
