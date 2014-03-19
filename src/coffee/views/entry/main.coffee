@@ -181,7 +181,7 @@ class Entry extends Views.Base
 	# ### Events
 	events: ->
 		'click li[data-key="layer"]': 'changeTranscription'
-		'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
+		# 'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
 		'click .left-menu ul.textlayers li[data-key="transcription"]': 'showLeftTranscription'
 		'click .middle-menu ul.textlayers li[data-key="transcription"]': 'changeTranscription'
 		'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
@@ -251,17 +251,6 @@ class Entry extends Views.Base
 				$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
 
 				currentMenu = newMenu
-
-	changeFacsimile: (ev) ->
-		# Check if ev is an Event, else assume ev is an ID
-		facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
-
-		$('.left-menu .facsimiles li.active').removeClass('active')
-		$('.left-menu .textlayers li.active').removeClass('active')
-		$('.left-menu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
-
-		newFacsimile = @entry.get('facsimiles').get facsimileID
-		@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 	
 	showUnsavedChangesModal: (args) ->
 		{model, html, done} = args
@@ -360,7 +349,7 @@ class Entry extends Views.Base
 		@$('.submenu .facsimiles').append li
 
 		# Change the facsimile to the newly added facsimile
-		@changeFacsimile facsimile.id
+		@subviews.submenu.changeFacsimile facsimile.id
 		@subsubmenu.close()
 		@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
 

@@ -47,6 +47,18 @@ class EntrySubmenu extends Base
 		'click .menu li[data-key="print"]': 'printEntry'
 		'click .menu li[data-key="delete"]': 'deleteEntry'
 		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
+		'click .menu li[data-key="facsimiles"] li[data-key="facsimile"]': 'changeFacsimile'
+
+	changeFacsimile: (ev) ->
+		# Check if ev is an Event, else assume ev is an ID
+		facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
+
+		@$('.left-menu .facsimiles li.active').removeClass('active')
+		@$('.left-menu .textlayers li.active').removeClass('active')
+		@$('.left-menu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
+
+		newFacsimile = @entry.get('facsimiles').get facsimileID
+		@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
 	activatePrevNext: ->
 		@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
