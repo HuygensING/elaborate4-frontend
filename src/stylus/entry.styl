@@ -13,22 +13,12 @@ preview()
 		position absolute
 		text-align right
 		list-style none
-		top 6px
+		top 10px
 		color #BBB
 		font-size 0.9em
 
 	.body
-		padding 6px 0 0 24px
-
-		// span.line
-		// 	counter-increment linenumber
-
-		// 	&:before
-		// 		content counter(linenumber)
-		// 		position absolute
-		// 		margin-left -30px
-		// 		text-align right
-		// 		width 20px
+		padding 10px 0 0 24px
 
 		sup[data-marker]
 			select_none()
@@ -123,7 +113,8 @@ preview()
 			line-height 2.25em
 			white-space nowrap
 			overflow-y auto
-			margin 76px 10px 0 10px
+			margin-top 66px
+			padding-left 10px
 
 			&.wrap
 				white-space normal
@@ -144,7 +135,6 @@ preview()
 
 .supertinyeditor
 	.ste-header
-		box-shadow: 2px 0px 4px #DDD
 
 		&.annotationtext
 			padding 0 6px
@@ -162,22 +152,18 @@ preview()
 				content: '"'
 
 	.ste-body
-		box-shadow: 2px 0px 4px #DDD
 		background-color #EEE
-		padding 10px 10px 0 10px
-	// iframe
-	// 	margin-left 10px
+		// padding 10px 10px 0 10px
 
 body.ste-iframe-body
-	padding 6px 0 0 0 // Explicitely set the padding-bottom for FF
+	padding 10px 0 0 10px
+	// padding 6px 0 0 0 // Explicitely set the padding-bottom for FF
 	line-height 2.25em
 
 	sup[data-marker]
 		display none
 
 div.closebutton
-	// cursor pointer
-	// position absolute
 	padding 2px
 	margin 4px
 	background-color white
@@ -185,7 +171,6 @@ div.closebutton
 
 	img
 		vertical-align middle
-	// opacity 0
 
 @media print
 	header.main

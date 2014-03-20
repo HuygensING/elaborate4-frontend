@@ -138,7 +138,7 @@ class Entry extends Views.Base
 			@subviews.layerEditor = new Views.LayerEditor
 				model: @currentTranscription
 				height: @subviews.preview.$el.innerHeight()
-				width: @subviews.preview.$el.width() - 4
+				width: @subviews.preview.$el.outerWidth()
 			@$('.transcription-placeholder').html @subviews.layerEditor.el
 		else
 			@subviews.layerEditor.show @currentTranscription
@@ -151,7 +151,7 @@ class Entry extends Views.Base
 				@subviews.annotationEditor = new Views.AnnotationEditor
 					model: model
 					height: @subviews.preview.$el.innerHeight() - 31
-					width: @subviews.preview.$el.width() - 4
+					width: @subviews.preview.$el.outerWidth()
 				@$('.annotation-placeholder').html @subviews.annotationEditor.el
 				@listenTo @subviews.annotationEditor, 'cancel', =>
 					@showUnsavedChangesModal
@@ -334,11 +334,11 @@ class Entry extends Views.Base
 			@subviews.preview.resize()
 					
 			@subviews.layerEditor.subviews.editor.setIframeHeight @subviews.preview.$el.innerHeight()
-			@subviews.layerEditor.subviews.editor.setIframeWidth @subviews.preview.$el.width() - 4
+			@subviews.layerEditor.subviews.editor.setIframeWidth @subviews.preview.$el.outerWidth()
 			
 			if @subviews.annotationEditor?
 				@subviews.annotationEditor.subviews.editor.setIframeHeight @subviews.preview.$el.innerHeight()
-				@subviews.annotationEditor.subviews.editor.setIframeWidth @subviews.preview.$el.width() - 4
+				@subviews.annotationEditor.subviews.editor.setIframeWidth @subviews.preview.$el.outerWidth()
 
 	addFacsimile: (facsimile, collection) ->
 		# Update facsimile count in submenu

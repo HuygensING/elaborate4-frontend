@@ -22,10 +22,6 @@ class Search extends Views.Base
 	initialize: ->
 		super
 
-		$(window).resize =>
-			entries = @fsr.$el.find('div.entries')
-			entries.height $(window).height() - entries.offset().top
-
 		projects.getCurrent (@project) => @render()
 
 	# ### Render
