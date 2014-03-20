@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 BaseView = require 'hilib/src/views/base'
 
 currentUser = require '../models/currentUser'
@@ -6,9 +8,11 @@ history = require 'hilib/src/managers/history'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
+Modal = require 'hilib/src/views/modal'
 # Templates =
 # 	'Login': require 'text!html/login.html'
 tpl = require '../../jade/login.jade'
+resetPasswordTpl = require '../../jade/reset-password.jade'
 
 class Login extends BaseView
 
@@ -49,6 +53,17 @@ class Login extends BaseView
 	events: ->
 		'click input#submit': 'submit'
 		'click button.federated-login': 'federatedLogin'
+		'click li.resetpassword': 'resetPassword'
+
+	resetPassword: ->
+		modal = new Modal
+			customClassName: 'reset-password'
+			title: "Forgot your password?"
+			html: resetPasswordTpl()
+			submitValue: 'Send e-mail'
+			width: '300px'
+		modal.on 'cancel', =>
+		modal.on 'submit', => modal.messageAndFade 'success', 'Password send!'
 
 	submit: (ev) ->
 		ev.preventDefault()
