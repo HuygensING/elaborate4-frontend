@@ -1,6 +1,128 @@
 @import '../import/*'
 
+labelWidth = 40%
+inputWidth = 60%
+fieldsetPadding = 20px
+invalidColor = #F33;
+
+fieldsetWithLabelWidth(width)
+	fieldset.label{width}
+		ul li
+			label
+				width (width)%
+
+			input, select, textarea
+				width (100%-width)%
+
+		button[name="submit"]
+			margin-left (width)%
+
 .projectsettings
+	form.hilib
+		fieldsetWithLabelWidth(20)
+		fieldsetWithLabelWidth(30)
+		fieldsetWithLabelWidth(50)
+		fieldsetWithLabelWidth(60)
+
+		fieldset
+			display inline-block
+			vertical-align top
+			border 0
+			box-sizing border-box
+			padding 0 fieldsetPadding 0 fieldsetPadding
+			margin fieldsetPadding 0 fieldsetPadding 0
+			min-width 200px
+
+			& + fieldset
+				border-left 1px solid #EEE
+
+			&.span100
+				width 100%
+
+			&.span50
+				width 50%
+
+				@media screen and (max-width: 600px)
+					display block
+					width 100%
+
+			&.span33
+				width 33.33%
+
+			&.span66
+				width 66.66%
+
+			&.span25
+				width 25%
+
+			&.span75
+				width 75%
+
+			button[name="submit"]
+				margin-left labelWidth
+
+			
+		ul
+			li
+				div.error
+					background invalidColor
+					color white
+					border-radius 3px
+					padding 3px 5px
+					margin-top 2px
+
+				label
+					width labelWidth
+
+				input, select
+					width inputWidth
+
+				input, select, button
+					border-color #DDD
+					transition-property box-shadow, border-color
+					transition-duration 250ms
+					box-sizing border-box
+
+					&:focus
+						outline none
+						border-color rgba(70, 170, 168, 0.5)
+						box-shadow 0 0 3px rgba(70, 170, 168, 0.75)
+
+					&.invalid
+						border-color rgba(invalidColor, 0.5)
+						box-shadow 0 0 3px rgba(invalidColor, 0.75)
+					
+
+		button[name="submit"]
+			border none
+			background #DDD
+			border 1px solid #DDD
+			padding 6px 10px
+			border-radius 3px
+			color #333
+			margin-left fieldsetPadding
+
+			&:hover
+				background #CCC
+
+			&.disabled
+				opacity 0.5
+				cursor default
+
+				&:focus
+					border-color #DDD
+					box-shadow none
+
+				&:hover
+					background #DDD	
+
+			&.loader
+				i.fa.fa-spinner
+					display inline-block
+
+			i.fa.fa-spinner
+				margin -3px 0 0 8px
+				display none
 
 	.tab.menu
 		font-size 0
@@ -35,6 +157,7 @@
 		border 1px solid #DDD
 		border-radius 12px
 		border-top-left-radius 0px
+		max-width 1000px
 
 		&.active
 			display block
@@ -57,29 +180,38 @@
 				span.description
 					color gray
 
-	div[data-tab="project"]
-		.general, .publication
-			display inline-block
+	// div[data-tab="project"]
+	// 	.general, .publication
+	// 		display inline-block
 
-		.publication
-			vertical-align top
-			margin-left 100px
+	// 	.publication
+	// 		vertical-align top
+	// 		margin-left 100px
 
-			label
-				vertical-align top
+	// 		label
+	// 			vertical-align top
 
-			select[name="text.font"]
-				margin-bottom 20px
+	// 		select[name="text.font"]
+	// 			margin-bottom 20px
 
-			img
-				border 1px solid #CCC
+	// 		img
+	// 			border 1px solid #CCC
 
 	div[data-tab="users"]
 		position relative
 		min-height 200px
 
+		.listandroles, .adduser
+			width 50%
+			display inline-block
+			box-sizing border-box
+			vertical-align top
+
+		.listandroles
+			padding 20px
+
 		.userroles
-			margin-bottom 20px
+			margin-top 60px
 			
 			ul
 				list-style square
@@ -90,15 +222,36 @@
 				border 1px solid #CCC
 				margin-right 8px
 
-		.userlist
-			margin-right 300px
-
 		.adduser
-			position absolute
-			right 20px
-			top 0
+			fieldset
+				border-left 1px solid #EEE
 
-	div[data-tab="annotationtypes"]
-		.setnames
-			li.description
-				margin-bottom 20px
+	div[data-tab="annotations"]
+		.set-custom-tag-names, .add-annotation-type, .annotation-type-list
+			width 33.33%
+			box-sizing border-box
+			display inline-block
+			vertical-align top
+
+		.annotation-type-list
+			padding 20px
+
+		.add-annotation-type
+			fieldset
+				border-left 1px solid #EEE
+				border-right 1px solid #EEE
+
+	div[data-tab="entries"]
+		.entry-list, .set-names, .sort-levels
+			width 33.33%
+			box-sizing border-box
+			display inline-block
+			vertical-align top
+
+		.entry-list, .sort-levels
+			padding 20px
+
+		.set-names
+			fieldset
+				border-left 1px solid #EEE
+				border-right 1px solid #EEE

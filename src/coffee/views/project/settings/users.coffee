@@ -9,8 +9,8 @@ Views =
 	Form: require 'hilib/src/views/form/main'
 
 tpl = require '../../../../jade/project/settings/users.jade'
-rolesTpl = require '../../../../jade/project/settings/userroles.jade'
-addUserTpl = require '../../../../jade/project/settings/adduser.jade'
+rolesTpl = require '../../../../jade/project/settings/users.roles.jade'
+addUserTpl = require '../../../../jade/project/settings/users.add.jade'
 
 class ProjectSettingsUsers extends Views.Base
 

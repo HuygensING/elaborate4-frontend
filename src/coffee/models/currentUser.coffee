@@ -2,6 +2,8 @@ config = require 'elaborate-modules/modules/models/config'
 token = require 'hilib/src/managers/token'
 $ = require 'jquery'
 
+ajax = require 'hilib/src/managers/ajax'
+
 Models =
 	Base: require './base'
 
@@ -119,6 +121,15 @@ class CurrentUser extends Models.Base
 				done()
 
 			jqXHR.fail => @unauthorized()
+
+	resetPassword: (cb) ->
+		jqXHR = ajax.post
+			url: "/users/passwordresetrequest"
+
+		jqXHR.done => 
+			console.log arguments
+			cb()
+		jqXHR.fail => console.log arguments
 		
 
 module.exports = new CurrentUser()

@@ -1,0 +1,12 @@
+fieldset.span100
+	h3 Set entry names
+	ul(data-model-id=model.cid)
+		li
+			label Singular
+			input(type="text", name="entry.term_singular", value=model.get('entry.term_singular'), placeholder="entry")
+		li
+			label Plural
+			input(type="text", name="entry.term_plural", value=model.get('entry.term_plural'), placeholder="entries")
+		li
+			button.disabled(name="submit") Save settings
+				i.fa.fa-spinner.fa-spin

@@ -120,9 +120,11 @@ class Project extends Models.Base
 				async.called 'entrymetadatafields'
 
 			settings = new Models.Settings null, projectID: @id
-			settings.fetch success: (model) =>
-				@set 'settings', model
-				async.called 'settings'
+			settings.fetch 
+				success: (model) =>
+					@set 'settings', model
+					async.called 'settings'
+				error: (model, response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 		else
 			cb()
 

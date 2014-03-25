@@ -20,6 +20,7 @@ Views =
 	TextlayersTab: require './textlayers'
 	EntriesTab: require './entries'
 	UsersTab: require './users'
+	GeneralTab: require './general'
 
 Models =
 	Statistics: require '../../../models/project/statistics'
@@ -35,7 +36,8 @@ ProjectUserIDs = require '../../../project.user.ids'
 
 tpl = require '../../../../jade/project/settings/main.jade'
 generalTpl = require '../../../../jade/project/settings/general.jade'
-addAnnotationTypeTpl = require '../../../../jade/project/settings/addannotationtype.jade'
+addAnnotationTypeTpl = require '../../../../jade/project/settings/annotations.add.jade'
+customTagNamesTpl = require '../../../../jade/project/settings/annotations.set-custom-tag-names.jade'
 
 class ProjectSettings extends Views.Base
 
@@ -60,7 +62,8 @@ class ProjectSettings extends Views.Base
 			settings: @model.attributes
 		@$el.html rtpl
 
-		@renderGeneralTab()
+		# @renderGeneralTab()
+		@renderGeneral2Tab()
 		@renderUserTab()
 		@renderEntriesTab()
 		@renderTextlayersTab()
@@ -72,11 +75,18 @@ class ProjectSettings extends Views.Base
 
 		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 
-	renderGeneralTab: ->
-		rtpl = generalTpl
-			settings: @model.attributes
-			projectMembers: @project.get('members')
-		@$('div[data-tab="project"]').html rtpl
+	renderGeneral2Tab: ->
+		# rtpl = generalTpl
+		# 	settings: @model.attributes
+		# 	projectMembers: @project.get('members')
+		generalTab = new Views.GeneralTab project: @project
+		@$('div[data-tab="general"]').html generalTab.el
+
+	# renderGeneralTab: ->
+	# 	rtpl = generalTpl
+	# 		settings: @model.attributes
+	# 		projectMembers: @project.get('members')
+	# 	@$('div[data-tab="project"]').html rtpl
 
 	renderEntriesTab: ->
 		entriesTab = new Views.EntriesTab
@@ -113,7 +123,7 @@ class ProjectSettings extends Views.Base
 				settings:
 					placeholder: 'Add annotation type'
 					confirmRemove: true
-		@$('div[data-tab="annotationtypes"] .annotationtypelist').append combolist.el
+		@$('div[data-tab="annotations"] .annotation-type-list').append combolist.el
 
 		@listenTo combolist, 'confirmRemove', (id, confirm) =>
 			@renderConfirmModal confirm,
@@ -122,7 +132,6 @@ class ProjectSettings extends Views.Base
 				submitValue: 'Remove annotation type'
 
 		@listenTo combolist, 'change', (changes) =>
-			console.log changes
 			if changes.added?
 				selected = new Backbone.Collection changes.selected
 				annotationType = selected.get changes.added
@@ -133,13 +142,20 @@ class ProjectSettings extends Views.Base
 				@project.removeAnnotationType changes.removed, =>
 					@publish 'message', "Removed #{name} from #{@project.get('title')}."
 
-		form = new Views.Form
+		addAnnotationTypeForm = new Views.Form
 			Model: Models.Annotationtype
 			tpl: addAnnotationTypeTpl
-		@$('div[data-tab="annotationtypes"] .addannotationtype').append form.el
+		@$('div[data-tab="annotations"] .add-annotation-type').append addAnnotationTypeForm.el
 			
-		@listenTo form, 'save:success', (model) => @project.get('annotationtypes').add model
-		@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
+		@listenTo addAnnotationTypeForm, 'save:success', (model) => 
+			@project.get('annotationtypes').add model
+			addAnnotationTypeForm.el.reset()
+		@listenTo addAnnotationTypeForm, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
+
+		customTagNamesForm = new Views.Form
+			model: @project.get('settings')
+			tpl: customTagNamesTpl
+		@$('div[data-tab="annotations"] .set-custom-tag-names').append customTagNamesForm.el
 
 	renderConfirmModal: (confirm, options) ->
 		modal = new Views.Modal _.extend options, width: 'auto'
@@ -151,25 +167,24 @@ class ProjectSettings extends Views.Base
 	events:
 		# 'click input[name="addannotationtype"]': 'addAnnotationType'
 		'click li[data-tab]': 'showTab'
-		'keyup div[data-tab="project"] input': -> @$('input[name="savesettings"]').removeClass 'inactive'
-		'change div[data-tab="project"] input': 'updateModel'
-		'change div[data-tab="project"] select': 'updateModel'
-		'click input[name="savesettings"]': 'saveSettings'
+		# 'keyup div[data-tab="project"] input': -> @$('input[name="savesettings"]').removeClass 'inactive'
+		# 'change div[data-tab="project"] input': 'updateModel'
+		# 'change div[data-tab="project"] select': 'updateModel'
+		# 'click input[name="savesettings"]': 'saveSettings'
 
-	saveSettings: (ev) -> 
-		ev.preventDefault()
+	# saveSettings: (ev) -> 
+	# 	ev.preventDefault()
 
-		unless $(ev.currentTarget).hasClass 'inactive'
-			@model.save null, success: => 
-				$(ev.currentTarget).addClass 'inactive'
-				@publish 'message', 'Settings saved.'
+	# 	unless $(ev.currentTarget).hasClass 'inactive'
+	# 		@model.save null, success: => 
+	# 			$(ev.currentTarget).addClass 'inactive'
+	# 			@publish 'message', 'Settings saved.'
 
-	updateModel: (ev) -> 
-		if ev.currentTarget.getAttribute('data-attr') is 'text.font'
-			console.log @$('img[name="text.font"]')
-			@$('img[name="text.font"]').attr 'src', "/images/fonts/#{ev.currentTarget.value}.png"
+	# updateModel: (ev) ->
+	# 	if ev.currentTarget.getAttribute('data-attr') is 'text.font'
+	# 		@$('img[name="text.font"]').attr 'src', "/images/fonts/#{ev.currentTarget.value}.png"
 
-		@model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
+	# 	@model.set ev.currentTarget.getAttribute('data-attr'), ev.currentTarget.value
 
 	showTab: (ev) ->
 		if _.isString ev

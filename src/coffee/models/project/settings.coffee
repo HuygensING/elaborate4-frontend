@@ -7,6 +7,14 @@ Models =
 
 class ProjectSettings extends Models.Base
 
+	validation:
+		name:
+			'min-length': 3
+			'max-length': 20
+			pattern: 'slug'
+
+	# Change defaults with spaces like Project title and Project leader. These are not
+	# proper attribute keys and break the label/input connection in hilib forms.
 	defaults: ->
 		'Project leader': ''
 		'Project title': ''
@@ -18,15 +26,19 @@ class ProjectSettings extends Models.Base
 		'entry.term_singular': 'entry'
 		'entry.term_plural': 'entries'
 		'text.font': ''
+		'name': ''
 
-	url: -> "#{config.baseUrl}projects/#{@projectID}/settings"
+	url: -> "#{config.baseUrl}projects/#{@options.projectId}/settings"
 
-	initialize: (attrs, options) ->
+	initialize: (attrs, @options) ->
 		super
 
-		@projectID = options.projectID
+		# TMP
+		@options.projectId = @options.projectID
+		@projectID = @options.projectID
 
 	sync: (method, model, options) ->
+		# TODO When is create used??
 		if method is 'create'
 			ajax.token = token.get()
 			jqXHR = ajax.put

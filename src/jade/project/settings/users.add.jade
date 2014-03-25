@@ -1,26 +1,28 @@
-form
+fieldset.span100
+	h3 Add user to project
 	ul(data-model-id=model.cid)
 		li
-			label Username
+			label(for="username") Username *
 			input(type="text", name="username")
 		li
-			label E-mail
+			label(for="email") E-mail *
 			input(type="text", name="email")
 		li
-			label First name
+			label(for="firstName") First name
 			input(type="text", name="firstName")
 		li
-			label Last name
+			label(for="lastName") Last name
 			input(type="text", name="lastName")
 		li
-			label Password
+			label(for="password") Password *
 			input(type="password", name="password")
 		li
-			label Role
+			label(for="role") Role
 			select(name="role")
 				option(value="USER") USER
 				option(value="READER") READER
 				option(value="PROJECTLEADER") PROJECTLEADER
 				option(value="ADMIN") ADMIN
 		li
-			button.simple(name="submit") Add user
+			button.disabled(name="submit") Add user
+				i.fa.fa-spinner.fa-spin

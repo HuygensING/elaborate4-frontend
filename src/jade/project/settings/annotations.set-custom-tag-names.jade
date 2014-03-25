@@ -1,0 +1,40 @@
+fieldset
+	h3 Set custom names for tags
+	p(style="color:gray")
+		strong The custom names are only applicable to the <u>diplomatic</u> layer!
+	ul(data-model-id=model.cid)
+		li
+			b Bold
+		li
+			label Name
+			input(type="text", name="annotationType.b.name", value=model.get('annotationType.b.name'))
+		li.description
+			label Description
+			input(type="text", name="annotationType.b.description", value=model.get('annotationType.b.description'))
+		li
+			b Italic
+		li
+			label Name
+			input(type="text", name="annotationType.i.name", value=model.get('annotationType.i.name'))
+		li.description
+			label Description
+			input(type="text", name="annotationType.i.description", value=model.get('annotationType.i.description'))
+		li
+			b Underline
+		li
+			label Name
+			input(type="text", name="annotationType.u.name", value=model.get('annotationType.u.name'))
+		li.description
+			label Description
+			input(type="text", name="annotationType.u.description", value=model.get('annotationType.u.description'))
+		li
+			b Strikethrough
+		li
+			label Name
+			input(type="text", name="annotationType.strike.name", value=model.get('annotationType.strike.name'))
+		li.description
+			label Description
+			input(type="text", name="annotationType.strike.description", value=model.get('annotationType.strike.description'))
+		li
+			button.disabled(name="submit") Save settings
+				i.fa.fa-spinner.fa-spin

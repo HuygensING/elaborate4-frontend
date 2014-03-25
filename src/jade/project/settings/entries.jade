@@ -1,16 +1,4 @@
-.row.span3
-	.cell.span1.entrylist
-		h3 Add / remove entry metadata fields
-	.cell.span1.setnames
-			h3 Set entry name
-			form
-				ul
-					li
-						label Singular
-						input(type="text", name="entry.term_singular", value=settings['entry.term_singular'], placeholder="entry")
-					li
-						label Plural
-						input(type="text", name="entry.term_plural", value=settings['entry.term_plural'], placeholder="entries")
-					li
-						input.inactive(type="submit", value="Save settings")
-	.cell.span1.sort-levels
+.entry-list
+	h3 Add / remove entry metadata fields
+.set-names
+.sort-levels

@@ -10,9 +10,11 @@ EntryMetadata = require '../../../entry.metadata'
 Views =
 	Base: require 'hilib/src/views/base'
 	EditableList: require 'hilib/src/views/form/editablelist/main'
+	Form: require 'hilib/src/views/form/main'
 
 tpl = require '../../../../jade/project/settings/entries.jade'
 sortLevelsTpl = require '../../../../jade/project/settings/entries.sort-levels.jade'
+setNamesTpl = require '../../../../jade/project/settings/entries.set-names.jade'
 
 class ProjectSettingsEntries extends Views.Base
 
@@ -27,6 +29,8 @@ class ProjectSettingsEntries extends Views.Base
 
 	render: ->
 		@el.innerHTML = tpl settings: @project.get('settings').attributes
+
+		@renderSetNames()
 
 		@renderSortLevels()
 
@@ -49,9 +53,18 @@ class ProjectSettingsEntries extends Views.Base
 					Backbone.trigger 'entrymetadatafields:update', values
 					@publish 'message', 'Entry metadata fields updated.'
 					@renderSortLevels()
-		@$('.entrylist').append EntryMetadataList.el
+		@$('.entry-list').append EntryMetadataList.el
 
 		@
+
+	renderSetNames: ->
+		setNamesForm = new Views.Form
+			tpl: setNamesTpl
+			model: @project.get('settings')
+
+		@listenTo setNamesForm, 'save:success', => Backbone.trigger 'message', 'Entries names saved.'
+
+		@$('.set-names').html setNamesForm.el
 
 	renderSortLevels: ->
 		@$('.sort-levels').html sortLevelsTpl
@@ -62,14 +75,14 @@ class ProjectSettingsEntries extends Views.Base
 
 	events: ->
 		'click button.savesortlevels': 'saveSortLevels'
-		'click .setnames form input[type="submit"]': 'submitSetCustomNames'
-		'keyup .setnames form input[type="text"]': (ev) ->	@$('.setnames form input[type="submit"]').removeClass 'inactive'
+		'click .set-names form input[type="submit"]': 'submitSetCustomNames'
+		'keyup .set-names form input[type="text"]': (ev) ->	@$('.set-names form input[type="submit"]').removeClass 'inactive'
 		'change .sort-levels select': (ev) -> @$('.sort-levels form button').removeClass 'inactive'
 
 	submitSetCustomNames: (ev) ->
 		ev.preventDefault()
 
-		@project.get('settings').set input.name, input.value for input in @el.querySelectorAll('.setnames form input[type="text"]')
+		@project.get('settings').set input.name, input.value for input in @el.querySelectorAll('.set-names form input[type="text"]')
 		
 		@trigger 'savesettings', ev
 

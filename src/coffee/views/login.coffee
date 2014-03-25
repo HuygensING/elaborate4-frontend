@@ -63,7 +63,9 @@ class Login extends BaseView
 			submitValue: 'Send e-mail'
 			width: '300px'
 		modal.on 'cancel', =>
-		modal.on 'submit', => modal.messageAndFade 'success', 'Password send!'
+		modal.on 'submit', =>
+			currentUser.resetPassword =>
+				modal.messageAndFade 'success', 'Password send!'
 
 	submit: (ev) ->
 		ev.preventDefault()

@@ -13,8 +13,17 @@ class User extends Models.Base
 	validation:
 		username:
 			required: true
+			'min-length': 2
 		password:
 			required: true
+			'min-length': 6
+		email:
+			required: true
+			pattern: 'email'
+		firstName:
+			pattern: 'string'
+		lastName:
+			pattern: 'string'
 
 	defaults: ->
 		username: ''
@@ -39,6 +48,7 @@ class User extends Models.Base
 		attr
 
 	sync: (method, model, options) ->
+		console.log method, model, options
 		
 		if method is 'create'
 			ajax.token = token.get()

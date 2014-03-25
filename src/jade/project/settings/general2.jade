@@ -1,0 +1,57 @@
+fieldset.span50
+	h3 General
+	ul(data-model-id=model.cid)
+		li
+			label(for="projectType") Type
+			select(name="projectType")
+				option(value="collection", selected=model.get('projectType')==='collection') Collection
+				option(value="work", selected=model.get('projectType')==='work') Work
+		li
+			label(for="Project title") Project title
+			input(type="text", name="Project title", value=model.get('Project title'))
+		li
+			label(for="name") Project name
+			input(type="text", name="name", value=model.get('name'))
+		li
+			label(for="Project leader") Project leader
+			select(name="Project leader")
+				option -- select member --
+				each member in projectMembers.models
+					- sel = member.id === +model.get('Project leader')
+					option(value=member.id, selected=sel)= member.get('title')
+		li
+			label(for="Start date") Start date
+			input(type="text", name="Start date", value=model.get('Start date'))
+		li
+			label(for="Release date") Release date
+			input(type="text", name="Release date", value=model.get('Release date'))
+		li
+			label(for="Version") Version
+			input(type="text", name="Version", value=model.get('Version'))
+
+fieldset.span50
+	h3 Publication
+	ul(data-model-id=model.cid)
+		if model.get('publicationURL').length > 0
+			li
+				label URL
+				a(href=model.get('publicationURL'), data-bypass, target="_blank") link
+		li
+			label Title
+			input(type="text", value=model.get('publication.title'), name="publication.title")
+		li
+			label(for="text.font") Font
+			select(name="text.font")
+				option
+				option(value="junicode", selected=model.get('text.font')=='junicode') Junicode
+				option(value="dejavu", selected=model.get('text.font')=='dejavu') DejaVu
+				option(value="gentium", selected=model.get('text.font')=='gentium') Gentium
+				option(value="alexander", selected=model.get('text.font')=='alexander') Alexander
+				option(value="newathena", selected=model.get('text.font')=='newathena') New Athena
+		- src = model.get('text.font') === '' ? model.get('text.font') : '/images/fonts/'+model.get('text.font')+'.png'
+		li
+			label
+			img(name="text.font", src=src, width="140px", height="140px")
+
+button.disabled(name="submit") Save settings
+	i.fa.fa-spinner.fa-spin
