@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 Base = require './base'
 
 Models =
@@ -20,7 +20,7 @@ class Entries extends Base
 		# When the metadata changes, we can't use the view's cache.
 		@changed = []
 	
-	url: -> config.baseUrl + "projects/#{@projectId}/entries"
+	url: -> "#{config.get('restUrl')}projects/#{@projectId}/entries"
 
 	setCurrent: (modelID) ->
 		model = @get modelID

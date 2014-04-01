@@ -2,7 +2,7 @@ Backbone = require 'backbone'
 _ = require 'underscore'
 $ = require 'jquery'
 
-config = require '../../../config'
+config = require 'elaborate-modules/modules/models/config'
 Async = require 'hilib/src/managers/async'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
@@ -63,7 +63,7 @@ class ProjectSettings extends Views.Base
 		@$el.html rtpl
 
 		# @renderGeneralTab()
-		@renderGeneral2Tab()
+		@renderGeneralTab()
 		@renderUserTab()
 		@renderEntriesTab()
 		@renderTextlayersTab()
@@ -75,7 +75,7 @@ class ProjectSettings extends Views.Base
 
 		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 
-	renderGeneral2Tab: ->
+	renderGeneralTab: ->
 		# rtpl = generalTpl
 		# 	settings: @model.attributes
 		# 	projectMembers: @project.get('members')
@@ -209,7 +209,7 @@ class ProjectSettings extends Views.Base
 	# 	if name? and name isnt ''
 	# 		ajax.token = token.get()
 	# 		jqXHR = ajax.post
-	# 			url: config.baseUrl+"annotationtypes"
+	# 			url: config.get('restUrl')+"annotationtypes"
 	# 			# dataType: 'text'
 	# 		jqXHR.done =>
 	# 			console.log 'done!'

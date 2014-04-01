@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
@@ -8,7 +8,7 @@ Models =
 
 class User extends Models.Base
 
-	urlRoot: -> config.baseUrl + "users"
+	urlRoot: -> "#{config.get('restUrl')}users"
 
 	validation:
 		username:
@@ -48,7 +48,6 @@ class User extends Models.Base
 		attr
 
 	sync: (method, model, options) ->
-		console.log method, model, options
 		
 		if method is 'create'
 			ajax.token = token.get()
@@ -87,5 +86,13 @@ class User extends Models.Base
 
 		else
 			super
+
+	# ### Methods
+
+	resetPassword: ->
+		console.log 'reset', config.get('restUrl')
+		# jqXHR = ajax.post
+		# 	url: -> "#{config.get('restUrl')}/users/passwordresetrequest"
+		# 	data: @get 'email'
 
 module.exports = User

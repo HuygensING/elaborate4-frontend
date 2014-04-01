@@ -1,4 +1,4 @@
-config = require '../../config'
+config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
@@ -18,7 +18,7 @@ class ProjectHistory
 		jqXHR.done (response) => done(response)
 
 	constructor: (projectID) ->
-		@url = "#{config.baseUrl}projects/#{projectID}/logentries"
+		@url = "#{config.get('restUrl')}projects/#{projectID}/logentries"
 
 	# initialize: (models, options) ->
 	# 	super

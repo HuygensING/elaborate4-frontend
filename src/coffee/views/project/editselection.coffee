@@ -162,7 +162,7 @@
 
 # 				ajax.token = token.get()
 # 				jqXHR = ajax.put
-# 					url: config.baseUrl+"projects/#{@model.id}/multipleentrysettings"
+# 					url: config.get('restUrl')+"projects/#{@model.id}/multipleentrysettings"
 # 					data: JSON.stringify
 # 						projectEntryIds: entryIDs
 # 						settings: @settings

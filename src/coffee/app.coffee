@@ -4,7 +4,7 @@ Backbone.$ = $
 
 history = require 'hilib/src/managers/history'
 
-MainRouter = require './routers/main'
+mainRouter = require './routers/main'
 
 projects = require './collections/projects'
 
@@ -17,7 +17,6 @@ Backbone.on 'unauthorized', -> console.log '[debug] unauthorized'
 ### /DEBUG ###
 
 module.exports = ->
-	mainRouter = new MainRouter()
 	Backbone.history.start pushState: true
 
 	mainRouter.init()

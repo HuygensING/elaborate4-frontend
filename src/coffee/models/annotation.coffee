@@ -7,14 +7,14 @@ _ = require 'underscore'
 
 changedSinceLastSave = require 'hilib/src/mixins/model.changedsincelastsave'
 
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 
 Models = 
 	Base: require './base'
 
 class Annotation extends Models.Base
 
-	urlRoot: -> config.baseUrl + "projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
+	urlRoot: -> "#{config.get('restUrl')}projects/#{@collection.projectId}/entries/#{@collection.entryId}/transcriptions/#{@collection.transcriptionId}/annotations"
 
 	defaults: ->
 		annotationMetadataItems: []

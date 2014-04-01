@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 Base = require './base'
 
 Models =
@@ -11,6 +11,6 @@ class Annotations extends Base
 	initialize: (models, options) ->
 		{@projectId, @entryId, @transcriptionId} = options
 	
-	url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/transcriptions/#{@transcriptionId}/annotations"
+	url: -> "config.get('restUrl')projects/#{@projectId}/entries/#{@entryId}/transcriptions/#{@transcriptionId}/annotations"
 
 module.exports = Annotations

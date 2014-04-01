@@ -1,6 +1,6 @@
 Backbone = require 'backbone'
 
-config = require '../../../config'
+config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
 
@@ -95,7 +95,7 @@ class ProjectSettingsEntries extends Views.Base
 		sortlevels.push select.value for select in @$('.sort-levels select')
 
 		jqXHR = ajax.put
-			url: config.baseUrl + "projects/#{@project.id}/sortlevels"
+			url: "#{config.get('restUrl')}projects/#{@project.id}/sortlevels"
 			data: JSON.stringify sortlevels
 		jqXHR.done =>
 			# Update project attributes

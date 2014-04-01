@@ -1,14 +1,17 @@
+Backbone = require 'backbone'
 $ = require 'jquery'
 
 BaseView = require 'hilib/src/views/base'
 
 currentUser = require '../models/currentUser'
+ResetPassword = require '../models/reset-password'
 
 history = require 'hilib/src/managers/history'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
 Modal = require 'hilib/src/views/modal'
+Form = require 'hilib/src/views/form/main'
 # Templates =
 # 	'Login': require 'text!html/login.html'
 tpl = require '../../jade/login.jade'
@@ -56,16 +59,31 @@ class Login extends BaseView
 		'click li.resetpassword': 'resetPassword'
 
 	resetPassword: ->
+		resetPasswordForm = new Form
+			saveOnSubmit: false
+			tpl: resetPasswordTpl
+			Model: ResetPassword
+
+		@listenTo resetPasswordForm, 'cancel', => modal.close()
+		@listenTo resetPasswordForm, 'submit', (user) => 
+			user.resetPassword =>
+				$('.modal .modalbody .body li').first().html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
+				$('.modal .modalbody .body li').last().css 'opacity', 0
+		# console.log 'user'
+		# user.resetPassword()
+
 		modal = new Modal
 			customClassName: 'reset-password'
 			title: "Forgot your password?"
-			html: resetPasswordTpl()
-			submitValue: 'Send e-mail'
+			html: resetPasswordForm.el
+			# submitValue: 'Send e-mail'
+			cancelAndSubmit: false
 			width: '300px'
-		modal.on 'cancel', =>
-		modal.on 'submit', =>
-			currentUser.resetPassword =>
-				modal.messageAndFade 'success', 'Password send!'
+		# modal.on 'cancel', =>
+		# modal.on 'submit', =>
+		# 	console.log 'sub'
+		# 	currentUser.resetPassword =>
+		# 		modal.messageAndFade 'success', 'Password send!'
 
 	submit: (ev) ->
 		ev.preventDefault()
@@ -98,6 +116,7 @@ class Login extends BaseView
 	# ### METHODS
 
 	loginFailed: ->
+		console.log 'fail'
 		@render()
 		@$('ul.message li').html('Username / password combination unknown!').show()
 

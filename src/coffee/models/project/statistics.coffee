@@ -1,6 +1,6 @@
 Backbone = require 'backbone'
 
-config = require '../../config'
+config = require 'elaborate-modules/modules/models/config'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
@@ -8,7 +8,7 @@ Base = require '../base'
 
 class ProjectStatistics extends Base
 
-	url: -> "#{config.baseUrl}projects/#{@projectID}/statistics"
+	url: -> "#{config.get('restUrl')}projects/#{@projectID}/statistics"
 
 	initialize: (attrs, options) ->
 		super

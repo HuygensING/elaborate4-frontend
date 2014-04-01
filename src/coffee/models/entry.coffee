@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
@@ -17,7 +17,7 @@ Collections =
 
 class Entry extends Models.Base
 
-	urlRoot: -> "#{config.baseUrl}projects/#{@project.id}/entries"
+	urlRoot: -> "#{config.get('restUrl')}projects/#{@project.id}/entries"
 
 	defaults: ->
 		name: ''
@@ -29,6 +29,8 @@ class Entry extends Models.Base
 		_.extend @, syncOverride
 
 	set: (attrs, options) ->
+		# All attributes (include settings) are passed to this model, so we have to 
+		# differentiate between @attributes and settings.attributes. This must change!
 		settings = @get('settings')
 		if settings? and settings.get(attrs)?
 			settings.set attrs, options

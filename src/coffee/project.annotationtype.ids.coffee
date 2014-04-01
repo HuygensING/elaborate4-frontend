@@ -1,7 +1,7 @@
 # Entrymetadata fetches and saves the entry metadata. The fetch returns an array of strings
 # and the save puts the entire array to save it.
 
-config = require './config'
+config = require 'elaborate-modules/modules/models/config'
 token = require 'hilib/src/managers/token'
 ajax = require 'hilib/src/managers/ajax'
 
@@ -14,7 +14,7 @@ class AnnotationTypeIDs
 	# ### Contstructor
 	# Set the url based on the projectID
 	constructor: (projectID) -> 
-		url = "#{config.baseUrl}projects/#{projectID}/annotationtypes"
+		url = "#{config.get('restUrl')}projects/#{projectID}/annotationtypes"
 
 	# ### Public methods
 	fetch: (cb) ->

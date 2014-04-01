@@ -13,6 +13,8 @@ Views =
 	Base: require 'hilib/src/views/base'
 	Submenu: require './search.submenu'
 
+entryMetadataChanged = false
+
 # TODO: Destroy view
 class Search extends Views.Base
 
@@ -22,7 +24,10 @@ class Search extends Views.Base
 	initialize: ->
 		super
 
-		projects.getCurrent (@project) => @render()
+		projects.getCurrent (@project) => 
+			@render()
+			@listenTo Backbone, 'change:entry-metadata', => entryMetadataChanged = true
+			@listenTo Backbone, 'router:search', => @fsr.reset() if entryMetadataChanged
 
 	# ### Render
 	render: ->

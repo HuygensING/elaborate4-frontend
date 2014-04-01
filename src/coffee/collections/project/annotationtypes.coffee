@@ -1,4 +1,4 @@
-config = require '../../config'
+config = require 'elaborate-modules/modules/models/config'
 Base = require '../base'
 
 Models =
@@ -13,7 +13,7 @@ class AnnotationTypes extends Base
 
 	# 	@projectId = options.projectId
 	
-	url: -> config.baseUrl + "annotationtypes"
+	url: -> config.get('restUrl') + "annotationtypes"
 
 	comparator: (annotationType) -> annotationType.get('title').toLowerCase()
 

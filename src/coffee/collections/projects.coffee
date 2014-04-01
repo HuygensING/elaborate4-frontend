@@ -56,6 +56,17 @@ class Projects extends Base
 
 		@current
 
+	sync: (method, model, options) ->
+		projects = sessionStorage.getItem('hing-elaborate-projects')
+		
+		# If projects are present in sessionStorage, use them.
+		if method is 'read' and projects?
+			options.success JSON.parse projects
+			
+		# else continue sync and fetch from server.
+		else
+			super
+
 
 module.exports = new Projects()
 # projects.fetch success: => 

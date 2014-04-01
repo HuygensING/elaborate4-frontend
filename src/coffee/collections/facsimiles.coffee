@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 Base = require './base'
 
 Models =
@@ -14,7 +14,7 @@ class Facsimiles extends Base
 
 		@on 'remove', (model) => model.destroy()
 	
-	url: -> config.baseUrl + "projects/#{@projectId}/entries/#{@entryId}/facsimiles"
+	url: -> "#{config.get('restUrl')}projects/#{@projectId}/entries/#{@entryId}/facsimiles"
 
 	setCurrent: (model) ->
 		if not model? or model isnt @current

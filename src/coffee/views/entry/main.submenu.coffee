@@ -165,13 +165,14 @@ class EntrySubmenu extends Base
 				html: entryMetadata.el
 				submitValue: 'Save metadata'
 				width: '500px'
+				customClassName: 'entry-metadata'
 			modal.on 'submit', =>
 				@entry.updateFromClone entryMetadata.model
 
 				async = new Async ['entry', 'settings']
-				@listenToOnce async, 'ready', => 
+				@listenToOnce async, 'ready', =>
+					# TODO metadata changed!
 					modal.close()
-					@publish 'faceted-search:refresh'
 					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
 				@entry.get('settings').save null, success: ->  async.called 'settings'

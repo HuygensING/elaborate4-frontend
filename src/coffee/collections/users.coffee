@@ -1,4 +1,4 @@
-config = require '../config'
+config = require 'elaborate-modules/modules/models/config'
 
 User = require '../models/user'
 
@@ -9,7 +9,7 @@ class Users extends Collections.Base
 
 	model: User
 
-	url: ->	"#{config.baseUrl}users"
+	url: ->	"#{config.get('restUrl')}users"
 
 	comparator: (user) ->
 		# Apparently title can be null

@@ -1,11 +1,13 @@
+Backbone = require 'backbone'
+_ = require 'underscore'
 Fn = require 'hilib/src/utils/general'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
 Async = require 'hilib/src/managers/async'
 
-config = require '../../config'
-	
+config = require 'elaborate-modules/modules/models/config'
+
 Models = 
 	Base: require '../base'
 	Settings: require './settings'
@@ -86,9 +88,15 @@ class Project extends Models.Base
 				done()
 
 	load: (cb) ->
-		if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0
+		if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0 and @get('settings') is null
 			async = new Async ['annotationtypes', 'users', 'entrymetadatafields', 'settings']
-			async.on 'ready', (data) => cb()
+			async.on 'ready', (data) =>
+				# If a project is loaded, update the sessionStorage item.
+				sessionStorage.setItem 'hing-elaborate-projects', JSON.stringify @collection
+				sessionStorage.setItem 'hing-elaborate-users', JSON.stringify @allusers
+				sessionStorage.setItem 'hing-elaborate-annotation-types', JSON.stringify @allannotationtypes
+
+				cb()
 
 			new Collections.AnnotationTypes().fetch
 				success: (collection, response, options) =>
@@ -125,13 +133,27 @@ class Project extends Models.Base
 					@set 'settings', model
 					async.called 'settings'
 				error: (model, response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+
+		# If the project is loaded from sessionStorage, settings is an object literal. Convert to Backbone.Model.
+		else if not (@get('settings') instanceof Backbone.Model)
+			# console.log @get 'userIDs'
+			users = sessionStorage.getItem 'hing-elaborate-users'
+			annotationTypes = sessionStorage.getItem 'hing-elaborate-annotation-types'
+
+			@set 'members', new Collections.Users _.filter users, (model) => @get('annotationtypeIDs').indexOf(model.id) > -1
+			@set 'annotationtypes', new Collections.AnnotationTypes _.filter annotationTypes, (model) => @get('userIDs').indexOf(model.id) > -1
+			@set 'settings', new Models.Settings @get('settings'), projectID: @id
+
+			cb()
+
+		# If everything is already loaded, just call the callback.
 		else
 			cb()
 
 	fetchEntrymetadatafields: (cb) ->
 		ajax.token = token.get()
 		jqXHR = ajax.get
-			url: config.baseUrl + "projects/#{@id}/entrymetadatafields"
+			url: config.get('restUrl') + "projects/#{@id}/entrymetadatafields"
 			dataType: 'text'
 		jqXHR.done (response) =>
 			@set 'entrymetadatafields', response
@@ -141,7 +163,7 @@ class Project extends Models.Base
 	publishDraft: (cb) ->
 		ajax.token = token.get()
 		jqXHR = ajax.post
-			url: config.baseUrl+"projects/#{@id}/draft"
+			url: config.get('restUrl')+"projects/#{@id}/draft"
 			dataType: 'text'
 		jqXHR.done =>
 			locationUrl = jqXHR.getResponseHeader('Location')
@@ -167,7 +189,7 @@ class Project extends Models.Base
 	saveTextlayers: (done) ->
 		ajax.token = token.get()
 		jqXHR = ajax.put
-			url: config.baseUrl+"projects/#{@id}/textlayers"
+			url: config.get('restUrl')+"projects/#{@id}/textlayers"
 			data: JSON.stringify @get 'textLayers'
 		jqXHR.done => done()
 		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401

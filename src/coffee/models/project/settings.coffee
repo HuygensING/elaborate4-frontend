@@ -1,4 +1,5 @@
-config = require '../../config'
+Backbone = require 'backbone'
+config = require 'elaborate-modules/modules/models/config'
 token = require 'hilib/src/managers/token'
 ajax = require 'hilib/src/managers/ajax'
 
@@ -28,7 +29,7 @@ class ProjectSettings extends Models.Base
 		'text.font': ''
 		'name': ''
 
-	url: -> "#{config.baseUrl}projects/#{@options.projectId}/settings"
+	url: -> "#{config.get('restUrl')}projects/#{@options.projectId}/settings"
 
 	initialize: (attrs, @options) ->
 		super

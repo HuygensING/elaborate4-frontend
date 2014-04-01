@@ -266,7 +266,7 @@ class EntryPreview extends Views.Base
 		
 		# Set the urlRoot manually, because a new annotation has not been added to the collection yet.
 		annotations = @transcription.get 'annotations'
-		newAnnotation.urlRoot = => config.baseUrl + "projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
+		newAnnotation.urlRoot = => "#{config.get('restUrl')}projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
 		
 		@setAnnotatedText newAnnotation
 

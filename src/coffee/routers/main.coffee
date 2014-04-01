@@ -15,6 +15,7 @@ Collections =
 
 Views =
 	Login: require '../views/login'
+	SetNewPassword: require '../views/set-new-password'
 	ProjectMain: require '../views/project/search'
 	ProjectSettings: require '../views/project/settings/main'
 	ProjectHistory: require '../views/project/history'
@@ -28,11 +29,14 @@ class MainRouter extends Backbone.Router
 		_.extend @, Pubsub
 
 		@on 'route', => history.update()
+		@on 'route:projectMain', => Backbone.trigger 'router:search'
 
 	# The init method is manually triggered from app.js, after Backbone.history.start().
 	# Ideally we would have this code in the initialize method, but we need to use @navigate
 	# which isn't operational yet.
 	init: ->
+		return if Backbone.history.fragment is 'resetpassword'
+
 		Models.currentUser.authorize
 			authorized: =>
 				Collections.projects.fetch()
@@ -46,19 +50,15 @@ class MainRouter extends Backbone.Router
 						# persist: true
 					
 					@listenTo Collections.projects, 'current:change', (@project) => @navigate "projects/#{@project.get('name')}", trigger: true
-
 			unauthorized: => @publish 'login:failed'
 			navigateToLogin: => @navigate 'login', trigger: true
-
-
-		# Start listening to current project change after the first one is set (otherwise it will trigger on page load)
-		# Collections.projects.getCurrent (@project) =>
 
 	manageView: (View, options) -> viewManager.show $('div#main'), View, options
 
 	routes:
 		'': 'projectMain'
 		'login': 'login'
+		'resetpassword': 'setNewPassword'
 		'projects/:name': 'projectMain'
 		'projects/:name/settings/:tab': 'projectSettings'
 		'projects/:name/settings': 'projectSettings'
@@ -73,6 +73,13 @@ class MainRouter extends Backbone.Router
 
 	login: ->
 		@manageView Views.Login
+
+	setNewPassword: ->
+		@login()
+
+		view = new Views.SetNewPassword()
+		$('div#main').append view.el
+		
 
 	projectMain: (projectName) ->
 		# In theory we don't have to pass the projectName, because it is known
@@ -116,4 +123,4 @@ class MainRouter extends Backbone.Router
 
 		@manageView Views.Entry, attrs
 
-module.exports = MainRouter
+module.exports = new MainRouter()

@@ -1,5 +1,5 @@
 _ = require 'underscore'
-config = require '../../config'
+config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
@@ -11,7 +11,7 @@ Models =
 
 class AnnotationType extends Models.Base
 
-	urlRoot: -> config.baseUrl + "annotationtypes"
+	urlRoot: -> config.get('restUrl') + "annotationtypes"
 
 	defaults: ->
 		creator: null

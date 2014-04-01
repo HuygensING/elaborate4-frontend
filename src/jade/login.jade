@@ -1,42 +1,34 @@
 .cell.span2
 	.padl5.padr5
-		p 	
-			| eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users. 
-			| Access to the work environment is currently limited. In 2012 the tool will be adapted for deployment at European CLARIN Centers starting with the Dutch centers. http://www.clarin.nl/
-		p
-			| eLaborate enables textual scholars to work on their edition on their own or in a group. Users only need to know how to use the internet. Project leaders can easily give reading and writing permission 
-			| to members of their project team. They can select and add metadata fields and draw up a list of annotation categories they want to use. They can publish their edition online anytime they want. 
-			| The edition will then become available online in a sober design which will be elaborated on step by step in the next few years.
+		h1 eLaborate
+		
 		p
 			:markdown
-				The work environment is developed by the Huygens Institute for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. 
-				The new version was developed in the Alfalab project, making eLaborate3 the main tool available through the Textlab of [Alfalab](http://alfalab.ehumanities.nl).
+				eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results 
+				as on online text edition which is freely available to all users. Short information about and a link to already published editions 
+				is presented on the page Editions under Published. Information about editions currently being prepared is posted on the page 
+				Ongoing projects.
 
 		p
 			:markdown
-				Access to eLaborate is currently granted to scholars teaching a university course in text editing and to scholars planning an edition that is somehow related to the research programme of Huygens ING.
-				For more information: [info-elaborate@huygens.knaw.nl](info-elaborate@huygens.knaw.nl)
+				The eLaborate work environment for the creation and publication of online digital editions is developed by the Huygens Institute 
+				for the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. This website is the companion to the 
+				fourth version of the software, which was released on 31 March 2014.
+
+		p
+			:markdown
+				Information about access to the work environment can be found in [http://elaborate.huygens.knaw.nl](http://elaborate.huygens.knaw.nl) through the tab About eLaborate 
+				on the page For users. Details about the technical side is available on the page For programmers. This page also gives information 
+				about the open source version of the software. The history of eLaborate is described on the page About eLaborate.
 
 		h2 eLaborate2
+
 		p
-			| Those still using eLaborate2 can find their work environment by following this link. http://www.e-laborate.nl/en/
-			| In the course of 2012, projects using eLaborate2 will be migrated to eLaborate3. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate3.
+			:markdown
+				Those still using eLaborate2 can find their work environment by following this link: [http://www.e-laborate.nl/en/](http://www.e-laborate.nl/en/). 
+				In the course of 2014, projects using eLaborate2 will be migrated to eLaborate4. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate4.
 
 		h2 Links
-
-		p More information about the use of eLaborate3 will become available in due time (link naar handleiding-in-wording)
-
-		p 
-			:markdown
-				Links to digital editions prepared in eLaborate2 are listed at [http://www.e-laborate.nl/en/](http://www.e-laborate.nl/en/)
-
-		p 
-			:markdown
-				Information about tools for digital text analysis can be found in Alfalab's Textlab. [http://alfalab.ehumanities.nl/textlab](http://alfalab.ehumanities.nl/textlab)
-
-		p 
-			:markdown
-				Information and news relating to textual scholarship in general (mostly in Dutch) can be enjoyed at [http://www.textualscholarship.nl/](http://www.textualscholarship.nl/)
 
 		p 
 			:markdown
@@ -52,10 +44,10 @@
 			ul
 				li
 					label Username
-					input#username(type="text", name="username", value="root")
+					input#username(type="text", name="username")
 				li
 					label Password
-					input#password(type="password", name="password", value="toor")
+					input#password(type="password", name="password")
 				li.resetpassword Forgot your password?
 				li.login
 					input#submit(type="submit", value="Login", style="width: 75px")
