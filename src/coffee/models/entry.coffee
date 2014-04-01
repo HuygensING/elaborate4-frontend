@@ -23,6 +23,7 @@ class Entry extends Models.Base
 		name: ''
 		terms: null
 		publishable: false
+		# 'short-name': null
 
 	initialize: ->
 		super
