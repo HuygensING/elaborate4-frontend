@@ -37,23 +37,34 @@
 					border none
 
 #main > .login
+	
+	.left-pane, .right-pane
+		display inline-block
+		width 50%
+		box-sizing border-box
+		vertical-align top
+		padding 20px
+
+	.right-pane
+		padding-top 46px
 
 	h2
 		margin-top 0
 		text-align left
 
 	.federated
-		padding-left 5%
 		margin-top 40px
 
 		button.federated-login
 			margin-left 0
-			width 75px
+			width 100px
+			height 26px
 
 	form.login
 		text-align left
 		box-shadow none
 		border 1px solid #DDD
+		width 280px
 
 		ul
 			&.message
@@ -62,24 +73,28 @@
 					text-align left
 					padding 12px
 					background #F00
-					border-radius 4px
+					border-radius 3px
 					color #FFF
 					font-weight bold
-					margin-bottom 18px
 			
 			li.login
-				margin-top 20px
+				button
+					margin 20px 0 0 100px
+					border-radius 3px
+					height 26px
+					width 100px
+					border 1px solid #CCC
+					color #333
 
-			li.loggingin
-				display none
-				padding 10px
-				background-color white
-				margin-left 100px
-				border 1px solid #CCC
-				margin-bottom 8px
+					&.loading
+						background white
 
-				img
-					margin-left 10px
+						i.fa
+							display inline-block
+
+				i.fa
+					display none
+					margin-left 8px
 
 			li.resetpassword
 				color #46AAA8

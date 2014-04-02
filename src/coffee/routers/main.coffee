@@ -68,13 +68,7 @@ class MainRouter extends Backbone.Router
 		'projects/:name/entries/:id/transcriptions/:name': 'entry'
 		'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
 
-	# home: ->
-	# 	view = new Views.Home
-
 	login: ->
-		# Hide the main header, because when we logout after sessionStorage has been set,
-		# the header is already loaded and displayed.
-		$('header.main').hide()
 		@manageView Views.Login
 
 	setNewPassword: ->

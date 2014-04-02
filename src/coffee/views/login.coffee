@@ -19,7 +19,7 @@ resetPasswordTpl = require '../../jade/reset-password.jade'
 
 class Login extends BaseView
 
-	className: 'login row span3'
+	className: 'login'
 
 	# ### INITIALIZE
 	initialize: ->
@@ -42,19 +42,13 @@ class Login extends BaseView
 	# ### RENDER
 	render: ->
 		@$el.html tpl()
-
-		# console.log history
-
-		# redirect = history.last() ? 'http://localhost:4000/'
-		# url = decodeURI 'https://secure.huygens.knaw.nl/saml2/login?'+redirect
-		# a = $('<a href="'+url+'" data-bypass target="_blank">federated login</a>')
-		# @$('.federated').html a
 		
 		@
 
 	# ### EVENTS
 	events: ->
-		'click input#submit': 'submit'
+		'keyup input': => @$('ul.message li').slideUp()
+		'click button[name="submit"]': 'submit'
 		'click button.federated-login': 'federatedLogin'
 		'click li.resetpassword': 'resetPassword'
 
@@ -69,27 +63,22 @@ class Login extends BaseView
 			user.resetPassword =>
 				$('.modal .modalbody .body li').first().html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
 				$('.modal .modalbody .body li').last().css 'opacity', 0
-		# console.log 'user'
-		# user.resetPassword()
 
 		modal = new Modal
 			customClassName: 'reset-password'
 			title: "Forgot your password?"
 			html: resetPasswordForm.el
-			# submitValue: 'Send e-mail'
 			cancelAndSubmit: false
 			width: '300px'
-		# modal.on 'cancel', =>
-		# modal.on 'submit', =>
-		# 	console.log 'sub'
-		# 	currentUser.resetPassword =>
-		# 		modal.messageAndFade 'success', 'Password send!'
 
 	submit: (ev) ->
 		ev.preventDefault()
 
-		@el.querySelector('li.login').style.display = 'none'
-		@el.querySelector('li.loggingin').style.display = 'inline-block'
+		if @$('#username').val() is '' or @$('#password').val() is ''
+			@$('ul.message li').show().html 'Please enter a username and password.'
+			return
+
+		@$('li.login button').addClass 'loading'
 
 		currentUser.login @$('#username').val(), @$('#password').val()
 
@@ -116,7 +105,6 @@ class Login extends BaseView
 	# ### METHODS
 
 	loginFailed: ->
-		console.log 'fail'
 		@render()
 		@$('ul.message li').html('Username / password combination unknown!').show()
 

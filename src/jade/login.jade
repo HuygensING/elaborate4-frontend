@@ -1,5 +1,4 @@
-.cell.span2
-	.padl5.padr5
+.left-pane
 		h1 eLaborate
 		
 		p
@@ -29,28 +28,24 @@
 		p 
 			| More about Huygens ING at <a data-bypass target="_blank" href="http://www.huygens.knaw.nl/">http://www.huygens.knaw.nl/</a>
 
-.cell.span1
-	.padl5.padr5.alignright
-		h2 Regular login
-		form.login.region
-			ul.message
-				li
-			
-			ul
-				li
-					label Username
-					input#username(type="text", name="username")
-				li
-					label Password
-					input#password(type="password", name="password")
-				li.resetpassword Forgot your password?
-				li.login
-					input#submit(type="submit", value="Login", style="width: 75px")
-				li.loggingin Logging in...
-					img(src='/images/loader.gif')
+.right-pane
+	h2 Regular login
+	form.login.region
+		ul.message
+			li
+		
+		ul
+			li
+				label Username
+				input#username(type="text", name="username")
+			li
+				label Password
+				input#password(type="password", name="password")
+			li.resetpassword Forgot your password?
+			li.login
+				button(name="submit") Login
+					i.fa.fa-spinner.fa-spin
 
-
-	//- div(style="text-align: left; padding-left: 5%; margin-top: 40px")
 	.federated
 		h2 Federated login
 		button.simple.federated-login Login
