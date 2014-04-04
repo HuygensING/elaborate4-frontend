@@ -28,6 +28,7 @@ Models =
 	# state: require '../../../models/state'
 	User: require '../../../models/user'
 	Annotationtype: require '../../../models/project/annotationtype'
+	currentUser: require '../../../models/currentUser'
 
 Collections =
 	projects: require '../../../collections/projects'
@@ -60,6 +61,7 @@ class ProjectSettings extends Views.Base
 	render: ->
 		rtpl = tpl
 			settings: @model.attributes
+			roleNo: Models.currentUser.get('roleNo')
 		@$el.html rtpl
 
 		# @renderGeneralTab()

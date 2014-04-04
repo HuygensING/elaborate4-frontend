@@ -2,8 +2,8 @@
 	.cell.span1
 		ul.horizontal.menu
 			li(data-key="newsearch") New search
-	//- >= PROJECT_LEADER
-	if user.get('roleNo') >= 30
+	//- >= USER
+	if user.get('roleNo') >= 20
 		.cell.span1
 			ul.horizontal.menu
 				li(data-key="newentry")= 'New '+config.get('entryTermSingular')
@@ -13,6 +13,8 @@
 				//- >= ADMIN
 				if user.get('roleNo') >= 40 && projects.length > 1
 					li(data-key="delete") Remove
-				li(data-key="publish") 
-					span Publish draft
-					i.fa.fa-spinner.fa-spin
+				//- >= PROJECTLEADER
+				if user.get('roleNo') >= 30
+					li(data-key="publish") 
+						span Publish draft
+						i.fa.fa-spinner.fa-spin

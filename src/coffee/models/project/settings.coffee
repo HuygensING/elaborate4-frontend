@@ -11,7 +11,7 @@ class ProjectSettings extends Models.Base
 	validation:
 		name:
 			'min-length': 3
-			'max-length': 20
+			'max-length': 40
 			pattern: 'slug'
 
 	# Change defaults with spaces like Project title and Project leader. These are not

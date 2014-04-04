@@ -7,7 +7,7 @@ $ = require 'jquery'
 Fn = require 'hilib/src/utils/general'
 dom = require 'hilib/src/utils/dom'
 
-config = require '../../../config'
+config = require 'elaborate-modules/modules/models/config'
 
 Views = 
 	Base: require 'hilib/src/views/base'
@@ -111,7 +111,6 @@ class EntryPreview extends Views.Base
 		return console.error 'No annotations found!' unless @transcription.get('annotations')?
 
 		id = ev.currentTarget.getAttribute('data-id')
-
 		annotation = if id is 'newannotation' then @newAnnotation else @transcription.get('annotations').findWhere annotationNo: id >> 0
 		return console.error 'Annotation not found! ID:', id, ' Collection:', @transcription.get('annotations') unless annotation?
 

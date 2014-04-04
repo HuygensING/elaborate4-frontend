@@ -1,29 +1,26 @@
 .padl5.padr5
 	h2 Settings
 
-	ul.horizontal.tab.menu
-		//- li.active(data-tab="project") Project
-		li.active(data-tab="general") General
-		li(data-tab="users") Users
-		li(data-tab="entries") Entries
-		li(data-tab="textlayers") Text layers
-		//- li(data-tab="metadata-annotations") Annotation types
-		li(data-tab="annotations") Annotations
-
-	//- .active(data-tab="project")
-	
-	.active(data-tab="general")
+	if roleNo >= 30
+		ul.horizontal.tab.menu
+			li.active(data-tab="general") General
+			li(data-tab="users") Users
+			li(data-tab="entries") Entries
+			li(data-tab="textlayers") Text layers
+			li(data-tab="annotations") Annotations
 		
-	div(data-tab="textlayers")
+		.active(data-tab="general")
+			
+		div(data-tab="textlayers")
 
-	div(data-tab="entries")
-		
-	//- div(data-tab="metadata-annotations")
+		div(data-tab="entries")
 
-	div(data-tab="annotations")
-		.annotation-type-list
-			h3 Add / remove annotation types
-		.add-annotation-type
-		.set-custom-tag-names
-		
-	div(data-tab="users")
+		div(data-tab="annotations")
+			.annotation-type-list
+				h3 Add / remove annotation types
+			.add-annotation-type
+			.set-custom-tag-names
+			
+		div(data-tab="users")
+	else
+		p You are not authorized to alter project settings. Please contact the project leader.

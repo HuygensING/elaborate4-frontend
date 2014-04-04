@@ -1,8 +1,6 @@
 Backbone = require 'backbone'
 $ = require 'jquery'
 
-config = require '../../config'
-
 Fn = require 'hilib/src/utils/general'
 dom = require 'hilib/src/utils/dom'
 viewManager = require 'hilib/src/managers/view2'

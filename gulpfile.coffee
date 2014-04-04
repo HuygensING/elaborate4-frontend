@@ -71,6 +71,7 @@ gulp.task 'stylus', ->
 		.pipe(plumber())
 		.pipe(stylus(
 			use: ['nib']
+			import: ['nib']
 		))
 		.pipe(concat('main.css'))
 		.pipe(gulp.dest(compiledDir+'/css'))

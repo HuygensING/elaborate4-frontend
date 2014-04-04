@@ -110,8 +110,10 @@ class EditAnnotationTooltip extends BaseView
 		scrollBottomPos = @container.scrollTop + @container.clientHeight
 
 		if tooltipBottomPos > scrollBottomPos
-			top = top - 48 - @$el.height()
-			@$el.addClass 'tipbottom'
+			newTop = top - 48 - @$el.height()
+			if newTop > 0
+				top = newTop
+				@$el.addClass 'tipbottom'
 
 		@$el.css 'left', left
 		@$el.css 'top', top

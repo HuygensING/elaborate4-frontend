@@ -21,6 +21,7 @@
 					ul.vertical.menu
 						each project in projects.models
 							li.project(class=projects.current==project?'active':'', data-id=project.id)= project.get('title')
-				li.addproject Add project
+				if user.get('roleNo') >= 40
+					li.addproject Add project
 				li.logout Logout
 	img(src="/images/logo.huygens.png")

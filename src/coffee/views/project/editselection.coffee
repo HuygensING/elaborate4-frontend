@@ -1,5 +1,3 @@
-# config = require '../../config'
-
 # ajax = require 'hilib/src/managers/ajax'
 # token = require 'hilib/src/managers/token'
 

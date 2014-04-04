@@ -2,8 +2,6 @@ Backbone = require 'backbone'
 $ = require 'jquery'
 _ = require 'underscore'
 
-config = require '../config'
-
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 

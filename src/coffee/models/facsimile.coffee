@@ -1,8 +1,6 @@
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
-config = require '../config'
-
 Models = 
 	Base: require './base'
 

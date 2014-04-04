@@ -88,13 +88,13 @@ class Project extends Models.Base
 				done()
 
 	load: (cb) ->
-		if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0 and @get('settings') is null
+		if @get('annotationtypes') is null and @get('entrymetadatafields') is null and @get('userIDs').length is 0
 			async = new Async ['annotationtypes', 'users', 'entrymetadatafields', 'settings']
 			async.on 'ready', (data) =>
-				# If a project is loaded, update the sessionStorage item.
-				sessionStorage.setItem 'hing-elaborate-projects', JSON.stringify @collection
-				sessionStorage.setItem 'hing-elaborate-users', JSON.stringify @allusers
-				sessionStorage.setItem 'hing-elaborate-annotation-types', JSON.stringify @allannotationtypes
+				# # If a project is loaded, update the sessionStorage item.
+				# sessionStorage.setItem 'hing-elaborate-projects', JSON.stringify @collection
+				# sessionStorage.setItem 'hing-elaborate-users', JSON.stringify @allusers
+				# sessionStorage.setItem 'hing-elaborate-annotation-types', JSON.stringify @allannotationtypes
 
 				cb()
 
@@ -134,17 +134,19 @@ class Project extends Models.Base
 					async.called 'settings'
 				error: (model, response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
-		# If the project is loaded from sessionStorage, settings is an object literal. Convert to Backbone.Model.
-		else if not (@get('settings') instanceof Backbone.Model)
-			# console.log @get 'userIDs'
-			users = sessionStorage.getItem 'hing-elaborate-users'
-			annotationTypes = sessionStorage.getItem 'hing-elaborate-annotation-types'
+		# # If the project is loaded from sessionStorage, settings is an object literal. Convert to Backbone.Model.
+		# else if not (@get('settings') instanceof Backbone.Model)
+		# 	@allusers = new Collections.Users JSON.parse sessionStorage.getItem 'hing-elaborate-users'
+		# 	@allannotationtypes = new Collections.AnnotationTypes JSON.parse sessionStorage.getItem 'hing-elaborate-annotation-types'
 
-			@set 'members', new Collections.Users _.filter users, (model) => @get('annotationtypeIDs').indexOf(model.id) > -1
-			@set 'annotationtypes', new Collections.AnnotationTypes _.filter annotationTypes, (model) => @get('userIDs').indexOf(model.id) > -1
-			@set 'settings', new Models.Settings @get('settings'), projectID: @id
+		# 	@projectUserIDs = new ProjectUserIDs(@id)
+		# 	@projectAnnotationTypeIDs = new ProjectAnnotationTypeIDs(@id)
 
-			cb()
+		# 	@set 'members', new Collections.Users @allusers.filter (model) => @get('annotationtypeIDs').indexOf(model.id) > -1
+		# 	@set 'annotationtypes', new Collections.AnnotationTypes @allannotationtypes.filter (model) => @get('userIDs').indexOf(model.id) > -1
+		# 	@set 'settings', new Models.Settings @get('settings'), projectID: @id
+
+		# 	cb()
 
 		# If everything is already loaded, just call the callback.
 		else

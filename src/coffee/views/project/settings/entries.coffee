@@ -61,6 +61,7 @@ class ProjectSettingsEntries extends Views.Base
 		setNamesForm = new Views.Form
 			tpl: setNamesTpl
 			model: @project.get('settings')
+			validationAttributes: ['entry.term_singular', 'entry.term_plural']
 
 		@listenTo setNamesForm, 'save:success', => Backbone.trigger 'message', 'Entries names saved.'
 
@@ -94,10 +95,13 @@ class ProjectSettingsEntries extends Views.Base
 		sortlevels = []
 		sortlevels.push select.value for select in @$('.sort-levels select')
 
+		@$('button.savesortlevels').addClass 'loading'
+
 		jqXHR = ajax.put
 			url: "#{config.get('restUrl')}projects/#{@project.id}/sortlevels"
 			data: JSON.stringify sortlevels
 		jqXHR.done =>
+			@$('button.savesortlevels').removeClass 'loading'
 			# Update project attributes
 			@project.set 'level1', sortlevels[0]
 			@project.set 'level2', sortlevels[1]
@@ -109,5 +113,8 @@ class ProjectSettingsEntries extends Views.Base
 			
 			# Send message to project main view, so it can re-render the levels.
 			Backbone.trigger 'sortlevels:update', sortlevels
+		jqXHR.fail =>
+			@$('button.savesortlevels').removeClass 'loading'
+
 
 module.exports = ProjectSettingsEntries
