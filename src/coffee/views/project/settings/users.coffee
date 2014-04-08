@@ -71,7 +71,9 @@ class ProjectSettingsUsers extends Views.Base
 			tpl: addUserTpl
 		@$('.adduser').append form.el
 
-		@listenTo form, 'save:success', (model) => @project.get('members').add model
+		@listenTo form, 'save:success', (model) =>
+			form.reset()
+			@project.get('members').add model
 		@listenTo form, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
 
 	events: ->
