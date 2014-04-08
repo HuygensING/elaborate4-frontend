@@ -53,7 +53,7 @@ class EditFacsimiles extends Views.Base
 		formData = new FormData form
 
 		jqXHR = ajax.post
-			url: 'http://tomcat.tiler01.huygens.knaw.nl/facsimileservice/upload'
+			url: 'https://tomcat.tiler01.huygens.knaw.nl/facsimileservice/upload'
 			data: formData
 			cache: false
 			contentType: false
