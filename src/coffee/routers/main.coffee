@@ -92,7 +92,9 @@ class MainRouter extends Backbone.Router
 
 	projectHistory: (projectName) ->
 		# See projectMain comment
-		@manageView Views.ProjectHistory, projectName: projectName
+		@manageView Views.ProjectHistory, 
+			projectName: projectName
+			cache: false
 
 	statistics: (projectName) ->
 		# See projectMain comment
