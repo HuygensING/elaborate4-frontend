@@ -19,6 +19,9 @@ class Transcriptions extends Base
 	
 	url: -> config.get('restUrl') + "projects/#{@projectId}/entries/#{@entryId}/transcriptions"
 
+	getCurrent: (cb) ->
+		if @current? then cb @current else @once 'current:change', => cb @current
+
 	setCurrent: (model) ->
 		if not model? or model isnt @current
 			if _.isString model
@@ -29,10 +32,7 @@ class Transcriptions extends Base
 					@current = model
 				else
 					# Default to the Diplomatic text layer
-					@current = @findWhere textLayer: 'Diplomatic'
-
-					# If no Diplomatic text layer was found, get the first in the collection
-					@first() unless @current?
+					@current = @first()
 
 			@trigger 'current:change', @current
 
