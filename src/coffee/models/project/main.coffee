@@ -77,13 +77,11 @@ class Project extends Models.Base
 		@projectUserIDs.save userIDs,
 			success: => 
 				@allusers.add user
-				@get('members').add user
 				done()
 
 	removeUser: (id, done) ->
 		@projectUserIDs.save Fn.removeFromArray(@get('userIDs'), id),
-			success: => 
-				@allusers.remove id
+			success: =>
 				@get('members').removeById id
 				done()
 
