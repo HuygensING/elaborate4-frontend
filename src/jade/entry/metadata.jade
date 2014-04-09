@@ -11,6 +11,14 @@ fieldset.span100
 			else
 				span= model.get('name')
 
+		li
+			- id = generateID()
+			label(for=id) Short name
+			if user.get('roleNo') >= 20
+				input(id=id, type="text", name="shortName", value=model.get('shortName'))
+			else
+				span= model.get('shortName')
+
 		each key in entrymetadatafields
 			li
 				- id = generateID()

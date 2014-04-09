@@ -70,11 +70,12 @@ class Entry extends Views.Base
 		# @subviews.submenu = viewManager.show @el, Views.Submenu,
 		# 	prepend: true
 
-		@subviews.submenu = new Views.Submenu 
+		@subviews.submenu = new Views.Submenu
 			entry: @entry
 			user: Models.currentUser
 			project: @project
 		@$el.prepend @subviews.submenu.el
+
 
 		# Render subsubmenu
 		# viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,

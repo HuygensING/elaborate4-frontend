@@ -26,6 +26,8 @@ class EntrySubmenu extends Base
 
 		{@entry, @user, @project} = @options
 
+		# @render is called from parent (entry.renderTranscriptionEditor)
+
 	# ### Render
 	render: ->
 		rtpl = tpl

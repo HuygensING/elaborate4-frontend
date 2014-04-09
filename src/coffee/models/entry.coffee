@@ -21,8 +21,9 @@ class Entry extends Models.Base
 
 	defaults: ->
 		name: ''
-		terms: null
 		publishable: false
+		shortName: ''
+		terms: null
 		# 'short-name': null
 
 	initialize: ->
@@ -43,6 +44,7 @@ class Entry extends Models.Base
 		newObj = new @constructor
 			name: @get 'name'
 			publishable: @get 'publishable'
+			shortName: @get 'shortName'
 			modifier: @get 'modifier'
 			modifiedOn: @get 'modifiedOn'
 
@@ -55,6 +57,7 @@ class Entry extends Models.Base
 	updateFromClone: (clone) ->
 		@set 'name', clone.get 'name'
 		@set 'publishable', clone.get 'publishable'
+		@set 'shortName', clone.get 'shortName'
 		@get('settings').set clone.get('settings').toJSON()
 
 	# parse: (attrs) ->
@@ -130,6 +133,7 @@ class Entry extends Models.Base
 		data = JSON.stringify
 			name: @get 'name'
 			publishable: @get 'publishable'
+			shortName: @get 'shortName'
 
 		if method is 'create'
 			jqXHR = ajax.post
@@ -148,7 +152,6 @@ class Entry extends Models.Base
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		else if method is 'update'
-			# ajax.token = token.get()
 			jqXHR = ajax.put
 				url: @url()
 				data: data
