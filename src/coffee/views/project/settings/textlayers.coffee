@@ -1,4 +1,5 @@
 ajax = require 'hilib/src/managers/ajax'
+viewManager = require 'hilib/src/managers/view2'
 
 Views =
 	Base: require 'hilib/src/views/base'
@@ -34,7 +35,10 @@ class ProjectSettingsTextlayers extends Views.Base
 
 		@listenTo textLayerList, 'change', (values) =>
 			@project.set 'textLayers', values
-			@project.saveTextlayers => @publish 'message', 'Text layers updated.'
+			@project.saveTextlayers =>
+				# Clear the viewManager, because almost all pages need a rerender.
+				viewManager.clear()
+				@publish 'message', 'Text layers updated.'
 		
 		@$el.append textLayerList.el
 
