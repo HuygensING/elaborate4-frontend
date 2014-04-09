@@ -31,6 +31,7 @@ class Header extends BaseView
 		@project = @options.project
 
 		@listenTo projects, 'current:change', (@project) =>	@render()
+		@listenTo config, 'change:entryTermPlural', @render
 
 		@subscribe 'message', @showMessage, @
 
@@ -58,7 +59,7 @@ class Header extends BaseView
 		rtpl = tpl
 			projects: projects
 			user: currentUser
-			plural: StringFn.ucfirst @project.get('settings').get('entry.term_plural')
+			plural: StringFn.ucfirst config.get('entryTermPlural')
 		@$el.html rtpl
 
 		@

@@ -16,11 +16,15 @@ class SearchSubmenu extends Views.Base
 
 	className: 'submenu'
 
+	# ### Initialize
 	initialize: ->
 		super
 
+		@listenTo config, 'change:entryTermSingular', @render
+
 		projects.getCurrent (@project) => @render()
 
+	# ### Render
 	render: ->
 		rtpl = tpl
 			user: currentUser
@@ -72,12 +76,12 @@ class SearchSubmenu extends Views.Base
 
 	newEntry: (ev) ->
 		modal = new Views.Modal
-			title: "Create a new #{@project.get('settings').get('entry.term_singular')}"
+			title: "Create a new #{config.get('entryTermSingular')}"
 			html: '<form><ul><li><label>Name</label><input type="text" name="name" /></li></ul></form>'
-			submitValue: "Create #{@project.get('settings').get('entry.term_singular')}"
+			submitValue: "Create #{config.get('entryTermSingular')}"
 			width: '300px'
 		modal.on 'submit', =>
-			modal.message 'success', "Creating a new #{@project.get('settings').get('entry.term_singular')}..."
+			modal.message 'success', "Creating a new #{config.get('entryTermSingular')}..."
 			
 			# @listenToOnce entries, 'add', (entry) =>
 
@@ -93,7 +97,7 @@ class SearchSubmenu extends Views.Base
 					@project.get('entries').add model
 					modal.close()
 					@publish 'faceted-search:refresh'
-					@publish 'message', "New #{@project.get('settings').get('entry.term_singular')} added to project."
+					@publish 'message', "New #{config.get('entryTermSingular')} added to project."
 					Backbone.history.navigate "projects/#{@project.get('name')}/entries/#{entry.id}", trigger: true
 
 			# entries.create {name: modal.$('input[name="name"]').val()}, wait: true

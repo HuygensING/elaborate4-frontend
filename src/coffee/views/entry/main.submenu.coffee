@@ -177,11 +177,12 @@ class EntrySubmenu extends Base
 				model: @entry.clone()
 
 			modal = new Views.Modal
-				title: "Edit #{@project.get('settings').get('entry.term_singular')} metadata"
+				title: "Edit #{config.get('entryTermSingular')} metadata"
 				html: entryMetadata.el
 				submitValue: 'Save metadata'
 				width: '500px'
 				customClassName: 'entry-metadata'
+
 			modal.on 'submit', =>
 				@entry.updateFromClone entryMetadata.model
 

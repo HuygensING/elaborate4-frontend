@@ -63,7 +63,13 @@ class ProjectSettingsEntries extends Views.Base
 			model: @project.get('settings')
 			validationAttributes: ['entry.term_singular', 'entry.term_plural']
 
-		@listenTo setNamesForm, 'save:success', => Backbone.trigger 'message', 'Entries names saved.'
+		@listenTo setNamesForm, 'save:success', (model) => 
+			# Update the config.
+			config.set 'entryTermSingular', model.get 'entry.term_singular'
+			config.set 'entryTermPlural', model.get 'entry.term_plural'
+
+			# Show message.
+			Backbone.trigger 'message', 'Entries names saved.'
 
 		@$('.set-names').html setNamesForm.el
 
