@@ -9,6 +9,8 @@ StringFn = require 'hilib/src/utils/string'
 require 'hilib/src/utils/jquery.mixin'
 Async = require 'hilib/src/managers/async'
 
+config = require 'elaborate-modules/modules/models/config'
+
 Models =
 	Entry: require '../../models/entry'
 	currentUser: require '../../models/currentUser'
@@ -83,7 +85,12 @@ class Entry extends Views.Base
 		@subviews.subsubmenu = new Views.EditFacsimiles collection: @entry.get 'facsimiles'
 		@$('.subsubmenu .editfacsimiles').html @subviews.subsubmenu.el
 
-		@renderFacsimile()
+		if config.get('entry-left-preview')?
+			transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
+			@showLeftTranscription transcription.id
+		else
+			@renderFacsimile()
+
 		
 		@renderTranscriptionEditor()
 
@@ -186,12 +193,20 @@ class Entry extends Views.Base
 		'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
 
 	showLeftTranscription: (ev) ->
+		# Hide the facsimile iframe.
 		@$('.left-pane iframe').hide()
+		# Show the preview placeholder.
 		@$('.left-pane .preview-placeholder').show()
 
+		# Get the selected transcription.
 		transcriptionID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 		transcription = @entry.get('transcriptions').get transcriptionID
 
+		# Set the name of the transcription to the config, so when the user navigates prev/next
+		# the view can show the same layer in the left pane.
+		config.set 'entry-left-preview', transcription.get('textLayer')
+
+		# Init the leftPreview view. Destroy old one if it exists.
 		@subviews.leftPreview.destroy() if @subviews.leftPreview?
 		@subviews.leftPreview = new Views.Preview
 			model: @entry
@@ -200,9 +215,10 @@ class Entry extends Views.Base
 
 		@$('.left-pane .preview-placeholder').html @subviews.leftPreview.el
 
-		$('.left-menu .facsimiles li.active').removeClass('active')
-		$('.left-menu .textlayers li.active').removeClass('active')
-		$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
+		# Add/remove CSS classes.
+		@$('.left-menu .facsimiles li.active').removeClass('active')
+		@$('.left-menu .textlayers li.active').removeClass('active')
+		@$('.left-menu .textlayers li[data-value="'+transcriptionID+'"]').addClass('active')
 
 		# Unset the current facsimile, otherwise when switching from transcription to facsimile,
 		# the facsimile will not be loaded, because the facsimiles collection thinks the current

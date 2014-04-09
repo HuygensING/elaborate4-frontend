@@ -5,6 +5,8 @@ Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'
 Async = require 'hilib/src/managers/async'
 
+config = require 'elaborate-modules/modules/models/config'
+
 Base = require 'hilib/src/views/base'
 
 # Tpl = require 'text!html/entry/metadata.html'
@@ -52,6 +54,10 @@ class EntrySubmenu extends Base
 		'click .menu li[data-key="facsimiles"] li[data-key="facsimile"]': 'changeFacsimile'
 
 	changeFacsimile: (ev) ->
+		# Remove reference to any entry-left-preview, so when the user navigates to prev/next entry
+		# the left pane will show the facsimile and not a transcription.
+		config.set 'entry-left-preview', null
+
 		# Check if ev is an Event, else assume ev is an ID
 		facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
@@ -81,11 +87,33 @@ class EntrySubmenu extends Base
 	# When the user wants to print we create a div#printpreview directly under <body> and show
 	# a clone of the preview body and an ordered list of the annotations.
 	printEntry: (ev) ->
+		addTranscription = (el) =>
+			clonedPreview = el.cloneNode true
+			clonedPreview.style.height = 'auto'
+			mainDiv.appendChild clonedPreview
+
+		addAnnotations = (annotations) =>
+			if annotations? and annotations.length > 0
+				ol = document.createElement('ol')
+				ol.className = 'annotations'
+				
+				sups = document.querySelectorAll('sup[data-marker="end"]')
+				_.each sups, (sup) =>
+					annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
+					
+					li = document.createElement('li')
+					li.innerHTML = annotation.get('body')
+					
+					ol.appendChild li
+
+				h2 = document.createElement('h2')
+				h2.innerHTML = 'Annotations'
+
+				mainDiv.appendChild h2
+				mainDiv.appendChild ol
+
 		pp = document.querySelector('#printpreview')
 		pp.parentNode.removeChild pp if pp?
-
-		currentTranscription = @entry.get('transcriptions').current
-		annotations = currentTranscription.get('annotations')
 
 		mainDiv = document.createElement('div')
 		mainDiv.id = 'printpreview'
@@ -99,27 +127,13 @@ class EntrySubmenu extends Base
 		mainDiv.appendChild h1
 		mainDiv.appendChild h2
 
-		clonedPreview = document.querySelector('.preview').cloneNode true
-		clonedPreview.style.height = 'auto'
-		mainDiv.appendChild clonedPreview
+		if config.get('entry-left-preview')?
+			addTranscription document.querySelector('.left-pane .preview')
+			transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
+			addAnnotations transcription.get('annotations')
 
-		ol = document.createElement('ol')
-		ol.className = 'annotations'
-		
-		sups = document.querySelectorAll('sup[data-marker="end"]')
-		_.each sups, (sup) =>
-			annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
-			
-			li = document.createElement('li')
-			li.innerHTML = annotation.get('body')
-			
-			ol.appendChild li
-
-		h2 = document.createElement('h2')
-		h2.innerHTML = 'Annotations'
-
-		mainDiv.appendChild h2
-		mainDiv.appendChild ol
+		addTranscription document.querySelector('.right-pane .preview')
+		addAnnotations @entry.get('transcriptions').current.get('annotations')
 
 		document.body.appendChild mainDiv
 
