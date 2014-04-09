@@ -30,12 +30,16 @@ class EntryPreview extends Views.Base
 
 		@highlighter = Fn.highlighter()
 
-		@transcription = if @options.textLayer? then @options.textLayer else @model.get('transcriptions').current
 		@interactive = if @options.textLayer? then false else true
 
-		@addListeners()
-
-		@render()
+		if @options.textLayer?
+			@transcription = @options.textLayer
+			@addListeners()
+			@render()
+		else 
+			@model.get('transcriptions').getCurrent (@transcription) => 
+				@addListeners()
+				@render()
 
 		@options.wordwrap ?= false
 		@toggleWrap() if @options.wordwrap
