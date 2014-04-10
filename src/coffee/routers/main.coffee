@@ -41,6 +41,7 @@ class MainRouter extends Backbone.Router
 			authorized: =>
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
+					document.title = "eLaborate - #{@project.get('title')}"
 					# Route to correct url
 					url = history.last() ? 'projects/'+@project.get('name')
 					@navigate url, trigger: true
@@ -49,7 +50,9 @@ class MainRouter extends Backbone.Router
 					$('header.main').html header.el
 						# persist: true
 					
-					@listenTo Collections.projects, 'current:change', (@project) => @navigate "projects/#{@project.get('name')}", trigger: true
+					@listenTo Collections.projects, 'current:change', (@project) => 
+						document.title = "eLaborate - #{@project.get('title')}"
+						@navigate "projects/#{@project.get('name')}", trigger: true
 			unauthorized: => @publish 'login:failed'
 			navigateToLogin: => @navigate 'login', trigger: true
 
