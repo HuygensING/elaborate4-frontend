@@ -151,7 +151,7 @@ class ProjectSettings extends Views.Base
 			
 		@listenTo addAnnotationTypeForm, 'save:success', (model) => 
 			@project.get('annotationtypes').add model
-			addAnnotationTypeForm.el.reset()
+			addAnnotationTypeForm.reset()
 		@listenTo addAnnotationTypeForm, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
 
 		customTagNamesForm = new Views.Form

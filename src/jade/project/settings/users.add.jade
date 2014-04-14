@@ -21,8 +21,9 @@ fieldset.span100
 			select(name="role")
 				option(value="USER") USER
 				option(value="READER") READER
-				option(value="PROJECTLEADER") PROJECTLEADER
-				option(value="ADMIN") ADMIN
+				//- >= ADMIN
+				if roleNo >= 40
+					option(value="PROJECTLEADER") PROJECTLEADER
 		li
 			button.disabled(name="submit") Add user
 				i.fa.fa-spinner.fa-spin

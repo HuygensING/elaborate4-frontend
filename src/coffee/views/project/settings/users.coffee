@@ -1,6 +1,7 @@
 _ = require 'underscore'
 
 Models =
+	currentUser: require '../../../models/currentUser'
 	User: require '../../../models/user'
 
 Views =
@@ -77,6 +78,8 @@ class ProjectSettingsUsers extends Views.Base
 		form = new Views.Form
 			Model: Models.User
 			tpl: addUserTpl
+			tplData:
+				roleNo: Models.currentUser.get('roleNo')
 		@$('.adduser').append form.el
 
 		@listenTo form, 'save:success', (model) => 
