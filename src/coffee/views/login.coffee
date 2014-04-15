@@ -59,10 +59,19 @@ class Login extends BaseView
 			Model: ResetPassword
 
 		@listenTo resetPasswordForm, 'cancel', => modal.close()
-		@listenTo resetPasswordForm, 'submit', (user) => 
-			user.resetPassword =>
-				$('.modal .modalbody .body li').first().html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
-				$('.modal .modalbody .body li').last().css 'opacity', 0
+		@listenTo resetPasswordForm, 'submit', (model) =>
+			message = $('.modal .modalbody .body li.message')
+			message.hide()
+			
+			jqXHR = model.resetPassword()
+			jqXHR.done =>
+				$('.modal .modalbody .body li.input').html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
+				$('.modal .modalbody .body li.submit').css 'opacity', 0
+			jqXHR.fail (jqXHR) =>
+				resetPasswordForm.reset()
+				message.html jqXHR.responseText
+				message.show()
+
 
 		modal = new Modal
 			customClassName: 'reset-password'
