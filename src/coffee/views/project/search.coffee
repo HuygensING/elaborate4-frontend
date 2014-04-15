@@ -27,36 +27,36 @@ class Search extends Views.Base
 		projects.getCurrent (@project) => 
 			@render()
 			@listenTo Backbone, 'change:entry-metadata', => entryMetadataChanged = true
-			@listenTo Backbone, 'router:search', => @fsr.reset() if entryMetadataChanged
+			@listenTo Backbone, 'router:search', => @subviews.fsr.reset() if entryMetadataChanged
 
 	# ### Render
 	render: ->
 		submenu = new Views.Submenu()
 		@$el.html submenu.$el
 
-		@listenTo submenu, 'newsearch', -> @fsr.reset()
-		@listenTo submenu, 'editmetadata', -> @fsr.toggleEditMultipleMetadata()
+		@listenTo submenu, 'newsearch', -> @subviews.fsr.reset()
+		@listenTo submenu, 'editmetadata', -> @subviews.fsr.toggleEditMultipleMetadata()
 
-		@fsr = new FacetedSearchResults
+		@subviews.fsr = new FacetedSearchResults
 			levels: [@project.get('level1'), @project.get('level2'), @project.get('level3')]
 			entryMetadataFields: @project.get('entrymetadatafields')
 			textLayers: @project.get('textLayers')
 			searchUrl: "#{config.get('restUrl')}projects/#{@project.id}/search"
 			editMultipleMetadataUrl: "#{config.get('restUrl')}projects/#{@project.id}/multipleentrysettings"
-		@$el.append @fsr.$el
+		@$el.append @subviews.fsr.$el
 
-		@listenToOnce @fsr, 'change:results', => submenu.enableEditMetadataButton()
+		@listenToOnce @subviews.fsr, 'change:results', => submenu.enableEditMetadataButton()
 
-		@listenTo @fsr, 'change:results', (responseModel) =>
+		@listenTo @subviews.fsr, 'change:results', (responseModel) =>
 			project = projects.current
 			project.resultSet = responseModel
 			project.get('entries').add responseModel.get('results'), merge: true
 
 			# Set the height of div.entries dynamically
-			entries = @fsr.$el.find('div.entries')
+			entries = @subviews.fsr.$el.find('div.entries')
 			entries.height $(window).height() - entries.offset().top
 
-		@listenTo @fsr, 'navigate:entry', (id, terms, textLayer) =>
+		@listenTo @subviews.fsr, 'navigate:entry', (id, terms, textLayer) =>
 			url = "projects/#{@project.get('name')}/entries/#{id}"
 
 			if textLayer?
@@ -70,10 +70,10 @@ class Search extends Views.Base
 				
 			Backbone.history.navigate url, trigger: true
 
-		@listenTo @fsr, 'editmultiplemetadata:saved', (entryIds) ->
+		@listenTo @subviews.fsr, 'editmultiplemetadata:saved', (entryIds) ->
 			@project.get('entries').changed = _.union @project.get('entries').changed, entryIDs
 
-		@subscribe 'faceted-search:refresh', => @fsr.refresh()
+		@subscribe 'faceted-search:refresh', => @subviews.fsr.refresh()
 
 		@
 
