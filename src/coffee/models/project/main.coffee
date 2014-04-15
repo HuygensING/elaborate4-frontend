@@ -2,7 +2,7 @@ Backbone = require 'backbone'
 _ = require 'underscore'
 Fn = require 'hilib/src/utils/general'
 ajax = require 'hilib/src/managers/ajax'
-token = require 'hilib/src/managers/token'
+# token = require 'hilib/src/managers/token'
 
 Async = require 'hilib/src/managers/async'
 
@@ -120,6 +120,7 @@ class Project extends Models.Base
 						@set 'userIDs', data
 						@set 'members', new Collections.Users collection.filter (model) => data.indexOf(model.id) > -1
 						async.called 'users'
+				error: (model, response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 			new EntryMetadata(@id).fetch (data) =>
 				@set 'entrymetadatafields', data
@@ -151,7 +152,7 @@ class Project extends Models.Base
 			cb()
 
 	fetchEntrymetadatafields: (cb) ->
-		ajax.token = token.get()
+		# ajax.token = token.get()
 		jqXHR = ajax.get
 			url: config.get('restUrl') + "projects/#{@id}/entrymetadatafields"
 			dataType: 'text'
@@ -161,7 +162,7 @@ class Project extends Models.Base
 		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 			
 	publishDraft: (cb) ->
-		ajax.token = token.get()
+		# ajax.token = token.get()
 		jqXHR = ajax.post
 			url: config.get('restUrl')+"projects/#{@id}/draft"
 			dataType: 'text'
@@ -187,7 +188,7 @@ class Project extends Models.Base
 				# 	success: =>
 
 	saveTextlayers: (done) ->
-		ajax.token = token.get()
+		# ajax.token = token.get()
 		jqXHR = ajax.put
 			url: config.get('restUrl')+"projects/#{@id}/textlayers"
 			data: JSON.stringify @get 'textLayers'

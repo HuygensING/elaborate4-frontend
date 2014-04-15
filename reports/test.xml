@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="test"
+             errors="0"
+             failures="0"
+             tests="9">
+  
+  <testsuite errors="0" failures="0" hostname="" id=""
+    name="ResultView" package="test" skipped="0"
+    tests="9" time="" timestamp="">
+    
+    
+      <testcase name="Element &lt;form.login&gt; was visible after 45 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;#container &gt; header&gt; was visible after 2154 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder&gt; was visible after 1523 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 17 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 21 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 67 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+    
+    </testsuite>
+  
+</testsuites>

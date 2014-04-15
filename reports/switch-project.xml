@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="switch-project"
+             errors="0"
+             failures="0"
+             tests="15">
+  
+  <testsuite errors="0" failures="0" hostname="" id=""
+    name="ResultView" package="switch-project" skipped="0"
+    tests="15" time="" timestamp="">
+    
+    
+      <testcase name="Element &lt;form.login&gt; was visible after 49 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;#container &gt; header&gt; was visible after 2062 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder&gt; was visible after 2706 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 27 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if element &lt;header.main span.projecttitle&gt; contains text: &quot;Torec&quot;.">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if the page title equals &quot;eLaborate - Torec&quot;.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 31 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if element &lt;header.main span.projecttitle&gt; contains text: &quot;Roman van Walewein&quot;.">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if the page title equals &quot;eLaborate - Roman van Walewein&quot;.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;.resultview .results-placeholder .entries li.entry&gt; was visible after 25 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 50">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if element &lt;header.main span.projecttitle&gt; contains text: &quot;Torec&quot;.">
+        
+        
+      </testcase>
+    
+      <testcase name="Testing if the page title equals &quot;eLaborate - Torec&quot;.">
+        
+        
+      </testcase>
+    
+    
+    </testsuite>
+  
+</testsuites>

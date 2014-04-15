@@ -1,8 +1,8 @@
 Backbone = require 'backbone'
 
 ajax = require 'hilib/src/managers/ajax'
-token = require 'hilib/src/managers/token'
-ajax.token = token.get()
+# token = require 'hilib/src/managers/token'
+# ajax.token = token.get()
 _ = require 'underscore'
 
 changedSinceLastSave = require 'hilib/src/mixins/model.changedsincelastsave'
@@ -92,7 +92,7 @@ class Annotation extends Models.Base
 				Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		else if method is 'update'
-			ajax.token = token.get()
+			# ajax.token = token.get()
 			jqXHR = ajax.put
 				url: @url()
 				data: JSON.stringify

@@ -1,6 +1,6 @@
 Backbone = require 'backbone'
 config = require 'elaborate-modules/modules/models/config'
-token = require 'hilib/src/managers/token'
+# token = require 'hilib/src/managers/token'
 ajax = require 'hilib/src/managers/ajax'
 
 Models = 
@@ -41,7 +41,7 @@ class ProjectSettings extends Models.Base
 	sync: (method, model, options) ->
 		# TODO When is create used??
 		if method is 'create'
-			ajax.token = token.get()
+			# ajax.token = token.get()
 			jqXHR = ajax.put
 				url: @url()
 				data: JSON.stringify(@)

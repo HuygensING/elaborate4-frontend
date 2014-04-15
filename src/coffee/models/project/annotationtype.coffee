@@ -2,7 +2,7 @@ _ = require 'underscore'
 config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
-token = require 'hilib/src/managers/token'
+# token = require 'hilib/src/managers/token'
 
 syncOverride = require 'hilib/src/mixins/model.sync'
 
@@ -34,7 +34,7 @@ class AnnotationType extends Models.Base
 
 	sync: (method, model, options) ->
 		if method is 'create'
-			ajax.token = token.get()
+			# ajax.token = token.get()
 			jqXHR = ajax.post
 				url: @url()
 				dataType: 'text'
@@ -48,7 +48,7 @@ class AnnotationType extends Models.Base
 						options.success data
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 		else if method is 'update'
-			ajax.token = token.get()
+			# ajax.token = token.get()
 			jqXHR = ajax.put
 				url: @url()
 				data: JSON.stringify

@@ -7,11 +7,6 @@ Models =
 class AnnotationTypes extends Base
 
 	model: Models.AnnotationType
-
-	# initialize: (models, options) ->
-	# 	super
-
-	# 	@projectId = options.projectId
 	
 	url: -> config.get('restUrl') + "annotationtypes"
 

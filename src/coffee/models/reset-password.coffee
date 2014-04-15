@@ -19,11 +19,10 @@ class ResetPassword extends Models.Base
 
 	# ### Methods
 
-	resetPassword: (cb) ->
-		jqXHR = ajax.post
+	resetPassword: ->
+		ajax.post
 			url: "#{config.get('restUrl')}sessions/passwordresetrequest"
 			dataType: 'text'
 			data: @get 'email'
-		jqXHR.done => cb()
 
 module.exports = ResetPassword

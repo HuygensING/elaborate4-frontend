@@ -1,7 +1,7 @@
 config = require 'elaborate-modules/modules/models/config'
 
 ajax = require 'hilib/src/managers/ajax'
-token = require 'hilib/src/managers/token'
+# token = require 'hilib/src/managers/token'
 
 # Models = 
 # 	History: require 'models/project/history'
@@ -13,16 +13,11 @@ token = require 'hilib/src/managers/token'
 class ProjectHistory
 
 	fetch: (done) ->
-		ajax.token = token.get()
 		jqXHR = ajax.get url: @url
 		jqXHR.done (response) => done(response)
+		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 	constructor: (projectID) ->
 		@url = "#{config.get('restUrl')}projects/#{projectID}/logentries"
-
-	# initialize: (models, options) ->
-	# 	super
-
-	# 	@projectID = options.projectID
 
 module.exports = ProjectHistory
