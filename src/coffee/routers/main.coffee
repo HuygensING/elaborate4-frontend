@@ -7,8 +7,7 @@ history = require 'hilib/src/managers/history'
 Pubsub = require 'hilib/src/mixins/pubsub'
 Fn = require 'hilib/src/utils/general'
 
-Models =
-	currentUser: require '../models/currentUser'
+currentUser = require '../models/currentUser'
 
 Collections =
 	projects: require '../collections/projects'
@@ -37,7 +36,7 @@ class MainRouter extends Backbone.Router
 	init: ->
 		return if Backbone.history.fragment is 'resetpassword'
 
-		Models.currentUser.authorize
+		currentUser.authorize
 			authorized: =>
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
@@ -50,7 +49,8 @@ class MainRouter extends Backbone.Router
 					$('header.main').html header.el
 						# persist: true
 					
-					@listenTo Collections.projects, 'current:change', (@project) => 
+					@listenTo Collections.projects, 'current:change', (@project) =>
+						viewManager.clear()
 						document.title = "eLaborate - #{@project.get('title')}"
 						@navigate "projects/#{@project.get('name')}", trigger: true
 			unauthorized: => @publish 'login:failed'
@@ -72,6 +72,7 @@ class MainRouter extends Backbone.Router
 		'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
 
 	login: ->
+		return currentUser.logout() if currentUser.loggedIn
 		@manageView Views.Login
 
 	setNewPassword: ->
