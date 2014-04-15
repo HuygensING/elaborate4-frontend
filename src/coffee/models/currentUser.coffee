@@ -1,3 +1,5 @@
+Backbone = require 'backbone'
+
 config = require 'elaborate-modules/modules/models/config'
 token = require 'hilib/src/managers/token'
 $ = require 'jquery'
@@ -10,7 +12,7 @@ Models =
 Collections =
 	Base: require '../collections/base'
 
-class CurrentUser extends Models.Base
+class CurrentUser extends Backbone.Model
 
 	defaults: ->
 		username: ''
@@ -25,11 +27,7 @@ class CurrentUser extends Models.Base
 
 	# ### Initiailze
 	initialize: ->
-		super
-
 		@loggedIn = false
-
-		@subscribe 'unauthorized', -> sessionStorage.clear()
 
 	# ### Overrides
 
@@ -80,11 +78,15 @@ class CurrentUser extends Models.Base
 				@loggedIn = true
 
 	logout: (args) ->
-		jqXHR = $.ajax
-			type: 'post'
+		jqXHR = ajax.post
 			url: config.get('restUrl') + "sessions/#{token.get()}/logout"
+			dataType: 'text'
+			contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+		,
+			token: false
 
 		jqXHR.done ->
+			@loggedIn = false
 			sessionStorage.clear()
 			location.reload()
 
