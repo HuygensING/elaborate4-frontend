@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="logout"
+             errors="0"
+             failures="0"
+             tests="5">
+  
+  <testsuite errors="0" failures="0" hostname="" id=""
+    name="Logout" package="logout" skipped="0"
+    tests="5" time="" timestamp="">
+    
+    
+      <testcase name="Element &lt;form.login&gt; was visible after 44 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;#container &gt; header&gt; was visible after 3680 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;header.main li.username&gt; was visible after 22 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Element &lt;#main &gt; div.login&gt; was present after 14 milliseconds.">
+        
+        
+      </testcase>
+    
+      <testcase name="Assertion passed: 1">
+        
+        
+      </testcase>
+    
+    
+    </testsuite>
+  
+</testsuites>
