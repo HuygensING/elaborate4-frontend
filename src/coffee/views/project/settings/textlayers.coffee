@@ -37,7 +37,7 @@ class ProjectSettingsTextlayers extends Views.Base
 			@project.set 'textLayers', values
 			@project.saveTextlayers =>
 				# Clear the viewManager, because almost all pages need a rerender.
-				viewManager.clear()
+				# viewManager.clear()
 				@publish 'message', 'Text layers updated.'
 		
 		@$el.append textLayerList.el
