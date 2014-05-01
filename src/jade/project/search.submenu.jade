@@ -1,20 +1,19 @@
-.row.span3
-	.cell.span1
+.left-menu
+	ul.horizontal.menu
+		li(data-key="newsearch") New search
+//- >= USER
+if user.get('roleNo') >= 20
+	.middle-menu
 		ul.horizontal.menu
-			li(data-key="newsearch") New search
-	//- >= USER
-	if user.get('roleNo') >= 20
-		.cell.span1
-			ul.horizontal.menu
-				li(data-key="newentry")= 'New '+config.get('entryTermSingular')
-				li(data-key="editmetadata") Edit metadata
-		.cell.span1.alignright
-			ul.horizontal.menu
-				//- >= ADMIN
-				if user.get('roleNo') >= 40 && projects.length > 1
-					li(data-key="delete") Remove
-				//- >= PROJECTLEADER
-				if user.get('roleNo') >= 30
-					li(data-key="publish") 
-						span Publish draft
-						i.fa.fa-spinner.fa-spin
+			li(data-key="newentry")= 'New '+config.get('entryTermSingular')
+			li(data-key="editmetadata") Edit metadata
+	.right-menu
+		ul.horizontal.menu
+			//- >= ADMIN
+			if user.get('roleNo') >= 40 && projects.length > 1
+				li(data-key="delete") Remove
+			//- >= PROJECTLEADER
+			if user.get('roleNo') >= 30
+				li(data-key="publish") 
+					span Publish draft
+					i.fa.fa-spinner.fa-spin

@@ -7,12 +7,12 @@
 * Annotation metadata: http://localhost:4000/projects/de_ystroom/entries/19080/transcriptions/diplomatic/annotations/52476
 
 ## Deploy to test
-* Change restUrl in elaborate-modules/modules/models/config.coffee
+* Change restUrl to DEV in elaborate-modules/modules/models/config.coffee
 * gulp compile
 * rsync --compress --archive --verbose --checksum --chmod=a+r compiled/ elaborate4@hi14hingtest.huygens.knaw.nl:elab4testFE/
 
 ## Deploy to production
-* Change restUrl in elaborate-modules/modules/models/config.coffee
+* Change restUrl to PROD in elaborate-modules/modules/models/config.coffee
 * gulp compile
 * cd compiled/ && zip -r werkomgeving.zip *
 * scp werkomgeving.zip gijsjb@hi7.huygens.knaw.nl:/tmp/

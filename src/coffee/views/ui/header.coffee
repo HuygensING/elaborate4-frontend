@@ -22,7 +22,9 @@ tpl = require '../../../jade/ui/header.jade'
 
 class Header extends BaseView
 
-	className: 'row span3'
+	className: 'main'
+
+	tagName: 'header'
 
 	# ### Initialize
 	initialize: ->
@@ -39,18 +41,20 @@ class Header extends BaseView
 
 	# ### Events
 	events:
-		'click .user .logout': -> currentUser.logout() 
-		'click .user .project': 'setProject'
-		'click .user .addproject': 'addProject'
-		'click .project .projecttitle': 'navigateToProject'
-		'click .project .settings': 'navigateToProjectSettings'
-		'click .project .search': 'navigateToProject'
-		'click .project .statistics': 'navigateToProjectStatistics'
-		'click .project .history': 'navigateToProjectHistory'
-		'click .message': -> @$('.message').removeClass 'active'
+		'click .left .projecttitle': 'navigateToProject'
+		'click .left .settings': 'navigateToProjectSettings'
+		'click .left .search': 'navigateToProject'
+		'click .left .statistics': 'navigateToProjectStatistics'
+		'click .left .history': 'navigateToProjectHistory'
+		'click .middle .message': -> @$('.message').removeClass 'active'
+		'click .right .logout': -> currentUser.logout() 
+		'click .right .project': 'setProject'
+		'click .right .addproject': 'addProject'
 
 	navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-	navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+	navigateToProjectSettings: (ev) -> 
+		console.log 'la'
+		Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
 	navigateToProjectStatistics: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/statistics", trigger: true
 	navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 

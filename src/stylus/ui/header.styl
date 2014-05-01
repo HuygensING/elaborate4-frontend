@@ -9,9 +9,20 @@ header.main
 	top 0
 	background-color black
 	z-index 50
+	min-width minWidth
 
-	.row
-		margin 0 auto
+	& > .left, & > .middle, & > .right
+		inline-block()
+		width 33%
+		
+		*
+			vertical-align middle
+
+	& > .left
+		text-align center
+
+	& > .right
+		text-align right
 
 	span.message
 		position relative

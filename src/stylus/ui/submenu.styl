@@ -3,15 +3,16 @@
 .submenu
 	select_none()
 	background-color #444
-	position fixed
+	position absolute
 	left 0
 	right 0
 	top mainHeaderHeight
 	z-index 49 // render .main above .sub
 	height 40px
-	padding-left 20px
+	white-space nowrap
+	min-width minWidth
 
-	.cell .horizontal.menu
+	.horizontal.menu
 		li[data-key="editmetadata"]
 			color gray
 			
@@ -40,14 +41,49 @@
 			// 	right 5px
 			// 	content url('/images/loader_transparent.gif')
 
-	.row
-		margin 0 auto
+	& > .left-menu
+		width 40%
+
+		& > .horizontal.menu
+			inline-block()
+
+			&.nav
+				max-width 50%
+				padding 0 5px
+
+				li[data-key="previous"], li[data-key="next"]
+					width 22px
+					margin 0
+
+				li[data-key="current"]
+					margin 0
+					max-width 70%
+
+			&.switchers
+				float right
+				padding 0 5px
+
+				li
+					width 105px
+					margin 0 5px 0 0 
+
+			& > li
+				inline-block()
+				vertical-align middle
+
+
+	& > .middle-menu, & > .right-menu
+		width 30%
+
+	& > .right-menu
+		text-align right
+
+	& > .left-menu, & > .middle-menu, & > .right-menu
+		inline-block()
+		line-height subHeaderHeight
 
 		*
 			vertical-align middle
-
-	& .cell
-		line-height subHeaderHeight
 
 		ul.horizontal.menu > li
 			elaboratebutton()
@@ -69,14 +105,11 @@
 				arrowleft(spotcolor)
 				padding-right 0
 
-				&:after
-					margin-left -6px
-
 			&[data-key="current"]
 				background none
 				box-shadow none
 				color #CCC
-				max-width 115px
+				// max-width 115px
 				text-overflow ellipsis
 				overflow hidden
 
@@ -84,10 +117,11 @@
 			&[data-key="next"]
 				arrowright(spotcolor)
 				padding-right 10px
-
+				
+				// Override default margin for arrowright
 				&:after
-					margin-left -3px
-
+					margin -5px 0 0 -3px
+			
 			&[data-key="facsimiles"], &[data-key="editfacsimiles"], &[data-key="edittextlayers"], &[data-key="layer"], &[data-key="textlayers"]
 				arrowdown(spotcolor)
 

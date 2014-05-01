@@ -46,7 +46,7 @@ class MainRouter extends Backbone.Router
 					@navigate url, trigger: true
 
 					header = new Views.Header project: @project
-					$('header.main').html header.el
+					$('#container').prepend header.el
 						# persist: true
 					
 					@listenTo Collections.projects, 'current:change', (@project) =>
