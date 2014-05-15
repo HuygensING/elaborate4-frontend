@@ -13,6 +13,8 @@ uglify = require 'gulp-uglify'
 minifyCss = require 'gulp-minify-css'
 source = require 'vinyl-source-stream'
 watchify = require 'watchify'
+nib = require 'nib'
+rimraf = require('rimraf')
 
 connectRewrite = require './connect-rewrite'
 
@@ -31,7 +33,7 @@ paths =
 		'./node_modules/elaborate-modules/modules/**/*.jade'
 	]
 	stylus: [
-		'./node_modules/hilib/src/**/*.styl'
+		'./node_modules/hilib/src/views/**/*.styl'
 		'./node_modules/faceted-search/src/stylus/**/*.styl'
 		'./node_modules/elaborate-modules/modules/**/*.styl'
 		'./src/stylus/**/*.styl'
@@ -67,14 +69,18 @@ gulp.task 'browserify', ->
 		.pipe(gulp.dest(compiledDir+'/js'))
 		.pipe(connect.reload())
 
-gulp.task 'stylus', ->
+gulp.task 'concat-stylus', ->
 	gulp.src(paths.stylus)
-		.pipe(plumber())
+		.pipe(concat('concat.styl'))
+		.pipe(gulp.dest('src/stylus'))
+
+gulp.task 'stylus', ['concat-stylus'], (cb) ->
+	gulp.src('src/stylus/concat.styl')
 		.pipe(stylus(
-			use: ['nib']
-			import: ['nib']
+			use: [nib()]
+			errors: true
 		))
-		.pipe(concat('main.css'))
+		.pipe(rename(basename:'main'))
 		.pipe(gulp.dest(compiledDir+'/css'))
 		.pipe(connect.reload())
 
@@ -87,9 +93,6 @@ gulp.task 'minify-css', ->
 	gulp.src(compiledDir+'/css/main.css')
 		.pipe(minifyCss())
 		.pipe(gulp.dest(distDir+'/css'))
-
-gulp.task 'deploy-test', ->
-	console.log 'llala'
 
 gulp.task 'clean-compiled', -> gulp.src(compiledDir+'/*').pipe(clean())
 gulp.task 'clean-dist', -> gulp.src(distDir+'/*').pipe(clean())
