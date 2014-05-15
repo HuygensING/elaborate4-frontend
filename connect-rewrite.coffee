@@ -16,6 +16,9 @@ module.exports = (connect, options) ->
 				'.jpeg': 'image/jpeg'
 				'.png': 'image/png'
 				'.ico': 'image/x-icon'
+				'.svg': 'image/svg+xml'
+				'.woff': 'application/font-woff'
+				'.ttf': 'application/x-font-ttf'
 
 			sendFile = (reqUrl) ->
 				filePath = path.join options.root, reqUrl
@@ -27,7 +30,9 @@ module.exports = (connect, options) ->
 				readStream = fs.createReadStream filePath
 				readStream.pipe res
 
-			extName = path.extname req.url
+			
+			requrl = if req.url.lastIndexOf('?') > -1 then req.url.slice 0, req.url.lastIndexOf('?') else req.url
+			extName = path.extname requrl
 
 			# If request is a file and it doesnt exist, pass req to connect
 			if contentTypeMap[extName]? and not fs.existsSync(options.root + req.url)
