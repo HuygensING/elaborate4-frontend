@@ -1,4 +1,3 @@
-node_modules
 compiled
 dist
 .svn
@@ -6,4 +5,3 @@ oud
 cruise_config.rb
 build_and_test.sh
 pom.xml
-.test/tests.js

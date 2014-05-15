@@ -7,13 +7,14 @@ clean = require 'gulp-clean'
 stylus = require 'gulp-stylus'
 browserify = require 'gulp-browserify'
 rename = require 'gulp-rename'
-connectRewrite = require './connect-rewrite'
 cache = require 'gulp-cached'
 plumber = require 'gulp-plumber'
 uglify = require 'gulp-uglify'
 minifyCss = require 'gulp-minify-css'
 source = require 'vinyl-source-stream'
 watchify = require 'watchify'
+
+connectRewrite = require './connect-rewrite'
 
 compiledDir = './compiled'
 distDir = './dist'
@@ -87,11 +88,23 @@ gulp.task 'minify-css', ->
 		.pipe(minifyCss())
 		.pipe(gulp.dest(distDir+'/css'))
 
+gulp.task 'deploy-test', ->
+	console.log 'llala'
+
 gulp.task 'clean-compiled', -> gulp.src(compiledDir+'/*').pipe(clean())
 gulp.task 'clean-dist', -> gulp.src(distDir+'/*').pipe(clean())
 
 gulp.task 'copy-static-compiled', -> gulp.src('./static/**/*').pipe(gulp.dest(compiledDir))
 gulp.task 'copy-static-dist', -> gulp.src('./static/**/*').pipe(gulp.dest(distDir))
+
+gulp.task 'copy-fonts-compiled', ['copy-static-compiled'], (cb) -> 
+	gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(compiledDir+'/font-awesome/css'))
+	gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(compiledDir+'/font-awesome/fonts'))
+	cb()
+
+gulp.task 'copy-fonts-dist', ['copy-static-dist'], (cb) -> 
+	gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(distDir+'/font-awesome/fonts'))
+	cb()
 
 gulp.task 'copy-images-compiled', ['copy-static-compiled'], -> gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(compiledDir+'/images/hilib'))
 gulp.task 'copy-images-dist', ['copy-static-dist'], -> gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(distDir+'/images/hilib'))
@@ -100,12 +113,14 @@ gulp.task 'copy-index', -> gulp.src(compiledDir+'/index.html').pipe(gulp.dest(di
 
 gulp.task 'compile', ['clean-compiled'], ->
 	gulp.start 'copy-images-compiled'
+	gulp.start 'copy-fonts-compiled'
 	gulp.start 'browserify'
 	gulp.start 'jade'
 	gulp.start 'stylus'
 
-gulp.task 'build', ['clean-dist'], ->
+gulp.task 'build', ['clean-dist', 'compile'], ->
 	gulp.start 'copy-images-dist'
+	gulp.start 'copy-fonts-dist'
 	gulp.start 'copy-index'
 	gulp.start 'uglify'
 	gulp.start 'minify-css'
@@ -133,4 +148,4 @@ gulp.task 'watchify', ->
 
 	rebundle()
 
-gulp.task 'default', ['connect', 'watch', 'watchify']
+gulp.task 'default', ['stylus', 'connect', 'watch', 'watchify']
