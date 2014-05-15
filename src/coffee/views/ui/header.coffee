@@ -52,9 +52,7 @@ class Header extends BaseView
 		'click .right .addproject': 'addProject'
 
 	navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-	navigateToProjectSettings: (ev) -> 
-		console.log 'la'
-		Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
+	navigateToProjectSettings: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/settings", trigger: true
 	navigateToProjectStatistics: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/statistics", trigger: true
 	navigateToProjectHistory: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}/history", trigger: true
 
