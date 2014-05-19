@@ -1,0 +1,10 @@
+ul.pagination
+	if (step10 && pageCount >= 10)
+		li.prev10(class=currentPage>10?'active':'') &laquo;
+	li.prev(class=currentPage>1?'active':'') &lsaquo;
+	li.current= currentPage
+	li.text of
+	li.pagecount= pageCount
+	li.next(class=currentPage<pageCount?'active':'') &rsaquo;
+	if (step10 && pageCount >= 10)
+		li.next10(class=currentPage<=pageCount-10?'active':'') &raquo;

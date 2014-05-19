@@ -1,0 +1,20 @@
+.input
+	input(type="text", data-view-id=viewId, placeholder=settings.placeholder)
+	.caret
+
+if settings.mutable
+	button.add Add
+	
+if settings.editable
+	button.edit Edit
+
+ul.list
+
+if selected.length > 0
+	ul.selected
+		each model in selected.models
+			li.selected(data-id=model.id)
+				span= model.get('title')
+
+else
+	.empty The list is empty.

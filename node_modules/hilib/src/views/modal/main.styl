@@ -1,0 +1,72 @@
+.modal
+	.overlay
+		position fixed
+		left 0
+		top 0
+		background-color black
+		right 0
+		bottom 0
+		opacity 0.7
+
+	.modalbody
+		position fixed
+		left 50vw
+		top 50vh
+		width 50vw
+		height auto
+		margin-left -(@width / 2)
+		// margin-top -25vh
+		background-color white
+		border-radius 8px
+		padding 20px
+		box-shadow 1px 1px 8px #000
+		box-sizing border-box
+
+		header
+			h2
+				margin 0
+				padding-top 0
+
+			p.message
+				display none
+
+				&.success
+					color green
+
+				&.warning
+					color orange			
+
+				&.error
+					color red
+
+		.body
+			margin 20px 0 40px 0
+			overflow auto
+
+		footer
+			position absolute
+			bottom 20px
+			right 20px
+			text-align right
+
+			button
+				margin-left 8px
+
+				&.submit
+					max-width 200px
+					white-space nowrap
+					text-overflow ellipsis
+					overflow hidden
+
+
+// .modal
+// 	.modalbody
+// 		.body
+// 			form
+// 				label
+// 					display inline-block 
+// 					width 84px
+
+// 				textarea
+// 					width 300px
+// 					height 200px

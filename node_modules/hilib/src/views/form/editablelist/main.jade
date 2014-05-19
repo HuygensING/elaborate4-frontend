@@ -1,0 +1,13 @@
+.input
+	input(data-view-id=viewId, placeholder=settings.placeholder)
+	
+button.add Add
+
+if selected.length > 0
+	ul.selected
+		each model in selected.models
+			li(data-id=model.id)
+				span= model.id
+				
+else
+	.empty The list is empty.

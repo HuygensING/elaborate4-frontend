@@ -1,0 +1,11 @@
+.input
+	input(data-view-id=viewId, value=selected.get('title'), placeholder=settings.placeholder)
+	.caret
+
+if settings.editable
+	button.edit Edit
+
+if settings.mutable
+	button.add Add
+
+ul.list
