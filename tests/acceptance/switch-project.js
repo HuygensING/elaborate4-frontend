@@ -1,7 +1,7 @@
 var login = require('./login')
 
 module.exports = {
-  "ResultView" : function (browser) {
+  "Switch project" : function (browser) {
     browser.mySwitchProject = function (projectId, projectTitle, numFound) {
       return browser
         .moveToElement('header.main li.username', 10, 10)
