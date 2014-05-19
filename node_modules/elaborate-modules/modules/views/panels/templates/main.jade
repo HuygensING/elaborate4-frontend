@@ -1,0 +1,10 @@
+h2= entryName
+	i.fa.fa-print.print
+.metadata
+	button.green.toggle-metadata Metadata
+	ul
+		each m, i in metadata
+			li
+				label= m.field
+				span= m.value
+.panels

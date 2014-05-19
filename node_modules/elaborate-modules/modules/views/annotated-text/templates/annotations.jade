@@ -1,0 +1,15 @@
+header
+	select
+		option(value="show-all-annotations") All
+		for annotationTypeCount, annotationTypeName in annotationTypes
+			option(value=annotationTypeName)= annotationTypeName + ' ('+annotationTypeCount+')'
+	i.btn-collapse.fa.fa-expand
+
+ol
+	for annotation in annotations.models
+		li(data-id=annotation.id, data-type=annotation.get('type').name)
+			div.type
+				span= annotation.get('type').name
+			- text = annotation.get('text') === '' ? '&nbsp;' : annotation.get('text')
+			span!= text
+			hr

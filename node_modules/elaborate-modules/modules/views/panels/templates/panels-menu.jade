@@ -1,0 +1,18 @@
+mixin listItem(id, value)
+	li(data-id=id)
+		if selectedPanels.get(id).get('show')
+			i.fa.fa-check-square-o.checkbox(data-id=id)
+		else
+			i.fa.fa-square-o.checkbox(data-id=id)
+		span= value || id
+		//- i.fa.fa-arrows.drag-handle
+
+button.green Panels
+ul
+	li.placeholder &nbsp;
+	each facs, i in facsimiles
+		- value = 'Facsimile '+(i+1)
+		+listItem(facs.zoom, value)
+
+	each layer, i in textlayers.models
+		+listItem(layer.id)

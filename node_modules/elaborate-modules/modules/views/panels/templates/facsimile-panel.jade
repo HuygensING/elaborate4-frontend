@@ -1,0 +1,7 @@
+if (entry.facsimiles)
+	header
+		each facsimile, n in entry.facsimiles
+			if facsimile.zoom===zoomUrl
+				h3= 'Facsimile ' + (n+1) + ' of ' + Object.keys(entry.facsimiles).length
+
+	iframe(src=zoomUrl, border="0", width="100%")
