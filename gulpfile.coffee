@@ -75,6 +75,7 @@ gulp.task 'concat-stylus', ->
 
 gulp.task 'stylus', ['concat-stylus'], (cb) ->
 	gulp.src('src/stylus/concat.styl')
+		.pipe(clean())
 		.pipe(stylus(
 			use: [nib()]
 			errors: true
