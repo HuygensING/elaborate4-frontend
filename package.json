@@ -13,7 +13,8 @@
   "scripts": {
     "start": "gulp",
     "compile": "gulp compile",
-    "build": "gulp build"
+    "build": "gulp build",
+    "test": "nightwatch"
   },
   "devDependencies": {
     "backbone": "~1.0.0",
