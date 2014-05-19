@@ -45,6 +45,7 @@
     "jquery": "~2.1.0",
     "markdown": "~0.5.0",
     "nib": "^1.0.2",
+    "nightwatch": "^0.4.16",
     "stylus": "^0.45.0",
     "underscore": "^1.6.0",
     "underscore.string": "~2.3.3",
