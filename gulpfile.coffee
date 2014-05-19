@@ -14,7 +14,6 @@ minifyCss = require 'gulp-minify-css'
 source = require 'vinyl-source-stream'
 watchify = require 'watchify'
 nib = require 'nib'
-rimraf = require('rimraf')
 
 connectRewrite = require './connect-rewrite'
 
