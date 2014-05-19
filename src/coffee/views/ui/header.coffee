@@ -48,7 +48,7 @@ class Header extends BaseView
 		'click .left .history': 'navigateToProjectHistory'
 		'click .middle .message': -> @$('.message').removeClass 'active'
 		'click .right .logout': -> currentUser.logout() 
-		'click .right .project': 'setProject'
+		'click .right .project:not(.active)': 'setProject'
 		'click .right .addproject': 'addProject'
 
 	navigateToProject: (ev) -> Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
