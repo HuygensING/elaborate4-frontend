@@ -15,6 +15,7 @@ Collections =
 Views =
 	Login: require '../views/login'
 	SetNewPassword: require '../views/set-new-password'
+	NoProject: require '../views/no-project'
 	ProjectMain: require '../views/project/search'
 	ProjectSettings: require '../views/project/settings/main'
 	ProjectHistory: require '../views/project/history'
@@ -40,6 +41,9 @@ class MainRouter extends Backbone.Router
 			authorized: =>
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
+					unless @project?
+
+						return @navigate 'noproject', trigger: true
 					document.title = "eLaborate - #{@project.get('title')}"
 					# Route to correct url
 					url = history.last() ? 'projects/'+@project.get('name')
@@ -61,6 +65,7 @@ class MainRouter extends Backbone.Router
 	routes:
 		'': 'projectMain'
 		'login': 'login'
+		'noproject': 'noproject'
 		'resetpassword': 'setNewPassword'
 		'projects/:name': 'projectMain'
 		'projects/:name/settings/:tab': 'projectSettings'
@@ -74,6 +79,19 @@ class MainRouter extends Backbone.Router
 	login: ->
 		return currentUser.logout() if currentUser.loggedIn
 		@manageView Views.Login
+
+	noproject: ->
+		# The if-statement is used to redirect the user to login if s/he decides to refresh
+		# the page after landing on /noproject.
+		if currentUser.loggedIn
+			view = new Views.NoProject()
+			$('div#main').append view.el
+
+			currentUser.loggedIn = false
+			sessionStorage.clear()
+		else
+			@login()
+
 
 	setNewPassword: ->
 		@login()

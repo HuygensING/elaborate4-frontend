@@ -48,6 +48,12 @@ class Projects extends Base
 		else
 			@current = @first()
 
+		# If @current does not exist, the user is not assigned to any projects.
+		# Skip the loading of the current project and trigger the change with
+		# the current undefined project. The listener will pick up the undefined
+		# and tell the view to take action.
+		return @trigger 'current:change', @current unless @current?
+
 		@current.load => 
 			config.set 'entryTermSingular', @current.get('settings').get('entry.term_singular')
 			config.set 'entryTermPlural', @current.get('settings').get('entry.term_plural')
