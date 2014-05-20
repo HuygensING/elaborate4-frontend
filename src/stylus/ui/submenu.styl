@@ -41,12 +41,13 @@
 
 	& > .left-menu
 		width 40%
+		position relative
 
 		& > .horizontal.menu
 			inline-block()
 
 			&.nav
-				max-width 50%
+				max-width calc(100% - 250px)
 				padding 0 5px
 
 				li[data-key="previous"], li[data-key="next"]
@@ -58,8 +59,10 @@
 					max-width 70%
 
 			&.switchers
-				float right
 				padding 0 5px
+				position absolute
+				right 0
+				top 0
 
 				li
 					width 105px
