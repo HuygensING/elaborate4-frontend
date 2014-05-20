@@ -13,7 +13,7 @@ Entry = require '../../models/entry'
 
 Views =
 	Base: require 'hilib/src/views/base'
-	FacetedSearch: require 'faceted-search'
+	FacetedSearch: require 'huygens-faceted-search'
 	EditMultipleMetadata: require './views/edit-multiple-metadata'
 	SearchResult: require '../search-result'
 

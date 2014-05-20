@@ -38,16 +38,25 @@ paths =
 		'./src/stylus/**/*.styl'
 	]
 
-gulp.task 'connect', connect.server
-	root: compiledDir,
-	port: 9000,
-	livereload: true
-	middleware: connectRewrite
+gulp.task 'connect-standalone', ->
+	connect.server
+		root: compiledDir,
+		port: 9000,
+		livereload: true
+		middleware: connectRewrite
 
-gulp.task 'connect-dist', connect.server
-	root: distDir,
-	port: 9002,
-	middleware: connectRewrite
+gulp.task 'connect', ->
+	connect.server
+		root: compiledDir,
+		port: 9000,
+		livereload: true
+		middleware: connectRewrite
+
+gulp.task 'connect-dist', ->
+	connect.server
+		root: distDir,
+		port: 9002,
+		middleware: connectRewrite
 
 gulp.task 'jade', ->
 	gulp.src(paths.jade[1])
