@@ -23,7 +23,8 @@
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "browserstack.user": "gijsjanbrouwer",
-        "browserstack.key": "wATzzZqEZP4Bqt9KwEKo"
+        "browserstack.key": "wATzzZqEZP4Bqt9KwEKo",
+        "browserstack.local": "true"
       }
     }
   }
