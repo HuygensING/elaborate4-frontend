@@ -49,8 +49,8 @@
     "underscore.string": "~2.3.3",
     "vinyl-source-stream": "^0.1.1",
     "watchify": "^0.6.1",
-    "hilib": "git://github.com/HuygensING/hilib.git#v0.0.4",
-    "faceted-search": "git://github.com/HuygensING/faceted-search.git#v1.0.1",
-    "elaborate-modules": "git://github.com/HuygensING/elaborate-modules.git#v1.0.0"
+    "hilib": "HuygensING/hilib",
+    "faceted-search": "HuygensING/faceted-search",
+    "elaborate-modules": "HuygensING/elaborate-modules"
   }
 }
