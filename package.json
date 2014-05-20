@@ -49,8 +49,8 @@
     "underscore.string": "~2.3.3",
     "vinyl-source-stream": "^0.1.1",
     "watchify": "^0.6.1",
-    "hilib": "HuygensING/hilib",
-    "faceted-search": "HuygensING/faceted-search",
-    "elaborate-modules": "HuygensING/elaborate-modules"
+    "hilib": "HuygensING/hilib#v0.0.4",
+    "faceted-search": "HuygensING/faceted-search#v1.0.1",
+    "elaborate-modules": "HuygensING/elaborate-module#v1.0.0"
   }
 }
