@@ -22,7 +22,7 @@
     "browserify": "~3.28.0",
     "coffee-script": "^1.7.1",
     "coffeeify": "~0.6.0",
-    "elaborate-modules": "git+https://github.com/HuygensING/elaborate-modules.git#v1.0.1",
+    "elaborate-modules": "git+https://github.com/HuygensING/elaborate-modules.git#v1.0.2",
     "envify": "^1.2.1",
     "faceted-search": "git+https://github.com/HuygensING/faceted-search.git#v1.0.2",
     "font-awesome": "^4.0.3",
