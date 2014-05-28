@@ -8,3 +8,4 @@ pom.xml
 src/stylus/concat.styl
 tests/acceptance/reports/*
 .idea
+node_modules
