@@ -7,3 +7,4 @@ build_and_test.sh
 pom.xml
 src/stylus/concat.styl
 tests/acceptance/reports/*
+.idea
