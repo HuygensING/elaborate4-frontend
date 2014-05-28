@@ -1,17 +1,18 @@
 inline-block()
 	display inline-block
 	box-sizing border-box
+	-moz-box-sizing border-box
 	vertical-align top
 
 shake()
-	animation-name shake 
-	animation-duration 150ms 
-	animation-iteration-count 2 
+	animation-name shake
+	animation-duration 150ms
+	animation-iteration-count 2
 	animation-timing-function linear
 
-	-moz-animation-name shake 
-	-moz-animation-duration 150ms 
-	-moz-animation-iteration-count 2 
+	-moz-animation-name shake
+	-moz-animation-duration 150ms
+	-moz-animation-iteration-count 2
 	-moz-animation-timing-function linear
 
 	-webkit-animation-name shake
@@ -20,14 +21,14 @@ shake()
 	-webkit-animation-timing-function linear
 
 pulse()
-	animation-name pulse 
-	animation-duration 500ms 
+	animation-name pulse
+	animation-duration 500ms
 	animation-iteration-count 2
 	animation-timing-function linear
 
-	-moz-animation-name pulse 
-	-moz-animation-duration 500ms 
-	-moz-animation-iteration-count 2 
+	-moz-animation-name pulse
+	-moz-animation-duration 500ms
+	-moz-animation-iteration-count 2
 	-moz-animation-timing-function linear
 
 	-webkit-animation-name pulse
@@ -87,10 +88,10 @@ button(light=#D5D6D5, dark=#838383)
 	font-weight bold
 
 	&:hover
-		vertical_gradient(light, dark) 
+		vertical_gradient(light, dark)
 
 	&:active
-		vertical_gradient(lighten(dark, 20%), light) 
+		vertical_gradient(lighten(dark, 20%), light)
 		box-shadow -1px -1px 4px #858585
 		color white
 
@@ -105,13 +106,13 @@ button(light=#D5D6D5, dark=#838383)
 		&:active
 			background: #808080;
 			box-shadow @box-shadow
- 
+
 okbutton()
 	button(#61E26B, #038808)
 
 cancelbutton()
 	button(#E26161, #880303)
-	
+
 simplebutton()
 	border 1px solid #CCC
 	margin-left 100px
@@ -162,7 +163,7 @@ arrowright(bordercolor=white)
 arrowdown(bordercolor=white)
 	padding-right 22px
 	arrow()
-	
+
 	&:after
 		margin -2px 0 0 5px
 		border-color bordercolor rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0)
