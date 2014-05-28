@@ -152,6 +152,7 @@ createBundle = (watch=false) ->
   bundler.transform('envify')
 
   rebundle = ->
+    gutil.log('Watchify rebundling') if watch
     bundler.bundle()
     .pipe(source("main-#{pkg.version}.js"))
     .pipe(gulp.dest(compiledDir+'/js'))
