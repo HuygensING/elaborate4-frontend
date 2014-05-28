@@ -37,7 +37,7 @@
     "gulp-minify-css": "^0.3.0",
     "gulp-plumber": "^0.5.6",
     "gulp-rename": "~1.0.0",
-    "gulp-stylus": "^1.0.0",
+    "gulp-stylus": "^1.0.1",
     "gulp-uglify": "^0.2.1",
     "gulp-util": "~2.2.14",
     "hilib": "git+https://github.com/HuygensING/hilib.git#v0.0.4",
