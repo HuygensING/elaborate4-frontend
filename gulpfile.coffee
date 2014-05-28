@@ -134,7 +134,6 @@ gulp.task 'deploy-test', (done) ->
       if error
         new gutil.PluginError('test', 'something broke', showStack: true)
       else
-        console.log stdout, stderr, cmd
         done()
 
 gulp.task 'watch', ->
