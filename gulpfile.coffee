@@ -13,7 +13,10 @@ source = require 'vinyl-source-stream'
 watchify = require 'watchify'
 nib = require 'nib'
 preprocess = require 'gulp-preprocess'
+rsync = require('rsyncwrapper').rsync
 pkg = require './package.json'
+cfg = require './config.json'
+async = require 'async'
 
 connectRewrite = require './connect-rewrite'
 
@@ -85,39 +88,54 @@ gulp.task 'minify-css', ->
     .pipe(minifyCss())
     .pipe(gulp.dest(distDir+'/css'))
 
-gulp.task 'clean-compiled', -> gulp.src(compiledDir+'/*').pipe(clean())
-gulp.task 'clean-dist', -> gulp.src(distDir+'/*').pipe(clean())
 
-gulp.task 'copy-static-compiled', -> gulp.src('./static/**/*').pipe(gulp.dest(compiledDir))
-gulp.task 'copy-static-dist', -> gulp.src('./static/**/*').pipe(gulp.dest(distDir))
+gulp.task 'clean', ->
+  gulp.src(compiledDir+'/*').pipe(clean())
+  gulp.src(distDir+'/*').pipe(clean())
 
-gulp.task 'copy-fonts-compiled', ['copy-static-compiled'], (cb) -> 
+gulp.task 'copy-static', ['clean'], ->
+  gulp.src('./static/**/*').pipe(gulp.dest(compiledDir))
+  gulp.src('./static/**/*').pipe(gulp.dest(distDir))
+
+gulp.task 'copy-fonts', ->
   gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(compiledDir+'/font-awesome/css'))
   gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(compiledDir+'/font-awesome/fonts'))
-  cb()
 
-gulp.task 'copy-fonts-dist', ['copy-static-dist'], (cb) -> 
+  gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(distDir+'/font-awesome/css'))
   gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(distDir+'/font-awesome/fonts'))
-  cb()
 
-gulp.task 'copy-images-compiled', ['copy-static-compiled'], -> gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(compiledDir+'/images/hilib'))
-gulp.task 'copy-images-dist', ['copy-static-dist'], -> gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(distDir+'/images/hilib'))
+gulp.task 'copy-images', ->
+  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(compiledDir+'/images/hilib'))
+  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(distDir+'/images/hilib'))
 
 gulp.task 'copy-index', -> gulp.src(compiledDir+'/index.html').pipe(gulp.dest(distDir))
 
-gulp.task 'compile', ['clean-compiled'], ->
-  gulp.start 'copy-images-compiled'
-  gulp.start 'copy-fonts-compiled'
+gulp.task 'compile', ['copy-static'], ->
+  gulp.start 'copy-images'
+  gulp.start 'copy-fonts'
   gulp.start 'browserify'
   gulp.start 'jade'
   gulp.start 'stylus'
 
-gulp.task 'build', ['clean-dist', 'compile'], ->
-  gulp.start 'copy-images-dist'
-  gulp.start 'copy-fonts-dist'
-  gulp.start 'copy-index'
-  gulp.start 'uglify'
-  gulp.start 'minify-css'
+# Doens't work because of dep compile and gulp.start. :(
+#gulp.task 'build', ['compile'], ->
+#  gulp.start 'copy-index'
+#  gulp.start 'uglify'
+#  gulp.start 'minify-css'
+
+# First run `gulp compile`. Can't be a dep because of async gulp.start. :(
+gulp.task 'deploy-test', (done) ->
+  rsync
+    src: 'compiled/',
+    dest: cfg['remote-destination'],
+    recursive: true,
+  ,
+    (error,stdout,stderr,cmd) ->
+      if error
+        new gutil.PluginError('test', 'something broke', showStack: true)
+      else
+        console.log stdout, stderr, cmd
+        done()
 
 gulp.task 'watch', ->
   gulp.watch [paths.jade[1]], ['jade']
