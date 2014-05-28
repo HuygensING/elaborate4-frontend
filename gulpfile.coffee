@@ -12,6 +12,8 @@ minifyCss = require 'gulp-minify-css'
 source = require 'vinyl-source-stream'
 watchify = require 'watchify'
 nib = require 'nib'
+preprocess = require 'gulp-preprocess'
+pkg = require './package.json'
 
 connectRewrite = require './connect-rewrite'
 
@@ -30,13 +32,6 @@ paths =
     './src/stylus/**/*.styl'
   ]
 
-gulp.task 'connect-standalone', ->
-  connect.server
-    root: compiledDir,
-    port: 9000,
-    livereload: true
-    middleware: connectRewrite
-
 gulp.task 'connect', ->
   connect.server
     root: compiledDir,
@@ -50,11 +45,19 @@ gulp.task 'connect-dist', ->
     port: 9002,
     middleware: connectRewrite
 
-gulp.task 'jade', ->
+gulp.task 'compile-jade', ->
   gulp.src(paths.jade[1])
     .pipe(jade())
+    .pipe(rename(basename:'index-tmp'))
     .pipe(gulp.dest(compiledDir))
     .pipe(connect.reload())
+
+gulp.task 'jade', ['compile-jade'], ->
+  gulp.src(compiledDir+'/index-tmp.html')
+    .pipe(clean())
+    .pipe(preprocess(context: VERSION: pkg.version))
+    .pipe(rename(basename:'index'))
+    .pipe(gulp.dest(compiledDir))
 
 gulp.task 'concat-stylus', ->
   gulp.src(paths.stylus)
@@ -68,7 +71,7 @@ gulp.task 'stylus', ['concat-stylus'], (cb) ->
       use: [nib()]
       errors: true
     ))
-    .pipe(rename(basename:'main'))
+    .pipe(rename(basename:"main-#{pkg.version}"))
     .pipe(gulp.dest(compiledDir+'/css'))
     .pipe(connect.reload())
 
@@ -133,7 +136,7 @@ createBundle = (watch=false) ->
 
   rebundle = ->
     bundler.bundle()
-    .pipe(source('main.js'))
+    .pipe(source("main-#{pkg.version}.js"))
     .pipe(gulp.dest(compiledDir+'/js'))
     .pipe(connect.reload())
 
