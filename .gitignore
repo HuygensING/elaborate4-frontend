@@ -9,3 +9,5 @@ src/stylus/concat.styl
 tests/acceptance/reports/*
 .idea
 node_modules
+config.json
+README-INTERNAL.md
