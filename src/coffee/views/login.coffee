@@ -19,102 +19,102 @@ resetPasswordTpl = require '../../jade/reset-password.jade'
 
 class Login extends BaseView
 
-	className: 'login'
+  className: 'login'
 
-	# ### INITIALIZE
-	initialize: ->
-		super
-		
-		path = window.location.search.substr 1
-		parameters = path.split '&'
+  # ### INITIALIZE
+  initialize: ->
+    super
 
-		for param in parameters
-			[key, value] = param.split('=')
-			@hsid = value if key is 'hsid'
+    path = window.location.search.substr 1
+    parameters = path.split '&'
 
-		if @hsid?
-			currentUser.hsidLogin @hsid
-		else
-			@render()
+    for param in parameters
+      [key, value] = param.split('=')
+      @hsid = value if key is 'hsid'
 
-		@subscribe 'login:failed', @loginFailed
+    if @hsid?
+      currentUser.hsidLogin @hsid
+    else
+      @render()
 
-	# ### RENDER
-	render: ->
-		@$el.html tpl()
-		
-		@
+    @subscribe 'login:failed', @loginFailed
 
-	# ### EVENTS
-	events: ->
-		'keyup input': => @$('ul.message li').slideUp()
-		'click button[name="submit"]': 'submit'
-		'click button.federated-login': 'federatedLogin'
-		'click li.resetpassword': 'resetPassword'
+  # ### RENDER
+  render: ->
+    @$el.html tpl()
 
-	resetPassword: ->
-		resetPasswordForm = new Form
-			saveOnSubmit: false
-			tpl: resetPasswordTpl
-			Model: ResetPassword
+    @
 
-		@listenTo resetPasswordForm, 'cancel', => modal.close()
-		@listenTo resetPasswordForm, 'submit', (model) =>
-			message = $('.modal .modalbody .body li.message')
-			message.hide()
-			
-			jqXHR = model.resetPassword()
-			jqXHR.done =>
-				$('.modal .modalbody .body li.input').html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
-				$('.modal .modalbody .body li.submit').css 'opacity', 0
-			jqXHR.fail (jqXHR) =>
-				resetPasswordForm.reset()
-				message.html jqXHR.responseText
-				message.show()
+  # ### EVENTS
+  events: ->
+    'keyup input': => @$('ul.message li').slideUp()
+    'click button[name="submit"]': 'submit'
+    'click button.federated-login': 'federatedLogin'
+    'click li.resetpassword': 'resetPassword'
+
+  resetPassword: ->
+    resetPasswordForm = new Form
+      saveOnSubmit: false
+      tpl: resetPasswordTpl
+      Model: ResetPassword
+
+    @listenTo resetPasswordForm, 'cancel', => modal.close()
+    @listenTo resetPasswordForm, 'submit', (model) =>
+      message = $('.modal .modalbody .body li.message')
+      message.hide()
+
+      jqXHR = model.resetPassword()
+      jqXHR.done =>
+        $('.modal .modalbody .body li.input').html "<p>An email has been send to your emailaddress. Please follow the link to reset your password.</p>"
+        $('.modal .modalbody .body li.submit').css 'opacity', 0
+      jqXHR.fail (jqXHR) =>
+        resetPasswordForm.reset()
+        message.html jqXHR.responseText
+        message.show()
 
 
-		modal = new Modal
-			customClassName: 'reset-password'
-			title: "Forgot your password?"
-			html: resetPasswordForm.el
-			cancelAndSubmit: false
-			width: '300px'
+    modal = new Modal
+      customClassName: 'reset-password'
+      title: "Forgot your password?"
+      html: resetPasswordForm.el
+      cancelAndSubmit: false
+      width: '300px'
 
-	submit: (ev) ->
-		ev.preventDefault()
+  submit: (ev) ->
+    ev.preventDefault()
 
-		if @$('#username').val() is '' or @$('#password').val() is ''
-			@$('ul.message li').show().html 'Please enter a username and password.'
-			return
+    if @$('#username').val() is '' or @$('#password').val() is ''
+      @$('ul.message li').show().html 'Please enter a username and password.'
+      return
 
-		@$('li.login button').addClass 'loading'
+    @$('li.login button').addClass 'loading'
 
-		currentUser.login @$('#username').val(), @$('#password').val()
+    currentUser.login @$('#username').val(), @$('#password').val()
 
-	federatedLogin: (ev) ->
-		wl = window.location;
-		hsURL = wl.origin + wl.pathname
-		loginURL = 'https://secure.huygens.knaw.nl/saml2/login'
+  federatedLogin: (ev) ->
+    wl = window.location;
+    hsURL = wl.origin + wl.pathname
+    loginURL = 'https://secure.huygens.knaw.nl/saml2/login'
 
-		form = $ '<form>'
-		form.attr
-			method: 'POST'
-			action: loginURL
+    form = $ '<form>'
+    form.attr
+      method: 'POST'
+      action: loginURL
 
-		hsUrlEl = $('<input>').attr
-			name: 'hsurl'
-			value: hsURL
-			type: 'hidden'
+    hsUrlEl = $('<input>').attr
+      name: 'hsurl'
+      value: hsURL
+      type: 'hidden'
 
-		form.append(hsUrlEl)
-		$('body').append(form);
+    form.append(hsUrlEl)
+    $('body').append(form);
 
-		form.submit()
+    form.submit()
 
-	# ### METHODS
+  # ### METHODS
 
-	loginFailed: ->
-		@render()
-		@$('ul.message li').html('Username / password combination unknown!').show()
+  loginFailed: ->
+    @render()
+    @$('ul.message li').html('Username / password combination unknown!').show()
 
 module.exports = Login

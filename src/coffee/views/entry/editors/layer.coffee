@@ -9,6 +9,8 @@ Views =
 	SuperTinyEditor: require 'hilib/src/views/supertinyeditor/supertinyeditor'
 	Modal: require 'hilib/src/views/modal'
 
+pkg = require '../../../../../package.json'
+
 # ## LayerEditor
 class LayerEditor extends Views.Base
 
@@ -24,7 +26,7 @@ class LayerEditor extends Views.Base
 	render: ->
 		@subviews.editor = new Views.SuperTinyEditor
 			controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'removeFormat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
-			cssFile:		'/css/main.css'
+			cssFile:		"/css/main-#{pkg.version}.css"
 			height:			@options.height
 			html:			@model.get 'body'
 			htmlAttribute:	'body'

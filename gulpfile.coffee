@@ -18,16 +18,14 @@ pkg = require './package.json'
 cfg = require './config.json'
 async = require 'async'
 
+browserSync = require 'browser-sync'
+modRewrite = require 'connect-modrewrite'
+
 connectRewrite = require './connect-rewrite'
 
 compiledDir = './compiled'
 distDir = './dist'
 paths =
-  jade: [
-    './src/jade/**/*.jade'
-    './src/index.jade'
-    './node_modules/elaborate-modules/modules/**/*.jade'
-  ]
   stylus: [
     './node_modules/hilib/src/views/**/*.styl'
     './node_modules/huygens-faceted-search/src/stylus/**/*.styl'
@@ -48,12 +46,24 @@ gulp.task 'connect-dist', ->
     port: 9002,
     middleware: connectRewrite
 
+gulp.task 'server', ->
+  baseDir = process.env.NODE_ENV ? 'compiled'
+
+  browserSync.init null,
+    server:
+      baseDir: "./#{baseDir}"
+      middleware: [
+        modRewrite([
+          '^[^\\.]*$ /index.html [L]'
+        ])
+      ]
+    notify: false
+
 gulp.task 'compile-jade', ->
-  gulp.src(paths.jade[1])
+  gulp.src('./src/index.jade')
     .pipe(jade())
     .pipe(rename(basename:'index-tmp'))
     .pipe(gulp.dest(compiledDir))
-    .pipe(connect.reload())
 
 gulp.task 'jade', ['compile-jade'], ->
   gulp.src(compiledDir+'/index-tmp.html')
@@ -76,7 +86,7 @@ gulp.task 'stylus', ['concat-stylus'], (cb) ->
     ))
     .pipe(rename(basename:"main-#{pkg.version}"))
     .pipe(gulp.dest(compiledDir+'/css'))
-    .pipe(connect.reload())
+    .pipe(browserSync.reload(stream: true))
 
 gulp.task 'uglify', ->
   gulp.src(compiledDir+'/js/main.js')
@@ -137,8 +147,9 @@ gulp.task 'deploy-test', (done) ->
         done()
 
 gulp.task 'watch', ->
-  gulp.watch [paths.jade[1]], ['jade']
+  gulp.watch ['./src/index.jade'], ['jade']
   gulp.watch [paths.stylus], ['stylus']
+  gulp.watch ['./compiled/index.html', './compiled/js/**/*'], -> browserSync.reload()
 
 createBundle = (watch=false) ->
   args =
@@ -152,17 +163,17 @@ createBundle = (watch=false) ->
   bundler.transform('envify')
 
   rebundle = ->
-    gutil.log('Watchify rebundling') if watch
+    gutil.log('Watchify: start rebundling') if watch
     bundler.bundle()
-    .pipe(source("main-#{pkg.version}.js"))
-    .pipe(gulp.dest(compiledDir+'/js'))
-    .pipe(connect.reload())
+      .pipe(source("main-#{pkg.version}.js"))
+      .pipe(gulp.dest(compiledDir+'/js'))
 
-  bundler.on('update', rebundle)
+  bundler.on 'update', rebundle
 
   rebundle()
 
 gulp.task 'browserify', -> createBundle false
 gulp.task 'watchify', -> createBundle true
 
-gulp.task 'default', ['stylus', 'connect', 'watch', 'watchify']
+gulp.task 'default', ['stylus', 'server', 'watch', 'watchify']
+gulp.task 'default2', ['stylus', 'connect', 'watch', 'watchify']

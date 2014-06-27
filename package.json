@@ -19,9 +19,11 @@
   "devDependencies": {
     "async": "^0.9.0",
     "backbone": "~1.0.0",
+    "browser-sync": "^1.1.1",
     "browserify": "~3.28.0",
     "coffee-script": "^1.7.1",
     "coffeeify": "~0.6.0",
+    "connect-modrewrite": "^0.7.6",
     "elaborate-modules": "git+https://github.com/HuygensING/elaborate-modules.git#v1.0.2",
     "envify": "^1.2.1",
     "faceted-search": "git+https://github.com/HuygensING/faceted-search.git#v1.0.2",

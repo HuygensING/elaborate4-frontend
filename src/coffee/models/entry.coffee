@@ -8,157 +8,156 @@ token = require 'hilib/src/managers/token'
 syncOverride = require 'hilib/src/mixins/model.sync'
 
 Models = 
-	Base: require './base'
-	Settings: require './entry.settings'
+  Base: require './base'
+  Settings: require './entry.settings'
 
 Collections =
-	Transcriptions: require '../collections/transcriptions'
-	Facsimiles: require '../collections/facsimiles'
+  Transcriptions: require '../collections/transcriptions'
+  Facsimiles: require '../collections/facsimiles'
 
 class Entry extends Models.Base
 
-	urlRoot: -> "#{config.get('restUrl')}projects/#{@project.id}/entries"
+  urlRoot: -> "#{config.get('restUrl')}projects/#{@project.id}/entries"
 
-	defaults: ->
-		name: ''
-		publishable: false
-		shortName: ''
-		terms: null
-		# 'short-name': null
+  defaults: ->
+    name: ''
+    publishable: false
+    shortName: ''
+    terms: null
 
-	initialize: ->
-		super
-		_.extend @, syncOverride
+  initialize: ->
+    super
+    _.extend @, syncOverride
 
-	set: (attrs, options) ->
-		# All attributes (include settings) are passed to this model, so we have to 
-		# differentiate between @attributes and settings.attributes. This must change!
-		settings = @get('settings')
-		if settings? and settings.get(attrs)?
-			settings.set attrs, options
-			@trigger 'change'
-		else
-			super
+  set: (attrs, options) ->
+    # All attributes (include settings) are passed to this model, so we have to
+    # differentiate between @attributes and settings.attributes. This must change!
+    settings = @get('settings')
+    if settings? and settings.get(attrs)?
+      settings.set attrs, options
+      @trigger 'change'
+    else
+      super
 
-	clone: ->
-		newObj = new @constructor
-			name: @get 'name'
-			publishable: @get 'publishable'
-			shortName: @get 'shortName'
-			modifier: @get 'modifier'
-			modifiedOn: @get 'modifiedOn'
+  clone: ->
+    newObj = new @constructor
+      name: @get 'name'
+      publishable: @get 'publishable'
+      shortName: @get 'shortName'
+      modifier: @get 'modifier'
+      modifiedOn: @get 'modifiedOn'
 
-		newObj.set 'settings', new Models.Settings @get('settings').toJSON(),
-			projectId: @project.id
-			entryId: @id
+    newObj.set 'settings', new Models.Settings @get('settings').toJSON(),
+      projectId: @project.id
+      entryId: @id
 
-		newObj
+    newObj
 
-	updateFromClone: (clone) ->
-		@set 'name', clone.get 'name'
-		@set 'publishable', clone.get 'publishable'
-		@set 'shortName', clone.get 'shortName'
-		@get('settings').set clone.get('settings').toJSON()
+  updateFromClone: (clone) ->
+    @set 'name', clone.get 'name'
+    @set 'publishable', clone.get 'publishable'
+    @set 'shortName', clone.get 'shortName'
+    @get('settings').set clone.get('settings').toJSON()
 
-	# parse: (attrs) ->
-	# 	if attrs? and @collection?
-	# 		attrs.transcriptions = new Collections.Transcriptions [], 
-	# 			projectId: @collection.projectId
-	# 			entryId: attrs.id
-				
-	# 		attrs.settings = new Models.Settings [], 
-	# 			projectId: @collection.projectId
-	# 			entryId: attrs.id
+  # parse: (attrs) ->
+  # 	if attrs? and @collection?
+  # 		attrs.transcriptions = new Collections.Transcriptions [],
+  # 			projectId: @collection.projectId
+  # 			entryId: attrs.id
 
-	# 		attrs.facsimiles = new Collections.Facsimiles [], 
-	# 			projectId: @collection.projectId
-	# 			entryId: attrs.id
+  # 		attrs.settings = new Models.Settings [],
+  # 			projectId: @collection.projectId
+  # 			entryId: attrs.id
 
-	# 	attrs
+  # 		attrs.facsimiles = new Collections.Facsimiles [],
+  # 			projectId: @collection.projectId
+  # 			entryId: attrs.id
 
-	# sync: (method, model, options) ->
-	# 	if method is 'create' or method is 'update'
-	# 		options.attributes = ['name', 'publishable']
-	# 		@syncOverride method, model, options
-	# 	else
-	# 		super
+  # 	attrs
 
-	fetchTranscriptions: (currentTranscriptionName, done) ->
-		transcriptions = new Collections.Transcriptions [], 
-			projectId: @project.id
-			entryId: @id
+  # sync: (method, model, options) ->
+  # 	if method is 'create' or method is 'update'
+  # 		options.attributes = ['name', 'publishable']
+  # 		@syncOverride method, model, options
+  # 	else
+  # 		super
 
-		jqXHR = transcriptions.fetch()
-		jqXHR.done =>			
-			@set 'transcriptions', transcriptions
-			done transcriptions.setCurrent currentTranscriptionName
+  fetchTranscriptions: (currentTranscriptionName, done) ->
+    transcriptions = new Collections.Transcriptions [],
+      projectId: @project.id
+      entryId: @id
 
-	fetchFacsimiles: (done) ->
-		facsimiles = new Collections.Facsimiles [], 
-			projectId: @project.id
-			entryId: @id
+    jqXHR = transcriptions.fetch()
+    jqXHR.done =>
+      @set 'transcriptions', transcriptions
+      done transcriptions.setCurrent currentTranscriptionName
 
-		jqXHR = facsimiles.fetch()
-		jqXHR.done => 
-			@set 'facsimiles', facsimiles
-			done facsimiles.setCurrent()
+  fetchFacsimiles: (done) ->
+    facsimiles = new Collections.Facsimiles [],
+      projectId: @project.id
+      entryId: @id
 
-	fetchSettings: (done) ->
-		settings = new Models.Settings [], 
-			projectId: @project.id
-			entryId: @id
+    jqXHR = facsimiles.fetch()
+    jqXHR.done =>
+      @set 'facsimiles', facsimiles
+      done facsimiles.setCurrent()
 
-		jqXHR = settings.fetch()
-		jqXHR.done =>
-			@set 'settings', settings
-			done()
+  fetchSettings: (done) ->
+    settings = new Models.Settings [],
+      projectId: @project.id
+      entryId: @id
 
-	setPrevNext: (done) ->
-		ids = @project.resultSet.get('ids')
-		index = ids.indexOf(''+@id)
-		
-		@prevID = ids[index-1] ? -1
-		@nextID = ids[index+1] ? -1
+    jqXHR = settings.fetch()
+    jqXHR.done =>
+      @set 'settings', settings
+      done()
 
-		done()
+  setPrevNext: (done) ->
+    ids = @project.resultSet.get('ids')
+    index = ids.indexOf(''+@id)
 
-	fetchPrevNext: (done) ->
-		jqXHR = ajax.get url: @url() + '/prevnext'
-		jqXHR.done (response) =>
-			@nextID = response.next
-			@prevID = response.prev
-			done()
+    @prevID = ids[index-1] ? -1
+    @nextID = ids[index+1] ? -1
 
-	sync: (method, model, options) ->
-		data = JSON.stringify
-			name: @get 'name'
-			publishable: @get 'publishable'
-			shortName: @get 'shortName'
+    done()
 
-		if method is 'create'
-			jqXHR = ajax.post
-				url: @url()
-				data: data
-				dataType: 'text'
+  fetchPrevNext: (done) ->
+    jqXHR = ajax.get url: @url() + '/prevnext'
+    jqXHR.done (response) =>
+      @nextID = response.next
+      @prevID = response.prev
+      done()
 
-			jqXHR.done (data, textStatus, jqXHR) =>
-				if jqXHR.status is 201
-					xhr = ajax.get url: jqXHR.getResponseHeader('Location')
-					xhr.done (data, textStatus, jqXHR) =>
-						options.success data
-					xhr.fail (response) =>
-						Backbone.history.navigate 'login', trigger: true if response.status is 401
+  sync: (method, model, options) ->
+    data = JSON.stringify
+      name: @get 'name'
+      publishable: @get 'publishable'
+      shortName: @get 'shortName'
 
-			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+    if method is 'create'
+      jqXHR = ajax.post
+        url: @url()
+        data: data
+        dataType: 'text'
 
-		else if method is 'update'
-			jqXHR = ajax.put
-				url: @url()
-				data: data
-			jqXHR.done (response) => options.success response
-			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+      jqXHR.done (data, textStatus, jqXHR) =>
+        if jqXHR.status is 201
+          xhr = ajax.get url: jqXHR.getResponseHeader('Location')
+          xhr.done (data, textStatus, jqXHR) =>
+            options.success data
+          xhr.fail (response) =>
+            Backbone.history.navigate 'login', trigger: true if response.status is 401
 
-		else
-			super
+      jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+
+    else if method is 'update'
+      jqXHR = ajax.put
+        url: @url()
+        data: data
+      jqXHR.done (response) => options.success response
+      jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+
+    else
+      super
 
 module.exports = Entry

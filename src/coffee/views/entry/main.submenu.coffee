@@ -14,186 +14,186 @@ tpl = require '../../../jade/entry/main.submenu.jade'
 metadataTpl = require '../../../jade/entry/metadata.jade'
 
 Views =
-	Form: require 'hilib/src/views/form/main'
-	Modal: require 'hilib/src/views/modal'
+  Form: require 'hilib/src/views/form/main'
+  Modal: require 'hilib/src/views/modal'
 
 # ## EntryMetadata
 class EntrySubmenu extends Base
 
-	className: 'submenu'
+  className: 'submenu'
 
-	# ### Initialize
-	initialize: ->
-		super
+  # ### Initialize
+  initialize: ->
+    super
 
-		{@entry, @user, @project} = @options
+    {@entry, @user, @project} = @options
 
-		# @render is called from parent (entry.renderTranscriptionEditor)
+    # @render is called from parent (entry.renderTranscriptionEditor)
 
-	# ### Render
-	render: ->
-		rtpl = tpl
-			entry: @entry
-			user: @user
-		@$el.html rtpl
+  # ### Render
+  render: ->
+    rtpl = tpl
+      entry: @entry
+      user: @user
+    @$el.html rtpl
 
-		if @project.resultSet?
-			@entry.setPrevNext => @activatePrevNext()
-		else
-			unless @entry.prevID? and @entry.nextID?
-				@entry.fetchPrevNext => @activatePrevNext()
-					
-		@
+    if @project.resultSet?
+      @entry.setPrevNext => @activatePrevNext()
+    else
+      unless @entry.prevID? and @entry.nextID?
+        @entry.fetchPrevNext => @activatePrevNext()
 
-	events: ->
-		'click .menu li.active[data-key="previous"]': 'previousEntry'
-		'click .menu li.active[data-key="next"]': 'nextEntry'
-		'click .menu li[data-key="print"]': 'printEntry'
-		'click .menu li[data-key="delete"]': 'deleteEntry'
-		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
-		'click .menu li[data-key="facsimiles"] li[data-key="facsimile"]': 'changeFacsimile'
+    @
 
-	changeFacsimile: (ev) ->
-		# Remove reference to any entry-left-preview, so when the user navigates to prev/next entry
-		# the left pane will show the facsimile and not a transcription.
-		config.set 'entry-left-preview', null
+  events: ->
+    'click .menu li.active[data-key="previous"]': 'previousEntry'
+    'click .menu li.active[data-key="next"]': 'nextEntry'
+    'click .menu li[data-key="print"]': 'printEntry'
+    'click .menu li[data-key="delete"]': 'deleteEntry'
+    'click .menu li[data-key="metadata"]': 'editEntryMetadata'
+    'click .menu li[data-key="facsimiles"] li[data-key="facsimile"]': 'changeFacsimile'
 
-		# Check if ev is an Event, else assume ev is an ID
-		facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
+  changeFacsimile: (ev) ->
+    # Remove reference to any entry-left-preview, so when the user navigates to prev/next entry
+    # the left pane will show the facsimile and not a transcription.
+    config.set 'entry-left-preview', null
 
-		@$('.left-menu .facsimiles li.active').removeClass('active')
-		@$('.left-menu .textlayers li.active').removeClass('active')
-		@$('.left-menu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
+    # Check if ev is an Event, else assume ev is an ID
+    facsimileID = if ev.hasOwnProperty 'target' then ev.currentTarget.getAttribute 'data-value' else ev
 
-		newFacsimile = @entry.get('facsimiles').get facsimileID
-		@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
+    @$('.left-menu .facsimiles li.active').removeClass('active')
+    @$('.left-menu .textlayers li.active').removeClass('active')
+    @$('.left-menu .facsimiles li[data-value="'+facsimileID+'"]').addClass('active')
 
-	activatePrevNext: ->
-		@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
-		@$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
+    newFacsimile = @entry.get('facsimiles').get facsimileID
+    @entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
-	previousEntry: ->
-		projectName = @entry.project.get('name')
-		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
+  activatePrevNext: ->
+    @$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
+    @$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
 
-		Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.prevID}/transcriptions/#{transcription}", trigger: true
+  previousEntry: ->
+    projectName = @entry.project.get('name')
+    transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
-	nextEntry: ->
-		projectName = @entry.project.get('name')
-		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
+    Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.prevID}/transcriptions/#{transcription}", trigger: true
 
-		Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.nextID}/transcriptions/#{transcription}", trigger: true
+  nextEntry: ->
+    projectName = @entry.project.get('name')
+    transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
-	# When the user wants to print we create a div#printpreview directly under <body> and show
-	# a clone of the preview body and an ordered list of the annotations.
-	printEntry: (ev) ->
-		addTranscription = (el) =>
-			clonedPreview = el.cloneNode true
-			clonedPreview.style.height = 'auto'
-			mainDiv.appendChild clonedPreview
+    Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.nextID}/transcriptions/#{transcription}", trigger: true
 
-		addAnnotations = (annotations) =>
-			if annotations? and annotations.length > 0
-				ol = document.createElement('ol')
-				ol.className = 'annotations'
-				
-				sups = document.querySelectorAll('sup[data-marker="end"]')
-				_.each sups, (sup) =>
-					annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
-					
-					li = document.createElement('li')
-					li.innerHTML = annotation.get('body')
-					
-					ol.appendChild li
+  # When the user wants to print we create a div#printpreview directly under <body> and show
+  # a clone of the preview body and an ordered list of the annotations.
+  printEntry: (ev) ->
+    addTranscription = (el) =>
+      clonedPreview = el.cloneNode true
+      clonedPreview.style.height = 'auto'
+      mainDiv.appendChild clonedPreview
 
-				h2 = document.createElement('h2')
-				h2.innerHTML = 'Annotations'
+    addAnnotations = (annotations) =>
+      if annotations? and annotations.length > 0
+        ol = document.createElement('ol')
+        ol.className = 'annotations'
 
-				mainDiv.appendChild h2
-				mainDiv.appendChild ol
+        sups = document.querySelectorAll('sup[data-marker="end"]')
+        _.each sups, (sup) =>
+          annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
 
-		pp = document.querySelector('#printpreview')
-		pp.parentNode.removeChild pp if pp?
+          li = document.createElement('li')
+          li.innerHTML = annotation.get('body')
 
-		mainDiv = document.createElement('div')
-		mainDiv.id = 'printpreview'
+          ol.appendChild li
 
-		h1 = document.createElement('h1')
-		h1.innerHTML = 'Preview entry: ' + @entry.get('name')
+        h2 = document.createElement('h2')
+        h2.innerHTML = 'Annotations'
 
-		h2 = document.createElement('h2')
-		h2.innerHTML = 'Project: '+ @project.get('title')
+        mainDiv.appendChild h2
+        mainDiv.appendChild ol
 
-		mainDiv.appendChild h1
-		mainDiv.appendChild h2
+    pp = document.querySelector('#printpreview')
+    pp.parentNode.removeChild pp if pp?
 
-		if config.get('entry-left-preview')?
-			addTranscription document.querySelector('.left-pane .preview')
-			transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
-			addAnnotations transcription.get('annotations')
+    mainDiv = document.createElement('div')
+    mainDiv.id = 'printpreview'
 
-		addTranscription document.querySelector('.right-pane .preview')
-		addAnnotations @entry.get('transcriptions').current.get('annotations')
+    h1 = document.createElement('h1')
+    h1.innerHTML = 'Preview entry: ' + @entry.get('name')
 
-		document.body.appendChild mainDiv
+    h2 = document.createElement('h2')
+    h2.innerHTML = 'Project: '+ @project.get('title')
 
-		window.print()
+    mainDiv.appendChild h1
+    mainDiv.appendChild h2
 
-	deleteEntry: do ->
-		modal = null
+    if config.get('entry-left-preview')?
+      addTranscription document.querySelector('.left-pane .preview')
+      transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
+      addAnnotations transcription.get('annotations')
 
-		(ev) ->
-			return if modal?
+    addTranscription document.querySelector('.right-pane .preview')
+    addAnnotations @entry.get('transcriptions').current.get('annotations')
 
-			modal = new Views.Modal
-				title: 'Caution!'
-				html: "You are about to <b>REMOVE</b> entry: \"#{@entry.get('name')}\" <small>(id: #{@entry.id})</small>.<br><br>All text and annotations will be <b>PERMANENTLY</b> removed!"
-				submitValue: 'Remove entry'
-				width: 'auto'
-			modal.on 'submit', => 
-				jqXHR = @entry.destroy()
-				jqXHR.done =>
-					modal.close()
-					@publish 'faceted-search:refresh'
-					@publish 'message', "Removed entry #{@entry.id} from project."
-					Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
-			modal.on 'close', -> modal = null
+    document.body.appendChild mainDiv
+
+    window.print()
+
+  deleteEntry: do ->
+    modal = null
+
+    (ev) ->
+      return if modal?
+
+      modal = new Views.Modal
+        title: 'Caution!'
+        html: "You are about to <b>REMOVE</b> entry: \"#{@entry.get('name')}\" <small>(id: #{@entry.id})</small>.<br><br>All text and annotations will be <b>PERMANENTLY</b> removed!"
+        submitValue: 'Remove entry'
+        width: 'auto'
+      modal.on 'submit', =>
+        jqXHR = @entry.destroy()
+        jqXHR.done =>
+          modal.close()
+          @publish 'faceted-search:refresh'
+          @publish 'message', "Removed entry #{@entry.id} from project."
+          Backbone.history.navigate "projects/#{@project.get('name')}", trigger: true
+      modal.on 'close', -> modal = null
 
 
-	editEntryMetadata: do ->
-		# Create a reference to the modal, so we can check if a modal is active.
-		modal = null
+  editEntryMetadata: do ->
+    # Create a reference to the modal, so we can check if a modal is active.
+    modal = null
 
-		(ev) ->
-			return if modal?
+    (ev) ->
+      return if modal?
 
-			entryMetadata = new Views.Form
-				tpl: metadataTpl
-				tplData:
-					user: @user
-					# Pass the entrymetadatafields array to keep the same order/sequence as is used on the settings page.
-					entrymetadatafields: @project.get('entrymetadatafields')
-					generateID: Fn.generateID
-				model: @entry.clone()
+      entryMetadata = new Views.Form
+        tpl: metadataTpl
+        tplData:
+          user: @user
+          # Pass the entrymetadatafields array to keep the same order/sequence as is used on the settings page.
+          entrymetadatafields: @project.get('entrymetadatafields')
+          generateID: Fn.generateID
+        model: @entry.clone()
 
-			modal = new Views.Modal
-				title: "Edit #{config.get('entryTermSingular')} metadata"
-				html: entryMetadata.el
-				submitValue: 'Save metadata'
-				width: '500px'
-				customClassName: 'entry-metadata'
+      modal = new Views.Modal
+        title: "Edit #{config.get('entryTermSingular')} metadata"
+        html: entryMetadata.el
+        submitValue: 'Save metadata'
+        width: '500px'
+        customClassName: 'entry-metadata'
 
-			modal.on 'submit', =>
-				@entry.updateFromClone entryMetadata.model
+      modal.on 'submit', =>
+        @entry.updateFromClone entryMetadata.model
 
-				async = new Async ['entry', 'settings']
-				@listenToOnce async, 'ready', =>
-					# TODO metadata changed!
-					modal.close()
-					@publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
+        async = new Async ['entry', 'settings']
+        @listenToOnce async, 'ready', =>
+          # TODO metadata changed!
+          modal.close()
+          @publish 'message', "Saved metadata for entry: #{@entry.get('name')}."
 
-				@entry.get('settings').save null, success: ->  async.called 'settings'
-				@entry.save null, success: -> async.called 'entry'
-			modal.on 'close', -> modal = null
+        @entry.get('settings').save null, success: ->  async.called 'settings'
+        @entry.save null, success: -> async.called 'entry'
+      modal.on 'close', -> modal = null
 
 module.exports = EntrySubmenu
