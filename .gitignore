@@ -11,3 +11,4 @@ tests/acceptance/reports/*
 node_modules
 config.json
 README-INTERNAL.md
+nightwatch-browserstack.json

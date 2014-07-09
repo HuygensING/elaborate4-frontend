@@ -1,13 +1,41 @@
-## Bump version
-* edit package.json
-* git add .
-* git commit -m 'Bump to vx.x.x'
-* git tag vx.x.x
-* git push
-* git push --tags
-* deploy to test
+eLaborate (frontend)
+===================
 
-## Deploy to test
-* Change restUrl to DEV in elaborate-modules/modules/models/config.coffee
-* gulp compile
-* gulp deploy-test
+## What is eLaborate?
+
+eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users.
+eLaborate is developed by [Huygens ING](http://www.huygens.knaw.nl/).
+
+This repository contains the frontend, which communicates with the [backend](https://github.com/HuygensING/elaborate4-backend).
+
+## Install
+
+```
+$ git clone https://github.com/HuygensING/elaborate4-frontend.git
+$ npm install
+$ cp config-example.json config.json
+$ gulp compile
+```
+
+## Edit the config file
+
+elaborate4-frontend makes use of [elaborate-modules](https://github.com/HuygensING/elaborate-modules). These modules aren't part of the elaborate4-frontend repository, because they are also used by other Huygens ING frontend repositories.
+
+The elaborate-modules are installed when `npm install` is run from the command line.
+
+The config file can be found at `./node_modules/elaborate-modules/modules/models/config.coffee`
+
+In the config file, alter the `restUrl` property to match the location of the elaborate-backend server you've set up.
+
+## Development
+
+For development purposes `gulp` can be run from the command line. Gulp loads the following tasks:
+
+1. Add watchers for .coffee, .jade and .stylus files.
+2. Bundles .coffee and .jade files using Browserify.
+3. Launches elaborate4-frontend in the browser with browser-sync.
+
+## Deploy
+
+1. Set the remote-destination in `./config.json` (this is not the same as the elaborate-modules config.json!)
+2. Run 'gulp deploy' to simply rsync `./compiled` to the remote destination.
