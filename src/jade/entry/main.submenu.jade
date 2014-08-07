@@ -2,7 +2,7 @@
 .left-menu
 	ul.horizontal.menu.nav
 		li(data-key="previous", class=entry.prevID>0?'active':false) &nbsp;
-		li(data-key="current")= entry.get('name')
+		li(data-key="current", title=entry.get('name'))= entry.get('name')
 		li(data-key="next", class=entry.nextID>0?'active':false) &nbsp;
 	ul.horizontal.menu.switchers
 		li(data-key="facsimiles") Facsimiles&nbsp;
