@@ -4,12 +4,14 @@ var entryMetadataField = 'MyTestEntryMetadataField'
 module.exports = {
   "Add entry metadata field" : function (browser) {
     login(browser)
+      .waitForElementVisible('.resultview .results-placeholder', 10000)
       .moveToElement('header.main span.projecttitle', 10, 10)
       .click('header.main li.settings')
       .click('.projectsettings li[data-tab="entries"]')
       .setValue('.entry-list .editablelist input', entryMetadataField)
       .keys(['\uE006'])
       .assert.elementPresent('.entry-list ul.selected li[data-id="'+entryMetadataField+'"]')
+      .waitForElementVisible('header.main span.message', 10000)
       .moveToElement('header.main span.projecttitle', 10, 10)
       .click('header.main li.search')
       .click('#main .submenu li[data-key="editmetadata"]')

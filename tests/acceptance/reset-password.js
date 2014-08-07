@@ -1,7 +1,7 @@
 module.exports = {
   "Reset password" : function (browser) {
     browser
-      .url("http://localhost:9000/login")
+      .url("http://localhost:3000/login")
       
       .waitForElementVisible('li.resetpassword', 1000)
       .click('li.resetpassword')
@@ -19,7 +19,7 @@ module.exports = {
       .assert.containsText('.modal.reset-password li.message', 'unknown e-mail address: thisemaildoes@notexist.not')
       .clearValue('.modal.reset-password input[name="email"]')
 
-      .setValue('.modal.reset-password input[name="email"]', 'agijsbro@gmail.com')
+      .setValue('.modal.reset-password input[name="email"]', 'gijsjan.brouwer@huygens.knaw.nl')
       .click('.modal.reset-password button[name="submit"]')
       .waitForElementVisible('.modal.reset-password li.input p', 1000)
       .assert.containsText('.modal.reset-password li.input p', 'An email has been send to your emailaddress. Please follow the link to reset your password.')

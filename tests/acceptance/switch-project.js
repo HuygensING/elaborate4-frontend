@@ -7,16 +7,11 @@ module.exports = {
         .moveToElement('header.main li.username', 10, 10)
         .moveToElement('header.main li.username li.projects', 10, 10)
         .moveToElement('header.main li.username li.projects ul li.project:first-child', 10, 10)
-        .click('header.main li.username li.projects li[data-id="'+projectId+'"]')
+        .moveToElement('header.main li.username li.projects ul li[data-id="'+projectId+'"]', 10, 10)
+        .click('header.main li.username li.projects ul li[data-id="'+projectId+'"]')
 
         .waitForElementNotPresent('#container > header .projecttitle i.fa-spinner', 10000)
-        // .waitForElementVisible('.resultview .results-placeholder .entries li.entry', 1000)
-        // .elements('css selector', '.resultview .results-placeholder .entries li.entry', function(response) {
-        //   this.assert.equal(response.value.length, 50)
-        // })
 
-        // .pause(2000)
-        
         .assert.containsText('header.main span.projecttitle', projectTitle)
         .assert.title('eLaborate - '+projectTitle)
 
@@ -28,9 +23,9 @@ module.exports = {
 
     login(browser)
       .waitForElementVisible('.resultview .results-placeholder', 10000)
-      .mySwitchProject(1, 'Torec', 69)
+      .mySwitchProject(1, 'Torec', 70)
       .mySwitchProject(15, 'Roman van Walewein', 246)
-      .mySwitchProject(1, 'Torec', 69)
+      .mySwitchProject(1, 'Torec', 70)
       .end();
   }
 };
