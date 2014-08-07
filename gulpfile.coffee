@@ -23,8 +23,17 @@ modRewrite = require 'connect-modrewrite'
 
 connectRewrite = require './connect-rewrite'
 
-compiledDir = './compiled'
-distDir = './dist'
+devDir = './compiled'
+prodDir = './dist'
+
+baseDir = if process.env.NODE_ENV is 'prod' then prodDir else devDir
+env = if process.env.NODE_ENV is 'prod' then 'production' else 'development'
+
+context =
+  VERSION: pkg.version
+  ENV: env
+  BASEDIR: baseDir
+
 paths =
   stylus: [
     './node_modules/hilib/src/views/**/*.styl'
@@ -35,14 +44,14 @@ paths =
 
 gulp.task 'connect', ->
   connect.server
-    root: compiledDir,
+    root: devDir,
     port: 9000,
     livereload: true
     middleware: connectRewrite
 
 gulp.task 'connect-dist', ->
   connect.server
-    root: distDir,
+    root: prodDir,
     port: 9002,
     middleware: connectRewrite
 
@@ -63,14 +72,14 @@ gulp.task 'compile-jade', ->
   gulp.src('./src/index.jade')
     .pipe(jade())
     .pipe(rename(basename:'index-tmp'))
-    .pipe(gulp.dest(compiledDir))
+    .pipe(gulp.dest(devDir))
 
 gulp.task 'jade', ['compile-jade'], ->
-  gulp.src(compiledDir+'/index-tmp.html')
+  gulp.src(devDir+'/index-tmp.html')
     .pipe(clean())
-    .pipe(preprocess(context: VERSION: pkg.version))
+    .pipe(preprocess(context: context))
     .pipe(rename(basename:'index'))
-    .pipe(gulp.dest(compiledDir))
+    .pipe(gulp.dest(devDir))
 
 gulp.task 'concat-stylus', ->
   gulp.src(paths.stylus)
@@ -84,45 +93,46 @@ gulp.task 'stylus', ['concat-stylus'], (cb) ->
       use: [nib()]
       errors: true
     ))
-    .pipe(rename(basename:"main-#{pkg.version}"))
-    .pipe(gulp.dest(compiledDir+'/css'))
+    .pipe(rename(basename:"main-#{context.VERSION}"))
+    .pipe(gulp.dest(devDir+'/css'))
     .pipe(browserSync.reload(stream: true))
 
 gulp.task 'uglify', ->
-  gulp.src(compiledDir+'/js/main.js')
+  gulp.src(devDir+'/js/main.js')
     .pipe(uglify())
-    .pipe(gulp.dest(distDir+'/js'))
+    .pipe(gulp.dest(prodDir+'/js'))
 
 gulp.task 'minify-css', ->
-  gulp.src(compiledDir+'/css/main.css')
+  gulp.src(devDir+'/css/main.css')
     .pipe(minifyCss())
-    .pipe(gulp.dest(distDir+'/css'))
+    .pipe(gulp.dest(prodDir+'/css'))
 
 
 gulp.task 'clean', ->
-  gulp.src(compiledDir+'/*').pipe(clean())
-  gulp.src(distDir+'/*').pipe(clean())
+  gulp.src(devDir+'/*').pipe(clean())
+  gulp.src(prodDir+'/*').pipe(clean())
 
 gulp.task 'copy-static', ['clean'], ->
-  gulp.src('./static/**/*').pipe(gulp.dest(compiledDir))
-  gulp.src('./static/**/*').pipe(gulp.dest(distDir))
+  gulp.src('./static/**/*').pipe(gulp.dest(devDir))
+  gulp.src('./static/**/*').pipe(gulp.dest(prodDir))
 
 gulp.task 'copy-fonts', ->
-  gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(compiledDir+'/font-awesome/css'))
-  gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(compiledDir+'/font-awesome/fonts'))
+  gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(devDir+'/font-awesome/css'))
+  gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(devDir+'/font-awesome/fonts'))
 
-  gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(distDir+'/font-awesome/css'))
-  gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(distDir+'/font-awesome/fonts'))
+  gulp.src('./node_modules/font-awesome/css/font-awesome.min.css').pipe(gulp.dest(prodDir+'/font-awesome/css'))
+  gulp.src('./node_modules/font-awesome/fonts/*').pipe(gulp.dest(prodDir+'/font-awesome/fonts'))
 
 gulp.task 'copy-images', ->
-  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(compiledDir+'/images/hilib'))
-  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(distDir+'/images/hilib'))
+  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(devDir+'/images/hilib'))
+  gulp.src('./node_modules/hilib/images/**/*').pipe(gulp.dest(prodDir+'/images/hilib'))
 
-gulp.task 'copy-index', -> gulp.src(compiledDir+'/index.html').pipe(gulp.dest(distDir))
+gulp.task 'copy-index', -> gulp.src(devDir+'/index.html').pipe(gulp.dest(prodDir))
 
 gulp.task 'compile', ['copy-static'], ->
   gulp.start 'copy-images'
   gulp.start 'copy-fonts'
+  gulp.start 'browserify-libs'
   gulp.start 'browserify'
   gulp.start 'jade'
   gulp.start 'stylus'
@@ -162,11 +172,15 @@ createBundle = (watch=false) ->
   bundler.transform('jadeify')
   bundler.transform('envify')
 
+  bundler.exclude 'jquery'
+  bundler.exclude 'underscore'
+  bundler.exclude 'backbone'
+
   rebundle = ->
     gutil.log('Watchify: start rebundling') if watch
     bundler.bundle()
-      .pipe(source("main-#{pkg.version}.js"))
-      .pipe(gulp.dest(compiledDir+'/js'))
+      .pipe(source("src-#{pkg.version}.js"))
+      .pipe(gulp.dest(devDir+'/js'))
 
   bundler.on 'update', rebundle
 
@@ -174,6 +188,25 @@ createBundle = (watch=false) ->
 
 gulp.task 'browserify', -> createBundle false
 gulp.task 'watchify', -> createBundle true
+
+gulp.task 'browserify-libs', ->
+  libs =
+    jquery: './node_modules/jquery/dist/jquery'
+    backbone: './node_modules/backbone/backbone'
+    underscore: './node_modules/underscore/underscore'
+
+  libPaths = Object.keys(libs).map (key) ->
+    libs[key]
+
+  bundler = browserify libPaths
+
+  for own id, path of libs
+    bundler.require path, expose: id
+
+  gutil.log('Browserify: bundling libs')
+  bundler.bundle()
+    .pipe(source("libs-#{pkg.version}.js"))
+    .pipe(gulp.dest(devDir+'/js'))
 
 gulp.task 'default', ['stylus', 'server', 'watch', 'watchify']
 gulp.task 'default2', ['stylus', 'connect', 'watch', 'watchify']

@@ -28,4 +28,12 @@ html(lang="en")
         container = document.getElementById('container');
         container.parentNode.removeChild(container);
       }
+
+    | <!-- @if ENV='development' -->
+    script(src!="/js/libs-<!-- @echo VERSION -->.js")
+    script(src!="/js/src-<!-- @echo VERSION -->.js")
+    | <!-- @endif -->
+
+    | <!-- @if ENV='production' -->
     script(src!="/js/main-<!-- @echo VERSION -->.js")
+    | <!-- @endif -->
