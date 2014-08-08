@@ -79,11 +79,7 @@ class Entry extends Views.Base
 		@$el.prepend @subviews.submenu.el
 
 
-		# Render subsubmenu
-		# viewManager.show @el.querySelector('.subsubmenu .editfacsimiles'), Views.EditFacsimiles,
-		# 	collection: @entry.get 'facsimiles'
-		@subviews.subsubmenu = new Views.EditFacsimiles collection: @entry.get 'facsimiles'
-		@$('.subsubmenu .editfacsimiles').html @subviews.subsubmenu.el
+		@renderEditFacsimilesMenu()
 
 		if config.get('entry-left-preview')?
 			transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
@@ -105,6 +101,10 @@ class Entry extends Views.Base
 				annotation = annotations.get @options.annotationID
 				@subviews.preview.setAnnotatedText annotation
 				@renderAnnotationEditor annotation
+
+	renderEditFacsimilesMenu: ->
+		@subviews.editFacsimiles = new Views.EditFacsimiles collection: @entry.get 'facsimiles'
+		@$('.subsubmenu .editfacsimiles').replaceWith @subviews.editFacsimiles.el
 
 	renderFacsimile: ->
 		@el.querySelector('.left-pane iframe').style.display = 'block'
@@ -190,7 +190,7 @@ class Entry extends Views.Base
 		# 'click .left-menu ul.facsimiles li[data-key="facsimile"]': 'changeFacsimile'
 		'click .left-menu ul.textlayers li[data-key="transcription"]': 'showLeftTranscription'
 		'click .middle-menu ul.textlayers li[data-key="transcription"]': 'changeTranscription'
-		'click .menu li.subsub': (ev) -> @subsubmenu.toggle ev
+		'click .menu li.subsub': (ev) -> @subviews.editFacsimiles.$el.slideToggle('fast')
 
 	showLeftTranscription: (ev) ->
 		# Hide the facsimile iframe.
@@ -226,46 +226,46 @@ class Entry extends Views.Base
 		@entry.get('facsimiles').current = null
 
 
-	# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
-	# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
-	# OBSOLETE
-	subsubmenu: do ->
-		currentMenu = null
-
-		close: -> 
-			$('.subsubmenu').removeClass 'active'
-			currentMenu = null
-		toggle: (ev) ->
-			# The newMenu's name is set as a data-key.
-			newMenu = ev.currentTarget.getAttribute 'data-key'
-
-			# If the user clicks on the currentMenu, close it.
-			if currentMenu is newMenu
-				$(ev.currentTarget).removeClass 'rotateup'
-				$('.subsubmenu').removeClass 'active'
-				currentMenu = null
-
-			# Either the subsubmenu is not visible (currentMenu=null) or the user
-			# clicked on another subsubmenu. In the last case we have to rotate the 
-			# arrow down (removeClass 'rotateup') for the currentMenu.
-			else
-				# User clicked on another subsubmenu than currentMenu
-				if currentMenu?
-					$('.submenu li[data-key="'+currentMenu+'"]').removeClass 'rotateup'
-				# Subsubmenu was closed, open it by adding 'active' class
-				else
-					$('.subsubmenu').addClass 'active'
-
-				# Rotate the newMenu's arrow
-				$('.submenu li[data-key="'+newMenu+'"]').addClass 'rotateup'
-
-				# Show the newMenu and hide all others (siblings)
-				$('.subsubmenu').find('.'+newMenu).appendCloseButton
-					corner: 'bottomright'
-					close: => @close()
-				$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
-
-				currentMenu = newMenu
+#	# IIFE to toggle the subsubmenu. We use an iife so we don't have to add a public variable to the view.
+#	# The iife keeps track of the currentMenu. Precaution: @ refers to the window object in the iife!
+#	# OBSOLETE
+#	subsubmenu: do ->
+#		currentMenu = null
+#
+#		close: ->
+#			$('.subsubmenu').removeClass 'active'
+#			currentMenu = null
+#		toggle: (ev) ->
+#			# The newMenu's name is set as a data-key.
+#			newMenu = ev.currentTarget.getAttribute 'data-key'
+#
+#			# If the user clicks on the currentMenu, close it.
+#			if currentMenu is newMenu
+#				$(ev.currentTarget).removeClass 'rotateup'
+#				$('.subsubmenu').removeClass 'active'
+#				currentMenu = null
+#
+#			# Either the subsubmenu is not visible (currentMenu=null) or the user
+#			# clicked on another subsubmenu. In the last case we have to rotate the
+#			# arrow down (removeClass 'rotateup') for the currentMenu.
+#			else
+#				# User clicked on another subsubmenu than currentMenu
+#				if currentMenu?
+#					$('.submenu li[data-key="'+currentMenu+'"]').removeClass 'rotateup'
+#				# Subsubmenu was closed, open it by adding 'active' class
+#				else
+#					$('.subsubmenu').addClass 'active'
+#
+#				# Rotate the newMenu's arrow
+#				$('.submenu li[data-key="'+newMenu+'"]').addClass 'rotateup'
+#
+#				# Show the newMenu and hide all others (siblings)
+##				$('.subsubmenu').find('.'+newMenu).appendCloseButton
+##					corner: 'bottomright'
+##					close: => @close()
+#				$('.subsubmenu').find('.'+newMenu).show().siblings().hide()
+#
+#				currentMenu = newMenu
 	
 	showUnsavedChangesModal: (args) ->
 		{model, html, done} = args
@@ -365,7 +365,7 @@ class Entry extends Views.Base
 
 		# Change the facsimile to the newly added facsimile
 		@subviews.submenu.changeFacsimile facsimile.id
-		@subsubmenu.close()
+		@subviews.editFacsimiles.$el.slideToggle('fast')
 		@publish 'message', "Added facsimile: \"#{facsimile.get('name')}\"."
 
 	removeFacsimile: (facsimile, collection) ->
@@ -390,7 +390,7 @@ class Entry extends Views.Base
 		
 		# Change the transcription to the newly added transcription
 		@changeTranscription transcription.id
-		@subsubmenu.close()
+		@subviews.editFacsimiles.$el.slideToggle('fast')
 		@publish 'message', "Added text layer: \"#{transcription.get('textLayer')}\"."
 
 module.exports = Entry

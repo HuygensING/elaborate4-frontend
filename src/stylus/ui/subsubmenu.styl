@@ -10,8 +10,7 @@
 	z-index 48
 	// top mainHeaderHeight + 40px /* tmp */
 
-	&.active
-		top mainHeaderHeight + 40px
+	top mainHeaderHeight + 40px
 
 	h3
 		margin 0 0 10px 0
@@ -21,6 +20,23 @@
 
 	.editfacsimiles, .edittextlayers
 		display none
+
+		.close-button
+			position absolute
+			top 10px
+			right 10px
+			width 16px
+			border-radius 4px
+			background #888
+			color #DDD
+			font-size 15px
+			font-weight bold
+			line-height 16px
+			text-align center
+			cursor pointer
+
+			&:hover
+				color white
 
 		form.addfile
 			display none

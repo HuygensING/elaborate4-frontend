@@ -14,6 +14,8 @@ tpl = require '../../../../jade/entry/subsubmenu/facsimiles.edit.jade'
 # ## EditFacsimiles
 class EditFacsimiles extends Views.Base
 
+	className: 'editfacsimiles'
+
 	# ### Initialize
 	initialize: ->
 		super
@@ -32,13 +34,15 @@ class EditFacsimiles extends Views.Base
 
 	# ### Events
 	events: ->
-		# 'click button.addtextlayer': 'addtextlayer'
+		'click .close-button': (ev) -> @$el.slideUp()
 		'click ul.facsimiles li': (ev) => $(ev.currentTarget).addClass 'destroy'
 		'click ul.facsimiles li.destroy .orcancel': 'cancelRemove'
 		'click ul.facsimiles li.destroy .name': 'destroyfacsimile'
 		'keyup input[name="name"]': 'keyupName'
 		'change input[type="file"]': -> @el.querySelector('button.addfacsimile').style.display = 'block'
 		'click button.addfacsimile': 'addfacsimile'
+
+	close: (ev) -> @trigger 'close'
 
 	keyupName: (ev) -> @el.querySelector('form.addfile').style.display = if ev.currentTarget.value.length > 0 then 'block' else 'none'
 
