@@ -39,3 +39,11 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 
 1. Set the remote-destination in `./config.json` (this is not the same as the elaborate-modules config.json!)
 2. Run 'gulp deploy' to simply rsync `./compiled` to the remote destination.
+
+## Changelog
+
+#### 1.1.0
+
+- [feat] Make entry metadata better readable and editable.
+- [feat] Add title attribute to entry title.
+- [perf] Change edit facsimiles logic.
