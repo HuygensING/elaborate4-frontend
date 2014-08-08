@@ -7,7 +7,7 @@ fieldset.span100
 			- id = generateID()
 			label(for=id) Name
 			if user.get('roleNo') >= 20
-				input(id=id, type="text", name="name", value=model.get('name'))
+				textarea(id=id, name="name")= model.get('name')
 			else
 				span= model.get('name')
 
@@ -25,7 +25,7 @@ fieldset.span100
 				- value = model.get('settings').get(key)
 				label(for=id)= key
 				if user.get('roleNo') >= 20
-					input(id=id, type=key=='Publishable'?'checkbox':'text', name=key, value=value)
+					textarea(id=id, name=key)= value
 				else
 					span= value
 

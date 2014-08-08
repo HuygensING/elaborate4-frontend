@@ -29,3 +29,25 @@
 				margin-left 6px
 				position relative
 				top 3px
+
+	input, textarea
+		font-size 15px
+
+	label
+		width 25%
+
+	input
+		width 75%
+
+	textarea
+		inline-block()
+		width 75%
+		overflow hidden
+		resize none
+		border 1px solid #DDD
+		font-family Verdana, Arial
+
+		&:focus
+			outline none
+			border-color rgba(70, 170, 168, 0.5)
+			box-shadow 0 0 3px rgba(70, 170, 168, 0.75)
