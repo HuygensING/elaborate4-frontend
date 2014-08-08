@@ -12,7 +12,7 @@ class Statistics extends BaseView
 
 	className: 'statistics'
 
-	initialize: ->
+	initialize: (@options) ->
 		super			
 
 		Collections.projects.getCurrent (@project) =>

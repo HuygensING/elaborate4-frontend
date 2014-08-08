@@ -24,7 +24,7 @@ class EntrySubmenu extends Base
 	className: 'submenu'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		{@entry, @user, @project} = @options

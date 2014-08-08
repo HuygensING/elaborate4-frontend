@@ -23,7 +23,7 @@ class EntryPreview extends Views.Base
 	className: 'preview'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@autoscroll = false

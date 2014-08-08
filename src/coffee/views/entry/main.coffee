@@ -35,7 +35,7 @@ class Entry extends Views.Base
 	className: 'entry'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		# Models.state.onHeaderRendered => @render() # TODO Remove this check!

@@ -17,7 +17,7 @@ class LayerEditor extends Views.Base
 	className: ''
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@render()

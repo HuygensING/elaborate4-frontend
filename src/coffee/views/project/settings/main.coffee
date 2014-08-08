@@ -45,7 +45,7 @@ class ProjectSettings extends Views.Base
 	className: 'projectsettings'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		Collections.projects.getCurrent (@project) =>

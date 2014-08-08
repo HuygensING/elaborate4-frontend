@@ -21,7 +21,7 @@ class Search extends Views.Base
 	className: 'search'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		projects.getCurrent (@project) =>

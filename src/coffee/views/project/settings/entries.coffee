@@ -20,7 +20,7 @@ class ProjectSettingsEntries extends Views.Base
 
 	className: 'entries'
 
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@project = @options.project

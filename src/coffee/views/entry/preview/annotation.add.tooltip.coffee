@@ -15,20 +15,7 @@ class AddAnnotationTooltip extends BaseView
 
 	className: "tooltip addannotation"
 
-	events: ->
-		'change select': 'selectChanged'
-		'click button': 'buttonClicked'
-
-	selectChanged: (ev) ->
-		index = ev.currentTarget.selectedIndex
-		option = ev.currentTarget.options[index]
-		@newannotation.set 'annotationType', @options.annotationTypes.get(option.value).attributes
-
-	buttonClicked: (ev) ->
-		@hide()
-		@trigger 'clicked', @newannotation
-
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@container = @options.container ? document.querySelector 'body'
@@ -45,6 +32,19 @@ class AddAnnotationTooltip extends BaseView
 		dom(@container).prepend @el
 
 		@
+
+	events: ->
+		'change select': 'selectChanged'
+		'click button': 'buttonClicked'
+
+	selectChanged: (ev) ->
+		index = ev.currentTarget.selectedIndex
+		option = ev.currentTarget.options[index]
+		@newannotation.set 'annotationType', @options.annotationTypes.get(option.value).attributes
+
+	buttonClicked: (ev) ->
+		@hide()
+		@trigger 'clicked', @newannotation
 
 	# Set the position and show the tooltip
 	show: (position) ->

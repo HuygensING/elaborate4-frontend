@@ -18,7 +18,7 @@ class ProjectSettingsUsers extends Views.Base
 	className: 'users'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@project = @options.project

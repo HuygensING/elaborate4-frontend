@@ -17,7 +17,7 @@ class SearchSubmenu extends Views.Base
 	className: 'submenu'
 
 	# ### Initialize
-	initialize: ->
+	initialize: (@options) ->
 		super
 
 		@listenTo config, 'change:entryTermSingular', @render
