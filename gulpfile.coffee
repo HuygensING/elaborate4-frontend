@@ -17,6 +17,8 @@ rsync = require('rsyncwrapper').rsync
 pkg = require './package.json'
 cfg = require './config.json'
 async = require 'async'
+exec = require('child_process').exec
+rimraf = require 'rimraf'
 
 browserSync = require 'browser-sync'
 modRewrite = require 'connect-modrewrite'
@@ -41,6 +43,33 @@ paths =
     './node_modules/elaborate-modules/modules/**/*.styl'
     './src/stylus/**/*.styl'
   ]
+
+gulp.task 'link', (done) ->
+	removeModules = (cb) ->
+		modulePaths = cfg['local-modules'].map (module) -> "./node_modules/#{module}"
+		async.each modulePaths , rimraf, (err) -> cb()
+
+	linkModules = (cb) ->
+		moduleCommands = cfg['local-modules'].map (module) -> "npm link #{module}"
+		async.each moduleCommands, exec, (err) -> cb()
+
+	async.series [removeModules, linkModules], (err) ->
+		return gutil.log err if err?
+		done()
+
+gulp.task 'unlink', (done) ->
+	unlinkModules = (cb) ->
+		moduleCommands = cfg['local-modules'].map (module) -> "npm unlink #{module}"
+		async.each moduleCommands, exec, (err) -> cb()
+
+	installModules = (cb) ->
+		exec 'npm i', cb
+
+	async.series [unlinkModules, installModules], (err) ->
+		return gutil.log err if err?
+		done()
+
+
 
 gulp.task 'connect', ->
   connect.server
