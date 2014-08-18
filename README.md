@@ -42,6 +42,10 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 
 ## Changelog
 
+#### 1.1.2
+
+- [bug] Sort levels would call removed method.
+
 #### 1.1.1
 
 - [bug] Add @options argument to views initialize method for Backbone v1+
