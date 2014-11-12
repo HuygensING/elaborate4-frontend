@@ -60,7 +60,16 @@ class MainRouter extends Backbone.Router
       unauthorized: => @publish 'login:failed'
       navigateToLogin: => @navigate 'login', trigger: true
 
-  manageView: (View, options) -> viewManager.show $('div#main'), View, options
+  # manageView: (View, options) -> viewManager.show $('div#main'), View, options
+  manageView: do ->
+    currentView = null
+
+    (View, options) ->
+      currentView.destroy() if currentView?
+
+      currentView = new View options
+      $('div#main').html currentView.el
+
 
   routes:
     '': 'projectMain'
