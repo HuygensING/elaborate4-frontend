@@ -41,8 +41,13 @@ paths =
 		'./node_modules/hilib/src/views/**/*.styl'
 		# './node_modules/huygens-faceted-search/src/stylus/**/*.styl'
 		'./node_modules/elaborate-modules/modules/**/*.styl'
-		'./src/stylus/main.styl'
+		'./src/stylus/**/*.styl'
 	]
+
+cssFiles = cfg['css-files'].slice()
+cssFiles.push "#{devDir}/css/hilib-#{context.VERSION}.css"
+cssFiles.push "#{devDir}/css/elaborate-modules-#{context.VERSION}.css"
+cssFiles.push "#{devDir}/css/src-#{context.VERSION}.css"
 
 gulp.task 'link', (done) ->
 	removeModules = (cb) ->
@@ -143,12 +148,7 @@ gulp.task 'compile-main-stylus', ->
 # 		.pipe(gulp.dest(devDir+'/css'))
 
 gulp.task 'create-css', ['compile-hilib-stylus', 'compile-elaborate-modules-stylus', 'compile-main-stylus'], ->
-	sources = cfg['module-css'].slice()
-	sources.push "#{devDir}/css/hilib-#{context.VERSION}.css"
-	sources.push "#{devDir}/css/elaborate-modules-#{context.VERSION}.css"
-	sources.push "#{devDir}/css/src-#{context.VERSION}.css"
-
-	gulp.src(sources)
+	gulp.src(cssFiles)
 		.pipe(concat("main-#{context.VERSION}.css"))
 		.pipe(gulp.dest("#{devDir}/css"))
 		.pipe(browserSync.reload(stream: true))
