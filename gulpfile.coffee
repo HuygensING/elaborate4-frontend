@@ -39,9 +39,9 @@ context =
 paths =
 	stylus: [
 		'./node_modules/hilib/src/views/**/*.styl'
-		'./node_modules/huygens-faceted-search/src/stylus/**/*.styl'
+		# './node_modules/huygens-faceted-search/src/stylus/**/*.styl'
 		'./node_modules/elaborate-modules/modules/**/*.styl'
-		'./src/stylus/**/*.styl'
+		'./src/stylus/main.styl'
 	]
 
 gulp.task 'link', (done) ->
@@ -69,33 +69,6 @@ gulp.task 'unlink', (done) ->
 		return gutil.log err if err?
 		done()
 
-gulp.task 'link', (done) ->
-	removeModules = (cb) ->
-		modulePaths = cfg['local-modules'].map (module) -> "./node_modules/#{module}"
-		async.each modulePaths , rimraf, (err) -> cb()
-
-	linkModules = (cb) ->
-		moduleCommands = cfg['local-modules'].map (module) -> "npm link #{module}"
-		async.each moduleCommands, exec, (err) -> cb()
-
-	async.series [removeModules, linkModules], (err) ->
-		return gutil.log err if err?
-		done()
-
-gulp.task 'unlink', (done) ->
-	unlinkModules = (cb) ->
-		moduleCommands = cfg['local-modules'].map (module) -> "npm unlink #{module}"
-		async.each moduleCommands, exec, (err) -> cb()
-
-	installModules = (cb) ->
-		exec 'npm i', cb
-
-	async.series [unlinkModules, installModules], (err) ->
-		return gutil.log err if err?
-		done()
-
-
-
 gulp.task 'connect', ->
 	connect.server
 		root: devDir,
@@ -109,7 +82,7 @@ gulp.task 'connect-dist', ->
 		port: 9002,
 		middleware: connectRewrite
 
-gulp.task 'server', ['stylus', 'watch', 'watchify'], ->
+gulp.task 'server', ['create-css', 'watch', 'watchify'], ->
 	baseDir = process.env.NODE_ENV ? 'compiled'
 
 	browserSync.init null,
@@ -135,20 +108,49 @@ gulp.task 'jade', ['compile-jade'], ->
 		.pipe(rename(basename:'index'))
 		.pipe(gulp.dest(devDir))
 
-gulp.task 'concat-stylus', ->
-	gulp.src(paths.stylus)
-		.pipe(concat('concat.styl'))
-		.pipe(gulp.dest('src/stylus'))
+# gulp.task 'concat-stylus', ->
+# 	gulp.src(paths.stylus)
+# 		.pipe(concat('concat.styl'))
+# 		.pipe(gulp.dest('src/stylus'))
 
-gulp.task 'stylus', ['concat-stylus'], (cb) ->
-	gulp.src('src/stylus/concat.styl')
-		.pipe(clean())
+compileStylus = (name, src) ->
+	gulp.src(src)
+		# .pipe(clean())
 		.pipe(stylus(
 			use: [nib()]
 			errors: true
 		))
-		.pipe(rename(basename:"main-#{context.VERSION}"))
+		.pipe(concat("#{name}-#{context.VERSION}.css"))
 		.pipe(gulp.dest(devDir+'/css'))
+
+gulp.task 'compile-hilib-stylus', ->
+	compileStylus 'hilib', './node_modules/hilib/src/views/**/*.styl'
+
+gulp.task 'compile-elaborate-modules-stylus', ->
+	compileStylus 'elaborate-modules', './node_modules/elaborate-modules/modules/**/*.styl'
+
+gulp.task 'compile-main-stylus', ->
+	compileStylus 'src', './src/stylus/main.styl'
+
+# gulp.task 'stylus', ['concat-stylus'], (cb) ->
+# 	gulp.src('src/stylus/concat.styl')
+# 		# .pipe(clean())
+# 		.pipe(stylus(
+# 			use: [nib()]
+# 			errors: true
+# 		))
+# 		.pipe(rename(basename:"src-#{context.VERSION}"))
+# 		.pipe(gulp.dest(devDir+'/css'))
+
+gulp.task 'create-css', ['compile-hilib-stylus', 'compile-elaborate-modules-stylus', 'compile-main-stylus'], ->
+	sources = cfg['module-css'].slice()
+	sources.push "#{devDir}/css/hilib-#{context.VERSION}.css"
+	sources.push "#{devDir}/css/elaborate-modules-#{context.VERSION}.css"
+	sources.push "#{devDir}/css/src-#{context.VERSION}.css"
+
+	gulp.src(sources)
+		.pipe(concat("main-#{context.VERSION}.css"))
+		.pipe(gulp.dest("#{devDir}/css"))
 		.pipe(browserSync.reload(stream: true))
 
 gulp.task 'uglify', ->
@@ -189,7 +191,7 @@ gulp.task 'compile', ['copy-static'], ->
 	gulp.start 'browserify-libs'
 	gulp.start 'browserify'
 	gulp.start 'jade'
-	gulp.start 'stylus'
+	gulp.start 'create-css'
 
 # Doens't work because of dep compile and gulp.start. :(
 #gulp.task 'build', ['compile'], ->
@@ -212,7 +214,7 @@ gulp.task 'deploy-test', (done) ->
 
 gulp.task 'watch', ->
 	gulp.watch ['./src/index.jade'], ['jade']
-	gulp.watch [paths.stylus], ['stylus']
+	gulp.watch [paths.stylus], ['create-css']
 	gulp.watch ['./compiled/index.html'], -> browserSync.reload()
 
 createBundle = (watch=false) ->
