@@ -214,8 +214,9 @@ gulp.task 'deploy-test', (done) ->
 
 gulp.task 'watch', ->
 	gulp.watch ['./src/index.jade'], ['jade']
-	gulp.watch [paths.stylus], ['create-css']
+	gulp.watch paths.stylus, ['create-css']
 	gulp.watch ['./compiled/index.html'], -> browserSync.reload()
+	gulp.watch cfg['css-files'], ['create-css']
 
 createBundle = (watch=false) ->
 	args =
