@@ -16,7 +16,7 @@ Views =
   Login: require '../views/login'
   SetNewPassword: require '../views/set-new-password'
   NoProject: require '../views/no-project'
-  ProjectMain: require '../views/project/search'
+  Search: require '../views/project/search'
   EditMetadata: require '../views/project/search/edit-metadata'
   ProjectSettings: require '../views/project/settings/main'
   ProjectHistory: require '../views/project/history'
@@ -30,7 +30,7 @@ class MainRouter extends Backbone.Router
     _.extend @, Pubsub
 
     @on 'route', => history.update()
-    @on 'route:projectMain', => Backbone.trigger 'router:search'
+    @on 'route:search', => Backbone.trigger 'router:search'
 
   # The init method is manually triggered from app.js, after Backbone.history.start().
   # Ideally we would have this code in the initialize method, but we need to use @navigate
@@ -73,11 +73,11 @@ class MainRouter extends Backbone.Router
 
 
   routes:
-    '': 'projectMain'
+    '': 'search'
     'login': 'login'
     'noproject': 'noproject'
     'resetpassword': 'setNewPassword'
-    'projects/:name': 'projectMain'
+    'projects/:name': 'search'
     'projects/:name/edit-metadata': 'editMetadata'
     'projects/:name/settings/:tab': 'projectSettings'
     'projects/:name/settings': 'projectSettings'
@@ -111,29 +111,29 @@ class MainRouter extends Backbone.Router
     $('div#main').append view.el
 
 
-  projectMain: (projectName) ->
+  search: (projectName) ->
     # In theory we don't have to pass the projectName, because it is known
     # through Collections.project.current, but we need to send it for the viewManager
     # so it doesn't cache the same view for different projects.
-    @manageView Views.ProjectMain, projectName: projectName
+    @manageView Views.Search, projectName: projectName
 
   editMetadata: (projectName) ->
     @manageView Views.EditMetadata, projectName: projectName
 
   projectSettings: (projectName, tab) ->
-    # See projectMain comment
+    # See search comment
     @manageView Views.ProjectSettings,
       projectName: projectName
       tabName: tab
 
   projectHistory: (projectName) ->
-    # See projectMain comment
+    # See search comment
     @manageView Views.ProjectHistory,
       projectName: projectName
       cache: false
 
   statistics: (projectName) ->
-    # See projectMain comment
+    # See search comment
     @manageView Views.Statistics,
       projectName: projectName
       cache: false
