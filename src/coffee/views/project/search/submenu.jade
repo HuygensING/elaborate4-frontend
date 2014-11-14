@@ -1,6 +1,10 @@
 .left-menu
 	ul.horizontal.menu
 		li(data-key="newsearch") New search
+		li.inactive(data-key="save-edit-metadata")
+			span Save
+			i.fa.fa-spinner.fa-spin
+		li(data-key="cancel-edit-metadata") Cancel
 //- >= USER
 if user.get('roleNo') >= 20
 	.middle-menu

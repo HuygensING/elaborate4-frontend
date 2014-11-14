@@ -1,16 +1,16 @@
 Backbone = require 'backbone'
 
 config = require 'elaborate-modules/modules/models/config'
-currentUser = require '../../models/currentUser'
-projects = require '../../collections/projects'
+currentUser = require '../../../models/currentUser'
+projects = require '../../../collections/projects'
 
-Entry = require '../../models/entry'
+Entry = require '../../../models/entry'
 
 Views =
 	Base: require 'hilib/src/views/base'
 	Modal: require 'hilib/src/views/modal'
 
-tpl = require '../../../jade/project/search.submenu.jade'
+tpl = require './submenu.jade'
 
 class SearchSubmenu extends Views.Base
 
@@ -22,7 +22,8 @@ class SearchSubmenu extends Views.Base
 
 		@listenTo config, 'change:entryTermSingular', @render
 
-		projects.getCurrent (@project) => @render()
+		projects.getCurrent (@project) =>
+			@render()
 
 	# ### Render
 	render: ->
@@ -46,7 +47,14 @@ class SearchSubmenu extends Views.Base
 	events: ->
 		'click li[data-key="newsearch"]': -> @trigger 'newsearch'
 		'click li[data-key="newentry"]': 'newEntry'
-		'click li[data-key="editmetadata"].enabled': -> @trigger 'editmetadata'
+		'click li[data-key="save-edit-metadata"]:not(.inactive)': (ev) ->
+			@trigger 'save-edit-metadata'
+		'click li[data-key="cancel-edit-metadata"]': -> 
+			@trigger 'cancel-edit-metadata'
+		'click li[data-key="editmetadata"].enabled': -> 
+			# console.log 'here'
+			# Backbone.history.navigate "projects/#{@project.get('name')}/edit-metadata", trigger: true
+			@trigger 'edit-metadata'
 		'click li[data-key="delete"]': 'deleteProject'
 		'click li[data-key="publish"]': 'publishDraft' # Method is located under "Methods"
 
@@ -72,7 +80,10 @@ class SearchSubmenu extends Views.Base
 
 	publishDraft: (ev) ->
 		@activatePublishDraftButton()
-		@project.publishDraft => @deactivatePublishDraftButton()
+
+		@project.publishDraft =>
+			@deactivatePublishDraftButton()
+
 
 	newEntry: (ev) ->
 		modal = new Views.Modal
@@ -117,6 +128,12 @@ class SearchSubmenu extends Views.Base
 		button = @el.querySelector('li[data-key="publish"]')
 		button.innerHTML = 'Publish draft'
 		button.classList.remove 'active'
+
+	activateEditMetadataSaveButton: ->
+		@$('li[data-key="save-edit-metadata"]').removeClass 'inactive'
+
+	deactivateEditMetadataSaveButton: ->
+		@$('li[data-key="save-edit-metadata"]').addClass 'inactive'
 
 	# pollDraft is used to start polling when a draft is in the process of being published.
 	# This can happen when a user refreshes the browser while the draft is not finished.

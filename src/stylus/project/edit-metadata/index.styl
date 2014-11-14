@@ -1,0 +1,68 @@
+#main > .search > .edit-metadata
+	.form, .results
+		position absolute
+		box-sizing border-box
+		padding 20px
+		top 100px
+		
+	h3
+		font-size 1.4em
+
+	.form
+		width 40%
+		
+		form
+			box-sizing border-box
+			width 100%
+			padding 10px
+			background #EEE
+			border-radius 6px
+			
+			ul
+				li.empty
+					text-align right
+					color #888
+					
+				li.publishable
+					div.publishable-checkbox-container
+						width 60%
+						inline-block()
+						
+						input
+							width auto
+			
+			label, input
+				padding 0
+				margin 0
+			
+			label
+				width 30%
+				
+			input[type="text"]
+				width 60%
+				padding-left 4px
+				box-sizing border-box
+				height 24px
+				
+			input[type="checkbox"]
+				width 10%
+				outline none
+
+	.results
+		width 60%
+		left 40%
+		
+		h3
+			small
+				font-size 0.7em
+				margin-left 6px
+		
+		ul
+			list-style none
+			
+			li
+				height 24px
+				font-size 1.2em
+				
+				*
+					vertical-align middle

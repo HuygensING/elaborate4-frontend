@@ -1,0 +1,28 @@
+.submenu.edit-metadata
+	.left-menu .horizontal.menu li[data-key="newsearch"],
+	li[data-key="newentry"],
+	li[data-key="editmetadata"],
+	li[data-key="delete"],
+	li[data-key="publish"]
+		display none
+		
+	.left-menu .horizontal.menu li[data-key="save-edit-metadata"],
+	.left-menu .horizontal.menu li[data-key="cancel-edit-metadata"]
+		display inline-block
+		margin-left 5px
+		
+	.left-menu .horizontal.menu li[data-key="save-edit-metadata"]
+		i.fa
+			display none
+			margin-left 6px
+			
+		&.loader
+			i.fa
+				display inline-block
+
+		&.inactive
+			color gray
+			cursor default
+			
+			
+			

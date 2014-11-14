@@ -7,14 +7,14 @@ FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-r
 FacetedSearch = require 'huygens-faceted-search'
 
 config = require 'elaborate-modules/modules/models/config'
-# currentUser = require '../../models/currentUser'
-projects = require '../../collections/projects'
+projects = require '../../../collections/projects'
 
 token = require 'hilib/src/managers/token'
 
 Views =
 	Base: require 'hilib/src/views/base'
-	Submenu: require './search.submenu'
+	Submenu: require './submenu'
+	EditMetadata: require './edit-metadata'
 
 entryMetadataChanged = false
 
@@ -27,19 +27,30 @@ class Search extends Views.Base
 	initialize: (@options) ->
 		super
 
+		@subviews = {}
+
 		projects.getCurrent (@project) =>
 			@render()
-			@listenTo Backbone, 'change:entry-metadata', => entryMetadataChanged = true
-			@listenTo Backbone, 'router:search', => @subviews.fsr.reset() if entryMetadataChanged
+			# TODO fix for new FS
+			# @listenTo Backbone, 'change:entry-metadata', => entryMetadataChanged = true
+			# @listenTo Backbone, 'router:search', => @subviews.fsr.reset() if entryMetadataChanged
 
 	# ### Render
 	render: ->
-		submenu = new Views.Submenu()
-		@$el.html submenu.$el
+		@renderSubmenu()
+		@renderFacetedSearch()
 
+		@_addListeners()
+
+		@
+
+	renderSubmenu: ->
+		@subviews.submenu = new Views.Submenu()
+		@$el.html @subviews.submenu.$el
+
+	renderFacetedSearch: ->
 		div = document.createElement 'div'
 		div.className = 'faceted-search-placeholder'
-
 		@$el.append div
 
 		levels = [@project.get('level1'), @project.get('level2'), @project.get('level3')]
@@ -66,7 +77,7 @@ class Search extends Views.Base
 
 		# @$el.append @subviews.fs.el
 
-		@listenTo submenu, 'newsearch', -> @subviews.fs.reset()
+
 		# @listenTo submenu, 'editmetadata', -> @subviews.fsr.toggleEditMultipleMetadata()
 
 		# @subviews.fsr = new FacetedSearchResults
@@ -77,25 +88,12 @@ class Search extends Views.Base
 		# 	editMultipleMetadataUrl: "#{config.get('restUrl')}projects/#{@project.id}/multipleentrysettings"
 		# @$el.append @subviews.fsr.$el
 
-		# @listenToOnce @subviews.fsr, 'change:results', => submenu.enableEditMetadataButton()
-
-		@listenTo @subviews.fs, 'change:results', (responseModel) =>
-			project = projects.current
-			project.resultSet = responseModel
-			project.get('entries').add responseModel.get('results'), merge: true
 
 		# 	# Set the height of div.entries dynamically
 		# 	entries = @subviews.fsr.$el.find('div.entries')
 		# 	entries.height $(window).height() - entries.offset().top
 
-		@listenTo @subviews.fs, 'result:click', (data) =>
-			console.log data
-			# TODO get href from model
-			url = "projects/#{@project.get('name')}/entries/#{data.id}"
-			Backbone.history.navigate url, trigger: true
 
-		@listenTo @subviews.fs, 'result:layer-click', (layer, data) =>
-			console.log layer, data
 		# 	if textLayer?
 		# 		splitLayer = textLayer.split(' ')
 		# 		if splitLayer[splitLayer.length - 1] is 'annotations'
@@ -111,6 +109,62 @@ class Search extends Views.Base
 
 		# @subscribe 'faceted-search:refresh', => @subviews.fsr.refresh()
 
-		@
+	_addListeners: ->
+		@listenTo @subviews.submenu, 'newsearch', => 
+			@subviews.fs.reset()
+
+		@listenTo @subviews.submenu, 'edit-metadata', =>
+			@_showEditMetadata()
+
+		@listenTo @subviews.submenu, 'save-edit-metadata', =>
+			@subviews.editMetadata.save()
+
+		@listenTo @subviews.submenu, 'cancel-edit-metadata', =>
+			@_hideEditMetadata()
+		
+		@listenToOnce @subviews.fs, 'change:results', => 
+			@subviews.submenu.enableEditMetadataButton()
+
+		@listenTo @subviews.fs, 'change:results', (responseModel) =>
+			project = projects.current
+			project.resultSet = responseModel
+			project.get('entries').add responseModel.get('results'), merge: true
+
+		@listenTo @subviews.fs, 'result:click', (data) =>
+			console.log data
+			# TODO get href from model
+			url = "projects/#{@project.get('name')}/entries/#{data.id}"
+			Backbone.history.navigate url, trigger: true
+
+		@listenTo @subviews.fs, 'result:layer-click', (layer, data) =>
+			console.log layer, data
+
+	_showEditMetadata: ->
+		@subviews.submenu.$el.addClass 'edit-metadata'
+		
+		@$('.faceted-search-placeholder').hide()
+
+		@subviews.editMetadata = new Views.EditMetadata
+			entryMetadataFields: @project.get('entrymetadatafields')
+			resultModel: @subviews.fs.searchResults.current
+		@$el.append @subviews.editMetadata.el
+
+		@listenTo @subviews.editMetadata, 'activate-save-button', =>
+			@subviews.submenu.activateEditMetadataSaveButton()
+
+		@listenTo @subviews.editMetadata, 'deactivate-save-button', =>
+			@subviews.submenu.deactivateEditMetadataSaveButton()
+
+		@listenTo @subviews.editMetadata, 'saved', =>
+			@_hideEditMetadata()
+			@subviews.fs.reset()
+
+	_hideEditMetadata: ->
+		@subviews.submenu.$el.removeClass 'edit-metadata'
+
+		@$('.faceted-search-placeholder').show()
+
+		@subviews.editMetadata.destroy()
+		delete @subviews.editMetadata
 
 module.exports = Search

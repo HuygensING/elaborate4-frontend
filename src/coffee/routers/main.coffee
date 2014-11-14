@@ -17,6 +17,7 @@ Views =
   SetNewPassword: require '../views/set-new-password'
   NoProject: require '../views/no-project'
   ProjectMain: require '../views/project/search'
+  EditMetadata: require '../views/project/search/edit-metadata'
   ProjectSettings: require '../views/project/settings/main'
   ProjectHistory: require '../views/project/history'
   Statistics: require '../views/project/statistics'
@@ -77,6 +78,7 @@ class MainRouter extends Backbone.Router
     'noproject': 'noproject'
     'resetpassword': 'setNewPassword'
     'projects/:name': 'projectMain'
+    'projects/:name/edit-metadata': 'editMetadata'
     'projects/:name/settings/:tab': 'projectSettings'
     'projects/:name/settings': 'projectSettings'
     'projects/:name/history': 'projectHistory'
@@ -114,6 +116,9 @@ class MainRouter extends Backbone.Router
     # through Collections.project.current, but we need to send it for the viewManager
     # so it doesn't cache the same view for different projects.
     @manageView Views.ProjectMain, projectName: projectName
+
+  editMetadata: (projectName) ->
+    @manageView Views.EditMetadata, projectName: projectName
 
   projectSettings: (projectName, tab) ->
     # See projectMain comment

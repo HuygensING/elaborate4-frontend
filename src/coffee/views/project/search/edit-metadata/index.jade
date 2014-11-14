@@ -1,0 +1,26 @@
+.form
+	h3= "Metadata fields"
+	form
+		ul
+			li.empty empty?
+			li.publishable
+				label Publishable
+				div.publishable-checkbox-container
+					input.value(type="checkbox", name="Publishable")
+				input.empty(type="checkbox", data-name="Publishable")
+			each field, key in entrymetadatafields
+				li 
+					label= field
+					input.value(type="text", name=field)
+					input.empty(type="checkbox", data-name=field)
+
+.results
+	h3
+		span Entries
+		small= "("+resultModel.get('rows') + " of " + resultModel.get('numFound') + ")"
+	ul
+		each result, index in resultModel.get('results')
+			- id = "entry-" + result.id
+			li
+				input(type="checkbox", id=id)
+				label(for=id)= result.name
