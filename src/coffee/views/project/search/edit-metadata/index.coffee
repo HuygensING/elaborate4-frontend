@@ -28,6 +28,10 @@ class EditMetadata extends BaseView
 			entrymetadatafields: @options.entryMetadataFields
 			resultModel: @options.resultModel
 
+		if @options.isMetadataVisible
+			@$('input#edit-results-metadata-show-metadata').attr 'checked', true
+			@$('.results').addClass 'show-metadata'
+
 		@
 
 	events:
@@ -35,9 +39,15 @@ class EditMetadata extends BaseView
 		"change .form li .publishable-checkbox-container input[type=\"checkbox\"]": "updateData"
 		"change .form li input.empty[type=\"checkbox\"]": "updateData"
 		"keyup .form li > label + input[type=\"text\"]": "updateData"
+		"change .results .head input#edit-results-metadata-select-all": "onSelectAll"
+		"change .results .head input#edit-results-metadata-show-metadata": "onShowMetadata"
 
-	handleEmpty: (ev) ->
+	onSelectAll: (ev) ->
+		checkboxes = @$('.results li.result > input[type="checkbox"]')
+		cb.checked = ev.currentTarget.checked for cb in checkboxes
 
+	onShowMetadata: (ev) ->
+		@$('.results').toggleClass 'show-metadata'
 
 	updateData: ->
 		@data =

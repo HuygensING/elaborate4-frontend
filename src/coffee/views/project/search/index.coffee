@@ -158,6 +158,7 @@ class Search extends Views.Base
 		@subviews.editMetadata = new Views.EditMetadata
 			entryMetadataFields: @project.get('entrymetadatafields')
 			resultModel: @subviews.fs.searchResults.current
+			isMetadataVisible: @subviews.fs.results.isMetadataVisible
 		@$el.append @subviews.editMetadata.el
 
 		@listenTo @subviews.editMetadata, 'activate-save-button', =>

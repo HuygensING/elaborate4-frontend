@@ -1,3 +1,5 @@
+h2 Edit results metadata
+
 .form
 	h3= "Metadata fields"
 	form
@@ -15,12 +17,27 @@
 					input.empty(type="checkbox", data-name=field)
 
 .results
-	h3
-		span Entries
-		small= "("+resultModel.get('rows') + " of " + resultModel.get('numFound') + ")"
+	.head
+		h3
+			span Entries
+			small= "("+resultModel.get('rows') + " of " + resultModel.get('numFound') + ")"
+		.menu
+			.select-all
+				input#edit-results-metadata-select-all(type="checkbox")
+				label(for="edit-results-metadata-select-all") Select all
+			.show-metadata
+				input#edit-results-metadata-show-metadata(type="checkbox")
+				label(for="edit-results-metadata-show-metadata") Show metadata
+
 	ul
 		each result, index in resultModel.get('results')
 			- id = "entry-" + result.id
-			li
+			li.result
 				input(type="checkbox", id=id)
-				label(for=id)= result.name
+				label(for=id)
+					span= result.name
+					ul.metadata
+						each value, key in result.metadata
+							li
+								span.key= key+': '
+								span.value= value
