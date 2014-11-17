@@ -139,7 +139,11 @@ class Transcription extends Models.Base
 			$body.find("[data-id='#{model.get('annotationNo')}']").remove()
 
 			@resetAnnotationOrder $body, false
-		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+		jqXHR.fail (response) =>
+			# Restore the removed model.
+			@get('annotations').add model
+			
+			Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 	resetAnnotationOrder: ($body, add=true) ->
 		# Find all sups in $body and update the innerHTML with the new index
