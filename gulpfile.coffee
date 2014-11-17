@@ -19,7 +19,6 @@ cfg = require './config.json'
 async = require 'async'
 exec = require('child_process').exec
 rimraf = require 'rimraf'
-
 browserSync = require 'browser-sync'
 modRewrite = require 'connect-modrewrite'
 
