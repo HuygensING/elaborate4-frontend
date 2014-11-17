@@ -24,6 +24,9 @@ Views =
 	Entry: require '../views/entry/main'
 	Header: require '../views/ui/header'
 
+ViewManager = require '../util/view-manager'
+viewManager = new ViewManager()
+
 class MainRouter extends Backbone.Router
 
 	initialize: ->
@@ -43,8 +46,12 @@ class MainRouter extends Backbone.Router
 				Collections.projects.fetch()
 				Collections.projects.getCurrent (@project) =>
 					unless @project?
-
 						return @navigate 'noproject', trigger: true
+
+					@listenTo @project.get('settings'), 'settings:saved', (model, changed) =>
+						if changed.hasOwnProperty 'results-per-page'
+							viewManager.removeFromCache "search-#{@project.get('name')}"
+
 					document.title = "eLaborate - #{@project.get('title')}"
 					# Route to correct url
 					url = history.last() ? 'projects/'+@project.get('name')
@@ -55,42 +62,41 @@ class MainRouter extends Backbone.Router
 						# persist: true
 
 					@listenTo Collections.projects, 'current:change', (@project) =>
-						viewManager.clear()
 						document.title = "eLaborate - #{@project.get('title')}"
 						@navigate "projects/#{@project.get('name')}", trigger: true
 			unauthorized: => @publish 'login:failed'
 			navigateToLogin: => @navigate 'login', trigger: true
 
 	# manageView: (View, options) -> viewManager.show $('div#main'), View, options
-	manageView: do ->
-		currentView = null
-		cache = {}
+	# manageView: do ->
+	# 	currentView = null
+	# 	cache = {}
 
-		(View, viewOptions, options={}) ->
-			# Destroy the current view.
-			if currentView?
-				currentView.destroy() 
-				currentView = null
+	# 	(View, viewOptions, options={}) ->
+	# 		# Destroy the current view.
+	# 		if currentView?
+	# 			currentView.destroy() 
+	# 			currentView = null
 
-			# Hide all cached views.
-			cachedView.$el.hide() for key, cachedView of cache
+	# 		# Hide all cached views.
+	# 		cachedView.$el.hide() for key, cachedView of cache
 
-			# Handle a request for a cached view.
-			if options.cache?
-				# Create a cached view if it doesn't exist.
-				unless cache[options.cache]?
-					cache[options.cache] = new View viewOptions
-					# Cached views are appended outside the #main div.
-					$('div#container').append cache[options.cache].el
+	# 		# Handle a request for a cached view.
+	# 		if options.cache?
+	# 			# Create a cached view if it doesn't exist.
+	# 			unless cache[options.cache]?
+	# 				cache[options.cache] = new View viewOptions
+	# 				# Cached views are appended outside the #main div.
+	# 				$('div#container').append cache[options.cache].el
 
-				# Show the cached view.
-				cache[options.cache].$el.show()
-			# Handle a request for a 'normal' view.
-			else
-				currentView = new View viewOptions
-				view = currentView.el
+	# 			# Show the cached view.
+	# 			cache[options.cache].$el.show()
+	# 		# Handle a request for a 'normal' view.
+	# 		else
+	# 			currentView = new View viewOptions
+	# 			view = currentView.el
 				
-				$('div#main').html view
+	# 			$('div#main').html view
 
 
 	routes:
@@ -110,7 +116,7 @@ class MainRouter extends Backbone.Router
 
 	login: ->
 		return currentUser.logout() if currentUser.loggedIn
-		@manageView Views.Login
+		viewManager.show Views.Login
 
 	noproject: ->
 		# The if-statement is used to redirect the user to login if s/he decides to refresh
@@ -133,26 +139,26 @@ class MainRouter extends Backbone.Router
 
 
 	search: (projectName) ->
-		@manageView Views.Search, {projectName: projectName}, {cache: "search-#{projectName}"}
+		viewManager.show Views.Search, {projectName: projectName}, {cache: "search-#{projectName}"}
 
 	editMetadata: (projectName) ->
-		@manageView Views.EditMetadata, projectName: projectName
+		viewManager.show Views.EditMetadata, projectName: projectName
 
 	projectSettings: (projectName, tab) ->
 		# See search comment
-		@manageView Views.ProjectSettings,
+		viewManager.show Views.ProjectSettings,
 			projectName: projectName
 			tabName: tab
 
 	projectHistory: (projectName) ->
 		# See search comment
-		@manageView Views.ProjectHistory,
+		viewManager.show Views.ProjectHistory,
 			projectName: projectName
 			cache: false
 
 	statistics: (projectName) ->
 		# See search comment
-		@manageView Views.Statistics,
+		viewManager.show Views.Statistics,
 			projectName: projectName
 			cache: false
 
@@ -174,6 +180,6 @@ class MainRouter extends Backbone.Router
 			# Set cache value to false, to tell viewManager to rerender view.
 			attrs.cache = false
 
-		@manageView Views.Entry, attrs
+		viewManager.show Views.Entry, attrs
 
 module.exports = new MainRouter()

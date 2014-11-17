@@ -22,7 +22,9 @@ class ProjectSettingsGeneral extends Backbone.View
 				projectMembers: @options.project.get('members')
 
 		# @listenTo form, 'change', => form.$('button[name="submit"]').removeClass 'disabled'
-		@listenTo form, 'save:success', => Backbone.trigger 'message', 'Settings saved.'
+		@listenTo form, 'save:success', (model, response, options, changedAttributes) =>
+			@options.project.get('settings').trigger 'settings:saved', model, changedAttributes
+			Backbone.trigger 'message', 'Settings saved.'
 
 		@$el.html form.el
 

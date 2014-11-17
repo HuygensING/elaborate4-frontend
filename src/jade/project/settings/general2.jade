@@ -31,6 +31,11 @@ fieldset.span50
 		li
 			label(for="wordwrap") Word wrap
 			input(type="checkbox", name="wordwrap", checked=model.get('wordwrap'))
+		li
+			label(for="results-per-page") Results per page
+			select(name="results-per-page")
+				each count in [10, 25, 50, 100, 250, 500, 1000]
+					option(value=count, selected=count===model.get('results-per-page'))= count + " results"
 
 fieldset.span50
 	h3 Publication

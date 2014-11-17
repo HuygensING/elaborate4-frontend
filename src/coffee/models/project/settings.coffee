@@ -15,10 +15,22 @@ class ProjectSettings extends Models.Base
 			pattern: 'slug'
 
 	parse: (attrs) ->
-		if attrs? and attrs.hasOwnProperty 'wordwrap'
-			attrs.wordwrap = attrs.wordwrap is "true"
+		if attrs?
+			if attrs.hasOwnProperty 'wordwrap'
+				attrs.wordwrap = attrs.wordwrap is "true"
+
+			if attrs.hasOwnProperty 'results-per-page'
+				attrs['results-per-page'] = +attrs['results-per-page']
 
 		attrs
+
+	set: (attrs, options) ->
+		if attrs is 'results-per-page'
+			options = +options
+		else if attrs.hasOwnProperty 'results-per-page'
+			attrs['results-per-page'] = +attrs['results-per-page']
+		
+		super
 
 	# Change defaults with spaces like Project title and Project leader. These are not
 	# proper attribute keys and break the label/input connection in hilib forms.
@@ -35,6 +47,7 @@ class ProjectSettings extends Models.Base
 		'text.font': ''
 		'name': ''
 		'wordwrap': false
+		'results-per-page': 10
 
 	url: -> "#{config.get('restUrl')}projects/#{@options.projectId}/settings"
 

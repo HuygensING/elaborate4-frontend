@@ -38,14 +38,11 @@ context =
 paths =
 	stylus: [
 		'./node_modules/hilib/src/views/**/*.styl'
-		# './node_modules/huygens-faceted-search/src/stylus/**/*.styl'
-		'./node_modules/elaborate-modules/modules/**/*.styl'
 		'./src/stylus/**/*.styl'
 	]
 
 cssFiles = cfg['css-files'].slice()
 cssFiles.push "#{devDir}/css/hilib-#{context.VERSION}.css"
-cssFiles.push "#{devDir}/css/elaborate-modules-#{context.VERSION}.css"
 cssFiles.push "#{devDir}/css/src-#{context.VERSION}.css"
 
 gulp.task 'link', (done) ->
@@ -130,9 +127,6 @@ compileStylus = (name, src) ->
 gulp.task 'compile-hilib-stylus', ->
 	compileStylus 'hilib', './node_modules/hilib/src/views/**/*.styl'
 
-gulp.task 'compile-elaborate-modules-stylus', ->
-	compileStylus 'elaborate-modules', './node_modules/elaborate-modules/modules/**/*.styl'
-
 gulp.task 'compile-main-stylus', ->
 	compileStylus 'src', './src/stylus/main.styl'
 
@@ -146,7 +140,7 @@ gulp.task 'compile-main-stylus', ->
 # 		.pipe(rename(basename:"src-#{context.VERSION}"))
 # 		.pipe(gulp.dest(devDir+'/css'))
 
-gulp.task 'create-css', ['compile-hilib-stylus', 'compile-elaborate-modules-stylus', 'compile-main-stylus'], ->
+gulp.task 'create-css', ['compile-hilib-stylus', 'compile-main-stylus'], ->
 	gulp.src(cssFiles)
 		.pipe(concat("main-#{context.VERSION}.css"))
 		.pipe(gulp.dest("#{devDir}/css"))

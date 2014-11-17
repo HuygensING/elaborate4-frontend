@@ -3,7 +3,7 @@ $ = require 'jquery'
 
 StrFn = require 'hilib/src/utils/string'
 
-FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-results'
+# FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-results'
 FacetedSearch = require 'huygens-faceted-search'
 
 config = require 'elaborate-modules/modules/models/config'
@@ -72,6 +72,7 @@ class Search extends Views.Base
 			queryOptions:
 				sortParameters: sortParameters
 				resultFields: levels
+			resultRows: @project.get('settings').get('results-per-page')
 
 		@subviews.fs.search()
 
