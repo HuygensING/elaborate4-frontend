@@ -2,6 +2,7 @@ Fn = require 'hilib/src/utils/general'
 dom = require 'hilib/src/utils/dom'
 BaseView = require 'hilib/src/views/base'
 
+currentUser = require '../../../models/currentUser'
 # console.log dom
 # Templates =
 # 	Tooltip: require 'text!html/ui/tooltip.html'
@@ -24,7 +25,9 @@ class EditAnnotationTooltip extends BaseView
 
 	# ### Render
 	render: ->
-		@$el.html tpl interactive: @options.interactive
+		@$el.html tpl
+			interactive: @options.interactive
+			user: currentUser
 
 		# There can be only one!
 		# $('#annotationtooltip').remove() 

@@ -14,6 +14,11 @@ Collections =
 
 class CurrentUser extends Backbone.Model
 
+	###
+	@return {object} defaults
+	@prop {string} role - READER, USER, PROJECTLEADER, ADMIN
+	@prop {number} defaults.roleNo - 10: reader, 20: user, 30: projectleader, 40: admin
+	###
 	defaults: ->
 		username: ''
 		title: ''
