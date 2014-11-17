@@ -133,10 +133,7 @@ class MainRouter extends Backbone.Router
 
 
 	search: (projectName) ->
-		# In theory we don't have to pass the projectName, because it is known
-		# through Collections.project.current, but we need to send it for the viewManager
-		# so it doesn't cache the same view for different projects.
-		@manageView Views.Search, {projectName: projectName}, {cache: 'search'}
+		@manageView Views.Search, {projectName: projectName}, {cache: "search-#{projectName}"}
 
 	editMetadata: (projectName) ->
 		@manageView Views.EditMetadata, projectName: projectName
