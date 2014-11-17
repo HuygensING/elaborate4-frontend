@@ -32,9 +32,11 @@ class LayerEditor extends Views.Base
 			htmlAttribute:	'body'
 			model:			@model
 			width: 			@options.width
+			wrap:			@options.wordwrap
 		@$el.html @subviews.editor.el
 
-		@listenTo @subviews.editor, 'control:wordwrap', (wrap) => @trigger 'wrap', wrap
+		@listenTo @subviews.editor, 'control:wordwrap', (wrap) =>
+			@trigger 'wrap', wrap
 		@listenTo @subviews.editor, 'button:save', => 
 			@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 

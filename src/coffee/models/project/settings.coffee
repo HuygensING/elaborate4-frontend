@@ -14,6 +14,12 @@ class ProjectSettings extends Models.Base
 			'max-length': 40
 			pattern: 'slug'
 
+	parse: (attrs) ->
+		if attrs? and attrs.hasOwnProperty 'wordwrap'
+			attrs.wordwrap = attrs.wordwrap is "true"
+
+		attrs
+
 	# Change defaults with spaces like Project title and Project leader. These are not
 	# proper attribute keys and break the label/input connection in hilib forms.
 	defaults: ->
@@ -28,6 +34,7 @@ class ProjectSettings extends Models.Base
 		'entry.term_plural': 'entries'
 		'text.font': ''
 		'name': ''
+		'wordwrap': false
 
 	url: -> "#{config.get('restUrl')}projects/#{@options.projectId}/settings"
 

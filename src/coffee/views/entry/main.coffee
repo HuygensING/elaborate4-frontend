@@ -130,7 +130,11 @@ class Entry extends Views.Base
 			# @subviews.preview = viewManager.show @el.querySelector('.container .preview-placeholder'), Views.Preview,
 			# 	model: @entry
 			# 	append: true
-			@subviews.preview = new Views.Preview model: @entry
+
+			@subviews.preview = new Views.Preview
+				model: @entry
+				wordwrap: @project.get('settings').get('wordwrap')
+
 			@$('.right-pane .preview-placeholder').append @subviews.preview.el
 
 	# * TODO: How many times is renderTranscriptionEditor called on init?
@@ -145,6 +149,7 @@ class Entry extends Views.Base
 				model: @currentTranscription
 				height: @subviews.preview.$el.innerHeight()
 				width: @subviews.preview.$el.outerWidth()
+				wordwrap: @project.get('settings').get('wordwrap')
 			@$('.transcription-placeholder').html @subviews.layerEditor.el
 		else
 			@subviews.layerEditor.show @currentTranscription

@@ -28,6 +28,9 @@ fieldset.span50
 		li
 			label(for="Version") Version
 			input(type="text", name="Version", value=model.get('Version'))
+		li
+			label(for="wordwrap") Word wrap
+			input(type="checkbox", name="wordwrap", checked=model.get('wordwrap'))
 
 fieldset.span50
 	h3 Publication
