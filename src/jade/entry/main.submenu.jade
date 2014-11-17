@@ -1,9 +1,9 @@
 - currentTranscription = entry.get('transcriptions').current
 .left-menu
 	ul.horizontal.menu.nav
-		li(data-key="previous", class=entry.prevID>0?'active':false) &nbsp;
+		li(data-key="previous") &nbsp;
 		li(data-key="current", title=entry.get('name'))= entry.get('name')
-		li(data-key="next", class=entry.nextID>0?'active':false) &nbsp;
+		li(data-key="next") &nbsp;
 	ul.horizontal.menu.switchers
 		li(data-key="facsimiles") Facsimiles&nbsp;
 			span= '(' + entry.get('facsimiles').length + ')'

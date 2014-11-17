@@ -38,17 +38,15 @@ class EntrySubmenu extends Base
 			user: @user
 		@$el.html rtpl
 
-		if @project.resultSet?
-			@entry.setPrevNext => @activatePrevNext()
-		else
-			unless @entry.prevID? and @entry.nextID?
-				@entry.fetchPrevNext => @activatePrevNext()
+		@entry.setPrevNext =>
+			# prevID and nextID are set on the model.
+			@activatePrevNext()
 
 		@
 
 	events: ->
-		'click .menu li.active[data-key="previous"]': 'previousEntry'
-		'click .menu li.active[data-key="next"]': 'nextEntry'
+		'click .menu li.active[data-key="previous"]': '_goToPreviousEntry'
+		'click .menu li.active[data-key="next"]': '_goToNextEntry'
 		'click .menu li[data-key="print"]': 'printEntry'
 		'click .menu li[data-key="delete"]': 'deleteEntry'
 		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
@@ -70,16 +68,19 @@ class EntrySubmenu extends Base
 		@entry.get('facsimiles').setCurrent newFacsimile if newFacsimile?
 
 	activatePrevNext: ->
-		@$('li[data-key="previous"]').addClass 'active' if @entry.prevID > 0
-		@$('li[data-key="next"]').addClass 'active' if @entry.nextID > 0
+		if @entry.prevID?
+			@$('li[data-key="previous"]').addClass 'active'
 
-	previousEntry: ->
+		if @entry.nextID?
+			@$('li[data-key="next"]').addClass 'active' 
+
+	_goToPreviousEntry: ->
 		projectName = @entry.project.get('name')
 		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
 		Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.prevID}/transcriptions/#{transcription}", trigger: true
 
-	nextEntry: ->
+	_goToNextEntry: ->
 		projectName = @entry.project.get('name')
 		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 

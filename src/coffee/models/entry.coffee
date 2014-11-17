@@ -113,11 +113,13 @@ class Entry extends Models.Base
       done()
 
   setPrevNext: (done) ->
+    return done() unless @project.resultSet?
+
     ids = @project.resultSet.get('ids')
     index = ids.indexOf(''+@id)
 
-    @prevID = ids[index-1] ? -1
-    @nextID = ids[index+1] ? -1
+    @prevID = ids[index-1]
+    @nextID = ids[index+1]
 
     done()
 
