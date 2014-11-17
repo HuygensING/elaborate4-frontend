@@ -131,13 +131,24 @@ class Search extends Views.Base
 			project.get('entries').add responseModel.get('results'), merge: true
 
 		@listenTo @subviews.fs, 'result:click', (data) =>
-			console.log data
+			# console.log data
 			# TODO get href from model
 			url = "projects/#{@project.get('name')}/entries/#{data.id}"
 			Backbone.history.navigate url, trigger: true
 
-		@listenTo @subviews.fs, 'result:layer-click', (layer, data) =>
-			console.log layer, data
+		@listenTo @subviews.fs, 'result:layer-click', (textLayer, data) =>
+			if textLayer?
+				# TODO Move logic to model
+				splitLayer = textLayer.split(' ')
+				if splitLayer[splitLayer.length - 1] is 'annotations'
+					splitLayer.pop()
+					textLayer = splitLayer.join(' ')
+				textLayerSlug = StrFn.slugify textLayer
+
+				url = "projects/#{@project.get('name')}/entries/#{data.id}"
+				url += "/transcriptions/#{textLayerSlug}"
+
+				Backbone.history.navigate url, trigger: true
 
 	_showEditMetadata: ->
 		@subviews.submenu.$el.addClass 'edit-metadata'
