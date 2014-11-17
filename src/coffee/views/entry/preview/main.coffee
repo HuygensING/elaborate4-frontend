@@ -1,5 +1,5 @@
 $ = require 'jquery'
-
+_ = require 'underscore'
 # @options
 #	textLayer	String 		The text layer to show, defaults to current text layer.
 #	wordwrap	Boolean		Defaults to false
@@ -13,6 +13,8 @@ Views =
 	Base: require 'hilib/src/views/base'
 	AddAnnotationTooltip: require './annotation.add.tooltip'
 	EditAnnotationTooltip: require './annotation.edit.tooltip'
+
+currentUser = require '../../../models/currentUser'
 
 # Tpl = require 'text!html/entry/preview.html'
 tpl = require '../../../../jade/entry/preview.jade'
@@ -61,6 +63,7 @@ class EntryPreview extends Views.Base
 		data.lineCount = 0 if data.body.trim() is ''
 
 		data.body = data.body.replace new RegExp(term, "gi"), '<span class="highlight">$&</span>' for own term, count of @model.get 'terms'
+		data.user = currentUser
 
 		@el.innerHTML = tpl data
 
@@ -104,8 +107,64 @@ class EntryPreview extends Views.Base
 			hash['mousedown .body-container'] = 'onMousedown'
 			hash['mouseup .body-container'] = 'onMouseup'
 			hash['scroll'] = 'onScroll'
+			hash['click .fa.fa-print'] = 'onPrint'
 
 		hash
+
+	# When the user wants to print we create a div#printpreview directly under <body> and show
+	# a clone of the preview body and an ordered list of the annotations.
+	onPrint: (ev) ->
+		addTranscription = (el) =>
+			clonedPreview = el.cloneNode true
+			clonedPreview.style.height = 'auto'
+			mainDiv.appendChild clonedPreview
+
+		addAnnotations = (annotations) =>
+			if annotations? and annotations.length > 0
+				ol = document.createElement('ol')
+				ol.className = 'annotations'
+
+				sups = document.querySelectorAll('sup[data-marker="end"]')
+				_.each sups, (sup) =>
+					annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
+
+					li = document.createElement('li')
+					li.innerHTML = annotation.get('body')
+
+					ol.appendChild li
+
+				h2 = document.createElement('h2')
+				h2.innerHTML = 'Annotations'
+
+				mainDiv.appendChild h2
+				mainDiv.appendChild ol
+
+		pp = document.querySelector('#printpreview')
+		pp.parentNode.removeChild pp if pp?
+
+		mainDiv = document.createElement('div')
+		mainDiv.id = 'printpreview'
+
+		h1 = document.createElement('h1')
+		h1.innerHTML = 'Preview entry: ' + @model.get('name')
+
+		h2 = document.createElement('h2')
+		h2.innerHTML = 'Project: ' + @model.project.get('title')
+
+		mainDiv.appendChild h1
+		mainDiv.appendChild h2
+
+		if config.get('entry-left-preview')?
+			addTranscription document.querySelector('.left-pane .preview')
+			transcription = @model.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
+			addAnnotations transcription.get('annotations')
+
+		addTranscription document.querySelector('.right-pane .preview')
+		addAnnotations @model.get('transcriptions').current.get('annotations')
+
+		document.body.appendChild mainDiv
+
+		window.print()
 
 	onScroll: (ev) ->
 		if @autoscroll = !@autoscroll

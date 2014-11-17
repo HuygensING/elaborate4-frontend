@@ -1,4 +1,8 @@
-h2= textLayer + ' layer'
+h2
+	span= textLayer + ' preview layer'
+	//- >= USER
+	if user.get('roleNo') >= 20
+		i.fa.fa-print(style="color: #888; font-size: 0.8em; margin-left: 10px")
 if lineCount == 0
 	span.emptylayer This layer is empty.
 .body-container

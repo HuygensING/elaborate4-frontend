@@ -19,17 +19,18 @@
 			ul.vertical.menu.textlayers
 				each transcription in entry.get('transcriptions').models
 					li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
+
 .middle-menu
 	ul.horizontal.menu
-		//- >= USER
-		if user.get('roleNo') >= 20
-			li(data-key="print") Print
-		li.arrowdown(data-key="layer", data-value=currentTranscription.id)= currentTranscription.get('textLayer') + ' layer'
-			ul.vertical.menu.textlayers
-				li.spacer &nbsp;
-				each transcription in entry.get('transcriptions').models
-					if transcription != currentTranscription
-						li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
+		if entry.get('transcriptions').models.length > 1
+			li.arrowdown(data-key="layer", data-value=currentTranscription.id)= currentTranscription.get('textLayer') + ' layer'
+				ul.vertical.menu.textlayers
+					li.spacer &nbsp;
+					if entry.get('transcriptions').models.length > 1
+					each transcription in entry.get('transcriptions').models
+						if transcription != currentTranscription
+							li(data-key="transcription", data-value=transcription.id) #{transcription.get('textLayer')} layer
+
 .right-menu
 	ul.horizontal.menu
 		//- >= PROJECT_LEADER

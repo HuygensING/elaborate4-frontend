@@ -47,7 +47,6 @@ class EntrySubmenu extends Base
 	events: ->
 		'click .menu li.active[data-key="previous"]': '_goToPreviousEntry'
 		'click .menu li.active[data-key="next"]': '_goToNextEntry'
-		'click .menu li[data-key="print"]': 'printEntry'
 		'click .menu li[data-key="delete"]': 'deleteEntry'
 		'click .menu li[data-key="metadata"]': 'editEntryMetadata'
 		'click .menu li[data-key="facsimiles"] li[data-key="facsimile"]': 'changeFacsimile'
@@ -85,61 +84,6 @@ class EntrySubmenu extends Base
 		transcription = StringFn.slugify @entry.get('transcriptions').current.get 'textLayer'
 
 		Backbone.history.navigate "projects/#{projectName}/entries/#{@entry.nextID}/transcriptions/#{transcription}", trigger: true
-
-	# When the user wants to print we create a div#printpreview directly under <body> and show
-	# a clone of the preview body and an ordered list of the annotations.
-	printEntry: (ev) ->
-		addTranscription = (el) =>
-			clonedPreview = el.cloneNode true
-			clonedPreview.style.height = 'auto'
-			mainDiv.appendChild clonedPreview
-
-		addAnnotations = (annotations) =>
-			if annotations? and annotations.length > 0
-				ol = document.createElement('ol')
-				ol.className = 'annotations'
-
-				sups = document.querySelectorAll('sup[data-marker="end"]')
-				_.each sups, (sup) =>
-					annotation = annotations.findWhere annotationNo: +sup.getAttribute('data-id')
-
-					li = document.createElement('li')
-					li.innerHTML = annotation.get('body')
-
-					ol.appendChild li
-
-				h2 = document.createElement('h2')
-				h2.innerHTML = 'Annotations'
-
-				mainDiv.appendChild h2
-				mainDiv.appendChild ol
-
-		pp = document.querySelector('#printpreview')
-		pp.parentNode.removeChild pp if pp?
-
-		mainDiv = document.createElement('div')
-		mainDiv.id = 'printpreview'
-
-		h1 = document.createElement('h1')
-		h1.innerHTML = 'Preview entry: ' + @entry.get('name')
-
-		h2 = document.createElement('h2')
-		h2.innerHTML = 'Project: '+ @project.get('title')
-
-		mainDiv.appendChild h1
-		mainDiv.appendChild h2
-
-		if config.get('entry-left-preview')?
-			addTranscription document.querySelector('.left-pane .preview')
-			transcription = @entry.get('transcriptions').findWhere 'textLayer': config.get('entry-left-preview')
-			addAnnotations transcription.get('annotations')
-
-		addTranscription document.querySelector('.right-pane .preview')
-		addAnnotations @entry.get('transcriptions').current.get('annotations')
-
-		document.body.appendChild mainDiv
-
-		window.print()
 
 	deleteEntry: do ->
 		modal = null
