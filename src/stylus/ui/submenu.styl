@@ -79,9 +79,15 @@
 				inline-block()
 				vertical-align middle
 
-
 	& > .middle-menu, & > .right-menu
 		width 30%
+		
+	& > .middle-menu
+		li[data-key="layer"]
+			position absolute
+			right 0
+			top 9px
+
 
 	& > .right-menu
 		text-align right

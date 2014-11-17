@@ -9,15 +9,15 @@
 if user.get('roleNo') >= 20
 	.middle-menu
 		ul.horizontal.menu
-			li(data-key="newentry")= 'New '+config.get('entryTermSingular')
-			li(data-key="editmetadata") Edit metadata
+			li(data-key="newentry")= 'Add '+config.get('entryTermSingular')
+			li(data-key="editmetadata") Edit results metadata
 	.right-menu
 		ul.horizontal.menu
-			//- >= ADMIN
-			if user.get('roleNo') >= 40 && projects.length > 1
-				li(data-key="delete") Remove
 			//- >= PROJECTLEADER
 			if user.get('roleNo') >= 30
 				li(data-key="publish") 
 					span Publish draft
 					i.fa.fa-spinner.fa-spin
+			//- >= ADMIN
+			if user.get('roleNo') >= 40 && projects.length > 1
+				li(data-key="delete") Remove project

@@ -42,13 +42,22 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 
 ## Changelog
 
+#### Dev
+
+- [feat] Add wordwrap option to general settings.
+- [feat] Move print button to preview layer.
+- [feat] Move edit multiple metadata to separate view.
+- [feat] Rename buttons in search submenu (add entry, edit results metadata and remove project)
+- [fix] Prev/next would render active without ID.
+- [fix] Reader shouldn't be able to edit or remove annotations.
+
 #### 1.1.2
 
-- [bug] Sort levels would call removed method.
+- [fix] Sort levels would call a removed method.
 
 #### 1.1.1
 
-- [bug] Add @options argument to views initialize method for Backbone v1+
+- [fix] Add @options argument to views initialize method for Backbone v1+
 
 #### 1.1.0
 
