@@ -152,7 +152,7 @@ class Search extends Views.Base
 				Backbone.history.navigate url, trigger: true
 
 	_showEditMetadata: ->
-		@subviews.submenu.$el.addClass 'edit-metadata'
+		@subviews.submenu.$el.addClass 'submenu-edit-metadata'
 		
 		@$('.faceted-search-placeholder').hide()
 
@@ -173,7 +173,7 @@ class Search extends Views.Base
 			@subviews.fs.reset()
 
 	_hideEditMetadata: ->
-		@subviews.submenu.$el.removeClass 'edit-metadata'
+		@subviews.submenu.$el.removeClass 'submenu-edit-metadata'
 
 		@$('.faceted-search-placeholder').show()
 
