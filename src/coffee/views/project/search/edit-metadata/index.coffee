@@ -46,6 +46,8 @@ class EditMetadata extends BaseView
 		checkboxes = @$('.results li.result > input[type="checkbox"]')
 		cb.checked = ev.currentTarget.checked for cb in checkboxes
 
+		@updateData()
+
 	onShowMetadata: (ev) ->
 		@$('.results').toggleClass 'show-metadata'
 
