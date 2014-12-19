@@ -69,6 +69,9 @@ class Search extends Views.Base
 				textLayers: @project.get('textLayers')
 				searchInAnnotations: true
 				searchInTranscriptions: true
+				term: '*:*'
+				caseSensitive: true
+				fuzzy: true
 			queryOptions:
 				sortParameters: sortParameters
 				resultFields: levels
