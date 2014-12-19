@@ -49,6 +49,7 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 - [feat] Move print button to preview layer.
 - [feat] Move edit multiple metadata to separate view.
 - [feat] Rename buttons in search submenu (add entry, edit results metadata and remove project)
+- [feat] Bump Faceted Search to 2.3.0
 - [fix] Prev/next would render active without ID.
 - [fix] Reader shouldn't be able to edit or remove annotations.
 
