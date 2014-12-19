@@ -6,6 +6,27 @@
 		overflow-y scroll
 		
 	.faceted-search
+		.text-search
+			.body
+				ul.options
+					li.option
+						inline-block()
+						margin-top 4px
+						width 45%
+						
+						input[type="checkbox"], label
+							inline-block()
+							
+						label
+							padding-left 4px
+							
+						&.search-annotations, &.search-textlayers
+							margin-top 10px
+							
+							h4
+								margin-bottom 4px
+						
+							
 		ul.facets-menu
 			margin 4px 0 10px 0
 			
@@ -16,9 +37,16 @@
 				button
 					width 140px
 					outline none
+					
+		.facets
+			.facet
+				margin-top 16px
+				
+				.body
+					margin-top 6px
 	
 	.results
-		left 30%
+		left 33.33%
 		
 	.results div.pages 
 		margin-top 12px
