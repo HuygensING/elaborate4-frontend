@@ -31,6 +31,18 @@ class Search extends Views.Base
 
 		projects.getCurrent (@project) =>
 			@render()
+
+			# If the project's entry metadata fields change, the faceted search
+			# has to be updated to render the sort fields correctly.
+			@listenTo @project, 'change:entrymetadatafields', (values) =>
+				@subviews.fs.config.set entryMetadataFields: values
+
+			@listenTo @project, 'change:level1 change:level2 change:level3', =>
+				@subviews.fs.config.set levels: [
+					@project.get('level1')
+					@project.get('level2')
+					@project.get('level3')
+				]
 			# TODO fix for new FS
 			# @listenTo Backbone, 'change:entry-metadata', => entryMetadataChanged = true
 			# @listenTo Backbone, 'router:search', => @subviews.fsr.reset() if entryMetadataChanged

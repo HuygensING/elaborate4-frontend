@@ -109,16 +109,17 @@ class ProjectSettingsEntries extends Views.Base
 		jqXHR.done =>
 			@$('button.savesortlevels').removeClass 'loading'
 			# Update project attributes
-			@project.set 'level1', sortlevels[0]
-			@project.set 'level2', sortlevels[1]
-			@project.set 'level3', sortlevels[2]
+			@project.set 
+				level1: sortlevels[0]
+				level2: sortlevels[1]
+				level3: sortlevels[2]
 
 			@$('.sort-levels form button').addClass 'inactive'
 			
 			@publish 'message', 'Entry sort levels saved.'
 			
 			# Send message to project main view, so it can re-render the levels.
-			Backbone.trigger 'sortlevels:update', sortlevels
+			# Backbone.trigger 'sortlevels:update', sortlevels
 		jqXHR.fail =>
 			@$('button.savesortlevels').removeClass 'loading'
 
