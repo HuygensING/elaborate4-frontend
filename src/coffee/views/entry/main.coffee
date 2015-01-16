@@ -9,7 +9,7 @@ StringFn = require 'hilib/src/utils/string'
 require 'hilib/src/utils/jquery.mixin'
 Async = require 'hilib/src/managers/async'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../models/config'
 
 Models =
 	Entry: require '../../models/entry'

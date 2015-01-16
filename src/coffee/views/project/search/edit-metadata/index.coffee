@@ -6,7 +6,7 @@ BaseView = require 'hilib/src/views/base'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../../../models/config'
 projects = require '../../../../collections/projects'
 
 tpl = require './index.jade'

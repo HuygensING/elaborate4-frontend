@@ -1,5 +1,5 @@
 Backbone = require 'backbone'
-config = require 'elaborate-modules/modules/models/config'
+config = require './config'
 
 Models = 
 	Base: require './base'

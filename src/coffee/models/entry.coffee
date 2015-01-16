@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require './config'
 
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'

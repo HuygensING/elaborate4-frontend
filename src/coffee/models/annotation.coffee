@@ -7,7 +7,7 @@ _ = require 'underscore'
 
 changedSinceLastSave = require 'hilib/src/mixins/model.changedsincelastsave'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require './config'
 
 Models = 
 	Base: require './base'

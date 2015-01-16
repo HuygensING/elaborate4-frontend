@@ -2,7 +2,7 @@ Backbone = require 'backbone'
 _ = require 'underscore'
 $ = require 'jquery'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../../models/config'
 Async = require 'hilib/src/managers/async'
 ajax = require 'hilib/src/managers/ajax'
 token = require 'hilib/src/managers/token'

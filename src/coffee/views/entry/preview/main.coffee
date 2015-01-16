@@ -7,7 +7,7 @@ _ = require 'underscore'
 Fn = require 'hilib/src/utils/general'
 dom = require 'hilib/src/utils/dom'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../../models/config'
 
 Views = 
 	Base: require 'hilib/src/views/base'

@@ -3,7 +3,7 @@ $ = require 'jquery'
 
 BaseView = require 'hilib/src/views/base'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../models/config'
 
 Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'

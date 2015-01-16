@@ -1,7 +1,7 @@
 Backbone = require 'backbone'
 _ = require 'underscore'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../models/config'
 
 history = require 'hilib/src/managers/history'
 

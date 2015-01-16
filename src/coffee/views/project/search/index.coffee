@@ -6,7 +6,7 @@ StrFn = require 'hilib/src/utils/string'
 # FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-results'
 FacetedSearch = require 'huygens-faceted-search'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../../models/config'
 projects = require '../../../collections/projects'
 
 token = require 'hilib/src/managers/token'

@@ -1,6 +1,6 @@
 Backbone = require 'backbone'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../../models/config'
 currentUser = require '../../../models/currentUser'
 projects = require '../../../collections/projects'
 

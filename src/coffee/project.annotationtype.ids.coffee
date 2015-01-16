@@ -1,7 +1,7 @@
 # Entrymetadata fetches and saves the entry metadata. The fetch returns an array of strings
 # and the save puts the entire array to save it.
 
-config = require 'elaborate-modules/modules/models/config'
+config = require './models/config'
 token = require 'hilib/src/managers/token'
 ajax = require 'hilib/src/managers/ajax'
 

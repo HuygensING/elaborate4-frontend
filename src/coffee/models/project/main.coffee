@@ -6,7 +6,7 @@ ajax = require 'hilib/src/managers/ajax'
 
 Async = require 'hilib/src/managers/async'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../config'
 
 Models = 
 	Base: require '../base'

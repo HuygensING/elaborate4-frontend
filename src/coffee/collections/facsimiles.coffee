@@ -1,4 +1,4 @@
-config = require 'elaborate-modules/modules/models/config'
+config = require '../models/config'
 Base = require './base'
 
 Models =

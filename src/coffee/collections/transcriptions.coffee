@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../models/config'
 Base = require './base'
 StringFn = require 'hilib/src/utils/string'
 

@@ -6,7 +6,7 @@ Fn = require 'hilib/src/utils/general'
 StringFn = require 'hilib/src/utils/string'
 Async = require 'hilib/src/managers/async'
 
-config = require 'elaborate-modules/modules/models/config'
+config = require '../../models/config'
 
 Base = require 'hilib/src/views/base'
 
