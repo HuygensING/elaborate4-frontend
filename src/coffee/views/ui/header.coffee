@@ -21,7 +21,6 @@ projects = require '../../collections/projects'
 tpl = require '../../../jade/ui/header.jade'
 
 class Header extends BaseView
-
 	className: 'main'
 
 	tagName: 'header'
@@ -47,7 +46,7 @@ class Header extends BaseView
 		'click .left .statistics': 'navigateToProjectStatistics'
 		'click .left .history': 'navigateToProjectHistory'
 		'click .middle .message': -> @$('.message').removeClass 'active'
-		'click .right .logout': -> currentUser.logout() 
+		'click .right .logout': -> currentUser.logout()
 		'click .right .project:not(.active)': 'setProject'
 		'click .right .addproject': 'addProject'
 
@@ -74,18 +73,37 @@ class Header extends BaseView
 
 			modal = new Views.Modal
 				title: "Add project"
-				html: '<form><ul><li><label>Name</label><input name="project-title" type="text" /></li></ul></form>'
+				html: "<form>
+							<ul>
+								<li>
+									<label>Name</label>
+									<input name=\"project-title\" type=\"text\" />
+								</li>
+								<li>
+									<label>Type</label>
+									<select name=\"project-type\">
+										<option value=\"collection\">Collection</option>
+										<option value=\"mvn\">MVN</option>
+									</select>
+								</li>
+							</ul>
+						</form>"
 				submitValue: 'Add project'
 				width: '300px'
 			modal.on 'submit', =>
 				projects.create
 					title: $('input[name="project-title"]').val()
+					type: $('select[name="project-type"]').val()
 				,
 					wait: true
 					# We don't have to call an update of the UI, because the UI is updated when the current
 					# project changes. This is done by the projects collection listening to the sync event.
-					success: (model) => modal.close()
-					error: (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+					success: (model) =>
+						modal.close()
+					error: (response) =>
+						if response.status is 401
+							Backbone.history.navigate 'login', trigger: true
+
 			modal.on 'close', -> modal = null
 
 
@@ -102,7 +120,7 @@ class Header extends BaseView
 		$message.addClass 'active' unless $message.hasClass 'active'
 		$message.html msg
 
-		Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), => 
+		Fn.timeoutWithReset 5000, (=> $message.removeClass 'active'), =>
 			$message.addClass 'pulse'
 			setTimeout (=> $message.removeClass 'pulse'), 1000
 

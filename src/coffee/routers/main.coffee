@@ -49,7 +49,7 @@ class MainRouter extends Backbone.Router
 						return @navigate 'noproject', trigger: true
 
 					@listenTo @project.get('settings'), 'settings:saved', (model, changed) =>
-						if changed.hasOwnProperty 'results-per-page'
+						if changed?.hasOwnProperty 'results-per-page'
 							viewManager.removeFromCache "search-#{@project.get('name')}"
 
 					document.title = "eLaborate - #{@project.get('title')}"
@@ -75,7 +75,7 @@ class MainRouter extends Backbone.Router
 	# 	(View, viewOptions, options={}) ->
 	# 		# Destroy the current view.
 	# 		if currentView?
-	# 			currentView.destroy() 
+	# 			currentView.destroy()
 	# 			currentView = null
 
 	# 		# Hide all cached views.
@@ -95,7 +95,7 @@ class MainRouter extends Backbone.Router
 	# 		else
 	# 			currentView = new View viewOptions
 	# 			view = currentView.el
-				
+
 	# 			$('div#main').html view
 
 

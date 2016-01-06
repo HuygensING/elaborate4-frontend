@@ -11681,7 +11681,8 @@ Project = (function(_super) {
       jqXHR = ajax.post({
         url: this.url(),
         data: JSON.stringify({
-          title: this.get('title')
+          title: this.get('title'),
+          type: this.get('type')
         }),
         dataType: 'text'
       });
@@ -12584,7 +12585,7 @@ MainRouter = (function(_super) {
               });
             }
             _this.listenTo(_this.project.get('settings'), 'settings:saved', function(model, changed) {
-              if (changed.hasOwnProperty('results-per-page')) {
+              if (changed != null ? changed.hasOwnProperty('results-per-page') : void 0) {
                 return viewManager.removeFromCache("search-" + (_this.project.get('name')));
               }
             });
@@ -16516,14 +16517,15 @@ Header = (function(_super) {
       }
       modal = new Views.Modal({
         title: "Add project",
-        html: '<form><ul><li><label>Name</label><input name="project-title" type="text" /></li></ul></form>',
+        html: "<form> <ul> <li> <label>Name</label> <input name=\"project-title\" type=\"text\" /> </li> <li> <label>Type</label> <select name=\"project-type\"> <option value=\"collection\">Collection</option> <option value=\"mvn\">MVN</option> </select> </li> </ul> </form>",
         submitValue: 'Add project',
         width: '300px'
       });
       modal.on('submit', (function(_this) {
         return function() {
           return projects.create({
-            title: $('input[name="project-title"]').val()
+            title: $('input[name="project-title"]').val(),
+            type: $('select[name="project-type"]').val()
           }, {
             wait: true,
             success: function(model) {
@@ -17202,8 +17204,9 @@ module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (model, projectMembers, sel, src, undefined) {
-buf.push("<fieldset class=\"span50\"><h3>General</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label for=\"projectType\">Type</label><select name=\"projectType\"><option value=\"collection\"" + (jade.attr("selected", model.get('projectType')==='collection', true, false)) + ">Collection</option><option value=\"work\"" + (jade.attr("selected", model.get('projectType')==='work', true, false)) + ">Work</option></select></li><li><label for=\"Project title\">Project title</label><input type=\"text\" name=\"Project title\"" + (jade.attr("value", model.get('Project title'), true, false)) + "/></li><li><label for=\"name\">Project name</label><input type=\"text\" name=\"name\"" + (jade.attr("value", model.get('name'), true, false)) + "/></li><li><label for=\"Project leader\">Project leader</label><select name=\"Project leader\"><option>-- select member --</option>");
+;var locals_for_with = (locals || {});(function (console, model, projectMembers, sel, src, undefined) {
+console.log(model)
+buf.push("<fieldset class=\"span50\"><h3>General</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label for=\"projectType\">Type</label><span>" + (jade.escape(null == (jade_interp = model.get('projectType')) ? "" : jade_interp)) + "</span></li><li><label for=\"Project title\">Project title</label><input type=\"text\" name=\"Project title\"" + (jade.attr("value", model.get('Project title'), true, false)) + "/></li><li><label for=\"name\">Project name</label><input type=\"text\" name=\"name\"" + (jade.attr("value", model.get('name'), true, false)) + "/></li><li><label for=\"Project leader\">Project leader</label><select name=\"Project leader\"><option>-- select member --</option>");
 // iterate projectMembers.models
 ;(function(){
   var $$obj = projectMembers.models;
@@ -17251,14 +17254,19 @@ buf.push("<option" + (jade.attr("value", count, true, false)) + (jade.attr("sele
   }
 }).call(this);
 
-buf.push("</select></li></ul></fieldset><fieldset class=\"span50\"><h3>Publication</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + ">");
+buf.push("</select></li>");
+if ( (model.get("projectType") === "mvn"))
+{
+buf.push("<li><h3 style=\"margin-top: 30px\">MVN</h3><label for=\"mvn.signatuur\">Signatuur</label><input type=\"text\" name=\"mvn.signatuur\"" + (jade.attr("value", model.get('mvn.signatuur'), true, false)) + "/></li>");
+}
+buf.push("</ul></fieldset><fieldset class=\"span50\"><h3>Publication</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + ">");
 if ( model.get('publicationURL').length > 0)
 {
 buf.push("<li><label>URL</label><a" + (jade.attr("href", model.get('publicationURL'), true, false)) + " data-bypass=\"data-bypass\" target=\"_blank\">link</a></li>");
 }
 buf.push("<li><label>Title</label><input type=\"text\"" + (jade.attr("value", model.get('publication.title'), true, false)) + " name=\"publication.title\"/></li><li><label for=\"text.font\">Font</label><select name=\"text.font\"><option></option><option value=\"junicode\"" + (jade.attr("selected", model.get('text.font')=='junicode', true, false)) + ">Junicode</option><option value=\"dejavu\"" + (jade.attr("selected", model.get('text.font')=='dejavu', true, false)) + ">DejaVu</option><option value=\"gentium\"" + (jade.attr("selected", model.get('text.font')=='gentium', true, false)) + ">Gentium</option><option value=\"alexander\"" + (jade.attr("selected", model.get('text.font')=='alexander', true, false)) + ">Alexander</option><option value=\"newathena\"" + (jade.attr("selected", model.get('text.font')=='newathena', true, false)) + ">New Athena</option></select></li>");
 src = model.get('text.font') === '' ? model.get('text.font') : '/images/fonts/'+model.get('text.font')+'.png'
-buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + " width=\"140px\" height=\"140px\"/></li></ul></fieldset><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + " width=\"140px\" height=\"140px\"/></li></ul></fieldset><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button>");}.call(this,"console" in locals_for_with?locals_for_with.console:typeof console!=="undefined"?console:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
 },{"jade/runtime":36}],111:[function(require,module,exports){
 var jade = require("jade/runtime");

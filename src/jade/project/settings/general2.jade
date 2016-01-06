@@ -1,11 +1,11 @@
+- console.log(model)
+
 fieldset.span50
 	h3 General
 	ul(data-model-id=model.cid)
 		li
 			label(for="projectType") Type
-			select(name="projectType")
-				option(value="collection", selected=model.get('projectType')==='collection') Collection
-				option(value="work", selected=model.get('projectType')==='work') Work
+			span=model.get('projectType')
 		li
 			label(for="Project title") Project title
 			input(type="text", name="Project title", value=model.get('Project title'))
@@ -36,6 +36,13 @@ fieldset.span50
 			select(name="results-per-page")
 				each count in [10, 25, 50, 100, 250, 500, 1000]
 					option(value=count, selected=count===model.get('results-per-page'))= count + " results"
+
+		if (model.get("projectType") === "mvn")
+			li
+				h3(style="margin-top: 30px") MVN
+				label(for="mvn.signatuur") Signatuur
+				input(type="text", name="mvn.signatuur", value=model.get('mvn.signatuur'))
+
 
 fieldset.span50
 	h3 Publication

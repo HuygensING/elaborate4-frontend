@@ -3,7 +3,7 @@ config = require '../config'
 # token = require 'hilib/src/managers/token'
 ajax = require 'hilib/src/managers/ajax'
 
-Models = 
+Models =
 	Base: require '../base'
 
 class ProjectSettings extends Models.Base
@@ -29,7 +29,7 @@ class ProjectSettings extends Models.Base
 			options = +options
 		else if attrs.hasOwnProperty 'results-per-page'
 			attrs['results-per-page'] = +attrs['results-per-page']
-		
+
 		super
 
 	# Change defaults with spaces like Project title and Project leader. These are not

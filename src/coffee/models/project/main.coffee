@@ -201,6 +201,7 @@ class Project extends Models.Base
 				url: @url()
 				data: JSON.stringify
 					title: @get 'title'
+					type: @get 'type'
 				dataType: 'text'
 
 			jqXHR.done (data, textStatus, jqXHR) =>
