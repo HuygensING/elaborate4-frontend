@@ -1,4 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+},{}],2:[function(require,module,exports){
 var Backbone, Base, Pubsub, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -41,7 +43,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"../mixins/pubsub":13}],2:[function(require,module,exports){
+},{"../mixins/pubsub":14}],3:[function(require,module,exports){
 var $, defaultOptions, token;
 
 $ = require('jquery');
@@ -117,7 +119,7 @@ module.exports = {
 };
 
 
-},{"./token":6}],3:[function(require,module,exports){
+},{"./token":7}],4:[function(require,module,exports){
 var Async, Backbone, _;
 
 Backbone = require('backbone');
@@ -157,7 +159,7 @@ Async = (function() {
 module.exports = Async;
 
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var History;
 
 History = (function() {
@@ -187,7 +189,7 @@ History = (function() {
 module.exports = new History();
 
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var $, ModalManager;
 
 $ = require('jquery');
@@ -229,7 +231,7 @@ ModalManager = (function() {
 module.exports = new ModalManager();
 
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var Token;
 
 Token = (function() {
@@ -269,7 +271,7 @@ Token = (function() {
 module.exports = new Token();
 
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var StringFn, ViewManager, cachedViews, currentView,
   __hasProp = {}.hasOwnProperty;
 
@@ -330,7 +332,7 @@ ViewManager = (function() {
 module.exports = new ViewManager();
 
 
-},{"../utils/string":18}],8:[function(require,module,exports){
+},{"../utils/string":19}],9:[function(require,module,exports){
 var $, Backbone, Fn, mainTpl, optionMixin, _;
 
 Backbone = require('backbone');
@@ -437,14 +439,14 @@ module.exports = {
     });
     return this.$optionlist.html(rtpl);
   },
-  dropdownEvents: function() {
+  dropdownEvents: function(cid) {
     var evs;
     evs = {
       'click .caret': 'toggleList',
       'click li.list': 'addSelected'
     };
-    evs['keyup input[data-view-id="' + this.cid + '"]'] = 'onKeyup';
-    evs['keydown input[data-view-id="' + this.cid + '"]'] = 'onKeydown';
+    evs['keyup input[data-view-id="' + cid + '"]'] = 'onKeyup';
+    evs['keydown input[data-view-id="' + cid + '"]'] = 'onKeydown';
     return evs;
   },
   toggleList: function(ev) {
@@ -520,14 +522,14 @@ module.exports = {
 };
 
 
-},{"../../utils/general":16,"./main.jade":9,"./options":10}],9:[function(require,module,exports){
+},{"../../utils/general":17,"./main.jade":10,"./options":11}],10:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (collection, selected) {
+;var locals_for_with = (locals || {});(function (collection, selected, undefined) {
 // iterate collection.models
 ;(function(){
   var $$obj = collection.models;
@@ -549,9 +551,9 @@ buf.push("<li" + (jade.attr("data-id", model.id, true, false)) + (jade.cls(['lis
 
   }
 }).call(this);
-}("collection" in locals_for_with?locals_for_with.collection:typeof collection!=="undefined"?collection:undefined,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined));;return buf.join("");
+}.call(this,"collection" in locals_for_with?locals_for_with.collection:typeof collection!=="undefined"?collection:undefined,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],10:[function(require,module,exports){
+},{"jade/runtime":36}],11:[function(require,module,exports){
 module.exports = {
   dropdownOptionsInitialize: function() {
     return this.resetCurrentOption();
@@ -582,7 +584,7 @@ module.exports = {
 };
 
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = function(attrs) {
   return {
     changedSinceLastSave: null,
@@ -618,7 +620,7 @@ module.exports = function(attrs) {
 };
 
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var ajax, token;
 
 ajax = require('../managers/ajax');
@@ -685,7 +687,7 @@ module.exports = {
 };
 
 
-},{"../managers/ajax":2,"../managers/token":6}],13:[function(require,module,exports){
+},{"../managers/ajax":3,"../managers/token":7}],14:[function(require,module,exports){
 var Backbone;
 
 Backbone = require('backbone');
@@ -700,7 +702,7 @@ module.exports = {
 };
 
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var $, Fn, validate, validateAttr, validators, _,
   __hasProp = {}.hasOwnProperty;
 
@@ -886,7 +888,7 @@ module.exports = {
 };
 
 
-},{"../utils/general":16}],15:[function(require,module,exports){
+},{"../utils/general":17}],16:[function(require,module,exports){
 var DOM, _;
 
 _ = require('underscore');
@@ -1126,7 +1128,7 @@ DOM = function(el) {
 module.exports = DOM;
 
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var $, _,
   __hasProp = {}.hasOwnProperty;
 
@@ -1461,7 +1463,7 @@ module.exports = {
 };
 
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -1548,7 +1550,7 @@ $ = require('jquery');
 })($);
 
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var $;
 
 $ = require('jquery');
@@ -1617,7 +1619,7 @@ module.exports = {
 };
 
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var $, Backbone, BaseView, Pubsub, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1661,7 +1663,7 @@ BaseView = (function(_super) {
 module.exports = BaseView;
 
 
-},{"../mixins/pubsub":13}],20:[function(require,module,exports){
+},{"../mixins/pubsub":14}],21:[function(require,module,exports){
 var Backbone, Collections, ComboList, Views, dom, dropdown, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1742,7 +1744,7 @@ ComboList = (function(_super) {
   };
 
   ComboList.prototype.events = function() {
-    return _.extend(this.dropdownEvents(), {
+    return _.extend(dropdown.dropdownEvents(this.cid), {
       'click li.selected span': 'removeSelected',
       'click button.add': 'createModel',
       'keyup input': 'toggleAddButton'
@@ -1834,14 +1836,14 @@ ComboList = (function(_super) {
 module.exports = ComboList;
 
 
-},{"../../../collections/base":1,"../../../mixins/dropdown/main":8,"../../../utils/dom":15,"../../base":19,"./main.jade":21}],21:[function(require,module,exports){
+},{"../../../collections/base":2,"../../../mixins/dropdown/main":9,"../../../utils/dom":16,"../../base":20,"./main.jade":22}],22:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (viewId, settings, selected) {
+;var locals_for_with = (locals || {});(function (selected, settings, undefined, viewId) {
 buf.push("<div class=\"input\"><input type=\"text\"" + (jade.attr("data-view-id", viewId, true, false)) + (jade.attr("placeholder", settings.placeholder, true, false)) + "/><div class=\"caret\"></div></div>");
 if ( settings.mutable)
 {
@@ -1882,9 +1884,9 @@ buf.push("</ul>");
 else
 {
 buf.push("<div class=\"empty\">The list is empty.</div>");
-}}("viewId" in locals_for_with?locals_for_with.viewId:typeof viewId!=="undefined"?viewId:undefined,"settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined));;return buf.join("");
+}}.call(this,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined,"settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined,"viewId" in locals_for_with?locals_for_with.viewId:typeof viewId!=="undefined"?viewId:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],22:[function(require,module,exports){
+},{"jade/runtime":36}],23:[function(require,module,exports){
 var Collections, EditableList, Views, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2013,14 +2015,14 @@ EditableList = (function(_super) {
 module.exports = EditableList;
 
 
-},{"../../../collections/base":1,"../../base":19,"./main.jade":23}],23:[function(require,module,exports){
+},{"../../../collections/base":2,"../../base":20,"./main.jade":24}],24:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (viewId, settings, selected) {
+;var locals_for_with = (locals || {});(function (selected, settings, undefined, viewId) {
 buf.push("<div class=\"input\"><input" + (jade.attr("data-view-id", viewId, true, false)) + (jade.attr("placeholder", settings.placeholder, true, false)) + "/></div><button class=\"add\">Add</button>");
 if ( selected.length > 0)
 {
@@ -2052,9 +2054,9 @@ buf.push("</ul>");
 else
 {
 buf.push("<div class=\"empty\">The list is empty.</div>");
-}}("viewId" in locals_for_with?locals_for_with.viewId:typeof viewId!=="undefined"?viewId:undefined,"settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined));;return buf.join("");
+}}.call(this,"selected" in locals_for_with?locals_for_with.selected:typeof selected!=="undefined"?selected:undefined,"settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined,"viewId" in locals_for_with?locals_for_with.viewId:typeof viewId!=="undefined"?viewId:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],24:[function(require,module,exports){
+},{"jade/runtime":36}],25:[function(require,module,exports){
 var $, Backbone, Fn, Form, Views, validation, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -2159,6 +2161,7 @@ Form = (function(_super) {
 
   Form.prototype.events = function() {
     var evs;
+    console.log("FORM#EVENTS", this.model, this.Model);
     evs = {};
     evs["keyup [data-model-id='" + this.model.cid + "'] textarea"] = "inputChanged";
     evs["keyup [data-model-id='" + this.model.cid + "'] input"] = "inputChanged";
@@ -2373,7 +2376,7 @@ Form = (function(_super) {
 module.exports = Form;
 
 
-},{"../../mixins/validation":14,"../../utils/general":16,"../base":19}],25:[function(require,module,exports){
+},{"../../mixins/validation":15,"../../utils/general":17,"../base":20}],26:[function(require,module,exports){
 module.exports = {
   65: 'a',
   66: 'b',
@@ -2405,7 +2408,7 @@ module.exports = {
 };
 
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = {
   'A': 'ĀĂÀÁÂÃÄÅĄⱭ∀Æ',
   'B': 'Ɓ',
@@ -2468,7 +2471,7 @@ module.exports = {
 };
 
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 var Fn, Longpress, Views, codes, diacritics, shiftcodes,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2635,7 +2638,7 @@ Longpress = (function(_super) {
 module.exports = Longpress;
 
 
-},{"../../utils/general":16,"../base":19,"./codes":25,"./diacritics":26,"./shiftcodes":28}],28:[function(require,module,exports){
+},{"../../utils/general":17,"../base":20,"./codes":26,"./diacritics":27,"./shiftcodes":29}],29:[function(require,module,exports){
 module.exports = {
   65: 'A',
   66: 'B',
@@ -2671,7 +2674,7 @@ module.exports = {
 };
 
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var $, Backbone, Modal, modalManager, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2847,14 +2850,14 @@ Modal = (function(_super) {
 module.exports = Modal;
 
 
-},{"../../managers/modal":5,"./main.jade":30}],30:[function(require,module,exports){
+},{"../../managers/modal":6,"./main.jade":31}],31:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (title, titleClass, cancelAndSubmit, cancelValue, submitValue) {
+;var locals_for_with = (locals || {});(function (cancelAndSubmit, cancelValue, submitValue, title, titleClass) {
 buf.push("<div class=\"overlay\"></div><div class=\"modalbody\"><header>");
 if ( (title !== ''))
 {
@@ -2865,16 +2868,16 @@ if ( (cancelAndSubmit))
 {
 buf.push("<footer><button class=\"cancel\">" + (jade.escape(null == (jade_interp = cancelValue) ? "" : jade_interp)) + "</button><button class=\"submit\">" + (jade.escape(null == (jade_interp = submitValue) ? "" : jade_interp)) + "</button></footer>");
 }
-buf.push("</div>");}("title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"titleClass" in locals_for_with?locals_for_with.titleClass:typeof titleClass!=="undefined"?titleClass:undefined,"cancelAndSubmit" in locals_for_with?locals_for_with.cancelAndSubmit:typeof cancelAndSubmit!=="undefined"?cancelAndSubmit:undefined,"cancelValue" in locals_for_with?locals_for_with.cancelValue:typeof cancelValue!=="undefined"?cancelValue:undefined,"submitValue" in locals_for_with?locals_for_with.submitValue:typeof submitValue!=="undefined"?submitValue:undefined));;return buf.join("");
+buf.push("</div>");}.call(this,"cancelAndSubmit" in locals_for_with?locals_for_with.cancelAndSubmit:typeof cancelAndSubmit!=="undefined"?cancelAndSubmit:undefined,"cancelValue" in locals_for_with?locals_for_with.cancelValue:typeof cancelValue!=="undefined"?cancelValue:undefined,"submitValue" in locals_for_with?locals_for_with.submitValue:typeof submitValue!=="undefined"?submitValue:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"titleClass" in locals_for_with?locals_for_with.titleClass:typeof titleClass!=="undefined"?titleClass:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],31:[function(require,module,exports){
+},{"jade/runtime":36}],32:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (diacritics) {
+;var locals_for_with = (locals || {});(function (diacritics, undefined) {
 buf.push("<ul class=\"diacritics\">");
 // iterate diacritics
 ;(function(){
@@ -2898,9 +2901,9 @@ buf.push("<li>" + (jade.escape(null == (jade_interp = diacritic) ? "" : jade_int
   }
 }).call(this);
 
-buf.push("</ul>");}("diacritics" in locals_for_with?locals_for_with.diacritics:typeof diacritics!=="undefined"?diacritics:undefined));;return buf.join("");
+buf.push("</ul>");}.call(this,"diacritics" in locals_for_with?locals_for_with.diacritics:typeof diacritics!=="undefined"?diacritics:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],32:[function(require,module,exports){
+},{"jade/runtime":36}],33:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -2910,7 +2913,7 @@ var jade_interp;
 
 buf.push("<div class=\"ste-header\"></div><div class=\"ste-body\"></div>");;return buf.join("");
 };
-},{"jade/runtime":35}],33:[function(require,module,exports){
+},{"jade/runtime":36}],34:[function(require,module,exports){
 var $, Fn, Longpress, StringFn, SuperTinyEditor, Views, diacriticsTpl, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -3187,7 +3190,7 @@ SuperTinyEditor = (function(_super) {
 module.exports = SuperTinyEditor;
 
 
-},{"../../utils/general":16,"../../utils/jquery.mixin":17,"../../utils/string":18,"../base":19,"../longpress/main":27,"./diacritics.jade":31,"./main.jade":32}],34:[function(require,module,exports){
+},{"../../utils/general":17,"../../utils/jquery.mixin":18,"../../utils/string":19,"../base":20,"../longpress/main":28,"./diacritics.jade":32,"./main.jade":33}],35:[function(require,module,exports){
 (function (global){
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.FacetedSearch=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
@@ -3551,9 +3554,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":6}],2:[function(_dereq_,module,exports){
-
-},{}],3:[function(_dereq_,module,exports){
+},{"util/":5}],2:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3578,7 +3579,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3643,14 +3644,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],6:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4240,20 +4241,25 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,_dereq_("FWaASH"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":5,"FWaASH":4,"inherits":3}],7:[function(_dereq_,module,exports){
+},{"./support/isBuffer":4,"FWaASH":3,"inherits":2}],6:[function(_dereq_,module,exports){
 (function() {
   module.exports = {
     el: function(el) {
       return {
         closest: function(selector) {
-          var matchesSelector;
-          matchesSelector = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
+          var getMatcher, isMatch, matcher;
+          getMatcher = function(el) {
+            return el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
+          };
           while (el) {
-            if (matchesSelector.bind(el)(selector)) {
-              return el;
-            } else {
-              el = el.parentNode;
+            matcher = getMatcher(el);
+            if (matcher != null) {
+              isMatch = matcher.bind(el)(selector);
+              if (isMatch) {
+                return el;
+              }
             }
+            el = el.parentNode;
           }
         },
 
@@ -4334,7 +4340,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this);
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
@@ -4415,9 +4421,9 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this);
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 (function(){module.exports={generateID:function(t){var n,r;for(t=null!=t&&t>0?t-1:7,n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",r=n.charAt(Math.floor(52*Math.random()));t--;)r+=n.charAt(Math.floor(Math.random()*n.length));return r},setResetTimeout:function(){var t;return t=null,function(n,r,e){return null!=t&&(null!=e&&e(),clearTimeout(t)),t=setTimeout(function(){return t=null,r()},n)}}()}}).call(this);
-},{}],10:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 (function (global){
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var n;"undefined"!=typeof window?n=window:"undefined"!=typeof global?n=global:"undefined"!=typeof self&&(n=self),n.Pagination=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 (function(){module.exports={generateID:function(t){var n,r;for(t=null!=t&&t>0?t-1:7,n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",r=n.charAt(Math.floor(52*Math.random()));t--;)r+=n.charAt(Math.floor(Math.random()*n.length));return r},setResetTimeout:function(){var t;return t=null,function(n,r,e){return null!=t&&(null!=e&&e(),clearTimeout(t)),t=setTimeout(function(){return t=null,r()},n)}}()}}).call(this);
@@ -4852,9 +4858,9 @@ buf.push("<li" + (jade.cls(['next10',currentPageNumber<=pageCount-10?'active':''
 (3)
 });
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (global){
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jade=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jade=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4917,9 +4923,7 @@ function nulls(val) {
  */
 exports.joinClasses = joinClasses;
 function joinClasses(val) {
-  return (Array.isArray(val) ? val.map(joinClasses) :
-    (val && typeof val === 'object') ? Object.keys(val).filter(function (key) { return val[key]; }) :
-    [val]).filter(nulls).join(' ');
+  return Array.isArray(val) ? val.map(joinClasses).filter(nulls).join(' ') : val;
 }
 
 /**
@@ -4946,16 +4950,6 @@ exports.cls = function cls(classes, escaped) {
   }
 };
 
-
-exports.style = function (val) {
-  if (val && typeof val === 'object') {
-    return Object.keys(val).map(function (style) {
-      return style + ':' + val[style];
-    }).join(';');
-  } else {
-    return val;
-  }
-};
 /**
  * Render the given attribute.
  *
@@ -4966,9 +4960,6 @@ exports.style = function (val) {
  * @return {String}
  */
 exports.attr = function attr(key, val, escaped, terse) {
-  if (key === 'style') {
-    val = exports.style(val);
-  }
   if ('boolean' == typeof val || null == val) {
     if (val) {
       return ' ' + (terse ? key : key + '="' + key + '"');
@@ -4976,24 +4967,10 @@ exports.attr = function attr(key, val, escaped, terse) {
       return '';
     }
   } else if (0 == key.indexOf('data') && 'string' != typeof val) {
-    if (JSON.stringify(val).indexOf('&') !== -1) {
-      console.warn('Since Jade 2.0.0, ampersands (`&`) in data attributes ' +
-                   'will be escaped to `&amp;`');
-    };
-    if (val && typeof val.toISOString === 'function') {
-      console.warn('Jade will eliminate the double quotes around dates in ' +
-                   'ISO form after 2.0.0');
-    }
     return ' ' + key + "='" + JSON.stringify(val).replace(/'/g, '&apos;') + "'";
   } else if (escaped) {
-    if (val && typeof val.toISOString === 'function') {
-      console.warn('Jade will stringify dates in ISO form after 2.0.0');
-    }
     return ' ' + key + '="' + exports.escape(val) + '"';
   } else {
-    if (val && typeof val.toISOString === 'function') {
-      console.warn('Jade will stringify dates in ISO form after 2.0.0');
-    }
     return ' ' + key + '="' + val + '"';
   }
 };
@@ -5063,7 +5040,7 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
     throw err;
   }
   try {
-    str = str || _dereq_('fs').readFileSync(filename, 'utf8')
+    str =  str || _dereq_('fs').readFileSync(filename, 'utf8')
   } catch (ex) {
     rethrow(err, null, lineno)
   }
@@ -5090,10 +5067,11 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
 
 },{"fs":2}],2:[function(_dereq_,module,exports){
 
-},{}]},{},[1])(1)
+},{}]},{},[1])
+(1)
 });
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"fs":2}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 var Backbone, ListOptions, Models, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5210,7 +5188,7 @@ module.exports = ListOptions;
 
 
 
-},{"../models/facets/list.option.coffee":19}],13:[function(_dereq_,module,exports){
+},{"../models/facets/list.option.coffee":18}],12:[function(_dereq_,module,exports){
 var Backbone, SearchResult, SearchResults, funcky, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5421,7 +5399,7 @@ module.exports = SearchResults;
 
 
 
-},{"../models/searchresult":23,"funcky.req":8}],14:[function(_dereq_,module,exports){
+},{"../models/searchresult":22,"funcky.req":7}],13:[function(_dereq_,module,exports){
 var Backbone, Config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5481,7 +5459,8 @@ Config = (function(_super) {
       termSingular: 'entry',
       termPlural: 'entries',
       entryMetadataFields: [],
-      levels: []
+      levels: [],
+      sortableFields: []
     };
   };
 
@@ -5493,7 +5472,7 @@ module.exports = Config;
 
 
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 var $, Backbone, Config, MainView, QueryOptions, SearchResults, Views, assert, funcky, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5712,6 +5691,9 @@ MainView = (function(_super) {
     this.listenToOnce(this.searchResults, 'change:results', (function(_this) {
       return function(responseModel) {
         var textSearchOptions;
+        _this.config.set({
+          sortableFields: responseModel.get('sortableFields')
+        });
         if (responseModel.has('fullTextSearchFields')) {
           textSearchOptions = _.clone(_this.config.get('textSearchOptions'));
           textSearchOptions.fullTextSearchParameters = responseModel.get('fullTextSearchFields');
@@ -5929,7 +5911,7 @@ module.exports = MainView;
 
 
 
-},{"../jade/main.jade":46,"./collections/searchresults":13,"./config":14,"./models/query-options":21,"./views/facets":24,"./views/facets/list":27,"./views/results":33,"./views/text-search":39,"assert":1,"funcky.el":7}],16:[function(_dereq_,module,exports){
+},{"../jade/main.jade":45,"./collections/searchresults":12,"./config":13,"./models/query-options":20,"./views/facets":23,"./views/facets/list":26,"./views/results":32,"./views/text-search":38,"assert":1,"funcky.el":6}],15:[function(_dereq_,module,exports){
 var BooleanFacet, Models,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -5974,12 +5956,12 @@ module.exports = BooleanFacet;
 
 
 
-},{"./main":20}],17:[function(_dereq_,module,exports){
+},{"./main":19}],16:[function(_dereq_,module,exports){
 
 
 
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 var List, Models,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6003,7 +5985,7 @@ module.exports = List;
 
 
 
-},{"./main":20}],19:[function(_dereq_,module,exports){
+},{"./main":19}],18:[function(_dereq_,module,exports){
 var Backbone, ListOption,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6042,7 +6024,7 @@ module.exports = ListOption;
 
 
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 var Backbone, Facet, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6077,7 +6059,7 @@ module.exports = Facet;
 
 
 
-},{"../../config":14}],21:[function(_dereq_,module,exports){
+},{"../../config":13}],20:[function(_dereq_,module,exports){
 var Backbone, QueryOptions, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6158,7 +6140,7 @@ module.exports = QueryOptions;
 
 
 
-},{"../config":14}],22:[function(_dereq_,module,exports){
+},{"../config":13}],21:[function(_dereq_,module,exports){
 var Backbone, Search, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6184,7 +6166,7 @@ module.exports = Search;
 
 
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 var Backbone, SearchResult, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6225,7 +6207,7 @@ module.exports = SearchResult;
 
 
 
-},{"../config":14}],24:[function(_dereq_,module,exports){
+},{"../config":13}],23:[function(_dereq_,module,exports){
 var $, Backbone, Facets, assert, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -6449,7 +6431,7 @@ module.exports = Facets;
 
 
 
-},{"./facets/boolean":25,"./facets/date":26,"./facets/list":27,"./facets/range":31,"assert":1}],25:[function(_dereq_,module,exports){
+},{"./facets/boolean":24,"./facets/date":25,"./facets/list":26,"./facets/range":30,"assert":1}],24:[function(_dereq_,module,exports){
 var $, BooleanFacet, Models, Views, bodyTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6545,7 +6527,7 @@ module.exports = BooleanFacet;
 
 
 
-},{"../../../jade/facets/boolean.body.jade":40,"../../models/facets/boolean":16,"./main":29}],26:[function(_dereq_,module,exports){
+},{"../../../jade/facets/boolean.body.jade":39,"../../models/facets/boolean":15,"./main":28}],25:[function(_dereq_,module,exports){
 var DateFacet, Models, Views, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6602,7 +6584,7 @@ module.exports = DateFacet;
 
 
 
-},{"../../../jade/facets/date.jade":41,"../../models/facets/date":17,"./main":29}],27:[function(_dereq_,module,exports){
+},{"../../../jade/facets/date.jade":40,"../../models/facets/date":16,"./main":28}],26:[function(_dereq_,module,exports){
 var $, Collections, ListFacet, Models, Views, menuTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -6807,7 +6789,7 @@ module.exports = ListFacet;
 
 
 
-},{"../../../jade/facets/list.menu.jade":43,"../../collections/list.options":12,"../../models/facets/list":18,"./list.options":28,"./main":29}],28:[function(_dereq_,module,exports){
+},{"../../../jade/facets/list.menu.jade":42,"../../collections/list.options":11,"../../models/facets/list":17,"./list.options":27,"./main":28}],27:[function(_dereq_,module,exports){
 var $, Backbone, ListFacetOptions, Models, bodyTpl, funcky, optionTpl, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -7009,7 +6991,7 @@ module.exports = ListFacetOptions;
 
 
 
-},{"../../../jade/facets/list.body.jade":42,"../../../jade/facets/list.option.jade":44,"../../models/facets/list":18,"funcky.util":9}],29:[function(_dereq_,module,exports){
+},{"../../../jade/facets/list.body.jade":41,"../../../jade/facets/list.option.jade":43,"../../models/facets/list":17,"funcky.util":8}],28:[function(_dereq_,module,exports){
 var $, Backbone, Facet, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -7113,17 +7095,17 @@ module.exports = Facet;
 
 
 
-},{"../../../jade/facets/main.jade":45}],30:[function(_dereq_,module,exports){
+},{"../../../jade/facets/main.jade":44}],29:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (max, min) {
-buf.push("<div class=\"slider\"><span class=\"dash\">-</span><div class=\"handle-min handle\"><input" + (jade.attr("value", min, true, false)) + " class=\"min\"/></div><div class=\"handle-max handle\"><input" + (jade.attr("value", max, true, false)) + " class=\"max\"/></div><div class=\"bar\">&nbsp;</div><button><svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 216 146\" xml:space=\"preserve\"><path d=\"M172.77,123.025L144.825,95.08c6.735-9.722,10.104-20.559,10.104-32.508c0-7.767-1.508-15.195-4.523-22.283c-3.014-7.089-7.088-13.199-12.221-18.332s-11.242-9.207-18.33-12.221c-7.09-3.015-14.518-4.522-22.285-4.522c-7.767,0-15.195,1.507-22.283,4.522c-7.089,3.014-13.199,7.088-18.332,12.221c-5.133,5.133-9.207,11.244-12.221,18.332c-3.015,7.089-4.522,14.516-4.522,22.283c0,7.767,1.507,15.193,4.522,22.283c3.014,7.088,7.088,13.197,12.221,18.33c5.133,5.134,11.244,9.207,18.332,12.222c7.089,3.015,14.516,4.522,22.283,4.522c11.951,0,22.787-3.369,32.509-10.104l27.945,27.863c1.955,2.064,4.397,3.096,7.332,3.096c2.824,0,5.27-1.032,7.332-3.096c2.064-2.063,3.096-4.508,3.096-7.332C175.785,127.479,174.781,125.034,172.77,123.025z M123.357,88.357c-7.143,7.143-15.738,10.714-25.787,10.714c-10.048,0-18.643-3.572-25.786-10.714c-7.143-7.143-10.714-15.737-10.714-25.786c0-10.048,3.572-18.644,10.714-25.786c7.142-7.143,15.738-10.714,25.786-10.714c10.048,0,18.643,3.572,25.787,10.714c7.143,7.142,10.715,15.738,10.715,25.786C134.072,72.62,130.499,81.214,123.357,88.357z\"></path></svg></button></div>");}.call(this,"max" in locals_for_with?locals_for_with.max:typeof max!=="undefined"?max:undefined,"min" in locals_for_with?locals_for_with.min:typeof min!=="undefined"?min:undefined));;return buf.join("");
+;var locals_for_with = (locals || {});(function (min, max) {
+buf.push("<div class=\"slider\"><span class=\"dash\">-</span><div class=\"handle-min handle\"><input" + (jade.attr("value", min, true, false)) + " class=\"min\"/></div><div class=\"handle-max handle\"><input" + (jade.attr("value", max, true, false)) + " class=\"max\"/></div><div class=\"bar\">&nbsp;</div><button><svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 216 146\" xml:space=\"preserve\"><path d=\"M172.77,123.025L144.825,95.08c6.735-9.722,10.104-20.559,10.104-32.508c0-7.767-1.508-15.195-4.523-22.283c-3.014-7.089-7.088-13.199-12.221-18.332s-11.242-9.207-18.33-12.221c-7.09-3.015-14.518-4.522-22.285-4.522c-7.767,0-15.195,1.507-22.283,4.522c-7.089,3.014-13.199,7.088-18.332,12.221c-5.133,5.133-9.207,11.244-12.221,18.332c-3.015,7.089-4.522,14.516-4.522,22.283c0,7.767,1.507,15.193,4.522,22.283c3.014,7.088,7.088,13.197,12.221,18.33c5.133,5.134,11.244,9.207,18.332,12.222c7.089,3.015,14.516,4.522,22.283,4.522c11.951,0,22.787-3.369,32.509-10.104l27.945,27.863c1.955,2.064,4.397,3.096,7.332,3.096c2.824,0,5.27-1.032,7.332-3.096c2.064-2.063,3.096-4.508,3.096-7.332C175.785,127.479,174.781,125.034,172.77,123.025z M123.357,88.357c-7.143,7.143-15.738,10.714-25.787,10.714c-10.048,0-18.643-3.572-25.786-10.714c-7.143-7.143-10.714-15.737-10.714-25.786c0-10.048,3.572-18.644,10.714-25.786c7.142-7.143,15.738-10.714,25.786-10.714c10.048,0,18.643,3.572,25.787,10.714c7.143,7.142,10.715,15.738,10.715,25.786C134.072,72.62,130.499,81.214,123.357,88.357z\"></path></svg></button></div>");}("min" in locals_for_with?locals_for_with.min:typeof min!=="undefined"?min:undefined,"max" in locals_for_with?locals_for_with.max:typeof max!=="undefined"?max:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],31:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],30:[function(_dereq_,module,exports){
 var $, Facet, Range, RangeFacet, bodyTpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -7454,7 +7436,7 @@ module.exports = RangeFacet;
 
 
 
-},{"../main":29,"./body.jade":30,"./model":32}],32:[function(_dereq_,module,exports){
+},{"../main":28,"./body.jade":29,"./model":31}],31:[function(_dereq_,module,exports){
 var FacetModel, RangeFacet, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -7647,7 +7629,7 @@ module.exports = RangeFacet;
 
 
 
-},{"../../../models/facets/main":20}],33:[function(_dereq_,module,exports){
+},{"../../../models/facets/main":19}],32:[function(_dereq_,module,exports){
 var $, Backbone, Results, Views, listItems, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -7728,7 +7710,9 @@ Results = (function(_super) {
       this.subviews.sortLevels.destroy();
     }
     this.subviews.sortLevels = new Views.SortLevels({
-      config: this.options.config
+      config: this.options.config,
+      levels: this.options.config.get('levels'),
+      entryMetadataFields: this.options.config.get('sortableFields')
     });
     this.$('header nav ul').prepend(this.subviews.sortLevels.$el);
     return this.listenTo(this.subviews.sortLevels, 'change', (function(_this) {
@@ -7850,14 +7834,14 @@ module.exports = Results;
 
 
 
-},{"./index.jade":34,"./result":35,"./sort":37,"hibb-pagination":10}],34:[function(_dereq_,module,exports){
+},{"./index.jade":33,"./result":34,"./sort":36,"hibb-pagination":9}],33:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (config, resultsPerPage, showMetadata, undefined) {
+;var locals_for_with = (locals || {});(function (resultsPerPage, config, showMetadata) {
 buf.push("<header><h3 class=\"numfound\"></h3><nav><ul><li class=\"results-per-page\"><select name=\"results-per-page\">");
 // iterate [10, 25, 50, 100, 250, 500, 1000]
 ;(function(){
@@ -7886,9 +7870,9 @@ if ( showMetadata)
 {
 buf.push("<li class=\"show-metadata\"><input id=\"o45hes3\" type=\"checkbox\" checked=\"checked\"/><label for=\"o45hes3\">Show metadata</label></li>");
 }
-buf.push("</ul></nav><div class=\"pagination\"></div></header><div class=\"pages\"></div>");}.call(this,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"resultsPerPage" in locals_for_with?locals_for_with.resultsPerPage:typeof resultsPerPage!=="undefined"?resultsPerPage:undefined,"showMetadata" in locals_for_with?locals_for_with.showMetadata:typeof showMetadata!=="undefined"?showMetadata:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("</ul></nav><div class=\"pagination\"></div></header><div class=\"pages\"></div>");}("resultsPerPage" in locals_for_with?locals_for_with.resultsPerPage:typeof resultsPerPage!=="undefined"?resultsPerPage:undefined,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"showMetadata" in locals_for_with?locals_for_with.showMetadata:typeof showMetadata!=="undefined"?showMetadata:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],35:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],34:[function(_dereq_,module,exports){
 var Backbone, Result, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -8027,14 +8011,14 @@ class Result extends Backbone.View
 
 
 
-},{"./result.jade":36}],36:[function(_dereq_,module,exports){
+},{"./result.jade":35}],35:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (data, found, fulltext, undefined) {
+;var locals_for_with = (locals || {});(function (data, fulltext, found) {
 data.metadata = typeof data.metadata !== 'undefined' ? data.metadata : [];
 buf.push("<div class=\"title\">" + (jade.escape(null == (jade_interp = data.name) ? "" : jade_interp)) + "</div><div class=\"metadata\"><ul>");
 // iterate data.metadata
@@ -8082,7 +8066,7 @@ buf.push("<li" + (jade.attr("data-layer", layer, true, false)) + "><label>" + (j
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var row = $$obj[$index];
 
-buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
+buf.push("<li>" + (null == (jade_interp = row						) ? "" : jade_interp) + "</li>");
     }
 
   } else {
@@ -8090,7 +8074,7 @@ buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
     for (var $index in $$obj) {
       $$l++;      var row = $$obj[$index];
 
-buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
+buf.push("<li>" + (null == (jade_interp = row						) ? "" : jade_interp) + "</li>");
     }
 
   }
@@ -8113,7 +8097,7 @@ buf.push("<li" + (jade.attr("data-layer", layer, true, false)) + "><label>" + (j
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
       var row = $$obj[$index];
 
-buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
+buf.push("<li>" + (null == (jade_interp = row						) ? "" : jade_interp) + "</li>");
     }
 
   } else {
@@ -8121,7 +8105,7 @@ buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
     for (var $index in $$obj) {
       $$l++;      var row = $$obj[$index];
 
-buf.push("<li>" + (null == (jade_interp = row) ? "" : jade_interp) + "</li>");
+buf.push("<li>" + (null == (jade_interp = row						) ? "" : jade_interp) + "</li>");
     }
 
   }
@@ -8135,9 +8119,9 @@ buf.push("</ul></li>");
 
 }
 buf.push("</ul></div>");
-}}.call(this,"data" in locals_for_with?locals_for_with.data:typeof data!=="undefined"?data:undefined,"found" in locals_for_with?locals_for_with.found:typeof found!=="undefined"?found:undefined,"fulltext" in locals_for_with?locals_for_with.fulltext:typeof fulltext!=="undefined"?fulltext:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+}}("data" in locals_for_with?locals_for_with.data:typeof data!=="undefined"?data:undefined,"fulltext" in locals_for_with?locals_for_with.fulltext:typeof fulltext!=="undefined"?fulltext:undefined,"found" in locals_for_with?locals_for_with.found:typeof found!=="undefined"?found:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],37:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],36:[function(_dereq_,module,exports){
 var $, Backbone, SortLevels, el, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -8169,11 +8153,21 @@ SortLevels = (function(_super) {
 
   SortLevels.prototype.initialize = function(options) {
     this.options = options != null ? options : {};
-    this.render();
-    this.listenTo(this.options.config, 'change:entryMetadataFields', this.render);
-    return this.listenTo(this.options.config, 'change:levels', (function(_this) {
-      return function(model, sortLevels) {
+    this.listenTo(this.options.config, 'change:sortableFields', this.render);
+    return this.render();
+  };
+
+  SortLevels.prototype.render = function() {
+    var leave, levels, rtpl;
+    rtpl = tpl({
+      levels: this.options.levels,
+      entryMetadataFields: this.options.config.get('sortableFields')
+    });
+    this.$el.html(rtpl);
+    this.listenTo(Backbone, 'sortlevels:update', (function(_this) {
+      return function(sortLevels) {
         var level, sortParameters, _i, _len;
+        _this.options.levels = sortLevels;
         sortParameters = [];
         for (_i = 0, _len = sortLevels.length; _i < _len; _i++) {
           level = sortLevels[_i];
@@ -8186,15 +8180,12 @@ SortLevels = (function(_super) {
         return _this.render();
       };
     })(this));
-  };
-
-  SortLevels.prototype.render = function() {
-    var leave, levels, rtpl;
-    rtpl = tpl({
-      levels: this.options.config.get('levels'),
-      entryMetadataFields: this.options.config.get('entryMetadataFields')
-    });
-    this.$el.html(rtpl);
+    this.listenTo(Backbone, 'entrymetadatafields:update', (function(_this) {
+      return function(fields) {
+        _this.options.entryMetadataFields = fields;
+        return _this.render();
+      };
+    })(this));
     levels = this.$('div.levels');
     leave = function(ev) {
       if (!(el(levels[0]).hasDescendant(ev.target) || levels[0] === ev.target)) {
@@ -8281,14 +8272,14 @@ module.exports = SortLevels;
 
 
 
-},{"./sort.jade":38,"funcky.el":7}],38:[function(_dereq_,module,exports){
+},{"./sort.jade":37,"funcky.el":6}],37:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (entryMetadataFields, levels, undefined) {
+;var locals_for_with = (locals || {});(function (entryMetadataFields, levels) {
 buf.push("<button class=\"toggle\">Sort<i class=\"fa fa-caret-down\"></i></button><div class=\"levels\"><ul>");
 // iterate [1, 2, 3]
 ;(function(){
@@ -8358,9 +8349,9 @@ buf.push("</select><i class=\"fa fa-sort-alpha-asc\"></i></li>");
   }
 }).call(this);
 
-buf.push("<li class=\"search\">&nbsp;<button>Change levels</button></li></ul></div>");}.call(this,"entryMetadataFields" in locals_for_with?locals_for_with.entryMetadataFields:typeof entryMetadataFields!=="undefined"?entryMetadataFields:undefined,"levels" in locals_for_with?locals_for_with.levels:typeof levels!=="undefined"?levels:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("<li class=\"search\">&nbsp;<button>Change levels</button></li></ul></div>");}("entryMetadataFields" in locals_for_with?locals_for_with.entryMetadataFields:typeof entryMetadataFields!=="undefined"?entryMetadataFields:undefined,"levels" in locals_for_with?locals_for_with.levels:typeof levels!=="undefined"?levels:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],39:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],38:[function(_dereq_,module,exports){
 var Backbone, Models, TextSearch, funcky, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -8549,14 +8540,14 @@ module.exports = TextSearch;
 
 
 
-},{"../../jade/text-search.jade":47,"../models/search":22,"funcky.util":9}],40:[function(_dereq_,module,exports){
+},{"../../jade/text-search.jade":46,"../models/search":21,"funcky.util":8}],39:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (options, ucfirst, undefined) {
+;var locals_for_with = (locals || {});(function (options, ucfirst) {
 buf.push("<ul>");
 // iterate options
 ;(function(){
@@ -8580,16 +8571,16 @@ buf.push("<li><div class=\"row span6\"><div class=\"cell span5\"><i" + (jade.att
   }
 }).call(this);
 
-buf.push("</ul>");}.call(this,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"ucfirst" in locals_for_with?locals_for_with.ucfirst:typeof ucfirst!=="undefined"?ucfirst:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("</ul>");}("options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"ucfirst" in locals_for_with?locals_for_with.ucfirst:typeof ucfirst!=="undefined"?ucfirst:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],41:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],40:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (name, options, title, undefined) {
+;var locals_for_with = (locals || {});(function (name, title, options) {
 buf.push("<header><h3" + (jade.attr("data-name", name, true, false)) + ">" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</h3></header><div class=\"body\"><label>From:</label><select>");
 // iterate options
 ;(function(){
@@ -8636,9 +8627,9 @@ buf.push("<option>" + (jade.escape(null == (jade_interp = option) ? "" : jade_in
   }
 }).call(this);
 
-buf.push("</select></div>");}.call(this,"name" in locals_for_with?locals_for_with.name:typeof name!=="undefined"?name:undefined,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("</select></div>");}("name" in locals_for_with?locals_for_with.name:typeof name!=="undefined"?name:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],42:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],41:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
@@ -8648,7 +8639,7 @@ var jade_interp;
 
 buf.push("<ul></ul>");;return buf.join("");
 };
-},{"jade/runtime":11}],43:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],42:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
@@ -8658,7 +8649,7 @@ var jade_interp;
 
 buf.push("<input type=\"checkbox\" name=\"all\"/><input type=\"text\" name=\"filter\"/><small class=\"optioncount\"></small>");;return buf.join("");
 };
-},{"jade/runtime":11}],44:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],43:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
@@ -8666,25 +8657,25 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (option) {
-buf.push("<li" + (jade.attr("data-count", option.get('count'), true, false)) + (jade.attr("data-value", option.id, true, false)) + (jade.cls([option.get('checked')?'checked':null], [true])) + "><i" + (jade.attr("data-value", option.id, true, false)) + " class=\"unchecked fa fa-square-o\"></i><i" + (jade.attr("data-value", option.id, true, false)) + " class=\"checked fa fa-check-square-o\"></i><label" + (jade.attr("data-value", option.id, true, false)) + ">" + (null == (jade_interp = option.id === ':empty' ? '<em>(empty)</em>' : option.id) ? "" : jade_interp) + "</label><div class=\"count\">" + (jade.escape(null == (jade_interp = option.get('count') === 0 ? option.get('total') : option.get('count')) ? "" : jade_interp)) + "</div></li>");}.call(this,"option" in locals_for_with?locals_for_with.option:typeof option!=="undefined"?option:undefined));;return buf.join("");
+buf.push("<li" + (jade.attr("data-count", option.get('count'), true, false)) + (jade.attr("data-value", option.id, true, false)) + (jade.cls([option.get('checked')?'checked':null], [true])) + "><i" + (jade.attr("data-value", option.id, true, false)) + " class=\"unchecked fa fa-square-o\"></i><i" + (jade.attr("data-value", option.id, true, false)) + " class=\"checked fa fa-check-square-o\"></i><label" + (jade.attr("data-value", option.id, true, false)) + ">" + (null == (jade_interp = option.id === ':empty' ? '<em>(empty)</em>' : option.id) ? "" : jade_interp) + "</label><div class=\"count\">" + (jade.escape(null == (jade_interp = option.get('count') === 0 ? option.get('total') : option.get('count')) ? "" : jade_interp)) + "</div></li>");}("option" in locals_for_with?locals_for_with.option:typeof option!=="undefined"?option:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],45:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],44:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (config, model, options) {
+;var locals_for_with = (locals || {});(function (options, model, config) {
 options = model.get('options')
 buf.push("<div class=\"placeholder\"><header><h3>" + (jade.escape(null == (jade_interp = model.get('title')) ? "" : jade_interp)) + "</h3><div class=\"menu\">");
 if ( options != null && options.length != null && options.length > 9)
 {
 buf.push("<i" + (jade.attr("title", config.get('labels').filterOptions, true, false)) + " class=\"filter fa fa-filter\"></i><i" + (jade.attr("title", config.get('labels').sortAlphabetically, true, false)) + " class=\"alpha fa fa-sort-alpha-asc\"></i><i" + (jade.attr("title", config.get('labels').sortNumerically, true, false)) + " class=\"amount active fa fa-sort-amount-desc\"></i>");
 }
-buf.push("</div><div class=\"options\"></div></header><div class=\"body\"></div></div>");}.call(this,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined));;return buf.join("");
+buf.push("</div><div class=\"options\"></div></header><div class=\"body\"></div></div>");}("options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}],46:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],45:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
@@ -8694,14 +8685,14 @@ var jade_interp;
 
 buf.push("<div class=\"overlay\"><div><i class=\"fa fa-spinner fa-spin fa-2x\"></i></div></div><div class=\"faceted-search\"><div class=\"text-search-placeholder\"></div><ul class=\"facets-menu\"><li class=\"reset\"><button><i class=\"fa fa-refresh\"></i><span>New search</span></button></li><li class=\"switch\"><button><i class=\"fa fa-angle-double-up\"></i><i class=\"fa fa-angle-double-down\"></i><span class=\"simple\">Simple search</span><span class=\"advanced\">Advanced search</span></button></li><li class=\"collapse-expand\"><button><i class=\"fa fa-compress\"></i><span>Collapse filters</span></button></li></ul><div class=\"facets-placeholder\"></div></div><div class=\"results\"></div>");;return buf.join("");
 };
-},{"jade/runtime":11}],47:[function(_dereq_,module,exports){
+},{"jade/runtime":10}],46:[function(_dereq_,module,exports){
 var jade = _dereq_("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (config, generateId, id, model, undefined) {
+;var locals_for_with = (locals || {});(function (config, id, generateId, model) {
 buf.push("<div class=\"placeholder\"><div class=\"body\"><div class=\"search-input\"><input type=\"text\" name=\"search\"/><i class=\"fa fa-search\"></i></div><div class=\"menu\"><i class=\"fa fa-times\"></i><div class=\"close\"></div><ul class=\"options\">");
 if ( config.get('textSearchOptions').caseSensitive)
 {
@@ -8785,15 +8776,15 @@ buf.push("<li><input type=\"checkbox\" checked=\"checked\"" + (jade.attr("name",
 
 buf.push("</ul></li>");
 }
-buf.push("</ul></div></div></div>");}.call(this,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"generateId" in locals_for_with?locals_for_with.generateId:typeof generateId!=="undefined"?generateId:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("</ul></div></div></div>");}("config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined,"generateId" in locals_for_with?locals_for_with.generateId:typeof generateId!=="undefined"?generateId:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":11}]},{},[15])
-(15)
+},{"jade/runtime":10}]},{},[14])
+(14)
 });
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function (global){
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jade=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.jade = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 /**
@@ -8856,7 +8847,9 @@ function nulls(val) {
  */
 exports.joinClasses = joinClasses;
 function joinClasses(val) {
-  return Array.isArray(val) ? val.map(joinClasses).filter(nulls).join(' ') : val;
+  return (Array.isArray(val) ? val.map(joinClasses) :
+    (val && typeof val === 'object') ? Object.keys(val).filter(function (key) { return val[key]; }) :
+    [val]).filter(nulls).join(' ');
 }
 
 /**
@@ -8883,6 +8876,16 @@ exports.cls = function cls(classes, escaped) {
   }
 };
 
+
+exports.style = function (val) {
+  if (val && typeof val === 'object') {
+    return Object.keys(val).map(function (style) {
+      return style + ':' + val[style];
+    }).join(';');
+  } else {
+    return val;
+  }
+};
 /**
  * Render the given attribute.
  *
@@ -8893,6 +8896,9 @@ exports.cls = function cls(classes, escaped) {
  * @return {String}
  */
 exports.attr = function attr(key, val, escaped, terse) {
+  if (key === 'style') {
+    val = exports.style(val);
+  }
   if ('boolean' == typeof val || null == val) {
     if (val) {
       return ' ' + (terse ? key : key + '="' + key + '"');
@@ -8900,10 +8906,24 @@ exports.attr = function attr(key, val, escaped, terse) {
       return '';
     }
   } else if (0 == key.indexOf('data') && 'string' != typeof val) {
+    if (JSON.stringify(val).indexOf('&') !== -1) {
+      console.warn('Since Jade 2.0.0, ampersands (`&`) in data attributes ' +
+                   'will be escaped to `&amp;`');
+    };
+    if (val && typeof val.toISOString === 'function') {
+      console.warn('Jade will eliminate the double quotes around dates in ' +
+                   'ISO form after 2.0.0');
+    }
     return ' ' + key + "='" + JSON.stringify(val).replace(/'/g, '&apos;') + "'";
   } else if (escaped) {
+    if (val && typeof val.toISOString === 'function') {
+      console.warn('Jade will stringify dates in ISO form after 2.0.0');
+    }
     return ' ' + key + '="' + exports.escape(val) + '"';
   } else {
+    if (val && typeof val.toISOString === 'function') {
+      console.warn('Jade will stringify dates in ISO form after 2.0.0');
+    }
     return ' ' + key + '="' + val + '"';
   }
 };
@@ -8946,12 +8966,21 @@ exports.attrs = function attrs(obj, terse){
  * @api private
  */
 
-exports.escape = function escape(html){
-  var result = String(html)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+var jade_encode_html_rules = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;'
+};
+var jade_match_html = /[&<>"]/g;
+
+function jade_encode_char(c) {
+  return jade_encode_html_rules[c] || c;
+}
+
+exports.escape = jade_escape;
+function jade_escape(html){
+  var result = String(html).replace(jade_match_html, jade_encode_char);
   if (result === '' + html) return html;
   else return result;
 };
@@ -8973,7 +9002,7 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
     throw err;
   }
   try {
-    str = str || _dereq_('fs').readFileSync(filename, 'utf8')
+    str = str || require('fs').readFileSync(filename, 'utf8')
   } catch (ex) {
     rethrow(err, null, lineno)
   }
@@ -8998,13 +9027,17 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
   throw err;
 };
 
-},{"fs":2}],2:[function(_dereq_,module,exports){
+exports.DebugItem = function DebugItem(lineno, filename) {
+  this.lineno = lineno;
+  this.filename = filename;
+}
 
-},{}]},{},[1])
-(1)
+},{"fs":2}],2:[function(require,module,exports){
+
+},{}]},{},[1])(1)
 });
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],36:[function(require,module,exports){
+},{"fs":1}],37:[function(require,module,exports){
 //  Underscore.string
 //  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 //  Underscore.string is freely distributable under the terms of the MIT license.
@@ -9679,7 +9712,7 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
   root._.string = root._.str = _s;
 }(this, String);
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 module.exports={
   "name": "huygens-elaborate-work-environment",
   "version": "1.2.1",
@@ -9706,7 +9739,6 @@ module.exports={
     "coffee-script": "^1.7.1",
     "coffeeify": "^0.6.0",
     "connect-modrewrite": "^0.7.7",
-    "elaborate-modules": "git+https://github.com/HuygensING/elaborate-modules.git#v1.0.9",
     "envify": "^1.2.1",
     "font-awesome": "*",
     "gulp": "^3.6.2",
@@ -9739,7 +9771,7 @@ module.exports={
   }
 }
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var $, Backbone, Views, history, mainRouter, projects;
 
 Backbone = require('backbone');
@@ -9790,7 +9822,7 @@ module.exports = function() {
 };
 
 
-},{"./collections/projects":45,"./routers/main":68,"./views/ui/header":93,"hilib/src/managers/history":4}],39:[function(require,module,exports){
+},{"./collections/projects":46,"./routers/main":69,"./views/ui/header":94,"hilib/src/managers/history":5}],40:[function(require,module,exports){
 var Annotations, Base, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -9827,7 +9859,7 @@ Annotations = (function(_super) {
 module.exports = Annotations;
 
 
-},{"../models/annotation":51,"../models/config":53,"./base":40}],40:[function(require,module,exports){
+},{"../models/annotation":52,"../models/config":54,"./base":41}],41:[function(require,module,exports){
 var Backbone, Base, Pubsub, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -9875,7 +9907,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"hilib/src/managers/token":6,"hilib/src/mixins/pubsub":13}],41:[function(require,module,exports){
+},{"hilib/src/managers/token":7,"hilib/src/mixins/pubsub":14}],42:[function(require,module,exports){
 var Base, Entries, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -9936,7 +9968,7 @@ Entries = (function(_super) {
 module.exports = Entries;
 
 
-},{"../models/config":53,"../models/entry":55,"./base":40}],42:[function(require,module,exports){
+},{"../models/config":54,"../models/entry":56,"./base":41}],43:[function(require,module,exports){
 var Base, Facsimiles, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -9991,7 +10023,7 @@ Facsimiles = (function(_super) {
 module.exports = Facsimiles;
 
 
-},{"../models/config":53,"../models/facsimile":57,"./base":40}],43:[function(require,module,exports){
+},{"../models/config":54,"../models/facsimile":58,"./base":41}],44:[function(require,module,exports){
 var AnnotationTypes, Base, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10028,7 +10060,7 @@ AnnotationTypes = (function(_super) {
 module.exports = AnnotationTypes;
 
 
-},{"../../models/config":53,"../../models/project/annotationtype":58,"../base":40}],44:[function(require,module,exports){
+},{"../../models/config":54,"../../models/project/annotationtype":59,"../base":41}],45:[function(require,module,exports){
 var ProjectHistory, ajax, config;
 
 config = require('../../models/config');
@@ -10068,7 +10100,7 @@ ProjectHistory = (function() {
 module.exports = ProjectHistory;
 
 
-},{"../../models/config":53,"hilib/src/managers/ajax":2}],45:[function(require,module,exports){
+},{"../../models/config":54,"hilib/src/managers/ajax":3}],46:[function(require,module,exports){
 var Backbone, Base, Models, Projects, config, history, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10169,7 +10201,7 @@ Projects = (function(_super) {
 module.exports = new Projects();
 
 
-},{"../models/config":53,"../models/project/main":59,"./base":40,"hilib/src/managers/history":4}],46:[function(require,module,exports){
+},{"../models/config":54,"../models/project/main":60,"./base":41,"hilib/src/managers/history":5}],47:[function(require,module,exports){
 var Base, Models, StringFn, Transcriptions, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10250,7 +10282,7 @@ Transcriptions = (function(_super) {
 module.exports = Transcriptions;
 
 
-},{"../models/config":53,"../models/transcription":64,"./base":40,"hilib/src/utils/string":18}],47:[function(require,module,exports){
+},{"../models/config":54,"../models/transcription":65,"./base":41,"hilib/src/utils/string":19}],48:[function(require,module,exports){
 var Collections, User, Users, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10293,13 +10325,13 @@ Users = (function(_super) {
 module.exports = Users;
 
 
-},{"../models/config":53,"../models/user":65,"./base":40}],48:[function(require,module,exports){
+},{"../models/config":54,"../models/user":66,"./base":41}],49:[function(require,module,exports){
 module.exports = {
-  restUrl: 'https://rest.elaborate.huygens.knaw.nl/'
+  restUrl: 'http://demo7.huygens.knaw.nl/elab4testBE/'
 };
 
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var EntryMetadata, ajax, config, token;
 
 config = require('./models/config');
@@ -10359,7 +10391,7 @@ EntryMetadata = (function() {
 module.exports = EntryMetadata;
 
 
-},{"./models/config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],50:[function(require,module,exports){
+},{"./models/config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],51:[function(require,module,exports){
 var $, app;
 
 $ = require('jquery');
@@ -10371,7 +10403,7 @@ $(function() {
 });
 
 
-},{"./app":38}],51:[function(require,module,exports){
+},{"./app":39}],52:[function(require,module,exports){
 var Annotation, Backbone, Models, ajax, changedSinceLastSave, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10532,7 +10564,7 @@ Annotation = (function(_super) {
 module.exports = Annotation;
 
 
-},{"./base":52,"./config":53,"hilib/src/managers/ajax":2,"hilib/src/mixins/model.changedsincelastsave":11}],52:[function(require,module,exports){
+},{"./base":53,"./config":54,"hilib/src/managers/ajax":3,"hilib/src/mixins/model.changedsincelastsave":12}],53:[function(require,module,exports){
 var Backbone, Base, Pubsub, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10572,7 +10604,7 @@ Base = (function(_super) {
 module.exports = Base;
 
 
-},{"hilib/src/managers/token":6,"hilib/src/mixins/pubsub":13}],53:[function(require,module,exports){
+},{"hilib/src/managers/token":7,"hilib/src/mixins/pubsub":14}],54:[function(require,module,exports){
 var Backbone, Config, basePath, envConfig, us, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10684,7 +10716,7 @@ Config = (function(_super) {
 module.exports = new Config;
 
 
-},{"../config/env":48,"underscore.string":36}],54:[function(require,module,exports){
+},{"../config/env":49,"underscore.string":37}],55:[function(require,module,exports){
 var $, Backbone, Collections, CurrentUser, Models, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -10736,7 +10768,6 @@ CurrentUser = (function(_super) {
   };
 
   CurrentUser.prototype.initialize = function() {
-    console.log(config);
     return this.loggedIn = false;
   };
 
@@ -10886,7 +10917,7 @@ CurrentUser = (function(_super) {
 module.exports = new CurrentUser();
 
 
-},{"../collections/base":40,"./base":52,"./config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],55:[function(require,module,exports){
+},{"../collections/base":41,"./base":53,"./config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],56:[function(require,module,exports){
 var Collections, Entry, Models, ajax, config, syncOverride, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11114,7 +11145,7 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"../collections/facsimiles":42,"../collections/transcriptions":46,"./base":52,"./config":53,"./entry.settings":56,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6,"hilib/src/mixins/model.sync":12}],56:[function(require,module,exports){
+},{"../collections/facsimiles":43,"../collections/transcriptions":47,"./base":53,"./config":54,"./entry.settings":57,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7,"hilib/src/mixins/model.sync":13}],57:[function(require,module,exports){
 var Backbone, EntrySettings, Models, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11164,7 +11195,7 @@ EntrySettings = (function(_super) {
 module.exports = EntrySettings;
 
 
-},{"./base":52,"./config":53}],57:[function(require,module,exports){
+},{"./base":53,"./config":54}],58:[function(require,module,exports){
 var Facsimile, Models, ajax, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11241,7 +11272,7 @@ Facsimile = (function(_super) {
 module.exports = Facsimile;
 
 
-},{"./base":52,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],58:[function(require,module,exports){
+},{"./base":53,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],59:[function(require,module,exports){
 var AnnotationType, Models, ajax, config, syncOverride, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11358,7 +11389,7 @@ AnnotationType = (function(_super) {
 module.exports = AnnotationType;
 
 
-},{"../base":52,"../config":53,"hilib/src/managers/ajax":2,"hilib/src/mixins/model.sync":12}],59:[function(require,module,exports){
+},{"../base":53,"../config":54,"hilib/src/managers/ajax":3,"hilib/src/mixins/model.sync":13}],60:[function(require,module,exports){
 var Async, Backbone, Collections, EntryMetadata, Fn, Models, Project, ProjectAnnotationTypeIDs, ProjectUserIDs, ajax, config, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11691,7 +11722,7 @@ Project = (function(_super) {
 module.exports = Project;
 
 
-},{"../../collections/entries":41,"../../collections/project/annotationtypes":43,"../../collections/users":47,"../../entry.metadata":49,"../../project.annotationtype.ids":66,"../../project.user.ids":67,"../base":52,"../config":53,"./settings":60,"hilib/src/managers/ajax":2,"hilib/src/managers/async":3,"hilib/src/utils/general":16}],60:[function(require,module,exports){
+},{"../../collections/entries":42,"../../collections/project/annotationtypes":44,"../../collections/users":48,"../../entry.metadata":50,"../../project.annotationtype.ids":67,"../../project.user.ids":68,"../base":53,"../config":54,"./settings":61,"hilib/src/managers/ajax":3,"hilib/src/managers/async":4,"hilib/src/utils/general":17}],61:[function(require,module,exports){
 var Backbone, Models, ProjectSettings, ajax, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11804,7 +11835,7 @@ ProjectSettings = (function(_super) {
 module.exports = ProjectSettings;
 
 
-},{"../base":52,"../config":53,"hilib/src/managers/ajax":2}],61:[function(require,module,exports){
+},{"../base":53,"../config":54,"hilib/src/managers/ajax":3}],62:[function(require,module,exports){
 var Backbone, Base, ProjectStatistics, ajax, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11865,7 +11896,7 @@ ProjectStatistics = (function(_super) {
 module.exports = ProjectStatistics;
 
 
-},{"../base":52,"../config":53,"hilib/src/managers/ajax":2}],62:[function(require,module,exports){
+},{"../base":53,"../config":54,"hilib/src/managers/ajax":3}],63:[function(require,module,exports){
 var Models, ResetPassword, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11915,7 +11946,7 @@ ResetPassword = (function(_super) {
 module.exports = ResetPassword;
 
 
-},{"./base":52,"./config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],63:[function(require,module,exports){
+},{"./base":53,"./config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],64:[function(require,module,exports){
 var Backbone, SetNewPassword, ajax, config,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -11980,7 +12011,7 @@ SetNewPassword = (function(_super) {
 module.exports = SetNewPassword;
 
 
-},{"./config":53,"hilib/src/managers/ajax":2}],64:[function(require,module,exports){
+},{"./config":54,"hilib/src/managers/ajax":3}],65:[function(require,module,exports){
 var $, Backbone, Collections, Models, Transcription, ajax, changedSinceLastSave, token, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -12211,7 +12242,7 @@ Transcription = (function(_super) {
 module.exports = Transcription;
 
 
-},{"../collections/annotations":39,"./base":52,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6,"hilib/src/mixins/model.changedsincelastsave":11}],65:[function(require,module,exports){
+},{"../collections/annotations":40,"./base":53,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7,"hilib/src/mixins/model.changedsincelastsave":12}],66:[function(require,module,exports){
 var Models, User, ajax, config, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -12363,7 +12394,7 @@ User = (function(_super) {
 module.exports = User;
 
 
-},{"./base":52,"./config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],66:[function(require,module,exports){
+},{"./base":53,"./config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],67:[function(require,module,exports){
 var AnnotationTypeIDs, ajax, config, token;
 
 config = require('./models/config');
@@ -12418,7 +12449,7 @@ AnnotationTypeIDs = (function() {
 module.exports = AnnotationTypeIDs;
 
 
-},{"./models/config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],67:[function(require,module,exports){
+},{"./models/config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],68:[function(require,module,exports){
 var ProjectUserIDs, ajax, config, token;
 
 config = require('./models/config');
@@ -12473,7 +12504,7 @@ ProjectUserIDs = (function() {
 module.exports = ProjectUserIDs;
 
 
-},{"./models/config":53,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6}],68:[function(require,module,exports){
+},{"./models/config":54,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7}],69:[function(require,module,exports){
 var $, Backbone, Collections, Fn, MainRouter, Pubsub, ViewManager, Views, currentUser, history, viewManager, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -12693,7 +12724,7 @@ MainRouter = (function(_super) {
 module.exports = new MainRouter();
 
 
-},{"../collections/projects":45,"../models/currentUser":54,"../util/view-manager":69,"../views/entry/main":72,"../views/login":78,"../views/no-project":79,"../views/project/history":80,"../views/project/search":83,"../views/project/search/edit-metadata":81,"../views/project/settings/main":88,"../views/project/statistics":91,"../views/set-new-password":92,"../views/ui/header":93,"hilib/src/managers/history":4,"hilib/src/managers/view2":7,"hilib/src/mixins/pubsub":13,"hilib/src/utils/general":16}],69:[function(require,module,exports){
+},{"../collections/projects":46,"../models/currentUser":55,"../util/view-manager":70,"../views/entry/main":73,"../views/login":79,"../views/no-project":80,"../views/project/history":81,"../views/project/search":84,"../views/project/search/edit-metadata":82,"../views/project/settings/main":89,"../views/project/statistics":92,"../views/set-new-password":93,"../views/ui/header":94,"hilib/src/managers/history":5,"hilib/src/managers/view2":8,"hilib/src/mixins/pubsub":14,"hilib/src/utils/general":17}],70:[function(require,module,exports){
 var $, ViewManager;
 
 $ = require('jquery');
@@ -12742,7 +12773,7 @@ ViewManager = (function() {
 module.exports = ViewManager;
 
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 var AnnotationEditor, Backbone, Collections, Views, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -12919,7 +12950,7 @@ AnnotationEditor = (function(_super) {
 module.exports = AnnotationEditor;
 
 
-},{"../../../../jade/entry/annotation.metadata.jade":94,"../../../collections/projects":45,"hilib/src/managers/view2":7,"hilib/src/views/base":19,"hilib/src/views/form/main":24,"hilib/src/views/modal":29,"hilib/src/views/supertinyeditor/supertinyeditor":33}],71:[function(require,module,exports){
+},{"../../../../jade/entry/annotation.metadata.jade":95,"../../../collections/projects":46,"hilib/src/managers/view2":8,"hilib/src/views/base":20,"hilib/src/views/form/main":25,"hilib/src/views/modal":30,"hilib/src/views/supertinyeditor/supertinyeditor":34}],72:[function(require,module,exports){
 var Backbone, LayerEditor, StringFn, Views, pkg, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -13035,7 +13066,7 @@ LayerEditor = (function(_super) {
 module.exports = LayerEditor;
 
 
-},{"../../../../../package.json":37,"hilib/src/managers/view2":7,"hilib/src/utils/string":18,"hilib/src/views/base":19,"hilib/src/views/modal":29,"hilib/src/views/supertinyeditor/supertinyeditor":33}],72:[function(require,module,exports){
+},{"../../../../../package.json":38,"hilib/src/managers/view2":8,"hilib/src/utils/string":19,"hilib/src/views/base":20,"hilib/src/views/modal":30,"hilib/src/views/supertinyeditor/supertinyeditor":34}],73:[function(require,module,exports){
 var $, Async, Backbone, Collections, Entry, Fn, Models, StringFn, Views, config, dom, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -13444,7 +13475,7 @@ Entry = (function(_super) {
 module.exports = Entry;
 
 
-},{"../../../jade/entry/main.jade":95,"../../collections/projects":45,"../../models/config":53,"../../models/currentUser":54,"../../models/entry":55,"./editors/annotation":70,"./editors/layer":71,"./main.submenu":73,"./preview/main":76,"./subsubmenu/facsimiles.edit":77,"hilib/src/managers/async":3,"hilib/src/managers/view2":7,"hilib/src/utils/dom":15,"hilib/src/utils/general":16,"hilib/src/utils/jquery.mixin":17,"hilib/src/utils/string":18,"hilib/src/views/base":19,"hilib/src/views/modal":29}],73:[function(require,module,exports){
+},{"../../../jade/entry/main.jade":96,"../../collections/projects":46,"../../models/config":54,"../../models/currentUser":55,"../../models/entry":56,"./editors/annotation":71,"./editors/layer":72,"./main.submenu":74,"./preview/main":77,"./subsubmenu/facsimiles.edit":78,"hilib/src/managers/async":4,"hilib/src/managers/view2":8,"hilib/src/utils/dom":16,"hilib/src/utils/general":17,"hilib/src/utils/jquery.mixin":18,"hilib/src/utils/string":19,"hilib/src/views/base":20,"hilib/src/views/modal":30}],74:[function(require,module,exports){
 var $, Async, Backbone, Base, EntrySubmenu, Fn, StringFn, Views, config, metadataTpl, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -13660,7 +13691,7 @@ EntrySubmenu = (function(_super) {
 module.exports = EntrySubmenu;
 
 
-},{"../../../jade/entry/main.submenu.jade":96,"../../../jade/entry/metadata.jade":97,"../../models/config":53,"hilib/src/managers/async":3,"hilib/src/utils/general":16,"hilib/src/utils/string":18,"hilib/src/views/base":19,"hilib/src/views/form/main":24,"hilib/src/views/modal":29}],74:[function(require,module,exports){
+},{"../../../jade/entry/main.submenu.jade":97,"../../../jade/entry/metadata.jade":98,"../../models/config":54,"hilib/src/managers/async":4,"hilib/src/utils/general":17,"hilib/src/utils/string":19,"hilib/src/views/base":20,"hilib/src/views/form/main":25,"hilib/src/views/modal":30}],75:[function(require,module,exports){
 var AddAnnotationTooltip, Annotation, BaseView, Fn, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -13767,7 +13798,7 @@ AddAnnotationTooltip = (function(_super) {
 module.exports = AddAnnotationTooltip;
 
 
-},{"../../../../jade/entry/tooltip.add.annotation.jade":100,"../../../models/annotation":51,"hilib/src/utils/dom":15,"hilib/src/utils/general":16,"hilib/src/views/base":19}],75:[function(require,module,exports){
+},{"../../../../jade/entry/tooltip.add.annotation.jade":101,"../../../models/annotation":52,"hilib/src/utils/dom":16,"hilib/src/utils/general":17,"hilib/src/views/base":20}],76:[function(require,module,exports){
 var BaseView, EditAnnotationTooltip, Fn, currentUser, dom, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -13929,7 +13960,7 @@ EditAnnotationTooltip = (function(_super) {
 module.exports = EditAnnotationTooltip;
 
 
-},{"../../../../jade/ui/tooltip.jade":119,"../../../models/currentUser":54,"hilib/src/utils/dom":15,"hilib/src/utils/general":16,"hilib/src/views/base":19}],76:[function(require,module,exports){
+},{"../../../../jade/ui/tooltip.jade":120,"../../../models/currentUser":55,"hilib/src/utils/dom":16,"hilib/src/utils/general":17,"hilib/src/views/base":20}],77:[function(require,module,exports){
 var $, EntryPreview, Fn, Views, config, currentUser, dom, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14372,7 +14403,7 @@ EntryPreview = (function(_super) {
 module.exports = EntryPreview;
 
 
-},{"../../../../jade/entry/preview.jade":98,"../../../models/config":53,"../../../models/currentUser":54,"./annotation.add.tooltip":74,"./annotation.edit.tooltip":75,"hilib/src/utils/dom":15,"hilib/src/utils/general":16,"hilib/src/views/base":19}],77:[function(require,module,exports){
+},{"../../../../jade/entry/preview.jade":99,"../../../models/config":54,"../../../models/currentUser":55,"./annotation.add.tooltip":75,"./annotation.edit.tooltip":76,"hilib/src/utils/dom":16,"hilib/src/utils/general":17,"hilib/src/views/base":20}],78:[function(require,module,exports){
 var $, EditFacsimiles, Fn, Views, ajax, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14497,7 +14528,7 @@ EditFacsimiles = (function(_super) {
 module.exports = EditFacsimiles;
 
 
-},{"../../../../jade/entry/subsubmenu/facsimiles.edit.jade":99,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6,"hilib/src/utils/general":16,"hilib/src/views/base":19}],78:[function(require,module,exports){
+},{"../../../../jade/entry/subsubmenu/facsimiles.edit.jade":100,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7,"hilib/src/utils/general":17,"hilib/src/views/base":20}],79:[function(require,module,exports){
 var $, Backbone, BaseView, Form, Login, Modal, ResetPassword, ajax, currentUser, history, resetPasswordTpl, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14653,7 +14684,7 @@ Login = (function(_super) {
 module.exports = Login;
 
 
-},{"../../jade/login.jade":101,"../../jade/reset-password.jade":116,"../models/currentUser":54,"../models/reset-password":62,"hilib/src/managers/ajax":2,"hilib/src/managers/history":4,"hilib/src/managers/token":6,"hilib/src/views/base":19,"hilib/src/views/form/main":24,"hilib/src/views/modal":29}],79:[function(require,module,exports){
+},{"../../jade/login.jade":102,"../../jade/reset-password.jade":117,"../models/currentUser":55,"../models/reset-password":63,"hilib/src/managers/ajax":3,"hilib/src/managers/history":5,"hilib/src/managers/token":7,"hilib/src/views/base":20,"hilib/src/views/form/main":25,"hilib/src/views/modal":30}],80:[function(require,module,exports){
 var $, Backbone, BaseView, NoProject, Views,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14698,7 +14729,7 @@ NoProject = (function(_super) {
 module.exports = NoProject;
 
 
-},{"hilib/src/views/base":19,"hilib/src/views/modal":29}],80:[function(require,module,exports){
+},{"hilib/src/views/base":20,"hilib/src/views/modal":30}],81:[function(require,module,exports){
 var BaseView, Collections, ProjectHistory, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14777,7 +14808,7 @@ ProjectHistory = (function(_super) {
 module.exports = ProjectHistory;
 
 
-},{"../../../jade/project/history.jade":102,"../../collections/project/history":44,"../../collections/projects":45,"hilib/src/views/base":19}],81:[function(require,module,exports){
+},{"../../../jade/project/history.jade":103,"../../collections/project/history":45,"../../collections/projects":46,"hilib/src/views/base":20}],82:[function(require,module,exports){
 var $, Backbone, BaseView, EditMetadata, ajax, config, projects, token, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -14953,15 +14984,15 @@ EditMetadata = (function(_super) {
 module.exports = EditMetadata;
 
 
-},{"../../../../collections/projects":45,"../../../../models/config":53,"./index.jade":82,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6,"hilib/src/views/base":19}],82:[function(require,module,exports){
+},{"../../../../collections/projects":46,"../../../../models/config":54,"./index.jade":83,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7,"hilib/src/views/base":20}],83:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (entrymetadatafields, resultModel, id) {
-buf.push("<h2>Edit results metadata</h2><div class=\"form\"><h3>Metadata fields</h3><form><ul><li class=\"empty\">empty?</li><li class=\"publishable\"><label>Publishable</label><div class=\"publishable-checkbox-container\"><input type=\"checkbox\" name=\"Publishable\" class=\"value\"/></div><input type=\"checkbox\" data-name=\"Publishable\" class=\"empty\"/></li>");
+;var locals_for_with = (locals || {});(function (entrymetadatafields, id, resultModel, undefined) {
+buf.push("<h2>Edit results metadata</h2><div class=\"form\"><h3>" + (jade.escape(null == (jade_interp = "Metadata fields") ? "" : jade_interp)) + "</h3><form><ul><li class=\"empty\">empty?</li><li class=\"publishable\"><label>Publishable</label><div class=\"publishable-checkbox-container\"><input type=\"checkbox\" name=\"Publishable\" class=\"value\"/></div><input type=\"checkbox\" data-name=\"Publishable\" class=\"empty\"/></li>");
 // iterate entrymetadatafields
 ;(function(){
   var $$obj = entrymetadatafields;
@@ -15055,9 +15086,9 @@ buf.push("</ul></label></li>");
   }
 }).call(this);
 
-buf.push("</ul></div>");}("entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"resultModel" in locals_for_with?locals_for_with.resultModel:typeof resultModel!=="undefined"?resultModel:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined));;return buf.join("");
+buf.push("</ul></div>");}.call(this,"entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined,"resultModel" in locals_for_with?locals_for_with.resultModel:typeof resultModel!=="undefined"?resultModel:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],83:[function(require,module,exports){
+},{"jade/runtime":36}],84:[function(require,module,exports){
 var $, Backbone, FacetedSearch, Search, StrFn, Views, config, entryMetadataChanged, projects, token,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15277,7 +15308,7 @@ Search = (function(_super) {
 module.exports = Search;
 
 
-},{"../../../collections/projects":45,"../../../models/config":53,"./edit-metadata":81,"./submenu":84,"hilib/src/managers/token":6,"hilib/src/utils/string":18,"hilib/src/views/base":19,"huygens-faceted-search":34}],84:[function(require,module,exports){
+},{"../../../collections/projects":46,"../../../models/config":54,"./edit-metadata":82,"./submenu":85,"hilib/src/managers/token":7,"hilib/src/utils/string":19,"hilib/src/views/base":20,"huygens-faceted-search":35}],85:[function(require,module,exports){
 var Backbone, Entry, SearchSubmenu, Views, config, currentUser, projects, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15475,14 +15506,14 @@ SearchSubmenu = (function(_super) {
 module.exports = SearchSubmenu;
 
 
-},{"../../../collections/projects":45,"../../../models/config":53,"../../../models/currentUser":54,"../../../models/entry":55,"./submenu.jade":85,"hilib/src/views/base":19,"hilib/src/views/modal":29}],85:[function(require,module,exports){
+},{"../../../collections/projects":46,"../../../models/config":54,"../../../models/currentUser":55,"../../../models/entry":56,"./submenu.jade":86,"hilib/src/views/base":20,"hilib/src/views/modal":30}],86:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (user, config, projects) {
+;var locals_for_with = (locals || {});(function (config, projects, user) {
 buf.push("<div class=\"left-menu\"><ul class=\"horizontal menu\"><li data-key=\"newsearch\">New search</li><li data-key=\"save-edit-metadata\" class=\"inactive\"><span>Save</span><i class=\"fa fa-spinner fa-spin\"></i></li><li data-key=\"cancel-edit-metadata\">Cancel</li></ul></div>");
 if ( user.get('roleNo') >= 20)
 {
@@ -15496,9 +15527,9 @@ if ( user.get('roleNo') >= 40 && projects.length > 1)
 buf.push("<li data-key=\"delete\">Remove project</li>");
 }
 buf.push("</ul></div>");
-}}("user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"projects" in locals_for_with?locals_for_with.projects:typeof projects!=="undefined"?projects:undefined));;return buf.join("");
+}}.call(this,"config" in locals_for_with?locals_for_with.config:typeof config!=="undefined"?config:undefined,"projects" in locals_for_with?locals_for_with.projects:typeof projects!=="undefined"?projects:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],86:[function(require,module,exports){
+},{"jade/runtime":36}],87:[function(require,module,exports){
 var Backbone, EntryMetadata, ProjectSettingsEntries, Views, ajax, config, setNamesTpl, sortLevelsTpl, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15672,7 +15703,7 @@ ProjectSettingsEntries = (function(_super) {
 module.exports = ProjectSettingsEntries;
 
 
-},{"../../../../jade/project/settings/entries.jade":105,"../../../../jade/project/settings/entries.set-names.jade":106,"../../../../jade/project/settings/entries.sort-levels.jade":107,"../../../entry.metadata":49,"../../../models/config":53,"hilib/src/managers/ajax":2,"hilib/src/views/base":19,"hilib/src/views/form/editablelist/main":22,"hilib/src/views/form/main":24}],87:[function(require,module,exports){
+},{"../../../../jade/project/settings/entries.jade":106,"../../../../jade/project/settings/entries.set-names.jade":107,"../../../../jade/project/settings/entries.sort-levels.jade":108,"../../../entry.metadata":50,"../../../models/config":54,"hilib/src/managers/ajax":3,"hilib/src/views/base":20,"hilib/src/views/form/editablelist/main":23,"hilib/src/views/form/main":25}],88:[function(require,module,exports){
 var $, Backbone, Form, ProjectSettingsGeneral, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15737,7 +15768,7 @@ ProjectSettingsGeneral = (function(_super) {
 module.exports = ProjectSettingsGeneral;
 
 
-},{"../../../../jade/project/settings/general2.jade":109,"hilib/src/views/form/main":24}],88:[function(require,module,exports){
+},{"../../../../jade/project/settings/general2.jade":110,"hilib/src/views/form/main":25}],89:[function(require,module,exports){
 var $, Async, Backbone, Collections, EntryMetadata, Models, ProjectSettings, ProjectUserIDs, Views, addAnnotationTypeTpl, ajax, config, customTagNamesTpl, generalTpl, token, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -15979,7 +16010,7 @@ ProjectSettings = (function(_super) {
 module.exports = ProjectSettings;
 
 
-},{"../../../../jade/project/settings/annotations.add.jade":103,"../../../../jade/project/settings/annotations.set-custom-tag-names.jade":104,"../../../../jade/project/settings/general.jade":108,"../../../../jade/project/settings/main.jade":110,"../../../collections/projects":45,"../../../entry.metadata":49,"../../../models/config":53,"../../../models/currentUser":54,"../../../models/project/annotationtype":58,"../../../models/project/settings":60,"../../../models/project/statistics":61,"../../../models/user":65,"../../../project.user.ids":67,"./entries":86,"./general":87,"./textlayers":89,"./users":90,"hilib/src/managers/ajax":2,"hilib/src/managers/async":3,"hilib/src/managers/token":6,"hilib/src/views/base":19,"hilib/src/views/form/combolist/main":20,"hilib/src/views/form/editablelist/main":22,"hilib/src/views/form/main":24,"hilib/src/views/modal":29}],89:[function(require,module,exports){
+},{"../../../../jade/project/settings/annotations.add.jade":104,"../../../../jade/project/settings/annotations.set-custom-tag-names.jade":105,"../../../../jade/project/settings/general.jade":109,"../../../../jade/project/settings/main.jade":111,"../../../collections/projects":46,"../../../entry.metadata":50,"../../../models/config":54,"../../../models/currentUser":55,"../../../models/project/annotationtype":59,"../../../models/project/settings":61,"../../../models/project/statistics":62,"../../../models/user":66,"../../../project.user.ids":68,"./entries":87,"./general":88,"./textlayers":90,"./users":91,"hilib/src/managers/ajax":3,"hilib/src/managers/async":4,"hilib/src/managers/token":7,"hilib/src/views/base":20,"hilib/src/views/form/combolist/main":21,"hilib/src/views/form/editablelist/main":23,"hilib/src/views/form/main":25,"hilib/src/views/modal":30}],90:[function(require,module,exports){
 var ProjectSettingsTextlayers, Views, ajax, tpl, viewManager,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16051,7 +16082,7 @@ ProjectSettingsTextlayers = (function(_super) {
 module.exports = ProjectSettingsTextlayers;
 
 
-},{"../../../../jade/project/settings/textlayers.jade":111,"hilib/src/managers/ajax":2,"hilib/src/managers/view2":7,"hilib/src/views/base":19,"hilib/src/views/form/editablelist/main":22}],90:[function(require,module,exports){
+},{"../../../../jade/project/settings/textlayers.jade":112,"hilib/src/managers/ajax":3,"hilib/src/managers/view2":8,"hilib/src/views/base":20,"hilib/src/views/form/editablelist/main":23}],91:[function(require,module,exports){
 var Models, ProjectSettingsUsers, Views, addUserTpl, rolesTpl, tpl, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16213,7 +16244,7 @@ ProjectSettingsUsers = (function(_super) {
 module.exports = ProjectSettingsUsers;
 
 
-},{"../../../../jade/project/settings/users.add.jade":112,"../../../../jade/project/settings/users.jade":113,"../../../../jade/project/settings/users.roles.jade":114,"../../../models/currentUser":54,"../../../models/user":65,"hilib/src/views/base":19,"hilib/src/views/form/combolist/main":20,"hilib/src/views/form/main":24}],91:[function(require,module,exports){
+},{"../../../../jade/project/settings/users.add.jade":113,"../../../../jade/project/settings/users.jade":114,"../../../../jade/project/settings/users.roles.jade":115,"../../../models/currentUser":55,"../../../models/user":66,"hilib/src/views/base":20,"hilib/src/views/form/combolist/main":21,"hilib/src/views/form/main":25}],92:[function(require,module,exports){
 var BaseView, Collections, Models, Statistics, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16279,7 +16310,7 @@ Statistics = (function(_super) {
 module.exports = Statistics;
 
 
-},{"../../../jade/project/statistics.jade":115,"../../collections/projects":45,"../../models/project/statistics":61,"hilib/src/views/base":19}],92:[function(require,module,exports){
+},{"../../../jade/project/statistics.jade":116,"../../collections/projects":46,"../../models/project/statistics":62,"hilib/src/views/base":20}],93:[function(require,module,exports){
 var $, Backbone, BaseView, Models, SetNewPassword, Views, ajax, history, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16368,7 +16399,7 @@ SetNewPassword = (function(_super) {
 module.exports = SetNewPassword;
 
 
-},{"../../jade/set-new-password.jade":117,"../models/set-new-password":63,"hilib/src/managers/ajax":2,"hilib/src/managers/history":4,"hilib/src/managers/token":6,"hilib/src/views/base":19,"hilib/src/views/form/main":24,"hilib/src/views/modal":29}],93:[function(require,module,exports){
+},{"../../jade/set-new-password.jade":118,"../models/set-new-password":64,"hilib/src/managers/ajax":3,"hilib/src/managers/history":5,"hilib/src/managers/token":7,"hilib/src/views/base":20,"hilib/src/views/form/main":25,"hilib/src/views/modal":30}],94:[function(require,module,exports){
 var $, Backbone, BaseView, Fn, Header, StringFn, Views, ajax, config, currentUser, projects, token, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -16552,14 +16583,14 @@ Header = (function(_super) {
 module.exports = Header;
 
 
-},{"../../../jade/ui/header.jade":118,"../../collections/projects":45,"../../models/config":53,"../../models/currentUser":54,"hilib/src/managers/ajax":2,"hilib/src/managers/token":6,"hilib/src/utils/general":16,"hilib/src/utils/string":18,"hilib/src/views/base":19,"hilib/src/views/modal":29}],94:[function(require,module,exports){
+},{"../../../jade/ui/header.jade":119,"../../collections/projects":46,"../../models/config":54,"../../models/currentUser":55,"hilib/src/managers/ajax":3,"hilib/src/managers/token":7,"hilib/src/utils/general":17,"hilib/src/utils/string":19,"hilib/src/views/base":20,"hilib/src/views/modal":30}],95:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (model, collection, sel) {
+;var locals_for_with = (locals || {});(function (collection, model, sel, undefined) {
 buf.push("<form><ul" + (jade.attr("data-model-id", model.cid, true, false)) + " class=\"form\"><li><label>Type</label><select name=\"metadata.type\">");
 // iterate collection.models
 ;(function(){
@@ -16611,9 +16642,9 @@ buf.push("<li> <label" + (jade.attr("title", metadata.description, true, false))
 }).call(this);
 
 }
-buf.push("</ul></form>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"collection" in locals_for_with?locals_for_with.collection:typeof collection!=="undefined"?collection:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined));;return buf.join("");
+buf.push("</ul></form>");}.call(this,"collection" in locals_for_with?locals_for_with.collection:typeof collection!=="undefined"?collection:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],95:[function(require,module,exports){
+},{"jade/runtime":36}],96:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -16626,16 +16657,16 @@ if ( user.get('roleNo') >= 20)
 {
 buf.push("<div class=\"middle-pane\"><div class=\"transcription-placeholder\"><div class=\"transcription-editor\"></div></div><div class=\"annotation-placeholder\"><div class=\"annotation-editor\"></div></div><div class=\"annotationmetadata-placeholder\"><div class=\"annotationmetadata\"></div></div></div>");
 }
-buf.push("<div class=\"right-pane\"><div class=\"preview-placeholder\"></div></div></div>");}("user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
+buf.push("<div class=\"right-pane\"><div class=\"preview-placeholder\"></div></div></div>");}.call(this,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],96:[function(require,module,exports){
+},{"jade/runtime":36}],97:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (currentTranscription, entry, user) {
+;var locals_for_with = (locals || {});(function (currentTranscription, entry, undefined, user) {
 currentTranscription = entry.get('transcriptions').current
 buf.push("<div class=\"left-menu\"><ul class=\"horizontal menu nav\"><li data-key=\"previous\">&nbsp;</li><li data-key=\"current\"" + (jade.attr("title", entry.get('name'), true, false)) + ">" + (jade.escape(null == (jade_interp = entry.get('name')) ? "" : jade_interp)) + "</li><li data-key=\"next\">&nbsp;</li></ul><ul class=\"horizontal menu switchers\"><li data-key=\"facsimiles\">Facsimiles&nbsp;<span>" + (jade.escape(null == (jade_interp = '(' + entry.get('facsimiles').length + ')') ? "" : jade_interp)) + "</span><ul class=\"vertical menu facsimiles\"><li class=\"spacer\">&nbsp;</li>");
 if ( user.get('roleNo') >= 20)
@@ -16729,16 +16760,16 @@ if ( user.get('roleNo') >= 30)
 {
 buf.push("<li data-key=\"delete\">Remove</li>");
 }
-buf.push("<li data-key=\"metadata\">Metadata</li></ul></div>");}("currentTranscription" in locals_for_with?locals_for_with.currentTranscription:typeof currentTranscription!=="undefined"?currentTranscription:undefined,"entry" in locals_for_with?locals_for_with.entry:typeof entry!=="undefined"?entry:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
+buf.push("<li data-key=\"metadata\">Metadata</li></ul></div>");}.call(this,"currentTranscription" in locals_for_with?locals_for_with.currentTranscription:typeof currentTranscription!=="undefined"?currentTranscription:undefined,"entry" in locals_for_with?locals_for_with.entry:typeof entry!=="undefined"?entry:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],97:[function(require,module,exports){
+},{"jade/runtime":36}],98:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (model, Date, id, generateID, user, entrymetadatafields, value) {
+;var locals_for_with = (locals || {});(function (Date, entrymetadatafields, generateID, id, model, undefined, user, value) {
 buf.push("<small>The last modification of " + (jade.escape((jade_interp = model.get('name')) == null ? '' : jade_interp)) + " was " + (jade.escape((jade_interp = new Date(model.get('modifiedOn')).toDateString()) == null ? '' : jade_interp)) + " by " + (jade.escape((jade_interp = model.get('modifier').title) == null ? '' : jade_interp)) + ".</small><br/><br/><fieldset class=\"span100\"><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li>");
 id = generateID()
 buf.push("<label" + (jade.attr("for", id, true, false)) + ">Name</label>");
@@ -16819,16 +16850,16 @@ else
 {
 buf.push("<span>" + (jade.escape(null == (jade_interp = model.get('publishable')) ? "" : jade_interp)) + "</span>");
 }
-buf.push("</li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined,"generateID" in locals_for_with?locals_for_with.generateID:typeof generateID!=="undefined"?generateID:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined,"entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"value" in locals_for_with?locals_for_with.value:typeof value!=="undefined"?value:undefined));;return buf.join("");
+buf.push("</li></ul></fieldset>");}.call(this,"Date" in locals_for_with?locals_for_with.Date:typeof Date!=="undefined"?Date:undefined,"entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"generateID" in locals_for_with?locals_for_with.generateID:typeof generateID!=="undefined"?generateID:undefined,"id" in locals_for_with?locals_for_with.id:typeof id!=="undefined"?id:undefined,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined,"value" in locals_for_with?locals_for_with.value:typeof value!=="undefined"?value:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],98:[function(require,module,exports){
+},{"jade/runtime":36}],99:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (textLayer, user, lineCount, body, lineNumber) {
+;var locals_for_with = (locals || {});(function (body, lineCount, lineNumber, textLayer, user) {
 buf.push("<h2><span>" + (jade.escape(null == (jade_interp = textLayer + ' preview layer') ? "" : jade_interp)) + "</span>");
 if ( user.get('roleNo') >= 20)
 {
@@ -16846,16 +16877,16 @@ while (lineNumber <= lineCount)
 buf.push("<li>" + (jade.escape(null == (jade_interp = lineNumber) ? "" : jade_interp)) + "</li>");
 lineNumber++
 }
-buf.push("</ul></div>");}("textLayer" in locals_for_with?locals_for_with.textLayer:typeof textLayer!=="undefined"?textLayer:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined,"lineCount" in locals_for_with?locals_for_with.lineCount:typeof lineCount!=="undefined"?lineCount:undefined,"body" in locals_for_with?locals_for_with.body:typeof body!=="undefined"?body:undefined,"lineNumber" in locals_for_with?locals_for_with.lineNumber:typeof lineNumber!=="undefined"?lineNumber:undefined));;return buf.join("");
+buf.push("</ul></div>");}.call(this,"body" in locals_for_with?locals_for_with.body:typeof body!=="undefined"?body:undefined,"lineCount" in locals_for_with?locals_for_with.lineCount:typeof lineCount!=="undefined"?lineCount:undefined,"lineNumber" in locals_for_with?locals_for_with.lineNumber:typeof lineNumber!=="undefined"?lineNumber:undefined,"textLayer" in locals_for_with?locals_for_with.textLayer:typeof textLayer!=="undefined"?textLayer:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],99:[function(require,module,exports){
+},{"jade/runtime":36}],100:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (facsimiles) {
+;var locals_for_with = (locals || {});(function (facsimiles, undefined) {
 buf.push("<div class=\"row span3\"><div class=\"close-button\">X</div><div class=\"cell span1\"><div class=\"pad2\"><h3>Facsimiles</h3><ul class=\"facsimiles\">");
 // iterate facsimiles.models
 ;(function(){
@@ -16879,16 +16910,16 @@ buf.push("<li" + (jade.attr("data-id", facsimile.id, true, false)) + " class=\"f
   }
 }).call(this);
 
-buf.push("</ul></div></div><div class=\"cell span2\"><div class=\"pad2\"><h3>Upload new facsimile</h3><ul class=\"form addfacsimile\"><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><form enctype=\"multipart/form-data\" class=\"addfile\"><input type=\"file\" name=\"filename\"/></form></li><li><button class=\"addfacsimile\">Add facsimile</button></li></ul></div></div></div>");}("facsimiles" in locals_for_with?locals_for_with.facsimiles:typeof facsimiles!=="undefined"?facsimiles:undefined));;return buf.join("");
+buf.push("</ul></div></div><div class=\"cell span2\"><div class=\"pad2\"><h3>Upload new facsimile</h3><ul class=\"form addfacsimile\"><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><form enctype=\"multipart/form-data\" class=\"addfile\"><input type=\"file\" name=\"filename\"/></form></li><li><button class=\"addfacsimile\">Add facsimile</button></li></ul></div></div></div>");}.call(this,"facsimiles" in locals_for_with?locals_for_with.facsimiles:typeof facsimiles!=="undefined"?facsimiles:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],100:[function(require,module,exports){
+},{"jade/runtime":36}],101:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (annotationTypes) {
+;var locals_for_with = (locals || {});(function (annotationTypes, undefined) {
 buf.push("<select>");
 // iterate annotationTypes.models
 ;(function(){
@@ -16912,9 +16943,9 @@ buf.push("<option" + (jade.attr("value", annotationType.id, true, false)) + ">" 
   }
 }).call(this);
 
-buf.push("</select><button>Add annotation</button>");}("annotationTypes" in locals_for_with?locals_for_with.annotationTypes:typeof annotationTypes!=="undefined"?annotationTypes:undefined));;return buf.join("");
+buf.push("</select><button>Add annotation</button>");}.call(this,"annotationTypes" in locals_for_with?locals_for_with.annotationTypes:typeof annotationTypes!=="undefined"?annotationTypes:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],101:[function(require,module,exports){
+},{"jade/runtime":36}],102:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -16924,14 +16955,14 @@ var jade_interp;
 
 buf.push("<div class=\"left-pane\"><h1>eLaborate</h1><p>eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results \nas on online text edition which is freely available to all users. Short information about and a link to already published editions \nis presented on the page Editions under Published. Information about editions currently being prepared is posted on the page \nOngoing projects.</p><p>The eLaborate work environment for the creation and publication of online digital editions is developed by the Huygens Institute \nfor the History of the Netherlands of the Royal Netherlands Academy of Arts and Sciences. This website is the companion to the \nfourth version of the software, which was released on 31 March 2014.</p><p>Information about access to the work environment can be found in <a data-bypass target=\"_blank\" href=\"http://elaborate.huygens.knaw.nl\">http://elaborate.huygens.knaw.nl</a> through the tab About eLaborate \non the page For users. Details about the technical side is available on the page For programmers. This page also gives information \nabout the open source version of the software. The history of eLaborate is described on the page About eLaborate.</p><h2>eLaborate2</h2><p>Those still using eLaborate2 can find their work environment by following this link: <a data-bypass target=\"_blank\" href=\"http://www.e-laborate.nl/en/\">http://www.e-laborate.nl/en/</a>. \nIn the course of 2014, projects using eLaborate2 will be migrated to eLaborate4. The eLaborate team will contact the project leaders to discuss the best time frame for the migration and to arrange instruction in eLaborate4.</p><h2>Links</h2><p> \nMore about Huygens ING at <a data-bypass target=\"_blank\" href=\"http://www.huygens.knaw.nl/\">http://www.huygens.knaw.nl/</a></p></div><div class=\"right-pane\"><h2>Regular login</h2><form class=\"login region\"><ul class=\"message\"><li></li></ul><ul><li><label>Username</label><input id=\"username\" type=\"text\" name=\"username\"/></li><li><label>Password</label><input id=\"password\" type=\"password\" name=\"password\"/></li><li class=\"resetpassword\">Forgot your password?</li><li class=\"login\"><button name=\"submit\">Login<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></form><div class=\"federated\"><h2>Federated login</h2><button class=\"simple federated-login\">Login</button></div></div>");;return buf.join("");
 };
-},{"jade/runtime":35}],102:[function(require,module,exports){
+},{"jade/runtime":36}],103:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (logEntries) {
+;var locals_for_with = (locals || {});(function (logEntries, undefined) {
 buf.push("<h2>History</h2><div class=\"entries\">");
 // iterate logEntries
 ;(function(){
@@ -17001,9 +17032,9 @@ buf.push("</ul>");
   }
 }).call(this);
 
-buf.push("</div><button class=\"simple more\">Show the next 500 entries</button>");}("logEntries" in locals_for_with?locals_for_with.logEntries:typeof logEntries!=="undefined"?logEntries:undefined));;return buf.join("");
+buf.push("</div><button class=\"simple more\">Show the next 500 entries</button>");}.call(this,"logEntries" in locals_for_with?locals_for_with.logEntries:typeof logEntries!=="undefined"?logEntries:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],103:[function(require,module,exports){
+},{"jade/runtime":36}],104:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17011,9 +17042,9 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (model) {
-buf.push("<fieldset class=\"span100\"><h3>Add annotation type to project</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><label>Description</label><input type=\"text\" name=\"description\"/></li><li><button name=\"submit\" class=\"disabled\">Add type<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
+buf.push("<fieldset class=\"span100\"><h3>Add annotation type to project</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Name</label><input type=\"text\" name=\"name\"/></li><li><label>Description</label><input type=\"text\" name=\"description\"/></li><li><button name=\"submit\" class=\"disabled\">Add type<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],104:[function(require,module,exports){
+},{"jade/runtime":36}],105:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17021,9 +17052,9 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (model) {
-buf.push("<fieldset><h3>Set custom names for tags</h3><p style=\"color:gray\"><strong>The custom names are only applicable to the <u>diplomatic</u> layer!</strong></p><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><b>Bold</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.b.name\"" + (jade.attr("value", model.get('annotationType.b.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.b.description\"" + (jade.attr("value", model.get('annotationType.b.description'), true, false)) + "/></li><li><b>Italic</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.i.name\"" + (jade.attr("value", model.get('annotationType.i.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.i.description\"" + (jade.attr("value", model.get('annotationType.i.description'), true, false)) + "/></li><li><b>Underline</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.u.name\"" + (jade.attr("value", model.get('annotationType.u.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.u.description\"" + (jade.attr("value", model.get('annotationType.u.description'), true, false)) + "/></li><li><b>Strikethrough</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.strike.name\"" + (jade.attr("value", model.get('annotationType.strike.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.strike.description\"" + (jade.attr("value", model.get('annotationType.strike.description'), true, false)) + "/></li><li><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
+buf.push("<fieldset><h3>Set custom names for tags</h3><p style=\"color:gray\"><strong>The custom names are only applicable to the <u>diplomatic</u> layer!</strong></p><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><b>Bold</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.b.name\"" + (jade.attr("value", model.get('annotationType.b.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.b.description\"" + (jade.attr("value", model.get('annotationType.b.description'), true, false)) + "/></li><li><b>Italic</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.i.name\"" + (jade.attr("value", model.get('annotationType.i.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.i.description\"" + (jade.attr("value", model.get('annotationType.i.description'), true, false)) + "/></li><li><b>Underline</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.u.name\"" + (jade.attr("value", model.get('annotationType.u.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.u.description\"" + (jade.attr("value", model.get('annotationType.u.description'), true, false)) + "/></li><li><b>Strikethrough</b></li><li><label>Name</label><input type=\"text\" name=\"annotationType.strike.name\"" + (jade.attr("value", model.get('annotationType.strike.name'), true, false)) + "/></li><li class=\"description\"><label>Description</label><input type=\"text\" name=\"annotationType.strike.description\"" + (jade.attr("value", model.get('annotationType.strike.description'), true, false)) + "/></li><li><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],105:[function(require,module,exports){
+},{"jade/runtime":36}],106:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17033,7 +17064,7 @@ var jade_interp;
 
 buf.push("<div class=\"entry-list\"><h3>Add / remove entry metadata fields</h3></div><div class=\"set-names\"></div><div class=\"sort-levels\"></div>");;return buf.join("");
 };
-},{"jade/runtime":35}],106:[function(require,module,exports){
+},{"jade/runtime":36}],107:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17041,16 +17072,16 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (model) {
-buf.push("<fieldset class=\"span100\"><h3>Set entry names</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Singular</label><input type=\"text\" name=\"entry.term_singular\"" + (jade.attr("value", model.get('entry.term_singular'), true, false)) + " placeholder=\"entry\"/></li><li><label>Plural</label><input type=\"text\" name=\"entry.term_plural\"" + (jade.attr("value", model.get('entry.term_plural'), true, false)) + " placeholder=\"entries\"/></li><li><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
+buf.push("<fieldset class=\"span100\"><h3>Set entry names</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Singular</label><input type=\"text\" name=\"entry.term_singular\"" + (jade.attr("value", model.get('entry.term_singular'), true, false)) + " placeholder=\"entry\"/></li><li><label>Plural</label><input type=\"text\" name=\"entry.term_plural\"" + (jade.attr("value", model.get('entry.term_plural'), true, false)) + " placeholder=\"entries\"/></li><li><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],107:[function(require,module,exports){
+},{"jade/runtime":36}],108:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (entrymetadatafields, level1, level2, level3) {
+;var locals_for_with = (locals || {});(function (entrymetadatafields, level1, level2, level3, undefined) {
 buf.push("<h3>Sort levels</h3><form><ul><li><label>Level 1</label><select name=\"level1\"><option></option>");
 // iterate entrymetadatafields
 ;(function(){
@@ -17120,16 +17151,16 @@ buf.push("<option" + (jade.attr("value", field, true, false)) + (jade.attr("sele
   }
 }).call(this);
 
-buf.push("</select></li><li><button class=\"simple savesortlevels inactive\">Save sort levels<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></form>");}("entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"level1" in locals_for_with?locals_for_with.level1:typeof level1!=="undefined"?level1:undefined,"level2" in locals_for_with?locals_for_with.level2:typeof level2!=="undefined"?level2:undefined,"level3" in locals_for_with?locals_for_with.level3:typeof level3!=="undefined"?level3:undefined));;return buf.join("");
+buf.push("</select></li><li><button class=\"simple savesortlevels inactive\">Save sort levels<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></form>");}.call(this,"entrymetadatafields" in locals_for_with?locals_for_with.entrymetadatafields:typeof entrymetadatafields!=="undefined"?entrymetadatafields:undefined,"level1" in locals_for_with?locals_for_with.level1:typeof level1!=="undefined"?level1:undefined,"level2" in locals_for_with?locals_for_with.level2:typeof level2!=="undefined"?level2:undefined,"level3" in locals_for_with?locals_for_with.level3:typeof level3!=="undefined"?level3:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],108:[function(require,module,exports){
+},{"jade/runtime":36}],109:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (settings, projectMembers, sel, src) {
+;var locals_for_with = (locals || {});(function (projectMembers, sel, settings, src, undefined) {
 buf.push("<div class=\"general\"><h3>General</h3><form><ul><li><label for=\"type\">Type</label><select name=\"projectType\" data-attr=\"projectType\"><option value=\"collection\"" + (jade.attr("selected", settings['projectType']==='collection', true, false)) + ">Collection</option><option value=\"work\"" + (jade.attr("selected", settings['projectType']==='work', true, false)) + ">Work</option></select></li><li><label for=\"title\">Project title</label><input type=\"text\" name=\"title\"" + (jade.attr("value", settings['Project title'], true, false)) + " data-attr=\"Project title\"/></li><li><label for=\"title\">Project name</label><input type=\"text\" name=\"name\"" + (jade.attr("value", settings['name'], true, false)) + " data-attr=\"name\"/></li><li><label for=\"leader\">Project leader</label><select name=\"leader\" data-attr=\"Project leader\"><option>-- select member --</option>");
 // iterate projectMembers.models
 ;(function(){
@@ -17162,16 +17193,16 @@ buf.push("<li><label>URL</label><a" + (jade.attr("href", settings.publicationURL
 }
 buf.push("<li><label>Title</label><input type=\"text\"" + (jade.attr("value", settings['publication.title'], true, false)) + " name=\"publication.title\" data-attr=\"publication.title\"/></li><li><label for=\"text.font\">Font</label><select name=\"text.font\" data-attr=\"text.font\"><option></option><option value=\"junicode\"" + (jade.attr("selected", settings['text.font']=='junicode', true, false)) + ">Junicode</option><option value=\"dejavu\"" + (jade.attr("selected", settings['text.font']=='dejavu', true, false)) + ">DejaVu</option><option value=\"gentium\"" + (jade.attr("selected", settings['text.font']=='gentium', true, false)) + ">Gentium</option><option value=\"alexander\"" + (jade.attr("selected", settings['text.font']=='alexander', true, false)) + ">Alexander</option><option value=\"newathena\"" + (jade.attr("selected", settings['text.font']=='newathena', true, false)) + ">New Athena</option></select></li>");
 src = settings['text.font'] === '' ? settings['text.font'] : '/images/fonts/'+settings['text.font']+'.png'
-buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + "/></li></ul></form></div>");}("settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined));;return buf.join("");
+buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + "/></li></ul></form></div>");}.call(this,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"settings" in locals_for_with?locals_for_with.settings:typeof settings!=="undefined"?settings:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],109:[function(require,module,exports){
+},{"jade/runtime":36}],110:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (model, projectMembers, sel, src) {
+;var locals_for_with = (locals || {});(function (model, projectMembers, sel, src, undefined) {
 buf.push("<fieldset class=\"span50\"><h3>General</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label for=\"projectType\">Type</label><select name=\"projectType\"><option value=\"collection\"" + (jade.attr("selected", model.get('projectType')==='collection', true, false)) + ">Collection</option><option value=\"work\"" + (jade.attr("selected", model.get('projectType')==='work', true, false)) + ">Work</option></select></li><li><label for=\"Project title\">Project title</label><input type=\"text\" name=\"Project title\"" + (jade.attr("value", model.get('Project title'), true, false)) + "/></li><li><label for=\"name\">Project name</label><input type=\"text\" name=\"name\"" + (jade.attr("value", model.get('name'), true, false)) + "/></li><li><label for=\"Project leader\">Project leader</label><select name=\"Project leader\"><option>-- select member --</option>");
 // iterate projectMembers.models
 ;(function(){
@@ -17227,9 +17258,9 @@ buf.push("<li><label>URL</label><a" + (jade.attr("href", model.get('publicationU
 }
 buf.push("<li><label>Title</label><input type=\"text\"" + (jade.attr("value", model.get('publication.title'), true, false)) + " name=\"publication.title\"/></li><li><label for=\"text.font\">Font</label><select name=\"text.font\"><option></option><option value=\"junicode\"" + (jade.attr("selected", model.get('text.font')=='junicode', true, false)) + ">Junicode</option><option value=\"dejavu\"" + (jade.attr("selected", model.get('text.font')=='dejavu', true, false)) + ">DejaVu</option><option value=\"gentium\"" + (jade.attr("selected", model.get('text.font')=='gentium', true, false)) + ">Gentium</option><option value=\"alexander\"" + (jade.attr("selected", model.get('text.font')=='alexander', true, false)) + ">Alexander</option><option value=\"newathena\"" + (jade.attr("selected", model.get('text.font')=='newathena', true, false)) + ">New Athena</option></select></li>");
 src = model.get('text.font') === '' ? model.get('text.font') : '/images/fonts/'+model.get('text.font')+'.png'
-buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + " width=\"140px\" height=\"140px\"/></li></ul></fieldset><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined));;return buf.join("");
+buf.push("<li><label></label><img name=\"text.font\"" + (jade.attr("src", src, true, false)) + " width=\"140px\" height=\"140px\"/></li></ul></fieldset><button name=\"submit\" class=\"disabled\">Save settings<i class=\"fa fa-spinner fa-spin\"></i></button>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"projectMembers" in locals_for_with?locals_for_with.projectMembers:typeof projectMembers!=="undefined"?projectMembers:undefined,"sel" in locals_for_with?locals_for_with.sel:typeof sel!=="undefined"?sel:undefined,"src" in locals_for_with?locals_for_with.src:typeof src!=="undefined"?src:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],110:[function(require,module,exports){
+},{"jade/runtime":36}],111:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17246,9 +17277,9 @@ else
 {
 buf.push("<p>You are not authorized to alter project settings. Please contact the project leader.</p>");
 }
-buf.push("</div>");}("roleNo" in locals_for_with?locals_for_with.roleNo:typeof roleNo!=="undefined"?roleNo:undefined));;return buf.join("");
+buf.push("</div>");}.call(this,"roleNo" in locals_for_with?locals_for_with.roleNo:typeof roleNo!=="undefined"?roleNo:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],111:[function(require,module,exports){
+},{"jade/runtime":36}],112:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17258,7 +17289,7 @@ var jade_interp;
 
 buf.push("<h3>Add / remove text layers</h3>");;return buf.join("");
 };
-},{"jade/runtime":35}],112:[function(require,module,exports){
+},{"jade/runtime":36}],113:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17271,9 +17302,9 @@ if ( roleNo >= 40)
 {
 buf.push("<option value=\"PROJECTLEADER\">PROJECTLEADER</option>");
 }
-buf.push("</select></li><li><button name=\"submit\" class=\"disabled\">Add user<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"roleNo" in locals_for_with?locals_for_with.roleNo:typeof roleNo!=="undefined"?roleNo:undefined));;return buf.join("");
+buf.push("</select></li><li><button name=\"submit\" class=\"disabled\">Add user<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined,"roleNo" in locals_for_with?locals_for_with.roleNo:typeof roleNo!=="undefined"?roleNo:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],113:[function(require,module,exports){
+},{"jade/runtime":36}],114:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17283,14 +17314,14 @@ var jade_interp;
 
 buf.push("<div class=\"listandroles\"><div class=\"userlist\"><h3>Add / remove project members</h3></div><div class=\"userroles\"><h3>Change user roles</h3><ul></ul></div></div><div class=\"adduser\"></div>");;return buf.join("");
 };
-},{"jade/runtime":35}],114:[function(require,module,exports){
+},{"jade/runtime":36}],115:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (members) {
+;var locals_for_with = (locals || {});(function (members, undefined) {
 // iterate members.models
 ;(function(){
   var $$obj = members.models;
@@ -17320,9 +17351,9 @@ buf.push("<li><select" + (jade.attr("data-id", member.id, true, false)) + "><opt
 
   }
 }).call(this);
-}("members" in locals_for_with?locals_for_with.members:typeof members!=="undefined"?members:undefined));;return buf.join("");
+}.call(this,"members" in locals_for_with?locals_for_with.members:typeof members!=="undefined"?members:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],115:[function(require,module,exports){
+},{"jade/runtime":36}],116:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17330,9 +17361,9 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (statistics) {
-buf.push("<h2>Statistics</h2><div class=\"statistics\"><pre>" + (jade.escape(null == (jade_interp = statistics) ? "" : jade_interp)) + "</pre></div>");}("statistics" in locals_for_with?locals_for_with.statistics:typeof statistics!=="undefined"?statistics:undefined));;return buf.join("");
+buf.push("<h2>Statistics</h2><div class=\"statistics\"><pre>" + (jade.escape(null == (jade_interp = statistics) ? "" : jade_interp)) + "</pre></div>");}.call(this,"statistics" in locals_for_with?locals_for_with.statistics:typeof statistics!=="undefined"?statistics:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],116:[function(require,module,exports){
+},{"jade/runtime":36}],117:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17340,9 +17371,9 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (model) {
-buf.push("<fieldset class=\"span100\"><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li class=\"message error\"></li><li class=\"input\"><label>Enter your email address:</label><input type=\"text\" name=\"email\"/></li><li class=\"submit\"><button name=\"cancel\">Cancel</button><span>or</span><button name=\"submit\" class=\"disabled\">Reset my password<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
+buf.push("<fieldset class=\"span100\"><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li class=\"message error\"></li><li class=\"input\"><label>Enter your email address:</label><input type=\"text\" name=\"email\"/></li><li class=\"submit\"><button name=\"cancel\">Cancel</button><span>or</span><button name=\"submit\" class=\"disabled\">Reset my password<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],117:[function(require,module,exports){
+},{"jade/runtime":36}],118:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17350,16 +17381,16 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 ;var locals_for_with = (locals || {});(function (model) {
-buf.push("<fieldset class=\"span100\"><p>Your password has been changed. Please continue to <a name=\"login\" href=\"login\">login.</a></p><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Enter new password</label><input type=\"password\" name=\"password1\"/></li><li><label>Re-enter new password</label><input type=\"password\" name=\"password2\"/></li><li><button name=\"submit\" class=\"disabled\">Update password<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}("model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
+buf.push("<fieldset class=\"span100\"><p>Your password has been changed. Please continue to <a name=\"login\" href=\"login\">login.</a></p><ul" + (jade.attr("data-model-id", model.cid, true, false)) + "><li><label>Enter new password</label><input type=\"password\" name=\"password1\"/></li><li><label>Re-enter new password</label><input type=\"password\" name=\"password2\"/></li><li><button name=\"submit\" class=\"disabled\">Update password<i class=\"fa fa-spinner fa-spin\"></i></button></li></ul></fieldset>");}.call(this,"model" in locals_for_with?locals_for_with.model:typeof model!=="undefined"?model:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],118:[function(require,module,exports){
+},{"jade/runtime":36}],119:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (projects, plural, user) {
+;var locals_for_with = (locals || {});(function (plural, projects, undefined, user) {
 buf.push("<div class=\"left\"><img src=\"/images/logo.elaborate.png\"/><ul class=\"horizontal menu\"><li class=\"thisproject arrowdown\"> <span class=\"projecttitle\">" + (jade.escape(null == (jade_interp = projects.current.get('title')) ? "" : jade_interp)) + "</span><ul class=\"vertical menu\"><li class=\"search\">" + (jade.escape(null == (jade_interp = plural + ' overview') ? "" : jade_interp)) + "</li>");
 if ( user.get('roleNo') >= 30)
 {
@@ -17393,9 +17424,9 @@ if ( user.get('roleNo') >= 40)
 {
 buf.push("<li class=\"addproject\">Add project</li>");
 }
-buf.push("<li class=\"logout\">Logout</li></ul></li></ul><img src=\"/images/logo.huygens.png\"/></div>");}("projects" in locals_for_with?locals_for_with.projects:typeof projects!=="undefined"?projects:undefined,"plural" in locals_for_with?locals_for_with.plural:typeof plural!=="undefined"?plural:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
+buf.push("<li class=\"logout\">Logout</li></ul></li></ul><img src=\"/images/logo.huygens.png\"/></div>");}.call(this,"plural" in locals_for_with?locals_for_with.plural:typeof plural!=="undefined"?plural:undefined,"projects" in locals_for_with?locals_for_with.projects:typeof projects!=="undefined"?projects:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}],119:[function(require,module,exports){
+},{"jade/runtime":36}],120:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -17408,6 +17439,6 @@ if ( user.get('roleNo') >= 20)
 {
 buf.push("<li class=\"edit\"><img src=\"/images/icon.edit.png\" title=\"Edit annotation\"/></li><li class=\"delete\"><img src=\"/images/icon.bin.png\" title=\"Delete annotation\"/></li>");
 }
-buf.push("</ul><div class=\"annotation-type\"></div><ul class=\"horizontal menu right\"><li class=\"close\"><img src=\"/images/icon.close.png\" title=\"Close annotation\"/></li></ul><div class=\"tooltip-body\"></div>");}("interactive" in locals_for_with?locals_for_with.interactive:typeof interactive!=="undefined"?interactive:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
+buf.push("</ul><div class=\"annotation-type\"></div><ul class=\"horizontal menu right\"><li class=\"close\"><img src=\"/images/icon.close.png\" title=\"Close annotation\"/></li></ul><div class=\"tooltip-body\"></div>");}.call(this,"interactive" in locals_for_with?locals_for_with.interactive:typeof interactive!=="undefined"?interactive:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
-},{"jade/runtime":35}]},{},[50])
+},{"jade/runtime":36}]},{},[51])

@@ -1,0 +1,8 @@
+dev:
+  build: .
+  ports:
+    - "3000-3001:3000-3001"
+  volumes:
+    - .:/home/developer/project
+    - ../hilib:/home/developer/hilib
+    - ./tmuxinator.yml:/home/developer/.tmuxinator/project.yml

@@ -1,0 +1,9 @@
+name: project
+root: ~/project
+tmux_command: tmux -2
+windows:
+  - npm:
+      layout: even-horizontal
+      panes:
+        - npm start
+        - git st

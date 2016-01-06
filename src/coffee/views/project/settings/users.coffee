@@ -34,7 +34,7 @@ class ProjectSettingsUsers extends Views.Base
 		@renderUserroles()
 
 		@renderCombolist()
-		
+
 		@renderAddUserForm()
 
 		@
@@ -57,6 +57,7 @@ class ProjectSettingsUsers extends Views.Base
 					settings:
 						placeholder: 'Add member'
 						confirmRemove: true
+
 			@$('.userlist').append combolist.el
 
 			@listenTo combolist, 'confirmRemove', (id, confirm) => @trigger 'confirm', confirm,
@@ -82,7 +83,7 @@ class ProjectSettingsUsers extends Views.Base
 				roleNo: Models.currentUser.get('roleNo')
 		@$('.adduser').append form.el
 
-		@listenTo form, 'save:success', (model) => 
+		@listenTo form, 'save:success', (model) =>
 			form.reset()
 			@project.get('members').add model
 			@project.addUser model, => @publish 'message', "Added #{model.getShortName()} to #{@project.get('title')}."

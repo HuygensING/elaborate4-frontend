@@ -10,15 +10,15 @@ envConfig = require '../config/env'
 class Config extends Backbone.Model
 
 	url: -> "#{basePath}/data/config.json"
-	
+
 	defaults: ->
 		# # DEV/TEST
 		# restUrl: 'http://demo7.huygens.knaw.nl/elab4testBE/'
-		
-		# # PROD
-		# # restUrl: 'https://rest.elaborate.huygens.knaw.nl/'
 
-		_.extend envConfig, 
+		# # PROD
+		# restUrl: 'https://rest.elaborate.huygens.knaw.nl/'
+
+		_.extend envConfig,
 			basePath: basePath
 			appRootElement: '#app'
 			entryTermSingular: 'entry'
@@ -43,7 +43,7 @@ class Config extends Backbone.Model
 
 	parse: (data) ->
 		for entry in data.entries
-			entry._id = +entry.datafile.replace '.json', '' 
+			entry._id = +entry.datafile.replace '.json', ''
 			entry.thumbnails = data.thumbnails[entry._id]
 
 		tls = []

@@ -39,5 +39,5 @@ class ProjectSettingsGeneral extends Backbone.View
 
 
 
-			
+
 module.exports = ProjectSettingsGeneral

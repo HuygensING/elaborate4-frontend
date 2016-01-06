@@ -409,6 +409,7 @@ i.fa.fa-check-square-o {
   white-space: nowrap;
   text-overflow: ellipsis;
   line-height: 31px;
+/* Same as .ste-header to vertically center text */
   font-size: 1.2em;
   font-weight: bold;
 }
