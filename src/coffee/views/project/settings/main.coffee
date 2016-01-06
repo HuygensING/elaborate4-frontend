@@ -51,9 +51,9 @@ class ProjectSettings extends Views.Base
 		Collections.projects.getCurrent (@project) =>
 			@listenTo @project.get('members'), 'add', => @renderGeneralTab()
 			@listenTo @project.get('members'), 'remove', => @renderGeneralTab()
-			
+
 			@model = @project.get 'settings'
-			
+
 			@render()
 
 
@@ -145,11 +145,12 @@ class ProjectSettings extends Views.Base
 					@publish 'message', "Removed #{name} from #{@project.get('title')}."
 
 		addAnnotationTypeForm = new Views.Form
-			Model: Models.Annotationtype
+			model: new Models.Annotationtype()
+			# Model: Models.Annotationtype
 			tpl: addAnnotationTypeTpl
 		@$('div[data-tab="annotations"] .add-annotation-type').append addAnnotationTypeForm.el
-			
-		@listenTo addAnnotationTypeForm, 'save:success', (model) => 
+
+		@listenTo addAnnotationTypeForm, 'save:success', (model) =>
 			@project.get('annotationtypes').add model
 			addAnnotationTypeForm.reset()
 		@listenTo addAnnotationTypeForm, 'save:error', (model, xhr, options) => @publish 'message', xhr.responseText
@@ -161,7 +162,7 @@ class ProjectSettings extends Views.Base
 
 	renderConfirmModal: (confirm, options) ->
 		modal = new Views.Modal _.extend options, width: 'auto'
-		modal.on 'submit', => 
+		modal.on 'submit', =>
 			modal.close()
 			confirm()
 
@@ -174,11 +175,11 @@ class ProjectSettings extends Views.Base
 		# 'change div[data-tab="project"] select': 'updateModel'
 		# 'click input[name="savesettings"]': 'saveSettings'
 
-	# saveSettings: (ev) -> 
+	# saveSettings: (ev) ->
 	# 	ev.preventDefault()
 
 	# 	unless $(ev.currentTarget).hasClass 'inactive'
-	# 		@model.save null, success: => 
+	# 		@model.save null, success: =>
 	# 			$(ev.currentTarget).addClass 'inactive'
 	# 			@publish 'message', 'Settings saved.'
 
@@ -194,7 +195,7 @@ class ProjectSettings extends Views.Base
 		else
 			$ct = $(ev.currentTarget)
 			tabName = $ct.attr('data-tab')
-		
+
 		# Change URL to reflect the new tab
 		index = Backbone.history.fragment.indexOf '/settings'
 		Backbone.history.navigate Backbone.history.fragment.substr(0, index) + '/settings/' + tabName
@@ -221,5 +222,5 @@ class ProjectSettings extends Views.Base
 
 
 
-			
+
 module.exports = ProjectSettings

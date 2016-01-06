@@ -8,7 +8,7 @@ Async = require 'hilib/src/managers/async'
 
 config = require '../config'
 
-Models = 
+Models =
 	Base: require '../base'
 	Settings: require './settings'
 
@@ -60,13 +60,13 @@ class Project extends Models.Base
 		ids.push annotationType.id
 
 		@projectAnnotationTypeIDs.save ids,
-			success: => 
+			success: =>
 				@allannotationtypes.add annotationType
 				done()
 
 	removeAnnotationType: (id, done) ->
 		@projectAnnotationTypeIDs.save Fn.removeFromArray(@get('annotationtypeIDs'), id),
-			success: => 
+			success: =>
 				@allannotationtypes.remove id
 				done()
 
@@ -75,7 +75,7 @@ class Project extends Models.Base
 		userIDs.push user.id
 
 		@projectUserIDs.save userIDs,
-			success: => 
+			success: =>
 				@allusers.add user
 				done()
 
@@ -109,7 +109,7 @@ class Project extends Models.Base
 						async.called 'annotationtypes'
 
 			# Users
-			new Collections.Users().fetch 
+			new Collections.Users().fetch
 				success: (collection) =>
 					# Set all users to root for use in views/project/settings
 					@allusers = collection
@@ -127,7 +127,7 @@ class Project extends Models.Base
 				async.called 'entrymetadatafields'
 
 			settings = new Models.Settings null, projectID: @id
-			settings.fetch 
+			settings.fetch
 				success: (model) =>
 					@set 'settings', model
 					async.called 'settings'
@@ -160,7 +160,7 @@ class Project extends Models.Base
 			@set 'entrymetadatafields', response
 			cb()
 		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
-			
+
 	publishDraft: (cb) ->
 		# ajax.token = token.get()
 		jqXHR = ajax.post

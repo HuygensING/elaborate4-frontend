@@ -396,11 +396,12 @@ module.exports = {
         return _this.$('li[data-id="' + model.id + '"]').addClass('active');
       };
     })(this));
-    return this.on('change', (function(_this) {
+    this.on('change', (function(_this) {
       return function() {
         return _this.resetOptions();
       };
     })(this));
+    return this.delegateEvents();
   },
   dropdownRender: function(tpl) {
     var rtpl;
@@ -2161,7 +2162,6 @@ Form = (function(_super) {
 
   Form.prototype.events = function() {
     var evs;
-    console.log("FORM#EVENTS", this.model, this.Model);
     evs = {};
     evs["keyup [data-model-id='" + this.model.cid + "'] textarea"] = "inputChanged";
     evs["keyup [data-model-id='" + this.model.cid + "'] input"] = "inputChanged";
@@ -15950,7 +15950,7 @@ ProjectSettings = (function(_super) {
       };
     })(this));
     addAnnotationTypeForm = new Views.Form({
-      Model: Models.Annotationtype,
+      model: new Models.Annotationtype(),
       tpl: addAnnotationTypeTpl
     });
     this.$('div[data-tab="annotations"] .add-annotation-type').append(addAnnotationTypeForm.el);
@@ -16190,7 +16190,7 @@ ProjectSettingsUsers = (function(_super) {
   ProjectSettingsUsers.prototype.renderAddUserForm = function() {
     var form;
     form = new Views.Form({
-      Model: Models.User,
+      model: new Models.User(),
       tpl: addUserTpl,
       tplData: {
         roleNo: Models.currentUser.get('roleNo')

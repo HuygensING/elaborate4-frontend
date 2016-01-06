@@ -77,7 +77,8 @@ class ProjectSettingsUsers extends Views.Base
 
 	renderAddUserForm: ->
 		form = new Views.Form
-			Model: Models.User
+			# Model: Models.User
+			model: new Models.User()
 			tpl: addUserTpl
 			tplData:
 				roleNo: Models.currentUser.get('roleNo')
