@@ -75,6 +75,26 @@ i.fa.fa-square-o:hover {
 i.fa.fa-check-square-o {
   color: #555;
 }
+@font-face {
+  font-family: "junicode";
+  src: url("../fonts/Junicode.woff") format('woff');
+}
+@font-face {
+  font-family: "junicode";
+  src: url("../fonts/Junicode-Bold.woff") format('woff');
+  font-weight: bold;
+}
+@font-face {
+  font-family: "junicode";
+  src: url("../fonts/Junicode-BoldItalic.woff") format('woff');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: "junicode";
+  src: url("../fonts/Junicode-Italic.woff") format('woff');
+  font-style: italic;
+}
 .btn {
   background: #d9dad9;
   background: -moz-linear-gradient(top, #d9dad9 0%, #8f8f8f 100%);

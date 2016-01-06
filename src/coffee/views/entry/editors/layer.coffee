@@ -4,7 +4,7 @@ viewManager = require 'hilib/src/managers/view2'
 
 StringFn = require 'hilib/src/utils/string'
 
-Views = 
+Views =
 	Base: require 'hilib/src/views/base'
 	SuperTinyEditor: require 'hilib/src/views/supertinyeditor/supertinyeditor'
 	Modal: require 'hilib/src/views/modal'
@@ -26,18 +26,18 @@ class LayerEditor extends Views.Base
 	render: ->
 		@subviews.editor = new Views.SuperTinyEditor
 			controls:		['b_save', 'n', 'bold', 'italic', 'underline', 'strikethrough', '|', 'subscript', 'superscript', 'removeFormat', '|', 'diacritics', '|', 'undo', 'redo', '|', 'wordwrap']
-			cssFile:		"/css/main-#{pkg.version}.css"
+			cssFile:			"/css/main-#{pkg.version}.css"
 			height:			@options.height
-			html:			@model.get 'body'
+			html:				@model.get 'body'
 			htmlAttribute:	'body'
 			model:			@model
 			width: 			@options.width
-			wrap:			@options.wordwrap
+			wrap:				@options.wordwrap
 		@$el.html @subviews.editor.el
 
 		@listenTo @subviews.editor, 'control:wordwrap', (wrap) =>
 			@trigger 'wrap', wrap
-		@listenTo @subviews.editor, 'button:save', => 
+		@listenTo @subviews.editor, 'button:save', =>
 			@model.save null, success: => @publish 'message', "#{@model.get('textLayer')} layer saved."
 
 		@show()
@@ -67,14 +67,14 @@ class LayerEditor extends Views.Base
 		oldFragment = Backbone.history.fragment
 		# Cut off '/annotations/*' if it exists.
 		index = oldFragment.indexOf '/transcriptions/'
-		newFragment = if index isnt -1 then oldFragment.substr 0, index else oldFragment 
-		
+		newFragment = if index isnt -1 then oldFragment.substr 0, index else oldFragment
+
 		oldTextLayer = oldFragment.substr index
 		oldTextLayer = oldTextLayer.replace '/transcriptions/', ''
 		index = oldTextLayer.indexOf '/'
 		oldTextLayer = oldTextLayer.substr 0, index if index isnt -1
 
-		newTextLayer = StringFn.slugify @model.get 'textLayer' 
+		newTextLayer = StringFn.slugify @model.get 'textLayer'
 
 		# Add the new textLayer to the fragment
 		newFragment = newFragment + '/transcriptions/' + newTextLayer

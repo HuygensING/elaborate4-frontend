@@ -2877,31 +2877,8 @@ module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (diacritics, undefined) {
-buf.push("<ul class=\"diacritics\">");
-// iterate diacritics
-;(function(){
-  var $$obj = diacritics;
-  if ('number' == typeof $$obj.length) {
 
-    for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
-      var diacritic = $$obj[$index];
-
-buf.push("<li>" + (jade.escape(null == (jade_interp = diacritic) ? "" : jade_interp)) + "</li>");
-    }
-
-  } else {
-    var $$l = 0;
-    for (var $index in $$obj) {
-      $$l++;      var diacritic = $$obj[$index];
-
-buf.push("<li>" + (jade.escape(null == (jade_interp = diacritic) ? "" : jade_interp)) + "</li>");
-    }
-
-  }
-}).call(this);
-
-buf.push("</ul>");}.call(this,"diacritics" in locals_for_with?locals_for_with.diacritics:typeof diacritics!=="undefined"?diacritics:undefined,"undefined" in locals_for_with?locals_for_with.undefined:typeof undefined!=="undefined"?undefined:undefined));;return buf.join("");
+buf.push("<ul class=\"diacritics\"><li>Ā</li><li>Ă</li><li>À</li><li>Á</li><li>Â</li><li>Ã</li><li>Ä</li><li>Å</li><li>Ą</li><li>Ɑ</li><li>∀</li><li>Æ</li><li>ā</li><li>ă</li><li>à</li><li>á</li><li>â</li><li>ã</li><li>ä</li><li>å</li><li>ą</li><li>ɑ</li><li>æ</li><li>α</li><li>ª</li><li>ƀ</li><li>Ɓ</li><li>β</li><li>ɓ</li><li>Ç</li><li>Ć</li><li>Ĉ</li><li>Ċ</li><li>Č</li><li>Ɔ</li><li>ɔ</li><li>ç</li><li>ς</li><li>ć</li><li>ĉ</li><li>ċ</li><li>č</li><li>¢</li><li>đ</li><li>Ð</li><li>Ď</li><li>Đ</li><li>Ḏ</li><li>Ɗ</li><li>ð</li><li>ď</li><li>ḏ</li><li>ɖ</li><li>ɗ</li><li>È</li><li>É</li><li>Ê</li><li>Ë</li><li>Ē</li><li>Ė</li><li>Ę</li><li>Ẹ</li><li>Ě</li><li>Ə</li><li>Æ</li><li>Ǝ</li><li>Ɛ</li><li>€</li><li>è</li><li>é</li><li>ê</li><li>ë</li><li>ē</li><li>ė</li><li>ę</li><li>ẹ</li><li>ě</li><li>ə</li><li>æ</li><li>ε</li><li>ɛ</li><li>€</li><li>Ƒ</li><li>Ʃ</li><li>ƒ</li><li>ʃ</li><li>ƭ</li><li>Ĝ</li><li>Ğ</li><li>Ġ</li><li>Ģ</li><li>Ƣ</li><li>ĝ</li><li>ğ</li><li>ġ</li><li>ģ</li><li>ɠ</li><li>ƣ</li><li>Ĥ</li><li>Ħ</li><li>ĥ</li><li>ħ</li><li>ɦ</li><li>ẖ</li><li>Ì</li><li>Í</li><li>Î</li><li>Ï</li><li>Ī</li><li>Į</li><li>Ị</li><li>İ</li><li>Ɨ</li><li>ì</li><li>í</li><li>î</li><li>ï</li><li>ī</li><li>į</li><li>ị</li><li>ɨ</li><li>Ĳ</li><li>ĳ</li><li>ι</li><li>Ĵ</li><li>ĵ</li><li>ɟ</li><li>ĳ</li><li>Ķ</li><li>Ƙ</li><li>ķ</li><li>ƙ</li><li>ꝁ</li><li>Ĺ</li><li>Ļ</li><li>Ľ</li><li>Ł</li><li>Λ</li><li>ĺ</li><li>ļ</li><li>ľ</li><li>ł</li><li>ƚ</li><li>λ</li><li>Ñ</li><li>Ń</li><li>Ņ</li><li>Ň</li><li>Ŋ</li><li>Ɲ</li><li>₦</li><li>ñ</li><li>ń</li><li>ņ</li><li>ň</li><li>ŋ</li><li>ɲ</li><li>Ò</li><li>Ó</li><li>Ô</li><li>Õ</li><li>Ö</li><li>Ō</li><li>Ø</li><li>Ő</li><li>Œ</li><li>Ơ</li><li>Ɵ</li><li>ò</li><li>ó</li><li>ô</li><li>õ</li><li>ö</li><li>ō</li><li>ø</li><li>ő</li><li>œ</li><li>ơ</li><li>ɵ</li><li>°</li><li></li><li>ꝑ</li><li>Ƥ</li><li>¶</li><li>ƥ</li><li>ꝗ</li><li>Ŕ</li><li>Ř</li><li>Ɍ</li><li>Ɽ</li><li>ŕ</li><li>ř</li><li>ɍ</li><li>ɽ</li><li>ſ</li><li>Ś</li><li>Ŝ</li><li>Ş</li><li>Ṣ</li><li>Š</li><li>ś</li><li>ŝ</li><li>ş</li><li>ṣ</li><li>š</li><li>ẜ</li><li>Þ</li><li>§</li><li>ß</li><li>ſ</li><li>þ</li><li>Ţ</li><li>Ť</li><li>Ṯ</li><li>Ƭ</li><li>Ʈ</li><li>ţ</li><li>ť</li><li>ṯ</li><li>ƭ</li><li>ʈ</li><li>Ù</li><li>Ú</li><li>Û</li><li>Ü</li><li>Ū</li><li>Ŭ</li><li>Ů</li><li>Ű</li><li>Ų</li><li>Ʉ</li><li>Ư</li><li>Ʊ</li><li>ù</li><li>ú</li><li>û</li><li>ü</li><li>ū</li><li>ŭ</li><li>ů</li><li>ű</li><li>ų</li><li>ư</li><li>μ</li><li>υ</li><li>ʉ</li><li>ʊ</li><li>Ʋ</li><li>ʋ</li><li>Ŵ</li><li>Ẅ</li><li>Ω</li><li>ŵ</li><li>ẅ</li><li>ω</li><li>Ý</li><li>Ŷ</li><li>Ÿ</li><li>Ɣ</li><li>Ƴ</li><li>ý</li><li>ŷ</li><li>ÿ</li><li>ȳ</li><li>ɣ</li><li>y</li><li>ƴ</li><li>Ź</li><li>Ż</li><li>Ž</li><li>Ƶ</li><li>Ʒ</li><li>Ẕ</li><li>ź</li><li>ż</li><li>ž</li><li>ƶ</li><li>ẕ</li><li>ʒ</li><li>ƹ</li><li>£</li><li>¥</li><li>€</li><li>₩</li><li>₨</li><li>₳</li><li>Ƀ</li><li>℔</li><li>¤</li><li>¡</li><li>‼</li><li>‽</li><li>¿</li><li>‽</li><li>‰</li><li>…</li><li>∻</li><li>•</li><li>±</li><li>‐</li><li>–</li><li>—</li><li>±</li><li>†</li><li>‡</li><li>′</li><li>″</li><li>‴</li><li>‘</li><li>’</li><li>‚</li><li>‛</li><li>“</li><li>”</li><li>„</li><li>‟</li><li>≤</li><li>‹</li><li>≥</li><li>›</li><li>≈</li><li>≠</li><li>≡</li><li>ꝵ</li><li>&rtailstrok;</li></ul>");;return buf.join("");
 };
 },{"jade/runtime":36}],33:[function(require,module,exports){
 var jade = require("jade/runtime");
@@ -2979,7 +2956,7 @@ SuperTinyEditor = (function(_super) {
   };
 
   SuperTinyEditor.prototype.renderControls = function() {
-    var controlName, diacritics, diacriticsUL, div, _i, _len, _ref, _results;
+    var controlName, diacriticsUL, div, _i, _len, _ref, _results;
     _ref = this.options.controls;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -2998,10 +2975,7 @@ SuperTinyEditor = (function(_super) {
         div.setAttribute('data-action', controlName);
         diacriticsUL = document.createElement('div');
         diacriticsUL.className = 'diacritics-placeholder';
-        diacritics = 'ĀĂÀÁÂÃÄÅĄⱭ∀ÆāăàáâãäåąɑæαªƁßβɓÇĆĈĊČƆçςćĉċč¢ɔÐĎĐḎƊðďđɖḏɖɗÈÉÊËĒĖĘẸĚƏÆƎƐ€èéêëēėęẹěəæεɛ€ƑƩƒʃƭĜĞĠĢƢĝğġģɠƣĤĦĥħɦẖÌÍÎÏĪĮỊİIƗĲìíîïīįịiiɨĳιĴĲĵɟĳĶƘķƙĹĻĽŁΛĺļľłλÑŃŅŇŊƝ₦ñńņňŋɲÒÓÔÕÖŌØŐŒƠƟòóôõöōøőœơɵ°Ƥ¶ƥ¶ŔŘɌⱤŕřɍɽßſŚŜŞṢŠÞ§ßſśŝşṣšþ§ŢŤṮƬƮţťṯƭʈÙÚÛÜŪŬŮŰŲɄƯƱùúûüūŭůűųưμυʉʊƲʋŴẄΩŵẅωÝŶŸƔƳýŷÿɣyƴŹŻŽƵƷẔźżžƶẕʒƹ£¥€₩₨₳Ƀ¤¡‼‽¿‽‰…••±‐–—±†‡′″‴‘’‚‛“”„‟≤‹≥›≈≠≡';
-        diacriticsUL.innerHTML = diacriticsTpl({
-          diacritics: diacritics
-        });
+        diacriticsUL.innerHTML = diacriticsTpl();
         div.appendChild(diacriticsUL);
         _results.push(this.$currentHeader.append(div));
       } else if (controlName === 'wordwrap') {
