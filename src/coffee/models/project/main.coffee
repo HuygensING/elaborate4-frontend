@@ -166,26 +166,33 @@ class Project extends Models.Base
 		jqXHR = ajax.post
 			url: config.get('restUrl')+"projects/#{@id}/draft"
 			dataType: 'text'
+
 		jqXHR.done =>
 			locationUrl = jqXHR.getResponseHeader('Location')
 			localStorage.setItem 'publishDraftLocation', locationUrl
+
 			@pollDraft locationUrl, cb
-		jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
+
+		jqXHR.fail (response) =>
+			if response.status is 401
+				Backbone.history.navigate 'login', trigger: true
 
 	pollDraft: (url, done) ->
 		ajax.poll
 			url: url
-			testFn: (data) => data.done
+			testFn: (data) =>
+				if data?
+					data.done
 			done: (data, textStatus, jqXHR) =>
 				localStorage.removeItem 'publishDraftLocation'
-				@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
+
+				if data.fail
+					localStorage.setItem "publicationErrors", JSON.stringify(data.errors)
+					@publish "message", "Error(s) publishing, see <a href=\"/publication-errors\">error page</a>"
+				else
+					@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
+
 				done()
-				# # TODO: Move setting of publicationURL to server. If user leaves the page while publishing,
-				# # the publicationURL isnt stored.
-				# settings = @get('settings')
-				# settings.set 'publicationURL', data.url
-				# settings.save null,
-				# 	success: =>
 
 	saveTextlayers: (done) ->
 		# ajax.token = token.get()

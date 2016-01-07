@@ -7,3 +7,7 @@ windows:
       panes:
         - npm start
         - git st
+  - hilib:
+      root: ~/hilib
+      panes:
+        - git st

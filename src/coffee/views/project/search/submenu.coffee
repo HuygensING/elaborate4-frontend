@@ -49,9 +49,9 @@ class SearchSubmenu extends Views.Base
 		'click li[data-key="newentry"]': 'newEntry'
 		'click li[data-key="save-edit-metadata"]:not(.inactive)': (ev) ->
 			@trigger 'save-edit-metadata'
-		'click li[data-key="cancel-edit-metadata"]': -> 
+		'click li[data-key="cancel-edit-metadata"]': ->
 			@trigger 'cancel-edit-metadata'
-		'click li[data-key="editmetadata"].enabled': -> 
+		'click li[data-key="editmetadata"].enabled': ->
 			# console.log 'here'
 			# Backbone.history.navigate "projects/#{@project.get('name')}/edit-metadata", trigger: true
 			@trigger 'edit-metadata'
@@ -69,7 +69,7 @@ class SearchSubmenu extends Views.Base
 				html: "You are about to <b>REMOVE</b> project: \"#{@project.get('title')}\" <small>(id: #{@project.id})</small>.<br><br>All #{config.get('entryTermPlural')} will be <b>PERMANENTLY</b> removed!"
 				submitValue: 'Remove project'
 				width: 'auto'
-			modal.on 'submit', => 
+			modal.on 'submit', =>
 				@project.destroy
 					wait: true
 					success: =>
@@ -93,14 +93,14 @@ class SearchSubmenu extends Views.Base
 			width: '300px'
 		modal.on 'submit', =>
 			modal.message 'success', "Creating a new #{config.get('entryTermSingular')}..."
-			
+
 			# @listenToOnce entries, 'add', (entry) =>
 
 			entry = new Entry
 				name: modal.$('input[name="name"]').val()
 			entry.project = @project
 			# return console.log entry
-			entry.save [], 
+			entry.save [],
 				success: (model) =>
 					# When we navigate, the current enty will change. This view listens to entries current:change and navigates
 					# so we have to stop listening before we navigate and change the current entry.
@@ -117,8 +117,9 @@ class SearchSubmenu extends Views.Base
 	activatePublishDraftButton: ->
 		busyText = 'Publishing draft'
 		button = @$('li[data-key="publish"]')
-		
+
 		span = button.find('span')
+		# console.log(span.html() is busyText)
 		return false if span.html() is busyText
 
 		span.html busyText

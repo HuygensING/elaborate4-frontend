@@ -10,4 +10,4 @@ RUN echo "developer:developer" | chpasswd && adduser developer sudo
 USER developer
 WORKDIR /home/developer
 
-ENTRYPOINT ["mux", "project"]
+ENTRYPOINT ["./project/docker/entrypoint.sh"]

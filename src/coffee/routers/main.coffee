@@ -113,6 +113,33 @@ class MainRouter extends Backbone.Router
 		'projects/:name/entries/:id': 'entry'
 		'projects/:name/entries/:id/transcriptions/:name': 'entry'
 		'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
+		'publication-errors': 'publicationErrors'
+
+	publicationErrors: ->
+		class PublicationErrors extends Backbone.View
+			className: 'publication-errors'
+			initialize: -> @render()
+			render: ->
+				errors = JSON.parse localStorage.getItem "publicationErrors"
+
+				ol = document.createElement "ol"
+				for error in errors
+					li = document.createElement "li"
+					li.innerHTML = error
+					ol.appendChild li
+
+				h2 = document.createElement "h2"
+				h2.innerHTML = "Publication errors"
+
+				div = document.createElement "div"
+				div.appendChild h2
+				div.appendChild ol
+
+				@$el.html(div);
+			destroy: ->
+				@remove()
+
+		viewManager.show PublicationErrors
 
 	login: ->
 		return currentUser.logout() if currentUser.loggedIn

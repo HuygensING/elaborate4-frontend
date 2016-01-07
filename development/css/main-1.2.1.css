@@ -1553,6 +1553,9 @@ i.fa.fa-square-o:hover {
 i.fa.fa-check-square-o {
   color: #555;
 }
+.publication-errors {
+  margin: 0 5%;
+}
 @font-face {
   font-family: "junicode";
   src: url("../fonts/Junicode.woff") format('woff');

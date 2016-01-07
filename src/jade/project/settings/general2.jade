@@ -40,8 +40,14 @@ fieldset.span50
 		if (model.get("projectType") === "mvn")
 			li
 				h3(style="margin-top: 30px") MVN
-				label(for="mvn.signatuur") Signatuur
-				input(type="text", name="mvn.signatuur", value=model.get('mvn.signatuur'))
+				label(for="mvn.placeName") Place name
+				input(type="text", name="mvn.placeName", value=model.get('mvn.placeName'))
+			li
+				label(for="mvn.institution") Institution
+				input(type="text", name="mvn.institution", value=model.get('mvn.institution'))
+			li
+				label(for="mvn.idno") ID number
+				input(type="text", name="mvn.idno", value=model.get('mvn.idno'))
 
 
 fieldset.span50
