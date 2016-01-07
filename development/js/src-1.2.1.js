@@ -9712,9 +9712,9 @@ module.exports={
     "url": ""
   },
   "scripts": {
-    "start": "gulp",
-    "compile": "gulp compile",
     "build": "gulp build",
+    "compile": "gulp compile",
+    "start": "gulp",
     "test": "nightwatch"
   },
   "devDependencies": {
@@ -14120,21 +14120,20 @@ EntryPreview = (function(_super) {
   };
 
   EntryPreview.prototype.events = function() {
-    var hash;
-    hash = {
-      'click sup[data-marker="end"]': 'supClicked'
+    return {
+      'click sup[data-marker="end"]': 'supClicked',
+      'mousedown .body-container': 'onMousedown',
+      'mouseup .body-container': 'onMouseup',
+      'scroll': 'onScroll',
+      'click .fa.fa-print': 'onPrint'
     };
-    if (this.interactive) {
-      hash['mousedown .body-container'] = 'onMousedown';
-      hash['mouseup .body-container'] = 'onMouseup';
-      hash['scroll'] = 'onScroll';
-      hash['click .fa.fa-print'] = 'onPrint';
-    }
-    return hash;
   };
 
   EntryPreview.prototype.onPrint = function(ev) {
     var addAnnotations, addTranscription, h1, h2, mainDiv, pp, transcription;
+    if (!this.interactive) {
+      return;
+    }
     addTranscription = (function(_this) {
       return function(el) {
         var clonedPreview;
@@ -14192,6 +14191,9 @@ EntryPreview = (function(_super) {
   };
 
   EntryPreview.prototype.onScroll = function(ev) {
+    if (!this.interactive) {
+      return;
+    }
     if (this.autoscroll = !this.autoscroll) {
       return Fn.timeoutWithReset(200, (function(_this) {
         return function() {
@@ -14222,6 +14224,9 @@ EntryPreview = (function(_super) {
 
   EntryPreview.prototype.onMousedown = function(ev) {
     var downOnAdd, downOnEdit;
+    if (!this.interactive) {
+      return;
+    }
     downOnAdd = ev.target === this.subviews.addAnnotationTooltip.el || dom(this.subviews.addAnnotationTooltip.el).hasDescendant(ev.target);
     downOnEdit = ev.target === this.subviews.editAnnotationTooltip.el || dom(this.subviews.editAnnotationTooltip.el).hasDescendant(ev.target);
     if (!(downOnEdit || downOnAdd)) {
@@ -14233,6 +14238,9 @@ EntryPreview = (function(_super) {
 
   EntryPreview.prototype.onMouseup = function(ev) {
     var checkMouseup, upOnAdd, upOnEdit;
+    if (!this.interactive) {
+      return;
+    }
     upOnAdd = ev.target === this.subviews.addAnnotationTooltip.el || dom(this.subviews.addAnnotationTooltip.el).hasDescendant(ev.target);
     upOnEdit = ev.target === this.subviews.editAnnotationTooltip.el || dom(this.subviews.editAnnotationTooltip.el).hasDescendant(ev.target);
     checkMouseup = (function(_this) {

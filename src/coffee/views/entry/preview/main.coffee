@@ -9,7 +9,7 @@ dom = require 'hilib/src/utils/dom'
 
 config = require '../../../models/config'
 
-Views = 
+Views =
 	Base: require 'hilib/src/views/base'
 	AddAnnotationTooltip: require './annotation.add.tooltip'
 	EditAnnotationTooltip: require './annotation.edit.tooltip'
@@ -38,8 +38,8 @@ class EntryPreview extends Views.Base
 			@transcription = @options.textLayer
 			@addListeners()
 			@render()
-		else 
-			@model.get('transcriptions').getCurrent (@transcription) => 
+		else
+			@model.get('transcriptions').getCurrent (@transcription) =>
 				@addListeners()
 				@render()
 
@@ -52,7 +52,7 @@ class EntryPreview extends Views.Base
 	# ### Render
 	render: ->
 		data = @transcription.toJSON()
-		
+
 		# Count all the <br>s in the body string. Match returns null if no breaks are found.
 		lineCount = (data.body.match(/<br>/g) ? []).length
 		# If the body string does not end with a <br> that means there is
@@ -100,20 +100,17 @@ class EntryPreview extends Views.Base
 
 	# ### Events
 	events: ->
-		hash = 
-			'click sup[data-marker="end"]': 'supClicked'
-		
-		if @interactive
-			hash['mousedown .body-container'] = 'onMousedown'
-			hash['mouseup .body-container'] = 'onMouseup'
-			hash['scroll'] = 'onScroll'
-			hash['click .fa.fa-print'] = 'onPrint'
-
-		hash
+		'click sup[data-marker="end"]': 'supClicked'
+		'mousedown .body-container': 'onMousedown'
+		'mouseup .body-container': 'onMouseup'
+		'scroll': 'onScroll'
+		'click .fa.fa-print': 'onPrint'
 
 	# When the user wants to print we create a div#printpreview directly under <body> and show
 	# a clone of the preview body and an ordered list of the annotations.
 	onPrint: (ev) ->
+		return if not @interactive
+
 		addTranscription = (el) =>
 			clonedPreview = el.cloneNode true
 			clonedPreview.style.height = 'auto'
@@ -167,6 +164,8 @@ class EntryPreview extends Views.Base
 		window.print()
 
 	onScroll: (ev) ->
+		return if not @interactive
+
 		if @autoscroll = !@autoscroll
 			Fn.timeoutWithReset 200, => @trigger 'scrolled', Fn.getScrollPercentage ev.currentTarget
 
@@ -184,6 +183,8 @@ class EntryPreview extends Views.Base
 			model: annotation
 
 	onMousedown: (ev) ->
+		return if not @interactive
+
 		downOnAdd = ev.target is @subviews.addAnnotationTooltip.el or dom(@subviews.addAnnotationTooltip.el).hasDescendant(ev.target)
 		downOnEdit = ev.target is @subviews.editAnnotationTooltip.el or dom(@subviews.editAnnotationTooltip.el).hasDescendant(ev.target)
 
@@ -191,7 +192,7 @@ class EntryPreview extends Views.Base
 			# Hide all tooltips, we check what to show in onMouseup.
 			@subviews.addAnnotationTooltip.hide()
 			@subviews.editAnnotationTooltip.hide()
-			
+
 			# Stop listening to the add annotation tooltip, because the add annotation tooltip has a
 			# listenToOnce on it and when the user clicks outside the tooltip, the listener is still there.
 			# If we don't remove it, the new annotation will popup on all previous selected areas.
@@ -199,9 +200,11 @@ class EntryPreview extends Views.Base
 
 
 	onMouseup: (ev) ->
+		return if not @interactive
+
 		upOnAdd = ev.target is @subviews.addAnnotationTooltip.el or dom(@subviews.addAnnotationTooltip.el).hasDescendant(ev.target)
 		upOnEdit = ev.target is @subviews.editAnnotationTooltip.el or dom(@subviews.editAnnotationTooltip.el).hasDescendant(ev.target)
-		
+
 		checkMouseup = =>
 			sel = document.getSelection()
 
@@ -306,7 +309,7 @@ class EntryPreview extends Views.Base
 		# Create a TreeWalker based on the cloned contents (documentFragment).
 		treewalker = document.createTreeWalker range.cloneContents(), NodeFilter.SHOW_TEXT,
 			acceptNode: (node) =>
-				# Skip <sup>s. A sup must only contain a textNode, but in the unlikely case it will not, 
+				# Skip <sup>s. A sup must only contain a textNode, but in the unlikely case it will not,
 				# for example: <sup data-id="46664"><i>12</i></sup>, "12" will be part of the returned text variable.
 				if node.parentNode.nodeType is 1 and node.parentNode.tagName is 'SUP' and node.parentNode.hasAttribute('data-id')
 					return NodeFilter.FILTER_SKIP
@@ -321,15 +324,15 @@ class EntryPreview extends Views.Base
 
 	addNewAnnotation: (newAnnotation, range) ->
 		@unhighlightAnnotation()
-		
+
 		@newAnnotation = newAnnotation
 
 		@addNewAnnotationTags range
-		
+
 		# Set the urlRoot manually, because a new annotation has not been added to the collection yet.
 		annotations = @transcription.get 'annotations'
 		newAnnotation.urlRoot = => "#{config.get('restUrl')}projects/#{annotations.projectId}/entries/#{annotations.entryId}/transcriptions/#{annotations.transcriptionId}/annotations"
-		
+
 		@setAnnotatedText newAnnotation
 
 		@trigger 'editAnnotation', newAnnotation
@@ -373,7 +376,7 @@ class EntryPreview extends Views.Base
 
 		supEnter = (ev) =>
 			id = ev.currentTarget.getAttribute('data-id')
-			
+
 			unless startNode = @el.querySelector "span[data-id='#{id}']"
 				console.error 'No span found'
 				return false
@@ -389,7 +392,7 @@ class EntryPreview extends Views.Base
 		# Bind hover (mouseenter, mouseleave)
 		markers.hover supEnter, supLeave
 
-	resize: -> 
+	resize: ->
 		@$el.height document.documentElement.clientHeight - 89 - 78
 
 		@el.style.marginRight = 0 if Fn.hasYScrollBar @el
