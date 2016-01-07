@@ -11,9 +11,9 @@
     "url": ""
   },
   "scripts": {
-    "start": "gulp",
-    "compile": "gulp compile",
     "build": "gulp build",
+    "compile": "gulp compile",
+    "start": "gulp",
     "test": "nightwatch"
   },
   "devDependencies": {
