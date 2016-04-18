@@ -17302,7 +17302,7 @@ buf.push("<option" + (jade.attr("value", count, true, false)) + (jade.attr("sele
 buf.push("</select></li>");
 if ( (model.get("projectType") === "mvn"))
 {
-buf.push("<li><h3 style=\"margin-top: 30px\">MVN</h3><label for=\"mvn.placeName\">Place name</label><input type=\"text\" name=\"mvn.placeName\"" + (jade.attr("value", model.get('mvn.placeName'), true, false)) + "/></li><li><label for=\"mvn.institution\">Institution</label><input type=\"text\" name=\"mvn.institution\"" + (jade.attr("value", model.get('mvn.institution'), true, false)) + "/></li><li><label for=\"mvn.idno\">ID number</label><input type=\"text\" name=\"mvn.idno\"" + (jade.attr("value", model.get('mvn.idno'), true, false)) + "/></li>");
+buf.push("<li><h3 style=\"margin-top: 30px\">MVN</h3><label for=\"mvn.placeName\">Place name</label><input type=\"text\" name=\"mvn.placeName\"" + (jade.attr("value", model.get('mvn.placeName'), true, false)) + "/></li><li><label for=\"mvn.institution\">Institution</label><input type=\"text\" name=\"mvn.institution\"" + (jade.attr("value", model.get('mvn.institution'), true, false)) + "/></li><li><label for=\"mvn.idno\">ID number</label><input type=\"text\" name=\"mvn.idno\"" + (jade.attr("value", model.get('mvn.idno'), true, false)) + "/></li><li><label for=\"mvn.subtitle\">Subtitle</label><input type=\"text\" name=\"mvn.subtitle\"" + (jade.attr("value", model.get('mvn.subtitle'), true, false)) + "/></li>");
 }
 buf.push("</ul></fieldset><fieldset class=\"span50\"><h3>Publication</h3><ul" + (jade.attr("data-model-id", model.cid, true, false)) + ">");
 if ( model.get('publicationURL').length > 0)
