@@ -1151,6 +1151,38 @@ ul.hibb-pagination li.text {
   margin-top: -7px;
 }
 
+ul.longpress {
+  position: absolute;
+  background-color: rgba(0,0,0,0.5);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  list-style: none;
+  padding: 6px;
+  text-align: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  white-space: normal;
+  margin: 0 10px;
+}
+ul.longpress li {
+  display: inline-block;
+  padding: 2px 6px;
+  background-color: #000;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1.5em;
+  margin: 3px;
+  border: 2px solid #000;
+}
+ul.longpress li:hover {
+  border: 2px solid #fff;
+  box-shadow: 0px 0px 12px #fff;
+  cursor: pointer;
+}
+
 ul.pagination {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -1238,38 +1270,6 @@ ul.pagination li.text {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-
-ul.longpress {
-  position: absolute;
-  background-color: rgba(0,0,0,0.5);
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: auto;
-  list-style: none;
-  padding: 6px;
-  text-align: center;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  white-space: normal;
-  margin: 0 10px;
-}
-ul.longpress li {
-  display: inline-block;
-  padding: 2px 6px;
-  background-color: #000;
-  color: #fff;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 1.5em;
-  margin: 3px;
-  border: 2px solid #000;
-}
-ul.longpress li:hover {
-  border: 2px solid #fff;
-  box-shadow: 0px 0px 12px #fff;
-  cursor: pointer;
 }
 
 .ste-control-diacritics {
@@ -1558,22 +1558,22 @@ i.fa.fa-check-square-o {
 }
 @font-face {
   font-family: "junicode";
-  src: url("../fonts/Junicode.woff") format('woff');
+  src: url("../fonts/Junicode.ttf");
 }
 @font-face {
-  font-family: "junicode";
-  src: url("../fonts/Junicode-Bold.woff") format('woff');
+  font-family: "junicode-bold";
+  src: url("../fonts/Junicode-Bold.ttf");
   font-weight: bold;
 }
 @font-face {
-  font-family: "junicode";
-  src: url("../fonts/Junicode-BoldItalic.woff") format('woff');
+  font-family: "junicode-bold-italic";
+  src: url("../fonts/Junicode-BoldItalic.ttf");
   font-weight: bold;
   font-style: italic;
 }
 @font-face {
-  font-family: "junicode";
-  src: url("../fonts/Junicode-Italic.woff") format('woff');
+  font-family: "junicode-italic";
+  src: url("../fonts/Junicode-Italic.ttf");
   font-style: italic;
 }
 .btn {
@@ -1839,11 +1839,13 @@ i.fa.fa-check-square-o {
   font-size: 1.5em;
 }
 .entry .container .preview {
-  line-height: 2.25em;
+  line-height: 2.1em;
   white-space: nowrap;
   overflow-y: auto;
   margin-top: 66px;
   padding-left: 10px;
+  font-family: junicode;
+  font-size: 14px;
 }
 .entry .container .preview.wrap {
   white-space: normal;
@@ -1925,11 +1927,14 @@ i.fa.fa-check-square-o {
 }
 body.ste-iframe-body {
   padding: 10px 0 0 10px;
-  line-height: 2.25em;
+  line-height: 2em;
   min-width: initial;
+  font-family: junicode;
+  font-size: 14px;
 }
 body.ste-iframe-body sup[data-marker] {
   color: #888;
+  vertical-align: baseline;
 }
 div.closebutton {
   padding: 2px;
