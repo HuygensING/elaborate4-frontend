@@ -178,6 +178,37 @@ ul.longpress li:hover {
   cursor: pointer;
 }
 
+ul.pagination {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  list-style: none;
+}
+ul.pagination li {
+  display: inline-block;
+  padding: 0 4px;
+}
+ul.pagination li.prev10,
+ul.pagination li.prev,
+ul.pagination li.next,
+ul.pagination li.next10 {
+  color: #ccc;
+  pointer: default;
+}
+ul.pagination li.prev10.active,
+ul.pagination li.prev.active,
+ul.pagination li.next.active,
+ul.pagination li.next10.active {
+  color: #000;
+  cursor: pointer;
+}
+ul.pagination li.text {
+  color: #808080;
+}
+
 .modal .overlay {
   position: fixed;
   left: 0;
@@ -234,37 +265,6 @@ ul.longpress li:hover {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-
-ul.pagination {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  list-style: none;
-}
-ul.pagination li {
-  display: inline-block;
-  padding: 0 4px;
-}
-ul.pagination li.prev10,
-ul.pagination li.prev,
-ul.pagination li.next,
-ul.pagination li.next10 {
-  color: #ccc;
-  pointer: default;
-}
-ul.pagination li.prev10.active,
-ul.pagination li.prev.active,
-ul.pagination li.next.active,
-ul.pagination li.next10.active {
-  color: #000;
-  cursor: pointer;
-}
-ul.pagination li.text {
-  color: #808080;
 }
 
 .ste-control-diacritics {
