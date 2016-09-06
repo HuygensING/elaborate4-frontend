@@ -402,17 +402,18 @@ i.fa.fa-check-square-o {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  color: #fff;
-  font-size: 0.75em;
-  padding: 0px 1px;
-  cursor: pointer;
+  background-color: #ffbefc;
   border-radius: 2px;
   box-shadow: 1px 1px 2px #888;
-  text-shadow: 1px 1px 1px rgba(100,100,100,0.6);
-  margin: 0 3px;
-  background-color: #ffbefc;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.75em;
   font-weight: bold;
+  font-style: normal;
   line-height: 0;
+  margin: 0 3px;
+  padding: 0px 1px;
+  text-shadow: 1px 1px 1px rgba(100,100,100,0.6);
 }
 .entry .container .preview .body-container .body span.hilite {
   background-color: #ffd8fd;
@@ -457,6 +458,7 @@ body.ste-iframe-body {
 body.ste-iframe-body sup[data-marker] {
   color: #888;
   vertical-align: baseline;
+  font-style: normal;
 }
 div.closebutton {
   padding: 2px;
@@ -497,17 +499,18 @@ div.closebutton img {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    color: #fff;
-    font-size: 0.75em;
-    padding: 0px 1px;
-    cursor: pointer;
+    background-color: #ffbefc;
     border-radius: 2px;
     box-shadow: 1px 1px 2px #888;
-    text-shadow: 1px 1px 1px rgba(100,100,100,0.6);
-    margin: 0 3px;
-    background-color: #ffbefc;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.75em;
     font-weight: bold;
+    font-style: normal;
     line-height: 0;
+    margin: 0 3px;
+    padding: 0px 1px;
+    text-shadow: 1px 1px 1px rgba(100,100,100,0.6);
   }
   #printpreview .body-container .body span.hilite {
     background-color: #ffd8fd;

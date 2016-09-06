@@ -12,3 +12,5 @@ node_modules
 config.json
 README-INTERNAL.md
 nightwatch-browserstack.json
+.idea
+elaborate4-frontend.iml
