@@ -75,8 +75,21 @@ class EditAnnotationTooltip extends BaseView
 		if @model?
 			@$el.removeClass 'newannotation'
 
-			@el.querySelector('.tooltip-body').innerHTML = @model.get 'body'
+			body = @el.querySelector('.tooltip-body')
+			body.innerHTML = @model.get 'body'
 			@el.querySelector('.annotation-type').innerHTML = @model.get('annotationType').name if @model.get('annotationType').name?
+
+			if (
+				@model.get('metadata')?['person id']? and
+				@model.get('metadata')['person id'] isnt ''
+			)
+				div = document.createElement('div')
+				div.className = 'bio-port-id'
+				txt = document.createTextNode('BioPort ID: ')
+				id = document.createTextNode(@model.get('metadata')['person id'])
+				div.appendChild(txt)
+				div.appendChild(id)
+				body.appendChild(div)
 		else
 			@$el.addClass 'newannotation'
 		

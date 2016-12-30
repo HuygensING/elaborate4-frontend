@@ -13902,7 +13902,7 @@ EditAnnotationTooltip = (function(_super) {
   };
 
   EditAnnotationTooltip.prototype.show = function(args) {
-    var $el, contentId;
+    var $el, body, contentId, div, id, txt, _ref;
     $el = args.$el, this.model = args.model;
     this.pointedEl = $el[0];
     this.el.style.left = 0;
@@ -13917,9 +13917,19 @@ EditAnnotationTooltip = (function(_super) {
     this.el.setAttribute('data-id', contentId);
     if (this.model != null) {
       this.$el.removeClass('newannotation');
-      this.el.querySelector('.tooltip-body').innerHTML = this.model.get('body');
+      body = this.el.querySelector('.tooltip-body');
+      body.innerHTML = this.model.get('body');
       if (this.model.get('annotationType').name != null) {
         this.el.querySelector('.annotation-type').innerHTML = this.model.get('annotationType').name;
+      }
+      if ((((_ref = this.model.get('metadata')) != null ? _ref['person id'] : void 0) != null) && this.model.get('metadata')['person id'] !== '') {
+        div = document.createElement('div');
+        div.className = 'bio-port-id';
+        txt = document.createTextNode('BioPort ID: ');
+        id = document.createTextNode(this.model.get('metadata')['person id']);
+        div.appendChild(txt);
+        div.appendChild(id);
+        body.appendChild(div);
       }
     } else {
       this.$el.addClass('newannotation');
@@ -17486,12 +17496,16 @@ module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (interactive, user) {
+;var locals_for_with = (locals || {});(function (bioPortId, interactive, user) {
 buf.push("<ul" + (jade.attr("style", interactive?'visibility:visible':'visibility:hidden', true, false)) + " class=\"horizontal menu left\">");
 if ( user.get('roleNo') >= 20)
 {
 buf.push("<li class=\"edit\"><img src=\"/images/icon.edit.png\" title=\"Edit annotation\"/></li><li class=\"delete\"><img src=\"/images/icon.bin.png\" title=\"Delete annotation\"/></li>");
 }
-buf.push("</ul><div class=\"annotation-type\"></div><ul class=\"horizontal menu right\"><li class=\"close\"><img src=\"/images/icon.close.png\" title=\"Close annotation\"/></li></ul><div class=\"tooltip-body\"></div>");}.call(this,"interactive" in locals_for_with?locals_for_with.interactive:typeof interactive!=="undefined"?interactive:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
+buf.push("</ul><div class=\"annotation-type\"></div><ul class=\"horizontal menu right\"><li class=\"close\"><img src=\"/images/icon.close.png\" title=\"Close annotation\"/></li></ul><div class=\"tooltip-body\"></div>");
+if ( bioPortId != null)
+{
+buf.push("<div class=\"bio-port-id\">" + (jade.escape(null == (jade_interp = bioPortId) ? "" : jade_interp)) + "</div>");
+}}.call(this,"bioPortId" in locals_for_with?locals_for_with.bioPortId:typeof bioPortId!=="undefined"?bioPortId:undefined,"interactive" in locals_for_with?locals_for_with.interactive:typeof interactive!=="undefined"?interactive:undefined,"user" in locals_for_with?locals_for_with.user:typeof user!=="undefined"?user:undefined));;return buf.join("");
 };
 },{"jade/runtime":36}]},{},[51])

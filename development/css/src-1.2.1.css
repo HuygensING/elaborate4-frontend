@@ -3400,6 +3400,10 @@ header.main .projecttitle {
   width: 100%;
   box-sizing: border-box;
 }
+#tooltip .tooltip-body .bio-port-id,
+.tooltip .tooltip-body .bio-port-id {
+  display: block;
+}
 #tooltip:after,
 .tooltip:after {
   position: absolute;
