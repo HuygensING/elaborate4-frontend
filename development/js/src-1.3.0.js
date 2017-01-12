@@ -9701,7 +9701,7 @@ exports.DebugItem = function DebugItem(lineno, filename) {
 },{}],38:[function(require,module,exports){
 module.exports={
   "name": "huygens-elaborate-work-environment",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "author": {
     "name": "Gijsjan Brouwer",
     "email": "gijsjan.brouwer@huygens.knaw.nl"
@@ -9713,6 +9713,7 @@ module.exports={
   },
   "scripts": {
     "build": "gulp build",
+    "deploy-test": "gulp compile && gulp deploy-test",
     "compile": "gulp compile",
     "start": "gulp",
     "test": "nightwatch"

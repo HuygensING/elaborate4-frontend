@@ -38,9 +38,18 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 ## Deploy
 
 1. Set the remote-destination in `./config.json` (this is not the same as the elaborate-modules config.json!)
-2. Run 'gulp deploy' to simply rsync `./compiled` to the remote destination.
+2. Update the version in package.json
+3. Run 'npm run deploy-test' to simply rsync `./compiled` to the remote destination.
 
 ## Changelog
+
+#### 1.3.0
+- Show bioport ID in person annotations
+- Note reference 'romein'
+- Add diacritics
+- Add publish draft errors
+- Add project type MVN
+- Remove elaborate modules dependency
 
 #### 1.2.1
 - Instead of triggering a global Backbone event, change the faceted search config directly.
