@@ -1,5 +1,3 @@
-- console.log(model)
-
 fieldset.span50
 	h3 General
 	ul(data-model-id=model.cid)
@@ -60,6 +58,10 @@ fieldset.span50
 			li
 				label URL
 				a(href=model.get('publicationURL'), data-bypass, target="_blank") link
+		if hasErrors
+			li
+				label Errors
+				a(href=errorsUrl) link
 		li
 			label Title
 			input(type="text", value=model.get('publication.title'), name="publication.title")

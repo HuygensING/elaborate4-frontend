@@ -64,7 +64,6 @@ class ProjectSettings extends Views.Base
 			roleNo: Models.currentUser.get('roleNo')
 		@$el.html rtpl
 
-		# @renderGeneralTab()
 		@renderGeneralTab()
 		@renderUserTab()
 		@renderEntriesTab()
@@ -78,17 +77,8 @@ class ProjectSettings extends Views.Base
 		@listenTo @model, 'change', => @$('input[name="savesettings"]').removeClass 'inactive'
 
 	renderGeneralTab: ->
-		# rtpl = generalTpl
-		# 	settings: @model.attributes
-		# 	projectMembers: @project.get('members')
 		generalTab = new Views.GeneralTab project: @project
 		@$('div[data-tab="general"]').html generalTab.el
-
-	# renderGeneralTab: ->
-	# 	rtpl = generalTpl
-	# 		settings: @model.attributes
-	# 		projectMembers: @project.get('members')
-	# 	@$('div[data-tab="project"]').html rtpl
 
 	renderEntriesTab: ->
 		entriesTab = new Views.EntriesTab

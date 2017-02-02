@@ -15,11 +15,17 @@ class ProjectSettingsGeneral extends Backbone.View
 
 	# ### Render
 	render: ->
+		model = @options.project.get('settings')
+		prop = model.get('name') + ':publicationErrors:value'
+		errors = localStorage.getItem(prop)
+
 		form = new Form
-			model: @options.project.get('settings')
+			model: model
 			tpl: tpl
 			tplData:
 				projectMembers: @options.project.get('members')
+				hasErrors: errors != null && errors.length
+				errorsUrl: "/projects/#{model.get('name')}/publication-errors"
 
 		# @listenTo form, 'change', => form.$('button[name="submit"]').removeClass 'disabled'
 		@listenTo form, 'save:success', (model, response, options, changedAttributes) =>

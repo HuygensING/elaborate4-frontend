@@ -187,8 +187,9 @@ class Project extends Models.Base
 				localStorage.removeItem 'publishDraftLocation'
 
 				if data.fail
-					localStorage.setItem "publicationErrors", JSON.stringify(data.errors)
-					@publish "message", "Error(s) publishing, see <a href=\"/publication-errors\">error page</a>"
+					localStorage.setItem "#{@get('name')}:publicationErrors:value", JSON.stringify(data.errors)
+					localStorage.setItem "#{@get('name')}:publicationErrors:timestamp", Date.now()
+					@publish "message", "Error(s) publishing, see <a href=\"/projects/#{@get('name')}/publication-errors\">error page</a>"
 				else
 					@publish 'message', "Publication <a href='#{data.url}' target='_blank' data-bypass>ready</a>."
 

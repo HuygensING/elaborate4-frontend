@@ -113,27 +113,35 @@ class MainRouter extends Backbone.Router
 		'projects/:name/entries/:id': 'entry'
 		'projects/:name/entries/:id/transcriptions/:name': 'entry'
 		'projects/:name/entries/:id/transcriptions/:name/annotations/:id': 'entry'
-		'publication-errors': 'publicationErrors'
+		'projects/:name/publication-errors': 'publicationErrors'
 
 	publicationErrors: ->
 		class PublicationErrors extends Backbone.View
 			className: 'publication-errors'
-			initialize: -> @render()
+			initialize: ->
+				Collections.projects.getCurrent (@project) =>
+					@render()
+
 			render: ->
-				errors = JSON.parse localStorage.getItem "publicationErrors"
+				errors = JSON.parse localStorage.getItem "#{@project.get('name')}:publicationErrors:value"
+				timestamp = localStorage.getItem "#{@project.get('name')}:publicationErrors:timestamp"
 
-				ol = document.createElement "ol"
-				for error in errors
-					li = document.createElement "li"
-					li.innerHTML = error
-					ol.appendChild li
+				if not errors? or not errors.length
+					div = document.createElement "i"
+					div.innerHTML = "No errors found."
+				else
+					ol = document.createElement "ol"
+					for error in errors
+						li = document.createElement "li"
+						li.innerHTML = error
+						ol.appendChild li
 
-				h2 = document.createElement "h2"
-				h2.innerHTML = "Publication errors"
+					h2 = document.createElement "h2"
+					h2.innerHTML = "Publication errors of #{(new Date(+timestamp)).toString()}"
 
-				div = document.createElement "div"
-				div.appendChild h2
-				div.appendChild ol
+					div = document.createElement "div"
+					div.appendChild h2
+					div.appendChild ol
 
 				@$el.html(div);
 			destroy: ->
