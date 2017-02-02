@@ -45,6 +45,9 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 
 ## Changelog
 
+#### 1.3.1
+- Link to publications-errors page from project settings
+
 #### 1.3.0
 - Show bioport ID in person annotations
 - Note reference 'romein'
