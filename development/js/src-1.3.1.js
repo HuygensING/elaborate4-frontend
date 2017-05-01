@@ -14678,7 +14678,7 @@ Login = (function(_super) {
     resetPasswordForm = new Form({
       saveOnSubmit: false,
       tpl: resetPasswordTpl,
-      Model: ResetPassword
+      model: new ResetPassword()
     });
     this.listenTo(resetPasswordForm, 'cancel', (function(_this) {
       return function() {

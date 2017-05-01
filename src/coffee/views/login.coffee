@@ -56,7 +56,7 @@ class Login extends BaseView
     resetPasswordForm = new Form
       saveOnSubmit: false
       tpl: resetPasswordTpl
-      Model: ResetPassword
+      model: new ResetPassword()
 
     @listenTo resetPasswordForm, 'cancel', => modal.close()
     @listenTo resetPasswordForm, 'submit', (model) =>
