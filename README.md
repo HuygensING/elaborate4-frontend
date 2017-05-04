@@ -38,7 +38,7 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 ## Deploy
 
 1. Set the remote-destination in `./config.json` (this is not the same as the elaborate-modules config.json!)
-2. Update the version in package.json
+2. Update the version in package.json ($ npm version major|minor|patch)
 3. Run `npm run compile`
 4. Add, commit, push to Github
 5. Run `npm run deploy-test` to simply rsync `./compiled` to the remote destination.

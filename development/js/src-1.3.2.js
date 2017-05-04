@@ -9701,7 +9701,7 @@ exports.DebugItem = function DebugItem(lineno, filename) {
 },{}],38:[function(require,module,exports){
 module.exports={
   "name": "huygens-elaborate-work-environment",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "author": {
     "name": "Gijsjan Brouwer",
     "email": "gijsjan.brouwer@huygens.knaw.nl"
@@ -14678,7 +14678,7 @@ Login = (function(_super) {
     resetPasswordForm = new Form({
       saveOnSubmit: false,
       tpl: resetPasswordTpl,
-      Model: ResetPassword
+      model: new ResetPassword()
     });
     this.listenTo(resetPasswordForm, 'cancel', (function(_this) {
       return function() {
