@@ -45,6 +45,9 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 
 ## Changelog
 
+#### 1.3.3
+- Replace Junicode with Titus font
+
 #### 1.3.1
 - Link to publications-errors page from project settings
 

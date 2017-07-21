@@ -1286,7 +1286,7 @@ ul.pagination li.text {
 }
 .diacritics-placeholder ul.diacritics {
   background-color: rgba(0,0,0,0.5);
-  font-family: junicode;
+  font-family: titus;
   height: 300px;
   list-style: none;
   overflow: auto;
@@ -1557,24 +1557,8 @@ i.fa.fa-check-square-o {
   margin: 0 5%;
 }
 @font-face {
-  font-family: "junicode";
-  src: url("../fonts/Junicode.ttf");
-}
-@font-face {
-  font-family: "junicode-bold";
-  src: url("../fonts/Junicode-Bold.ttf");
-  font-weight: bold;
-}
-@font-face {
-  font-family: "junicode-bold-italic";
-  src: url("../fonts/Junicode-BoldItalic.ttf");
-  font-weight: bold;
-  font-style: italic;
-}
-@font-face {
-  font-family: "junicode-italic";
-  src: url("../fonts/Junicode-Italic.ttf");
-  font-style: italic;
+  font-family: "titus";
+  src: url("../fonts/tituscbz.tff");
 }
 .btn {
   background: #d9dad9;
@@ -1844,7 +1828,7 @@ i.fa.fa-check-square-o {
   overflow-y: auto;
   margin-top: 66px;
   padding-left: 10px;
-  font-family: junicode;
+  font-family: titus;
   font-size: 14px;
 }
 .entry .container .preview.wrap {
@@ -1930,7 +1914,7 @@ body.ste-iframe-body {
   padding: 10px 0 0 10px;
   line-height: 2em;
   min-width: initial;
-  font-family: junicode;
+  font-family: titus;
   font-size: 14px;
 }
 body.ste-iframe-body sup[data-marker] {
