@@ -11,7 +11,7 @@ class ProjectStatistics extends Base
 	url: -> "#{config.get('restUrl')}projects/#{@projectID}/statistics"
 
 	initialize: (attrs, options) ->
-		super
+		super()
 
 		@projectID = options.projectID
 

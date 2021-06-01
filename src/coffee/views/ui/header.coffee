@@ -27,7 +27,7 @@ class Header extends BaseView
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		@project = @options.project
 

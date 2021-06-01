@@ -26,7 +26,7 @@ class Entry extends Models.Base
     terms: null
 
   initialize: ->
-    super
+    super()
     _.extend @, syncOverride
 
   set: (attrs, options) ->
@@ -37,7 +37,7 @@ class Entry extends Models.Base
       settings.set attrs, options
       @trigger 'change'
     else
-      super
+      super()
 
   clone: ->
     newObj = new @constructor
@@ -160,6 +160,6 @@ class Entry extends Models.Base
       jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
     else
-      super
+      super()
 
 module.exports = Entry

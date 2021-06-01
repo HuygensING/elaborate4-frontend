@@ -7,6 +7,7 @@ basePath = '' if basePath is '/'
 
 envConfig = require '../config/env'
 
+
 class Config extends Backbone.Model
 
 	url: -> "#{basePath}/data/config.json"
@@ -69,7 +70,7 @@ class Config extends Backbone.Model
 		else if attrs.hasOwnProperty 'activeTextLayerId' and attrs.activeTextLayerId?
 			attrs.activeTextLayerId = sanitizeTextLayer attrs[activeTextLayerId]
 
-		super
+		super()
 
 	slugToLayer: (slug) ->
 		for layer in @get('textLayers') || []

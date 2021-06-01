@@ -46,7 +46,7 @@ class ProjectSettings extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		Collections.projects.getCurrent (@project) =>
 			@listenTo @project.get('members'), 'add', => @renderGeneralTab()

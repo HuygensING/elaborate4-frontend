@@ -23,7 +23,7 @@ class Transcription extends Models.Base
 
 	# ### Initialize
 	initialize: ->
-		super
+		super()
 
 		_.extend @, changedSinceLastSave(['body'])
 		@initChangedSinceLastSave()
@@ -59,7 +59,7 @@ class Transcription extends Models.Base
 			options.trim()
 			# options = options.replace /<span (.*?)>(.*?)<\/span>/g, (match, p1, p2, offset, string) => p2
 
-		super
+		super()
 
 	sync: (method, model, options) ->
 		
@@ -94,7 +94,7 @@ class Transcription extends Models.Base
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		else
-			super
+			super()
 
 	# ### Methods
 

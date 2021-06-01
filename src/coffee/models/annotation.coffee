@@ -29,7 +29,7 @@ class Annotation extends Models.Base
 
 	# ### Initialize
 	initialize: ->
-		super
+		super()
 
 		_.extend @, changedSinceLastSave(['body'])
 		@initChangedSinceLastSave()
@@ -62,7 +62,7 @@ class Annotation extends Models.Base
 			else
 				@attributes['metadata'][attr] = options
 		else
-			super
+			super()
 
 	# sync: (method, model, options) ->
 	# 	if method is 'create' or method is 'update'
@@ -103,7 +103,7 @@ class Annotation extends Models.Base
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		else
-			super
+			super()
 
 	# ### Methods
 	updateFromClone: (clone) ->

@@ -30,7 +30,7 @@ class ProjectSettings extends Models.Base
 		else if attrs.hasOwnProperty 'results-per-page'
 			attrs['results-per-page'] = +attrs['results-per-page']
 
-		super
+		super()
 
 	# Change defaults with spaces like Project title and Project leader. These are not
 	# proper attribute keys and break the label/input connection in hilib forms.
@@ -52,7 +52,7 @@ class ProjectSettings extends Models.Base
 	url: -> "#{config.get('restUrl')}projects/#{@options.projectId}/settings"
 
 	initialize: (attrs, @options) ->
-		super
+		super()
 
 		# TMP
 		@options.projectId = @options.projectID

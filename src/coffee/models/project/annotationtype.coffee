@@ -23,7 +23,7 @@ class AnnotationType extends Models.Base
 		modifiedOn: ''
 
 	initialize: ->
-		super
+		super()
 
 		_.extend @, syncOverride
 
@@ -59,6 +59,6 @@ class AnnotationType extends Models.Base
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 
 		else
-			super
+			super()
 			
 module.exports = AnnotationType

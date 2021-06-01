@@ -18,7 +18,7 @@ class EditFacsimiles extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		@listenTo @collection, 'add', @render
 		@listenTo @collection, 'remove', @render

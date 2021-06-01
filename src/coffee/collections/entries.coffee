@@ -9,7 +9,7 @@ class Entries extends Base
 	model: Models.Entry
 
 	initialize: (models, options) ->
-		super
+		super()
 
 		@projectId = options.projectId
 

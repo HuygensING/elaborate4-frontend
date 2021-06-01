@@ -20,7 +20,7 @@ class ProjectHistory extends BaseView
 	className: 'projecthistory'
 
 	initialize: (@options) ->
-		super
+		super()
 
 		@index = 0
 

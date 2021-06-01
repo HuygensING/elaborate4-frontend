@@ -1,0 +1,13 @@
+- options = model.get('options')
+
+.placeholder
+	header
+		h3= model.get('title')
+		.menu
+			if options != null && options.length != null && options.length > 9
+				i.filter.fa.fa-filter(title=config.get('labels').filterOptions)
+				i.alpha.fa.fa-sort-alpha-asc(title=config.get('labels').sortAlphabetically)
+				i.amount.active.fa.fa-sort-amount-desc(title=config.get('labels').sortNumerically)
+		.options
+
+	.body

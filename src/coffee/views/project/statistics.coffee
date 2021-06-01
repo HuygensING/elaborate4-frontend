@@ -13,7 +13,7 @@ class Statistics extends BaseView
 	className: 'statistics'
 
 	initialize: (@options) ->
-		super			
+		super()
 
 		Collections.projects.getCurrent (@project) =>
 			stats = new Models.Statistics null, projectID: @project.id

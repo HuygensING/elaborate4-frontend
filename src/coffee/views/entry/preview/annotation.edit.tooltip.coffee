@@ -17,7 +17,7 @@ class EditAnnotationTooltip extends BaseView
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		@container = @options.container ? document.querySelector 'body'
 

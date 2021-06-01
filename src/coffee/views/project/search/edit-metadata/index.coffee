@@ -17,7 +17,7 @@ class EditMetadata extends BaseView
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		projects.getCurrent (@project) =>
 			@render()

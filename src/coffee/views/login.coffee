@@ -23,7 +23,7 @@ class Login extends BaseView
 
   # ### INITIALIZE
   initialize: ->
-    super
+    super()
 
     path = window.location.search.substr 1
     parameters = path.split '&'

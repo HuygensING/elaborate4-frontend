@@ -5,8 +5,10 @@ html(lang="en")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     meta(http-equiv="Cache-control", content="no-cache")
     title eLaborate
-    link(rel="stylesheet", type="text/css", href="/font-awesome/css/font-awesome.min.css")
-    link(rel="stylesheet", type="text/css", href!="/css/main-<!-- @echo VERSION -->.css")
+
+    link(rel="stylesheet", type="text/css", href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css")
+    //- link(rel="stylesheet", type="text/css", href="/font-awesome/css/font-awesome.min.css")
+    //- link(rel="stylesheet", type="text/css", href!="/css/main-<!-- @echo VERSION -->.css")
 
     noscript
       .noscript
@@ -30,8 +32,8 @@ html(lang="en")
       }
 
     //- | <!-- @if ENV='development' -->
-    script(src!="/js/libs-<!-- @echo VERSION -->.js")
-    script(src!="/js/src-<!-- @echo VERSION -->.js")
+    //- script(src!="/js/libs-<!-- @echo VERSION -->.js")
+    //- script(src!="/js/src-<!-- @echo VERSION -->.js")
     //- | <!-- @endif -->
 
     //- | <!-- @if ENV='production' -->

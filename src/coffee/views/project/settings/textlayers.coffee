@@ -12,7 +12,7 @@ class ProjectSettingsTextlayers extends Views.Base
 	className: 'textlayers'
 
 	initialize: (@options) ->
-		super
+		super()
 
 		@project = @options.project
 

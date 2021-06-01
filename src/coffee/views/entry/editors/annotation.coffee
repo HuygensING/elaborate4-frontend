@@ -22,7 +22,7 @@ class AnnotationEditor extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		Collections.projects.getCurrent (@project) => @render()
 

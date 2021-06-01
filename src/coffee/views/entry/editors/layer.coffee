@@ -18,7 +18,7 @@ class LayerEditor extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		@render()
 
@@ -84,6 +84,6 @@ class LayerEditor extends Views.Base
 
 	remove: ->
 		@subviews.editor.remove()
-		super
+		super()
 
 module.exports = LayerEditor

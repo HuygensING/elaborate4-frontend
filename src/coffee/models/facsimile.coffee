@@ -33,7 +33,7 @@ class Facsimile extends Models.Base
 
 			jqXHR.fail (response) => Backbone.history.navigate 'login', trigger: true if response.status is 401
 		else
-			super
+			super()
 
 	# defaults: ->
 	# 	name: ''

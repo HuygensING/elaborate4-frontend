@@ -13,16 +13,16 @@ Collections =
 	projects: require '../collections/projects'
 
 Views =
-	Login: require '../views/login'
-	SetNewPassword: require '../views/set-new-password'
-	NoProject: require '../views/no-project'
-	Search: require '../views/project/search'
 	EditMetadata: require '../views/project/search/edit-metadata'
-	ProjectSettings: require '../views/project/settings/main'
-	ProjectHistory: require '../views/project/history'
-	Statistics: require '../views/project/statistics'
 	Entry: require '../views/entry/main'
 	Header: require '../views/ui/header'
+	Login: require '../views/login'
+	NoProject: require '../views/no-project'
+	ProjectHistory: require '../views/project/history'
+	ProjectSettings: require '../views/project/settings/main'
+	Search: require '../views/project/search'
+	SetNewPassword: require '../views/set-new-password'
+	Statistics: require '../views/project/statistics'
 
 ViewManager = require '../util/view-manager'
 viewManager = new ViewManager()
@@ -66,38 +66,6 @@ class MainRouter extends Backbone.Router
 						@navigate "projects/#{@project.get('name')}", trigger: true
 			unauthorized: => @publish 'login:failed'
 			navigateToLogin: => @navigate 'login', trigger: true
-
-	# manageView: (View, options) -> viewManager.show $('div#main'), View, options
-	# manageView: do ->
-	# 	currentView = null
-	# 	cache = {}
-
-	# 	(View, viewOptions, options={}) ->
-	# 		# Destroy the current view.
-	# 		if currentView?
-	# 			currentView.destroy()
-	# 			currentView = null
-
-	# 		# Hide all cached views.
-	# 		cachedView.$el.hide() for key, cachedView of cache
-
-	# 		# Handle a request for a cached view.
-	# 		if options.cache?
-	# 			# Create a cached view if it doesn't exist.
-	# 			unless cache[options.cache]?
-	# 				cache[options.cache] = new View viewOptions
-	# 				# Cached views are appended outside the #main div.
-	# 				$('div#container').append cache[options.cache].el
-
-	# 			# Show the cached view.
-	# 			cache[options.cache].$el.show()
-	# 		# Handle a request for a 'normal' view.
-	# 		else
-	# 			currentView = new View viewOptions
-	# 			view = currentView.el
-
-	# 			$('div#main').html view
-
 
 	routes:
 		'': 'search'

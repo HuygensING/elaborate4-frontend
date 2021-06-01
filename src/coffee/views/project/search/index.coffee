@@ -4,7 +4,7 @@ $ = require 'jquery'
 StrFn = require 'hilib/src/utils/string'
 
 # FacetedSearchResults = require 'elaborate-modules/modules/views/faceted-search-results'
-FacetedSearch = require 'huygens-faceted-search'
+FacetedSearch = require './faceted-search/coffee/main.coffee'
 
 config = require '../../../models/config'
 projects = require '../../../collections/projects'
@@ -25,7 +25,7 @@ class Search extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		@subviews = {}
 

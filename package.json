@@ -14,20 +14,22 @@
     "build": "gulp build",
     "deploy-test": "gulp compile && gulp deploy-test",
     "compile": "gulp compile",
-    "start": "gulp",
-    "test": "nightwatch"
+    "start": "gulp"
   },
   "devDependencies": {
     "async": "^0.9.0",
     "backbone": "^1.0.0",
     "browser-sync": "^1.3.2",
     "browserify": "^3.28.2",
+    "coffee-loader": "^3.0.0",
     "coffee-script": "^1.7.1",
     "coffeeify": "^0.6.0",
+    "coffeescript": "^2.5.1",
     "connect-modrewrite": "^0.7.7",
+    "css-loader": "^5.2.6",
     "envify": "^1.2.1",
     "font-awesome": "*",
-    "gulp": "^3.6.2",
+    "gulp": "^4.0.2",
     "gulp-clean": "^0.2.4",
     "gulp-coffee": "^1.4.3",
     "gulp-concat": "^2.1.7",
@@ -40,6 +42,7 @@
     "gulp-uglify": "^0.2.1",
     "gulp-util": "^2.2.20",
     "hilib": "git+https://github.com/HuygensING/hilib.git#v0.0.9",
+    "html-webpack-plugin": "^5.3.1",
     "huygens-faceted-search": "git+https://github.com/HuygensING/faceted-search.git#v2.3.1",
     "jade": "^1.5.0",
     "jadeify": "^2.1.1",
@@ -47,12 +50,22 @@
     "markdown": "~0.5.0",
     "nib": "^1.0.2",
     "nightwatch": "^0.4.17",
+    "pug": "^3.0.2",
+    "pug-loader": "^2.4.0",
     "rimraf": "^2.2.8",
     "rsyncwrapper": "^0.4.0",
+    "style-loader": "^2.0.0",
     "stylus": "^0.45.1",
+    "stylus-loader": "^6.0.0",
     "underscore": "^1.6.0",
     "underscore.string": "~2.3.3",
     "vinyl-source-stream": "^0.1.1",
-    "watchify": "^0.6.4"
+    "watchify": "^0.6.4",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0",
+    "webpack-dev-server": "^3.11.2"
+  },
+  "dependencies": {
+    "connect-rewrite": "0.0.1"
   }
 }

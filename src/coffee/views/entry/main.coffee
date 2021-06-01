@@ -36,7 +36,7 @@ class Entry extends Views.Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		# Models.state.onHeaderRendered => @render() # TODO Remove this check!
 		async = new Async ['transcriptions', 'facsimiles', 'settings']

@@ -18,6 +18,6 @@ class EntrySettings extends Models.Base
 	sync: (method, model, options) ->
 		method = 'update' if method is 'create'
 
-		super
+		super()
 
 module.exports = EntrySettings

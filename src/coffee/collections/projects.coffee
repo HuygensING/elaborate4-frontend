@@ -17,7 +17,7 @@ class Projects extends Base
 	url: config.get('restUrl')+'projects'
 
 	initialize: ->
-		super
+		super()
 
 		@on 'sync', @setCurrent, @
 

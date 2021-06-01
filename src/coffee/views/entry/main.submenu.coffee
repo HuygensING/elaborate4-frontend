@@ -25,7 +25,7 @@ class EntrySubmenu extends Base
 
 	# ### Initialize
 	initialize: (@options) ->
-		super
+		super()
 
 		{@entry, @user, @project} = @options
 
