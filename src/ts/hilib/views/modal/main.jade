@@ -1,0 +1,12 @@
+.overlay
+.modalbody
+	header
+		if (title !== '')
+			h2(class=titleClass)!= title
+		p.message
+	.body
+
+	if (cancelAndSubmit)
+		footer
+			button.cancel= cancelValue
+			button.submit= submitValue

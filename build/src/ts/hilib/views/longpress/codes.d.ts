@@ -1,0 +1,31 @@
+declare const _default: {
+    65: string;
+    66: string;
+    67: string;
+    68: string;
+    69: string;
+    70: string;
+    71: string;
+    72: string;
+    73: string;
+    74: string;
+    75: string;
+    76: string;
+    78: string;
+    79: string;
+    80: string;
+    82: string;
+    83: string;
+    84: string;
+    85: string;
+    86: string;
+    87: string;
+    89: string;
+    90: string;
+    187: string;
+    189: string;
+    190: string;
+    222: string;
+};
+export default _default;
+//# sourceMappingURL=codes.d.ts.map

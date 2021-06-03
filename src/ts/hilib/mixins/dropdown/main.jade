@@ -1,0 +1,7 @@
+//- - console.log(selected)
+each model in collection.models
+	li.list(data-id=model.id, class=selected===model?'active':'')= model.get('title')
+
+//- | <% collection.each(function(model) { %>
+//- li.list(data-id!="<%= model.id %>", class!="<% if (selected===model) { %>active<% } %>") <%= model.get('title') %>
+//- | <% }); %>

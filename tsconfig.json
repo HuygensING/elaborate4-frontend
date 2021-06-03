@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"declarationMap": true,
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"incremental": true,
+		// "isolatedModules": true,
+		"lib": [
+			"DOM",
+			"DOM.Iterable",
+			"ES2020"
+		],
+		"module": "es6",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"outDir": "./build",
+		"paths": {
+			"hilib/*": ["./src/ts/hilib/*"]
+		},
+		"removeComments": true,
+		"sourceMap": true,
+		"resolveJsonModule": true,
+		"target": "esnext",
+		"types": []
+	},
+	"exclude": [
+		"./build",
+		"./dist",
+		"./node_modules"
+	],
+	"files": [
+		"./custom.d.ts",
+		"./src/ts/index.ts"
+	]
+}

@@ -2,6 +2,8 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+console.log(path.resolve(__dirname, './src/ts/hilib/'))
+
 module.exports = {
 	mode: 'development',
 	module: {
@@ -11,8 +13,12 @@ module.exports = {
 				loader: 'pug-loader'
 			},
 			{
-				test: /\.coffee$/,
-				loader: 'coffee-loader'
+				exclude: /node_modules/,
+				test: /\.ts$/,
+				loader: "ts-loader",
+				// options: {
+				// 	transpileOnly: true
+				// }
 			},
 			{
 				test: /\.styl$/,
@@ -37,7 +43,10 @@ module.exports = {
 	},
 
 	resolve: {
-		extensions: [".webpack.js", ".web.js", ".js", ".coffee", ".jade"],
+		extensions: [".webpack.js", ".web.js", ".js", ".ts", ".jade"],
+		alias: {
+			hilib: path.resolve(__dirname, 'src/ts/hilib/')
+		}
 	},
 
 	devServer: {
@@ -75,7 +84,7 @@ module.exports = {
 		}
 	},
 
-	entry: ['./src/coffee/main.coffee'],
+	entry: ['./src/ts/index.ts'],
 
 	output: {
 		filename: 'js/[fullhash].main.js',
