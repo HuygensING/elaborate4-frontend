@@ -1,1 +1,0 @@
-{"version":3,"file":"view-manager.d.ts","sourceRoot":"","sources":["../../src/ts/util/view-manager.ts"],"names":[],"mappings":"AAEA,UAAU,OAAO;IACf,KAAK,CAAC,EAAE,GAAG,CAAA;CACZ;AAED,MAAM,CAAC,OAAO,OAAO,WAAW;IAC9B,YAAY,MAAA;IACZ,MAAM,MAAA;;IAON,IAAI,CAAC,IAAI,KAAA,EAAE,WAAW,CAAC,KAAA,EAAE,OAAO,GAAE,OAAY;IA+B9C,eAAe,CAAC,GAAG,KAAA;CAIpB"}
