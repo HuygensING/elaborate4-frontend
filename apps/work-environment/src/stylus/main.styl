@@ -1,0 +1,141 @@
+@import "./import/functions.styl"
+@import "./import/variables.styl"
+
+html, body
+	font-family Verdana, Arial, Helvetica, sans-serif
+	font-size 12px
+	margin 0
+	padding 0
+
+body
+	min-width minWidth
+// iframe > html
+// 	background green
+	// overflow hidden
+	// height 100%
+
+// #blackbar, #graybar
+// 	position fixed
+// 	width 100%
+
+// #blackbar
+// 	height 48px
+// 	background-color black
+
+// #graybar
+// 	top 48px
+// 	height 40px
+// 	background-color #444
+
+.noscript, .wrongbrowser
+	width 800px
+	margin auto
+	margin-top 60px
+
+ul
+	margin 0
+	padding 0
+
+#container
+	margin 0 auto
+	width 100%
+
+	#main
+		padding-top mainHeaderHeight + subHeaderHeight
+		// height 100%
+
+	// footer
+	// 	text-align center
+
+h1, h2, h3, h4, a
+	color spotcolor
+
+button, input[type="submit"]
+	cursor pointer
+
+h2.loader
+	&:after
+		content url('/static/images/loader.gif')
+		margin-left 12px
+		position relative
+		top 3px
+
+a:visited
+	color darken(spotcolor, 30%)
+
+div p:first-child
+	margin-top 0
+
+.white, .menu li.username
+	color white
+
+.submenu-menus
+	display	none
+
+.region
+	background #F1F1F1
+	box-shadow 0 0 6px #AAA
+	padding 12px
+	border-radius 6px
+
+i.fa
+	font-size 1.2em
+	cursor pointer
+
+	&.fa-square-o
+		color #AAA
+		padding-right 2px
+
+		&:hover
+			color #555
+
+	&.fa-check-square-o
+		color #555
+
+.publication-errors
+	margin 0 5%
+
+//@font-face
+//	font-family "junicode"
+//	src url("../fonts/Junicode.ttf")
+//
+//@font-face
+//	font-family "junicode-bold"
+//	src url("../fonts/Junicode-Bold.ttf")
+//	font-weight bold
+//
+//@font-face
+//	font-family "junicode-bold-italic"
+//	src url("../fonts/Junicode-BoldItalic.ttf")
+//	font-weight bold
+//	font-style italic
+//
+//@font-face
+//	font-family "junicode-italic"
+//	src url("../fonts/Junicode-Italic.ttf")
+//	font-style italic
+
+@font-face
+	font-family "titus"
+	src url("/static/fonts/tituscbz.tff")
+
+@import './button.styl'
+@import './debug.styl'
+@import './entry.styl'
+@import './form.styl'
+@import './keyframes.styl'
+@import './layout.styl'
+@import './login.styl'
+@import './media.styl'
+@import './menu.styl'
+@import './set-new-password.styl'
+@import './project/history.styl'
+@import './project/settings.styl'
+@import './project/faceted-search.styl'
+@import './project/edit-metadata/index.styl'
+@import './project/edit-metadata/submenu.styl'
+@import './ui/header.styl'
+@import './ui/modal.styl'
+@import './ui/submenu.styl'
+@import './ui/subsubmenu.styl'
+@import './ui/tooltip.styl'

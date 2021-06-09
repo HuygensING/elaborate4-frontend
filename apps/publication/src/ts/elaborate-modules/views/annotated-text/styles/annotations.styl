@@ -1,0 +1,112 @@
+@import 'nib'
+
+textColor = #666
+lightestGrey = #eee
+numberHighlight = #BA5DB6
+
+.elaborate-annotated-text
+	.annotations
+		font-size 10px
+
+		header
+			height 40px
+			background white
+			position relative
+			z-index 2
+
+		ol
+			list-style none
+			padding 0 0 0 20px
+			margin 0
+			counter-reset section
+			position relative
+			z-index 1
+
+			&.active
+				li
+					white-space normal
+
+			li
+				font-size 12px
+				padding-left 6px
+				margin-bottom 10px
+				white-space nowrap
+				overflow-x hidden
+				text-overflow ellipsis
+				color textColor
+				counter-increment section
+
+				&:before
+					content counter(section)
+					display inline-block
+					text-align center
+					width 20px
+					position absolute
+					left 0
+					padding 2px 0
+					background-color lightestGrey
+					color grey
+					border-radius 2px
+					font-size 0.8em
+
+				&:hover, &.show, &.highlight, &.active
+					cursor pointer
+
+					&:before
+						background-color numberHighlight
+						color white
+
+				&.hide
+					visibility hidden
+					height 0
+					padding 0
+					margin 0
+
+
+				&.show, &.highlight
+					white-space normal
+
+					div.type
+						display block
+
+					hr
+						display block
+
+					// .text
+					// 	margin -14px 0 0 31px
+
+				&.highlight
+					.number span
+						color white
+						background-color numberHighlight
+
+				&.highlight, &:hover, &.active
+					color darken(textColor, 40%)
+
+					& > span
+						color darken(textColor, 40%)
+
+				div.type
+					display none
+
+					span
+						font-size 0.8em
+						display inline-block
+						color black
+						background-color lightestGrey
+						padding 2px 4px
+						margin 0 0 8px -4px
+						border-radius 2px
+
+				.bioportid
+					color #AAA
+					display none
+				&.show
+					.bioportid
+						display block
+
+				hr
+					display none
+					border 0
+					height 1px
+					background-color lighten(numberHighlight, 80%)

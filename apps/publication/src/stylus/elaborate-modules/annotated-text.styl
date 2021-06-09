@@ -1,0 +1,51 @@
+fade_time = 300ms
+slide_time = 400ms
+
+.elaborate-annotated-text
+	box-sizing border-box
+	display inline-block
+	vertical-align top
+
+	& + .elaborate-annotated-text
+		border-left 1px solid #DDD
+	
+
+	&.without-annotations
+		width 44%
+		transition width 400ms ease 300ms
+
+		& > .text
+			width 100%
+			transition width 400ms ease 300ms
+
+		& > .annotations
+			width 0
+			opacity 0
+			transition-property opacity, width
+			transition-duration 300ms
+
+			header
+				overflow hidden
+
+			ol
+				li:before
+					display none
+
+	&.with-annotations
+		width 66%
+		transition width 400ms ease 0
+
+		& > .text
+			width 66%
+
+		& > .annotations
+			width 33%
+			opacity 1
+			transition opacity 300ms ease 400ms
+
+	& > .text, & > .annotations
+		box-sizing border-box
+		padding 0 10px
+		white-space normal
+		display inline-block
+		vertical-align top

@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"outDir": "build"
+	},
+	"extends": "../../tsconfig",
+	"files": [
+		"src/index.ts",
+		"../../custom.d.ts"
+	]
+}

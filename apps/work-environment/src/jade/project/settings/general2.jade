@@ -1,0 +1,80 @@
+fieldset.span50
+	h3 General
+	ul(data-model-id=model.cid)
+		li
+			label(for="projectType") Type
+			span=model.get('projectType')
+		li
+			label(for="Project title") Project title
+			input(type="text", name="Project title", value=model.get('Project title'))
+		li
+			label(for="name") Project name
+			input(type="text", name="name", value=model.get('name'))
+		li
+			label(for="Project leader") Project leader
+			select(name="Project leader")
+				option -- select member --
+				each member in projectMembers.models
+					- sel = member.id === +model.get('Project leader')
+					option(value=member.id, selected=sel)= member.get('title')
+		li
+			label(for="Start date") Start date
+			input(type="text", name="Start date", value=model.get('Start date'))
+		li
+			label(for="Release date") Release date
+			input(type="text", name="Release date", value=model.get('Release date'))
+		li
+			label(for="Version") Version
+			input(type="text", name="Version", value=model.get('Version'))
+		li
+			label(for="wordwrap") Word wrap
+			input(type="checkbox", name="wordwrap", checked=model.get('wordwrap'))
+		li
+			label(for="results-per-page") Results per page
+			select(name="results-per-page")
+				each count in [10, 25, 50, 100, 250, 500, 1000]
+					option(value=count, selected=count===model.get('results-per-page'))= count + " results"
+
+		if (model.get("projectType") === "mvn")
+			li
+				h3(style="margin-top: 30px") MVN
+				label(for="mvn.placeName") Place name
+				input(type="text", name="mvn.placeName", value=model.get('mvn.placeName'))
+			li
+				label(for="mvn.institution") Institution
+				input(type="text", name="mvn.institution", value=model.get('mvn.institution'))
+			li
+				label(for="mvn.idno") ID number
+				input(type="text", name="mvn.idno", value=model.get('mvn.idno'))
+			li
+				label(for="mvn.subtitle") Subtitle
+				input(type="text", name="mvn.subtitle", value=model.get('mvn.subtitle'))
+
+
+fieldset.span50
+	h3 Publication
+	ul(data-model-id=model.cid)
+		if model.get('publicationURL').length > 0
+			li
+				label URL
+				a(href=model.get('publicationURL'), data-bypass, target="_blank") link
+		if hasErrors
+			li
+				label Errors
+				a(href=errorsUrl) link
+		li
+			label Title
+			input(type="text", value=model.get('publication.title'), name="publication.title")
+		li
+			label(for="text.font") Font
+			select(name="text.font")
+				option
+				option(value="junicode", selected=model.get('text.font')=='junicode') Junicode
+				option(value="titus", selected=model.get('text.font')=='titus') Titus
+		- src = model.get('text.font') === '' ? model.get('text.font') : '/images/fonts/'+model.get('text.font')+'.png'
+		li
+			label
+			img(name="text.font", src=src, width="140px", height="140px")
+
+button.disabled(name="submit") Save settings
+	i.fa.fa-spinner.fa-spin

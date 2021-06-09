@@ -1,0 +1,13 @@
+{
+  "name": "@elaborate4-frontend/faceted-search",
+  "version": "1.0.0",
+  "main": "src/ts/index.ts",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC"
+}

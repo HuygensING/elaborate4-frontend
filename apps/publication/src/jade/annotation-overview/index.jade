@@ -1,0 +1,10 @@
+ul.annotation-types
+	li.all
+		a(href="#all", data-bypass="true", data-type=false) Show all annotations
+	each type in types
+		li
+			a(href!='#'+slugify(type.name), data-bypass="true", data-type!=type.name)
+				span= type.name
+				span.count= ' ('+ type.count + ')'
+
+.contents

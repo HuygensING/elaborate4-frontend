@@ -1,0 +1,26 @@
+select_none()
+	-webkit-touch-callout none
+	-webkit-user-select none
+	-khtml-user-select none
+	-moz-user-select none
+	-ms-user-select none
+	user-select none
+
+ul.pagination
+	select_none()
+	list-style none
+
+	li
+		display inline-block
+		padding 0 4px
+
+		&.prev10, &.prev, &.next, &.next10
+			color #CCC
+			pointer default
+
+			&.active
+				color black
+				cursor pointer
+
+		&.text
+			color gray

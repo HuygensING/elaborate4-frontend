@@ -1,0 +1,25 @@
+@media print
+	.entry
+		.row > .text, .row > .annotations
+			width auto
+
+	body > header
+		& > ul
+			display none
+
+
+		.annotations-index
+			ul.annotation-types
+				display none
+
+			.contents
+				display block !important
+				height auto !important
+				overflow visible
+
+			ol
+				a
+					display none
+
+		.menu-mainmenu-container
+			display none

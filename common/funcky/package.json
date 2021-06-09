@@ -1,0 +1,13 @@
+{
+  "name": "@elaborate4-frontend/funcky",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC"
+}

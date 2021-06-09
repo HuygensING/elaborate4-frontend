@@ -1,0 +1,41 @@
+@import 'nib'
+
+article > .panels
+	overflow auto
+	white-space nowrap
+
+	.elaborate-annotated-text.hidden
+		display none
+			
+	.facsimile
+		display inline-block
+		width 33%
+		vertical-align top
+		padding 0 10px
+		box-sizing border-box
+
+		&.hidden
+			display none
+
+		header
+			height 40px
+
+			h3
+				margin 0
+				paddin 0
+				
+			select
+				font-family sans-serif
+				font-size 10px
+				margin-right 4px
+				width 100px
+				background none
+				border 1px solid #DDD
+
+		iframe
+			border 0
+			// min-height 500px
+		
+		// min-height 100px // so text isn't pushed left
+		@media print
+			display none

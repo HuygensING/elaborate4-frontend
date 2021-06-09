@@ -1,0 +1,83 @@
+@import '../import/*'
+
+div.entry
+	nav
+		height 140px
+
+		ul.thumbnails
+			height 118px
+			background black
+			color white
+			margin 0
+			padding 10px 10px 8px 10px
+			list-style none
+			white-space nowrap
+			max-width 100%
+			overflow-x scroll
+			overflow-y hidden
+			text-align center
+
+			li
+				cursor pointer
+				display inline-block
+				height 100px
+				/*padding 0 1px*/
+				position relative
+				vendor('transform', scale(1,1))
+				vendor('transition-duration', .15s)
+				vertical-align top
+				min-width 30px
+
+				&.active
+					box-shadow 0 0 10px rgba(0,0,0,0.05)
+					position relative
+					transform scale(1.15,1.15)
+					z-index 9
+
+					.short-name
+						background-color defaultPurple
+						color white
+						text-shadow 1px 1px 1px #444
+						box-shadow 1px 1px 1px #444
+
+				&:hover:not(.active)
+					position relative
+					z-index 9
+
+					img
+						transition-duration 150ms
+						transform scale(1.15,1.15)
+						box-shadow 0 0 10px rgba(0,0,0,0.05)
+
+				img
+					border 0
+					display inline-block
+					max-height 100px
+					opacity 0
+					transition-duration 300ms, 150ms
+					transition-property opacity, transform
+					width auto
+
+				.short-name
+					/* Positioning */
+					position absolute
+					top 50%
+					left 5%
+
+					/* Display & Box Model */
+					height 20px
+					width 90%
+					// width 30px
+					margin-top -10px
+					// margin-left -15px
+					border-radius 2px
+
+					/* Colors and text */
+					background-color rgba(black, 0.6)
+					color white
+					font-size 10px
+					line-height 20px
+					text-align center
+
+					/* Other */
+					z-index 10

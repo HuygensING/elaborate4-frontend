@@ -1,0 +1,146 @@
+@import '../import/*'
+
+.faceted-search-results
+	top 112px
+
+	.overlay
+		background rgba(0, 0, 0, 0.2)
+		position absolute
+		z-index 1
+		border-radius 8px
+		display none
+
+		div
+			position fixed
+			padding 6px
+			background #FFF
+			border-radius 30px
+			box-shadow 1px 1px 10px #000
+			margin-left -20px
+			margin-top -20px
+			width 40px
+			height 40px
+
+	.faceted-search
+		ul.facets-menu
+			li.switch button
+				outline none
+				i, span
+					box-sizing border-box
+					display none
+					vertical-align top
+				i
+					width 12px
+				span
+					width calc(100% - 12px)
+
+		&.search-type-advanced
+			ul.facets-menu li.switch button
+				i.fa-angle-double-up, span.simple
+					display inline-block
+		&.search-type-simple
+			ul.facets-menu li.switch button
+				i.fa-angle-double-down, span.advanced
+					display inline-block
+
+		.text-search
+			input
+				&:focus
+					outline none
+					border-color rgba(defaultPurple, 0.25)
+					box-shadow 0 0 3px rgba(defaultPurple, 0.25)
+
+				&:focus + i.fa-search
+					box-shadow 0 0 3px rgba(defaultPurple, 0.25)
+
+			i.fa-search
+				background defaultPurple
+				cursor pointer
+
+			.search-input
+				input, div.search-icon
+					box-sizing border-box
+					display inline-block
+					vertical-align top
+
+				div.search-icon
+					cursor pointer
+					height 30px
+					background-color #ccc
+					border-bottom-right-radius 3px
+					border-top-right-radius 3px
+					line-height 40px
+					text-align center
+					width 15%
+
+					svg
+						width 12px
+						fill white
+
+			.menu
+				display none
+			//
+			//.search-input div.search-icon
+			//   height: 30px;
+			//  display: inline-block;
+			//  background-color: #ccc;
+			//  border-bottom-right-radius: 3px;
+			//  border-top-right-radius: 3px;
+			//  text-align: center;
+			//  vertical-align: top;
+			//  width: 15%;
+			//  cursor: pointer;
+			//
+			//  svg
+			//    fill white
+			//    height 18px
+			//    width 12px
+
+		.facet
+			margin-bottom 16px
+
+			.body
+				margin-top 4px
+
+		.facet.list
+			header > .menu
+				position absolute
+				cursor pointer
+				top 0
+				right 0
+
+				svg
+					width 14px
+					height 14px
+					display none
+
+					&.filter
+						display inline
+
+					&.visible
+						display inline
+
+					&.active
+						rect
+							fill lightblue
+							fill-opacity 0.5
+
+			.container > ul > li
+				&.checked
+					svg.checked
+						display inline-block
+					svg.unchecked
+						display none
+
+				svg
+					width 14px
+					height 15px
+					vertical-align top
+					padding-right 3px
+					box-sizing border-box
+
+					&.checked
+						display none
+
+					&.unchecked
+						display inline-block

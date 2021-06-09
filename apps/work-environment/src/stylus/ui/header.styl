@@ -1,0 +1,199 @@
+header.main
+	select_none()
+	background-color black
+	left 0
+	min-width minWidth
+	padding-left .75rem
+	position absolute
+	right 0
+	top 0
+	white-space nowrap
+	z-index 50
+
+	& > .left, & > .middle, & > .right
+		inline-block()
+		width 33%
+
+		*
+			vertical-align middle
+
+	& > .left
+		text-align center
+
+	& > .right
+		text-align right
+
+	span.message
+		position relative
+		display inline-block
+		vertical_gradient(#FBEDBF, #EFDD96)
+		// background rgba(255, 255, 0, 0.37)
+		font-size 0.9em
+		font-weight bold
+		color #444
+		line-height 20px
+		// border 2px solid rgba(255, 255, 3, 0.49)
+		border-radius 4px
+		padding 2px 30px 2px 12px
+		margin-top -50px
+		transition(margin-top 500ms)
+		box-shadow 1px 1px 2px #CCC
+		cursor pointer
+
+		&:after
+			content 'x'
+			border 1px solid rgba(128, 128, 128, 0.3)
+			line-height 11px
+			text-shadow 1px 1px 4px #777
+			border-radius 2px
+			position absolute
+			padding 0 2px
+			margin-top 4px
+			right 5px
+			color #666
+
+		&.active
+			margin-top 11px
+
+
+	ul.horizontal.menu
+		display inline-block
+
+		li
+			background-color black
+			overflow hidden
+			line-height 48px
+
+			&.thisproject
+				span.projecttitle
+					i.fa.fa-spinner.fa-spin
+						margin 0px 20px
+
+				ul.vertical.menu
+					right 0
+
+			&.projects
+				overflow visible
+
+				ul.vertical.menu
+					position absolute
+					margin 0 0 0 -432px
+					width auto
+					max-height 326px
+					overflow-y auto
+					overflow-x hidden
+					border-bottom 1px solid black
+
+					li
+						width 200px
+						text-overflow ellipsis
+
+						&.active
+							background white
+							color black
+							border-left 1px solid black
+							border-right 1px solid black
+							cursor default
+
+			ul.vertical.menu
+				width 140px
+				border-bottom-left-radius 6px
+				border-bottom-right-radius 6px
+
+				li
+					border-top 1px solid #444
+					font-weight normal
+					color #DDD
+					box-shadow 1px 1px 2px #777
+					line-height 26px
+
+					&:hover
+						background-color #222
+						color #FFF
+
+					&:last-child
+						border-bottom-left-radius 6px
+						border-bottom-right-radius 6px
+
+					&.spacer
+						border none
+						background none
+						height 17px
+						box-shadow none
+
+	.user
+		a
+			color white
+			text-decoration none
+
+		li.username > .vertical.menu
+			right 0
+
+
+
+	.projecttitle
+		font-size 1.3em
+		display inline-block
+		max-width 400px
+		overflow hidden
+		text-overflow ellipsis
+
+
+// header
+// 	white-space nowrap
+// 	z-index 100
+
+// 	.main
+// 		position fixed
+// 		left 0
+// 		right 0
+
+// 		.row
+// 			margin 0 auto
+
+// 			*
+// 				vertical-align middle
+
+
+// 	.main
+// 		background-color black
+// 		top 0
+// 		z-index 50 // render .main above .sub
+
+// 		& .cell
+// 			line-height mainHeaderHeight
+
+// 		div.logo
+// 			overflow hidden
+
+// 			.projecttitle
+// 				margin-left 10px
+// 				white-space nowrap
+// 				font-weight bold
+// 				overflow hidden
+// 				cursor pointer
+// 				font-size 1.3em
+
+// 		nav
+// 			display inline-block
+
+// 			&.user, &.project
+// 				li
+// 					background-color black
+// 					overflow hidden
+
+// 					// &.projects:after, &.username:after, &.thisproject:after
+// 					// 	margin-left 3px
+// 					// 	content url('../images/arrow_down.png')
+
+// 				.vertical.menu
+// 					li
+// 						padding-top 2px
+// 						box-shadow 0px -9px 30px rgba(34, 34, 34, 0.8)
+
+// 						&:hover
+// 							background #222
+// 							text-shadow 1px 2px black
+
+// 						&:hover + li
+// 							box-shadow 0px -9px 30px #444

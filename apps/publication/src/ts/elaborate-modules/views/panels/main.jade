@@ -1,0 +1,13 @@
+h2= entryName
+	i.fa.fa-print.print
+
+.image_copyright_statement= image_copyright_statement
+.metadata
+	button.green.toggle-metadata Metadata
+	.table-container
+		table
+			each m, i in metadata
+				tr
+					td= m.field
+					td= m.value
+.panels

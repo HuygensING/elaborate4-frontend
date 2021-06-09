@@ -2,10 +2,9 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-console.log(path.resolve(__dirname, './src/ts/hilib/'))
-
 module.exports = {
 	mode: 'development',
+
 	module: {
 		rules: [
 			{
@@ -44,41 +43,23 @@ module.exports = {
 
 	resolve: {
 		extensions: [".webpack.js", ".web.js", ".js", ".ts", ".jade"],
-		alias: {
-			hilib: path.resolve(__dirname, 'src/ts/hilib/')
-		}
+		// alias: {
+		// 	hilib: path.resolve(__dirname, 'src/ts/hilib/')
+		// }
 	},
 
 	devServer: {
-		contentBase: path.resolve(process.cwd(), './static'),
+		contentBase: path.resolve(process.cwd(), '../../static'),
 		disableHostCheck: true,
-		headers: { "Access-Control-Allow-Origin": "*" },
+		headers: {
+			"Access-Control-Allow-Origin": "*"
+		},
 		historyApiFallback: {
 			disableDotRule: true
 		},
 		host: 'localhost',
 		hot: true,
 		port: 4000,
-		// proxy: {
-		// 	'/api': {
-		// 		target: `http://localhost:${env.DOCERE_API_PORT}`,
-		// 		// pathRewrite: {'^/api': ''}
-		// 	},
-		// 	'/search': {
-		// 		target: `http://localhost:${env.DOCERE_SEARCH_PORT}`,
-		// 		pathRewrite: {'^/search': ''}
-		// 	},
-		// 	'/iiif/vangogh': {
-		// 		changeOrigin: true,
-		// 		target: 'http://vangoghletters.org/vg/facsimiles',
-		// 		pathRewrite: {'^/iiif/vangogh': ''}
-		// 	},
-		// 	'/iiif': {
-		// 		changeOrigin: true,
-		// 		target: env.DOCERE_IIIF_BASE_URL,
-		// 		pathRewrite: {'^/iiif': ''}
-		// 	},
-		// },
 		watchOptions: {
 			ignored: /node_modules/
 		}

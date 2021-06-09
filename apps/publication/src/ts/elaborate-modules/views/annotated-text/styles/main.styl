@@ -1,0 +1,43 @@
+@import 'nib'
+
+lightGrey = #f5f5f5
+numberHighlight = #BA5DB6
+
+.elaborate-annotated-text
+	position relative
+
+	select
+		font-family sans-serif
+		font-size 10px
+		margin-right 4px
+		width 100px
+		background none
+		border 1px solid #DDD
+
+		&:focus
+			outline none
+
+	i.fa
+		color darken(lightGrey, 20%)
+		font-size 12px
+		line-height 20px
+
+		&:hover
+			cursor pointer
+			color #888
+
+	.text, .annotations
+		.highlight, .highlight-term
+			display inline
+			padding 1px 0
+			border-radius 2px
+
+		.highlight
+			background-color numberHighlight
+			color white
+
+		.highlight-term
+			background lighten(#FF0, 40%)
+			padding 1px 5px 2px 5px
+			border-radius 4px
+			box-shadow 1px 1px 2px #CCC

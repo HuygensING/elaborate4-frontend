@@ -1,0 +1,7 @@
+{
+	"extends": "../../tsconfig",
+	"files": [
+		"src/ts/index.ts",
+		"../../custom.d.ts"
+	]
+}

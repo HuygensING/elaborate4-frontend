@@ -1,0 +1,20 @@
+// Mixins are called with a plus sign, so +listItem calls this function.
+mixin listItem(id, value)
+	li(data-id=id)
+		- panel = selectedPanels.get(id)
+		if panel != null && panel.get('show')
+			i.fa.fa-check-square-o.checkbox(data-id=id)
+		else
+			i.fa.fa-square-o.checkbox(data-id=id)
+		span= value || id
+		//- i.fa.fa-arrows.drag-handle
+
+button.green Panels
+ul
+	li.placeholder &nbsp;
+	each facs, i in facsimiles
+		- value = facs.title || 'Facsimile '+(i+1)
+		+listItem(facs.zoom, value)
+
+	each layer, i in textlayers.models
+		+listItem(layer.id)

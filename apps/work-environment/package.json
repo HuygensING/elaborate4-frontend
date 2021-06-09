@@ -1,0 +1,10 @@
+{
+  "name": "@elaborate4-frontend/work-environment",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "webpack serve"
+  },
+  "author": "",
+  "license": "ISC"
+}

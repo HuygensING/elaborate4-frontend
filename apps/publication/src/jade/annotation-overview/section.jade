@@ -1,0 +1,17 @@
+section
+	a(name=slugify(type))
+		h2= type
+			i.fa.fa-print.print
+			.count= annotations.length + ' annotations'
+	ol
+		each a in annotations
+			li(data-text-layer=a.textLayer)
+				.annotated-text= shorten(a.annotatedText)
+				.text-layer
+				.position
+					span.entry-name= a.entryName
+					span.text-layer= a.textLayer + ' layer'
+					span.annotation-number= 'annotation '+ a.annotationOrder
+				.annotation-text!=  a.annotationText
+				.link
+					a(href=`/entry/${a.entryId}/${slugify(a.textLayer)}/${a.n}`) &#8627; See in text

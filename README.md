@@ -6,15 +6,13 @@ eLaborate (frontend)
 eLaborate is an online work environment in which scholars can upload scans, transcribe and annotate text, and publish the results as on online text edition which is freely available to all users.
 eLaborate is developed by [Huygens ING](http://www.huygens.knaw.nl/).
 
-This repository contains the frontend, which communicates with the [backend](https://github.com/HuygensING/elaborate4-backend).
+This repository contains the frontend for the work environment (/apps/work-environment), which communicates with the [backend](https://github.com/HuygensING/elaborate4-backend) and the frontend for the publication (/apps/publication).
 
 ## Install
 
 ```
 $ git clone https://github.com/HuygensING/elaborate4-frontend.git
 $ npm install
-$ cp config-example.json config.json
-$ gulp compile
 ```
 
 ## Edit the config file
@@ -29,11 +27,9 @@ In the config file, alter the `restUrl` property to match the location of the el
 
 ## Development
 
-For development purposes `gulp` can be run from the command line. Gulp loads the following tasks:
+1. Run the backend locally: `docker run -p 4002:8080 -d brambdocker/hattem-edition`
+2. `npm start`
 
-1. Add watchers for .coffee, .jade and .stylus files.
-2. Bundles .coffee and .jade files using Browserify.
-3. Launches elaborate4-frontend in the browser with browser-sync.
 
 ## Deploy
 
@@ -44,6 +40,13 @@ For development purposes `gulp` can be run from the command line. Gulp loads the
 5. Run `npm run deploy-test` to simply rsync `./compiled` to the remote destination.
 
 ## Changelog
+
+### 2.0.0
+- Remove Gulp and replace with Webpack
+- Remove CoffeeScript and replace with TypeScript
+- Add Docker container for deployement
+- Remove unused fonts from work environment
+- Remove empty annotation list from publication
 
 #### 1.3.4
 - Add diacritics
