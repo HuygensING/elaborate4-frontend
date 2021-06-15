@@ -2,15 +2,15 @@ ul.horizontal.menu.left(style=interactive?'visibility:visible':'visibility:hidde
 	//- Readers cannot edit or delete.
 	if user.get('roleNo') >= 20
 		li.edit
-			img(src="/images/icon.edit.png", title="Edit annotation")
+			img(src="/static/images/icon.edit.png", title="Edit annotation")
 		li.delete
-			img(src="/images/icon.bin.png", title="Delete annotation")
+			img(src="/static/images/icon.bin.png", title="Delete annotation")
 
 .annotation-type
 
 ul.horizontal.menu.right
 	li.close
-		img(src="/images/icon.close.png", title="Close annotation")
+		img(src="/static/images/icon.close.png", title="Close annotation")
 
 .tooltip-body
 

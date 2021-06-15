@@ -46,7 +46,7 @@ import $  from "jquery";
     var $closeButton, close, corner, html;
     ({corner, html, close} = args);
     if (html == null) {
-      html = '<img src="/images/icon.close.png">';
+      html = '<img src="/static/images/icon.close.png">';
     }
     if (corner == null) {
       corner = 'topright';

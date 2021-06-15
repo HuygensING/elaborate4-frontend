@@ -1,4 +1,4 @@
-const baseConfig = require('../../webpack.config')
+const baseConfig = require('../../webpack.config.base')
 
 module.exports = () => {
 	baseConfig.devServer.port = 4001

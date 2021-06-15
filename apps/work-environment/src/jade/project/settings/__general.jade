@@ -1,0 +1,64 @@
+//- .general
+//- 	h3 General
+
+//- 	//- .row.span2
+//- 	//- 	.cell.span1
+//- 	form
+//- 		ul
+//- 			li
+//- 				label(for="type") Type
+//- 				select(name="projectType", data-attr="projectType")
+//- 					option(value="collection", selected=settings['projectType']==='collection') Collection
+//- 					option(value="work", selected=settings['projectType']==='work') Work
+//- 			li
+//- 				label(for="title") Project title
+//- 				input(type="text", name="title", value=settings['Project title'], data-attr="Project title")
+//- 			li
+//- 				label(for="title") Project name
+//- 				input(type="text", name="name", value=settings['name'], data-attr="name")
+//- 			li
+//- 				label(for="leader") Project leader
+//- 				select(name="leader", data-attr="Project leader")
+//- 					option -- select member --
+//- 					each member in projectMembers.models
+//- 						- sel = member.id === +settings['Project leader']
+//- 						option(value=member.id, selected=sel)= member.get('title')
+//- 			li
+//- 				label(for="start") Start date
+//- 				input(type="text", name="start", value=settings['Start date'], data-attr="Start date")
+//- 			li
+//- 				label(for="release") Release date
+//- 				input(type="text", name="release", value=settings['Release date'], data-attr="Release date")
+//- 			li
+//- 				label(for="version") Version
+//- 				input(type="text", name="version", value=settings.Version, data-attr="Version")
+//- 			li(style="margin-top: 20px")
+//- 				input.inactive(type="submit", name="savesettings", value="Save settings")
+
+
+//- .publication
+//- 	h3 Publication
+
+//- 	form
+//- 		ul
+//- 			if settings.publicationURL.length > 0
+//- 				li
+//- 					label URL
+//- 					a(href=settings.publicationURL, data-bypass, target="_blank") link
+//- 			li
+//- 				label Title
+//- 				input(type="text", value=settings['publication.title'], name="publication.title", data-attr="publication.title")
+//- 			li
+//- 				label(for="text.font") Font
+//- 				select(name="text.font", data-attr="text.font")
+//- 					option
+//- 					option(value="junicode", selected=settings['text.font']=='junicode') Junicode
+//- 					option(value="dejavu", selected=settings['text.font']=='dejavu') DejaVu
+//- 					option(value="gentium", selected=settings['text.font']=='gentium') Gentium
+//- 					option(value="alexander", selected=settings['text.font']=='alexander') Alexander
+//- 					option(value="newathena", selected=settings['text.font']=='newathena') New Athena
+//- 			- src = settings['text.font'] === '' ? settings['text.font'] : '/static/images/fonts/'+settings['text.font']+'.png'
+//- 			li
+//- 				label
+//- 				img(name="text.font", src=src)
+					

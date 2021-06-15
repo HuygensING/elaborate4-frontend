@@ -1,4 +1,4 @@
-const baseConfig = require('../../webpack.config')
+const baseConfig = require('../../webpack.config.base')
 
 // const editionName = 'elab4-hattem'
 // const editionName = 'elab4-margarethaklooster'

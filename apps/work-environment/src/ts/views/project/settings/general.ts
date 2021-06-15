@@ -40,7 +40,7 @@ export default class ProjectSettingsGeneral extends Backbone.View {
   events() {
     return {
       "change select": (ev) => {
-        return this.$('img[name="text.font"]').attr('src', `/images/fonts/${ev.currentTarget.value}.png`);
+        return this.$('img[name="text.font"]').attr('src', `/static/images/fonts/${ev.currentTarget.value}.png`);
       }
     };
   }

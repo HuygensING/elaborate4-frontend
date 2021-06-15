@@ -9,9 +9,7 @@
     "type": "git",
     "url": ""
   },
-  "scripts": {
-    "start": "webpack serve"
-  },
+  "scripts": {},
   "devDependencies": {
     "@types/backbone": "^1.4.10",
     "@types/node": "^15.12.1",

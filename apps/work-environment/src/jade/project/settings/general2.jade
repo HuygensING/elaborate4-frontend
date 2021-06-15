@@ -71,7 +71,7 @@ fieldset.span50
 				option
 				option(value="junicode", selected=model.get('text.font')=='junicode') Junicode
 				option(value="titus", selected=model.get('text.font')=='titus') Titus
-		- src = model.get('text.font') === '' ? model.get('text.font') : '/images/fonts/'+model.get('text.font')+'.png'
+		- src = model.get('text.font') === '' ? model.get('text.font') : '/static/images/fonts/'+model.get('text.font')+'.png'
 		li
 			label
 			img(name="text.font", src=src, width="140px", height="140px")

@@ -207,7 +207,7 @@ function loadThumbnail(li): Promise<void> {
     img.addEventListener('error', onError)
     // Add the src to the image.
     const cdn = "//cdn.huygens.knaw.nl/elaborate/publication/collection/v1"
-    const notFoundUrl = `${cdn}/images/not-found.svg`
+    const notFoundUrl = `${cdn}/static/images/not-found.svg`
     let ref
     img.src = (ref = li.getAttribute('data-src')) != null ? ref : notFoundUrl;
 

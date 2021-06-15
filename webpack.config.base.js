@@ -50,6 +50,7 @@ module.exports = {
 
 	devServer: {
 		contentBase: path.resolve(process.cwd(), '../../static'),
+		contentBasePublicPath: '/static',
 		disableHostCheck: true,
 		headers: {
 			"Access-Control-Allow-Origin": "*"
