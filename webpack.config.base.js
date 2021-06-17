@@ -20,6 +20,17 @@ module.exports = {
 				// }
 			},
 			{
+				exclude: /node_modules/,
+				test: /\.jsx$/,
+				loader: "babel-loader",
+				options: {
+					presets: ['@babel/preset-env', '@babel/preset-react']
+				}
+				// options: {
+				// 	transpileOnly: true
+				// }
+			},
+			{
 				test: /\.styl$/,
 				use: [
 					{
@@ -42,7 +53,7 @@ module.exports = {
 	},
 
 	resolve: {
-		extensions: [".webpack.js", ".web.js", ".js", ".ts", ".jade"],
+		extensions: [".webpack.js", ".web.js", ".js", ".jsx", ".ts", ".jade"],
 		// alias: {
 		// 	hilib: path.resolve(__dirname, 'src/ts/hilib/')
 		// }

@@ -1,0 +1,278 @@
+{
+    "facsimiles": [
+        {
+            "thumbnail": "https://tomcat.tiler01.huygens.knaw.nl/adore-djatoka/resolver?url_ver=Z39.88-2004&svc_id=info:lanl-repo/svc/getRegion&svc_val_fmt=info:ofi/fmt:kev:mtx:jpeg2000&svc.format=image/jpeg&svc.level=1&rft_id=http://localhost:8080/jp2/14284083156311.jp2",
+            "title": "MS Granvelle 51, 1607",
+            "zoom": "https://tomcat.tiler01.huygens.knaw.nl/adore-djatoka/viewer2.1.html?rft_id=http://localhost:8080/jp2/14284083156311.jp2"
+        }
+    ],
+    "id": "LINKTEST",
+    "metadata": [
+        {
+            "field": "Locatie",
+            "value": "Besan\u00e7on, Biblioth\u00e8que municipale de"
+        },
+        {
+            "field": "Datum",
+            "value": "1607"
+        },
+        {
+            "field": "Boekjaar",
+            "value": ""
+        },
+        {
+            "field": "Historische instelling",
+            "value": "Familie Granvelle"
+        },
+        {
+            "field": "Inventaris nummer",
+            "value": "MS Granvelle 51"
+        },
+        {
+            "field": "Document type",
+            "value": "Inventaris (kopie)"
+        },
+        {
+            "field": "Folio nummer(s)",
+            "value": "82v, 87r - 87v"
+        },
+        {
+            "field": "Pagina nummer(s)",
+            "value": ""
+        },
+        {
+            "field": "Toegangsnummer",
+            "value": ""
+        },
+        {
+            "field": "Titel",
+            "value": ""
+        },
+        {
+            "field": "Auteur",
+            "value": ""
+        },
+        {
+            "field": "Plaats van publicatie",
+            "value": ""
+        },
+        {
+            "field": "Jaar van publicatie",
+            "value": "19de eeuw"
+        },
+        {
+            "field": "Persons mentioned",
+            "value": ""
+        },
+        {
+            "field": "Genoemde personen",
+            "value": "Aken (alias Bosch), Jheronimus (Joen) Anthoniusz. van. | Boitouset, Claude. | Courgenon de Poupet (alias de la Baume) - Perrenot de Granvelle, H\u00e9l\u00e8ne Fr\u00e9d\u00e9ricsdr. | Courgenon de Poupet (alias de la Baume), Philibert Emmanuel de. | Perrenot de Granvelle (alias Van Oiselay), Fran\u00e7ois Thomas. | Perrenot de Granvelle, Fran\u00e7ois."
+        },
+        {
+            "field": "Personas Mencionadas",
+            "value": ""
+        },
+        {
+            "field": "Themes",
+            "value": ""
+        },
+        {
+            "field": "Temas",
+            "value": ""
+        },
+        {
+            "field": "Thema's",
+            "value": "De verzoeking van Sint Anthonius. | Portret."
+        }
+    ],
+    "name": "MS Granvelle 51, inventaris 1607",
+    "paralleltexts": {
+        "Comentarios y referencias": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Comments and References": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Diplomatic": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Opmerkingen en verwijzingen": {
+            "annotationData": [
+                {
+                    "annotatedText": "",
+                    "n": 123456789,
+                    "text": "21741",
+                    "type": {
+                        "description": "",
+                        "id": 274,
+                        "metadata": {},
+                        "name": "elab4:entrylink"
+                    }
+                }
+            ],
+            "text": "<b><br><br>Literatuurverwijzingen:<br><span data-id=\"123456789\" data-marker=\"begin\" data-type=\"Correction\"></span> </b>Dijck, G.C.M. van, <i>Op zoek naar Jheronimus van Aken alias Bosch \u2013 de feiten; familie, vrienden en opdrachtgevers ca. 1400-1635</i>, Zaltbommel 2001, pp. 118-119.<sup data-id=\"123456789\" data-marker=\"end\">1</sup><br><br>Vandenbroeck, P., \u2018Rudolf II als verzamelaar van werk van en naar Jheronimus Bosch\u2019, <i>Jaarboek van het Koninklijk Museum voor Schone Kunsten, Antwerpen | Annuaire du Mus\u00e9e Royal des Beaux Arts, Anvers</i> 1981, p. 132.<i><b><br></b></i></span>"
+        },
+        "Traducci\u00f3n": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Transcripci\u00f3n": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Transcriptie": {
+            "annotationData": [
+                {
+                    "annotatedText": "",
+                    "n": 9096300,
+                    "text": "Hierna volgt een correctie.",
+                    "type": {
+                        "description": "",
+                        "id": 274,
+                        "metadata": {},
+                        "name": "Correction"
+                    }
+                },
+                {
+                    "annotatedText": "",
+                    "n": 9096299,
+                    "text": "Hierna volgt een correctie.",
+                    "type": {
+                        "description": "",
+                        "id": 274,
+                        "metadata": {},
+                        "name": "Correction"
+                    }
+                },
+                {
+                    "annotatedText": "",
+                    "n": 9096301,
+                    "text": "Gecorrigeerd vanuit: \u2018citoyens\u2019.",
+                    "type": {
+                        "description": "",
+                        "id": 274,
+                        "metadata": {},
+                        "name": "Correction"
+                    }
+                }
+            ],
+            "text": "Fol. 1r :<br><b>[\u2026]</b><br><b>En la cit\u00e9 imperiale de Besan\u00e7on et en la maison de f\u00fat illustre et g\u00e9n\u00e9reux seigneur dom. Fran\u00e7ois Perrenot de Grandvelle, ch<i>eva</i>l<i>ie</i>r de l\u2019ordre d\u2019Alcantara, comte de Cantecroix, baron et seigneur de Chantonnay, Maiches, Perrenot, Grandvelle, Maisi\u00e8res,<span data-id=\"9096300\" data-marker=\"begin\" data-type=\"Correction\"></span> <sup data-id=\"9096300\" data-marker=\"end\">1</sup>Boult, Bussieres, Scey, Lodz, Scay, etc<i>etera</i>, mareschal imperial en lad<i>icte</i> cit\u00e9,<span data-id=\"9096299\" data-marker=\"begin\" data-type=\"Correction\"></span> <sup data-id=\"9096299\" data-marker=\"end\">2</sup>le tiers jour du mois de novembre de l\u2019an mil six cent et sept, heure d\u2019environ midy dud<i>ict</i> jour, ensuytte de l\u2019assignation donn\u00e9e judicialement, le mecredy, dernier jour de mois d\u2019octobre derni\u00e8rement passe, par nous, Claude Boitouset, p<i>res</i>bre, docteur \u00e8s decrets, chanoine de l\u2019eglise metropolitaine et official de la cour archie<i>pisco</i>pale de Besan\u00e7on, en la cause de b\u00e9n\u00e9fice d\u2019inventaire des biens d\u00e9laisses en l\u2019hoirie et succession dud<i>ic</i>t f\u00fat illustre et g\u00e9n\u00e9reux sieur comte de Cantecroix, mehue entre illustre et g\u00e9n\u00e9reux sieur Fran\u00e7ois Thomas Perrenot de Grandvelle, dict d\u2019Oyselet, baron et s<i>eigneu</i>r de la Villenoeufve, Fransnes, et chambrier de la Sacr\u00e9e Ma<i>jes</i>te Imperiale, heritier universel testamentaire dudict fut seig<i>neu</i>r dom Fran\u00e7ois Perrenot de Grandvelle, comte de Cantecroix, [\u2026] comme audict acte s\u2019est pr\u00e9sent\u00e9 et a comparu en personne par devant nous, ledict official, appell\u00e9 avec nous, Claude Morelot, notaire jur\u00e9 et publicateur des testaments qui se publient en n<i>ost</i>redicte cour, pour scribe, noble et sage messire Jean Saulget, docteur es droicts, cogouverneur dudict Besan\u00e7on, comme procureur special dudict illustre et g\u00e9n\u00e9reux seigneur Fran\u00e7ois Thomas Perrenot de Grandvelle, dict d\u2019Oyselay, h\u00e9ritier susd<i>ic</i>t, [\u2026] et de honnorable homme m<i>aist</i>re Estienne Meugnier, notaire, citoyen<span data-id=\"9096301\" data-marker=\"begin\" data-type=\"Correction\"></span> <sup data-id=\"9096301\" data-marker=\"end\">3</sup>dudict Besan\u00e7on, pour advocat et procureur et audict nom, comme aussy noble et sage me<i>ssir</i>e Denys Fau, docteur es droicts, et m<i>aist</i>re Claude Alviset, notaire, citoyen assignez, comme advocat et procureur et au nom d\u2019illustre seigneur Philibert Emanuel de Courgenon de Poupet, alias de la Baume, comte de S<i>ainc</i>t Amour, comme pere et legitime administrateur des corps et biens du premier enfant </b><br>Fol. 1v :<br><b>maste procr\u00e9\u00e9 au corps de illustre et g\u00e9n\u00e9reuse dame H\u00e8l\u00e8ne Perrenot de Grandvelle, sa femme et compagne, [\u2026].</b><br><br>Fol. 81v :<br><b>Passant outre au pr\u00e9sent inventaire en ceste cit\u00e9 de Besan\u00e7on et palais pred<i>ic</i>t, le mecredy vingt huictieme novembre dud<i>ic</i>t, an mil six cent et sept, heure de midy, par d<i>evan</i>t nous, Claude Boijtouset, [\u2026].</b><br><br>Fol. 82v : <br>[...]<br>1934: Pourtraict de Hierome Wos haulteur de demy pied large de six poulces, molure dor\u00e9e, n<i>umer</i>o CI, tax\u00e9 deux frans: II f<i>ran</i>s.<br>[...]<br><br>Fol. 85r :<br><b>Et depuis aud<i>ic</i>t Besan\u00e7on et palais pr\u00e6dit le jeudy, vingtneufviesme jour de mois de novembre mil six cent et sept, heure de midy, par devant nous, Claude Boytouset, [\u2026].</b><br><br>Fol. 87r : <br>[\u2026]<br>2034: Quatre vieilles peinctures a destrampes sur toille de Hierosme Vos, repr\u00e9sentantes diverses choses et fantasies, tax\u00e9es les quatre deux frans, pource: II f<i>rans</i>.<br><br>Fol. 87v :<br>2035: Aultre peincture sur toille, chassis et sans molure rep<i>rese</i>ntant tentation de S<i>ainc</i>t Anttoine a destrampe, taxe\u00e9 dixhuict frans, pource: XVIII f<i>ran</i>s. <br>[\u2026]"
+        },
+        "Transcription": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Translation": {
+            "annotationData": [],
+            "text": ""
+        },
+        "Vertaling": {
+            "annotationData": [
+                {
+                    "annotatedText": "wijlen de illustere en edele heer don Fran\u00e7ois Perrenot de Grandvelle",
+                    "n": 9096302,
+                    "text": "Perrenot de Granvelle, Fran\u00e7ois.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "Claude Boitouset",
+                    "n": 9096303,
+                    "text": "Boitouset, Claude.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "de illustere en edele heer Fran\u00e7ois Thomas Perrenot de Grandvelle, geheten Van Oiselay",
+                    "n": 9096304,
+                    "text": "Perrenot de Granvelle (alias Van Oiselay), Fran\u00e7ois Thomas.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "de illustre heer Philibert Emanuel de Courgenon de Poupet, alias de la Baume",
+                    "n": 9096305,
+                    "text": "Courgenon de Poupet (alias de la Baume), Philibert Emmanuel de.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "de illustere en edele dame H\u00e8l\u00e8ne Perrenot de Grandvelle",
+                    "n": 9096306,
+                    "text": "Courgenon de Poupet (alias de la Baume) - Perrenot de Granvelle, H\u00e9l\u00e8ne Fr\u00e9d\u00e9ricsdr.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "Portret",
+                    "n": 9101140,
+                    "text": "Portret.",
+                    "type": {
+                        "description": "Genoemde thema's",
+                        "id": 395,
+                        "metadata": {},
+                        "name": "Themes"
+                    }
+                },
+                {
+                    "annotatedText": "Hierome Wos",
+                    "n": 9096307,
+                    "text": "Aken (alias Bosch), Jheronimus (Joen) Anthoniusz. van.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "Hierosme Vos",
+                    "n": 9096308,
+                    "text": "Aken (alias Bosch), Jheronimus (Joen) Anthoniusz. van.",
+                    "type": {
+                        "description": "Name of person, if possible with PE-number in BIA",
+                        "id": 31,
+                        "metadata": {},
+                        "name": "Person"
+                    }
+                },
+                {
+                    "annotatedText": "temptatie van Sint Anthonius",
+                    "n": 9098846,
+                    "text": "De verzoeking van Sint Anthonius.<br>",
+                    "type": {
+                        "description": "Genoemde thema's",
+                        "id": 395,
+                        "metadata": {},
+                        "name": "Themes"
+                    }
+                }
+            ],
+            "text": "<b>In de keizerlijke stad Besan\u00e7on en in het huis van <span data-id=\"9096302\" data-marker=\"begin\" data-type=\"Person\"></span>wijlen de illustere en edele heer don Fran\u00e7ois Perrenot de Grandvelle<sup data-id=\"9096302\" data-marker=\"end\">1</sup>, ridder in de orde van Alc\u00e1ntara, graaf van Cantecroix, baron en heer van Chantonnay, Ma\u00eeche, Perrenot, Grandvelle, Maizi\u00e8res, Boult, Bussi\u00e8res, Scey, Lods, S\u00e7ay, enzovoort, keizerlijke maarschalk in voornoemde stad, op achtereenvolgende dagen in de maand november in het jaar duizend zeshonderdzeven, rond het middaguur van de genoemde dagen, in navolging van het gerechtelijk bevel van woensdag, de laatste dag van de maand oktober laatstleden, door ons, <span data-id=\"9096303\" data-marker=\"begin\" data-type=\"Person\"></span>Claude Boitouset<sup data-id=\"9096303\" data-marker=\"end\">2</sup>, priester, meester in de rechten, kannunik van de hoofdkerk en ambtenaar bij het aartsbisschoppelijke hof van Besan\u00e7on, ten behoeve van het inventariseren van de nagelaten goederen voor de erfenis en opvolging van de voornoemde wijlen illustere en edele heer de graaf van Cantecroix, ten behoeve van <span data-id=\"9096304\" data-marker=\"begin\" data-type=\"Person\"></span>de illustere en edele heer Fran\u00e7ois Thomas Perrenot de Grandvelle, geheten Van Oiselay<sup data-id=\"9096304\" data-marker=\"end\">3</sup>, baron en heer van Villeneuve, Frasne, en kamerling van de Heilige Keizerlijke Majesteit, enige erfgenaam&nbsp; van voornoemde wijlen heer don Fran\u00e7ois Perrenot de Grandvelle, graaf van Cantecroix, [\u2026] die met de genoemde akte voor ons is verschenen, voornoemde ambtenaar, waarvoor bij ons zijn geroepen Claude Morelot, gerechtelijk notaris en maker van testamenten aan ons voornoemde hof, als klerk, de nobele en wijze heer Jean Saulget, meester in de rechten, stadhouder van het voornoemde Besan\u00e7on, als vertegenwoordiger van de genoemde illustere en edele heer Fran\u00e7ois Thomas Perrenot de Grandvelle, geheten Van Oiselay, voornoemde erfgenaam, [\u2026] en de hooggeachte meester Estienne Meugnier, notaris, burger van voornoemde Besan\u00e7on, als advocaat en procureur en uit naam van de genoemde, alsmede met de nobele en wijze heer Denys Fau, meester in de rechten, en meester Claude Alviset, notaris, toegewezen burgers, als advocaat en procureur en uit naam van <span data-id=\"9096305\" data-marker=\"begin\" data-type=\"Person\"></span>de illustre heer Philibert Emanuel de Courgenon de Poupet, alias de la Baume<sup data-id=\"9096305\" data-marker=\"end\">4</sup>, graaf van Saint-Amour, als vader en voogd van het eerste kind verwekt bij <span data-id=\"9096306\" data-marker=\"begin\" data-type=\"Person\"></span>de illustere en edele dame H\u00e8l\u00e8ne Perrenot de Grandvelle<sup data-id=\"9096306\" data-marker=\"end\">5</sup>, zijn echtgenote en metgezel, [\u2026].<br><br>Tevens gepasseerd voor deze inventaris van voornoemde paleis in deze stad Besan\u00e7on, op voornoemde woensdag achtentwintig november in het jaar duizend zeshonderdzeven, \u2019s-middags, voor ons, Claude Boijtouset, [\u2026]. <br></b><br>[...]<br>1934: <span data-id=\"9101140\" data-marker=\"begin\" data-type=\"Themes\"></span>Portret<sup data-id=\"9101140\" data-marker=\"end\">6</sup> door <span data-id=\"9096307\" data-marker=\"begin\" data-type=\"Person\"></span>Hierome Wos<sup data-id=\"9096307\" data-marker=\"end\">7</sup> van een halve voet hoog en zes duimen breed, vergulde lijst, nummer 101, getaxeerd op twee frank : 2 frank.<br>[\u2026]<b><br><br>En tenslotte in voornoemde Besan\u00e7on in voornoemde paleis op donderdag, de negenentwintigste dag van de maand november duizend zeshonderdzeven, \u2019s-middags, voor ons, Claude Boytouset, [\u2026].<br><br></b>[\u2026]<br>2034: Vier oude schilderijen in waterverf op canvas door <span data-id=\"9096308\" data-marker=\"begin\" data-type=\"Person\"></span>Hierosme Vos<sup data-id=\"9096308\" data-marker=\"end\">8</sup>, diverse onderwerpen en fantasi\u00ebn uitbeeldend, deze vier getaxeerd op twee frank, maakt: 2 frank.<br><br>2035 : Een ander schilderij op doek, frame en zonder lijst, weergevend de <span data-id=\"9098846\" data-marker=\"begin\" data-type=\"Themes\"></span>temptatie van Sint Anthonius<sup data-id=\"9098846\" data-marker=\"end\">9</sup>, in waterverf, getaxeerd op achttien frank, maakt : 18 frank.<i><b><br></b></i>"
+        }
+    },
+    "shortName": ""
+}

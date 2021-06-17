@@ -5,6 +5,7 @@
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"incremental": true,
+		"jsx": "react",
 		"experimentalDecorators": true,
 		// "isolatedModules": true,
 		"lib": [

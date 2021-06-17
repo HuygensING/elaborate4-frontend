@@ -1,0 +1,11 @@
+{
+  "name": "@elaborate4-frontend/boschdoc",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "webpack serve",
+    "dist": "webpack --config webpack.config.dist.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

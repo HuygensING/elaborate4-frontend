@@ -1,0 +1,495 @@
+@import url("http://fonts.googleapis.com/css?family=Merriweather\+Sans:300,300italic,700,700italic");
+@import url("http://fonts.googleapis.com/css?family=Merriweather");
+@import url("http://fonts.googleapis.com/css?family=Bree\+Serif");
+
+html, body
+	background-color #fff
+	font-family sans-serif
+	font-size 16px
+	margin 0
+	padding 0
+	font-family 'Merriweather Sans', sans-serif
+	font-weight 300
+	line-height 1.5em
+	color #333
+	height 100%
+
+html 
+	box-sizing border-box
+
+*, *:before, *:after 
+	box-sizing inherit
+
+ul
+	list-style none
+	margin 0
+	padding 0
+ol
+	padding-left 20px
+
+a
+	cursor pointer
+	display inline-block
+	color #333
+	text-decoration none
+
+a:hover
+	border-bottom 1px dotted rgb(0,105,140);
+
+h1
+	font-family 'Bree Serif', serif
+	font-weight normal
+	font-size 2.1em
+	margin 0
+	line-height 2em
+	position relative
+	top -14px
+	left 100px
+
+h2
+	font-weight 700
+	color:rgb(17,17,17)
+
+.app
+	max-width 1400px
+	margin 0 auto
+	padding-left 30px
+	padding-right 30px
+
+.entry > h2
+	margin 0
+	margin-left 100px
+	font-size 18px
+	max-width calc(100% - 350px)
+	height 24px
+	overflow hidden
+	white-space nowrap
+	text-overflow ellipsis
+
+.app > header
+	height 128px
+
+.app > header img.brcp
+	position absolute
+	height 170px
+	top 0
+
+
+.app > header > .logo-wrap
+	position absolute
+	z-index 0
+	text-align center
+	width 100%
+	top 0
+
+.app > header img.radboud
+	position relative
+	top 3px
+	margin-left 30px
+
+.app > header img.sbosch
+	position relative
+	top 4px
+
+.app > header img.sbosch-small,
+.app > header img.radboud-small
+	display none
+
+@media screen and (max-width: 1100px)
+	.app > header img.sbosch-small,
+	.app > header img.radboud-small
+		display inline
+
+	.app > header img.radboud-small
+		margin-left 30px
+
+
+	.app > header img.sbosch,
+	.app > header img.radboud
+		display none
+
+
+.app > header > nav,
+.app > header > img.hi-logo
+	float right
+
+.app > header > img.hi-logo
+	margin-top 10px
+
+.app > header > nav
+	position relative
+	top 90px
+	right 0
+
+.app > header > nav > a
+	color black
+
+.app > header > nav > a.selected
+	font-weight 700
+
+.hire-paginator
+	float right
+
+.hire-tabs > ul li,
+.hire-paginator > li,
+.hire-faceted-search > .hire-faceted-search-facets > button
+	font-size 12px
+	cursor pointer
+	display inline-block
+	background-color #eee
+	border-radius 4px
+	padding 2px 10px
+	color #666
+
+.hire-faceted-search > .hire-faceted-search-facets > button
+	float right
+
+.hire-paginator li:last-of-type
+	margin-right 0
+
+.hire-tabs > ul li
+	margin-top 30px
+	margin-bottom 30px
+
+.hire-tabs > ul li.active
+	font-weight 700
+	color #333
+	background-color #fff
+	font-style italic
+
+
+body.document
+	height 100%
+	overflow hidden
+
+.app.document
+	height 100%
+
+div.entry-wrapper
+	height calc(100% - 80px)
+
+article.entry,
+article > div.text,
+article > div.text > .hire-tabs
+	height 100%
+
+
+article > div.text > .hire-tabs > .hire-tab
+	height calc(100% - 132px)
+
+article > div.text > .hire-tabs > .hire-tab > div,
+article > div.text > .hire-tabs > .hire-tab > ul
+	height 100%
+	overflow-y auto
+
+article.entry .text
+	position relative
+	z-index 1
+	width 480px
+
+
+article.entry .metadata label
+	display block
+	font-weight 700
+
+article.entry .metadata span
+	display block
+	margin-bottom 1em
+
+article.entry.fixed-content .text
+	margin-top 110px
+
+article.entry .hi-textlayer > div
+	line-height 1.5em
+
+article.entry .hi-textlayer h2
+	display none
+
+article.entry.fixed-content .hire-tabs > ul
+	position fixed
+	background-color #fff
+	width 480px
+	top 14px
+	z-index 2
+
+article.entry.fixed-content > h2
+	position fixed
+	top 0
+	padding-top 6px
+	width 100%
+	background-color rgb(255,255,255)
+	z-index 2
+
+.hi-textlayer > div
+	font-family: 'Merriweather', serif
+
+article.entry .facsimile
+	position absolute
+	width calc(100% - 30px)
+	max-width 1400px
+	margin 0 auto
+	padding-left 540px
+	padding-right 30px
+	height calc(100% - 160px)
+	z-index 0
+	top 184px
+
+article.entry.fixed-content .facsimile
+	position fixed
+	top 70px
+
+article.entry .source-info
+	position absolute
+	width calc(100% - 30px)
+	max-width 1400px
+	margin 0 auto
+	padding-left 540px
+	padding-right 30px
+	top 158px
+	height 22px
+	font-size 10px
+	overflow hidden
+	text-overflow ellipsis
+	white-space nowrap
+
+article.entry.fixed-content .source-info
+	position fixed
+	top 50px	
+
+article.entry.fixed-content .hire-paginator
+	position fixed
+	top 12px
+	width calc(100% - 30px)
+	max-width 1400px
+	padding-left 540px
+	padding-right 30px
+	text-align right
+	z-index 3
+
+article.entry .facsimile iframe
+	height 100%
+	width 100%
+	border none
+
+.hi-annotations
+	border none
+	padding-bottom 100px
+
+.hi-annotations a 
+	text-decoration none
+
+.hi-annotations a > svg
+	height 12px
+
+.hi-annotations li
+	margin-bottom 1em
+	font-size 12px
+	line-height 1.5em
+
+.hi-annotations li a
+	display inline
+
+// .hi-annotations li em
+// 	display none
+
+// .hi-annotations li em + span
+// 	display none
+
+.hi-annotations li:hover a > span
+	border-bottom 1px dotted rgb(0,105,140);
+
+.hi-annotation-highlight
+	background-color #fff
+
+.hi-text-highlight
+	background-color #fff
+	border-bottom 1px solid rgb(0,255,0) /* GROEN AANPASSEN */
+
+.hi-textlayer sup[id]
+	font-family 'Merriweather Sans', sans-serif
+	font-weight 300
+	background-color #eee
+	padding 0 4px 0 4px
+	text-align center
+	vertical-align middle
+	border-radius 50%
+	position relative
+	top -6px
+
+.hi-textlayer > div a
+	text-decoration underline
+
+.hi-textlayer > div sup a
+	text-decoration none
+
+.hi-textlayer > div a:hover
+	border-bottom none;
+
+
+.hire-faceted-search
+	width 100%
+	padding 0
+
+.hire-faceted-search > .hire-faceted-search-results
+	padding-top 67px
+
+li.hire-faceted-search-text-search input
+	width 92%
+	-webkit-appearance: none;
+	border 1px solid rgb(221,221,221)
+	border-right 0
+	border-radius 4px 0 0 4px
+	background-color #fff
+	float left
+
+li.hire-faceted-search-text-search .search-icon
+	width 8%
+	float right
+	border 1px solid rgb(221,221,221)
+	border-left 0
+	border-radius 0 4px 4px 0
+
+
+li.hire-faceted-search-text-search .search-icon .center-vertical svg
+	fill #ddd
+
+
+.hire-faceted-search > .hire-faceted-search-facets
+	width 450px
+
+.hire-faceted-search > .hire-faceted-search-results
+	width calc(100% - 450px)
+	padding-left 60px
+
+.hire-faceted-search-results-sort-menu > button
+	background-color #eee
+	border none
+	padding 6px
+	height 28px
+	cursor pointer
+	&:after
+		content " ▼"
+
+.hire-faceted-search-results-sort-menu > ul 
+	background-color #eee
+
+.hire-faceted-search-results-sort-menu > ul > li
+	padding 6px
+	border-bottom 1px solid #fff
+
+
+
+li.hire-list-facet
+	padding 0
+
+li.hire-list-facet > header > h3
+	font-weight normal
+	font-style italic
+
+.hire-faceted-search-filter-menu > .hire-input
+	width 100%
+
+li.hire-faceted-search-text-search .search-icon .center-vertical
+	-webkit-align-items center
+	display -webkit-flex
+
+.hire-faceted-search-filter-menu > .hire-input > input
+	border 1px solid rgb(221,221,221)
+	border-radius 4px
+	background-color #fff
+	-webkit-appearance: none;
+
+.hire-faceted-search-results > header > .hire-faceted-search-results-sort-menu, .hire-faceted-search-results > header > .hire-faceted-search-results-rows
+	float right
+
+.hire-faceted-search-results > header
+	border none
+
+.hire-faceted-search-results > ul > li
+	background-color rgb(250,250,250)
+	border-radius 4px
+	border 1px solid rgb(230,230,230)
+	padding 15px
+
+.hire-faceted-search-results > ul > li:hover
+	border 1px solid rgb(180,180,180)
+
+.hire-faceted-search-results > ul.hire-faceted-search-pagination > li
+	background-color #fff
+	border none
+	padding 0
+
+.hire-faceted-search-results > ul > li > label
+	font-weight 700
+	font-size 16px
+
+
+.hire-faceted-search-results > ul > li > ul.metadata
+	margin-top 15px
+
+li.hire-list-facet.show-all
+	padding-left 0
+
+
+.hire-faceted-search-results > ul > li > ul.metadata > li > label
+	font-size 16px
+	font-weight 300
+	font-style italic
+	color #666
+	width 170px
+
+.hire-faceted-search-results > ul > li > ul.metadata > li > span
+	font-size 16px
+	color #666
+
+li.hire-list-facet > ul > li.hire-list-facet-list-item label
+	font-size 12px
+
+li.hire-list-facet > ul > li.hire-list-facet-list-item svg.checked path:last-child
+	fill rgb(0,105,140)
+
+svg.loader, 
+.hire-faceted-search-results svg.loader
+	fill rgb(0,105,140)
+	height 1%
+	width 120px
+
+
+.app > header > nav.hire-thumbnail-bar
+	width 40%
+	margin 0
+	float none
+	display inline-block
+
+
+
+
+
+@media screen and (min-width: 1200px)
+	article.entry .hi-textlayer > div
+		padding-bottom 100px
+
+	article.entry .text,
+	article.entry.fixed-content .hire-tabs > ul
+		width calc(450px + 150px)
+
+	article.entry.fixed-content .hire-paginator,
+	article.entry .facsimile,
+	article.entry .source-info
+		padding-left 720px 
+		padding-right 60px
+
+	.hi-textlayer > *
+		float left
+		clear left
+		width calc(100% - 150px)
+
+	.hi-annotations
+		position relative
+		top 0
+		float right
+		clear none
+		width 150px
+		overflow hidden
+		margin-top 0
+		padding-left 40px

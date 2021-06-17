@@ -25,9 +25,14 @@ The config file can be found at `./node_modules/elaborate-modules/modules/models
 
 In the config file, alter the `restUrl` property to match the location of the elaborate-backend server you've set up.
 
-## Development
+## Publication development
 
 1. Run the backend locally: `docker run -p 4002:8080 -d brambdocker/hattem-edition`
+2. `npm start`
+
+
+## BoschDoc development
+1. Run the backend locally: `docker run -d -p 4101:8080 --name boschdoc-draft brambdocker/boschdoc-draft`
 2. `npm start`
 
 

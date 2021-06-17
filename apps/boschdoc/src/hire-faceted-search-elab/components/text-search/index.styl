@@ -1,0 +1,77 @@
+@-moz-keyframes spin {
+	0% {
+		-moz-transform: rotate(0deg);
+	}
+	100% {
+		-moz-transform: rotate(360deg);
+	}
+}
+@-webkit-keyframes spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+	}
+	100% {
+		-webkit-transform: rotate(360deg);
+	}
+}
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+li.hire-faceted-search-text-search {
+	height: 40px;
+	background-color: white;
+}
+
+li.hire-faceted-search-text-search input,
+li.hire-faceted-search-text-search .search-icon {
+	display: inline-block;
+	box-sizing: border-box;
+	vertical-align: top;
+}
+
+li.hire-faceted-search-text-search input {
+	border: none;
+	font-size: 1em;
+	outline: none;
+	padding-left: 20px;
+	width: 90%;
+	height: 100%;
+}
+
+li.hire-faceted-search-text-search .search-icon {
+	fill: #DDD;
+	height: 100%;
+	width: 10%;
+	transition: fill 400ms;
+}
+
+li.hire-faceted-search-text-search .search-icon.active {
+	cursor: pointer;
+	fill: #888;
+}
+
+li.hire-faceted-search-text-search .search-icon.searching svg {
+	-moz-animation: spin 1.2s ease infinite;
+	-webkit-animation: spin 1.2s ease infinite;
+	animation: spin 1.2s ease infinite;
+}
+
+/* Users with IE < 11 will see the search icon aligned on top. */
+li.hire-faceted-search-text-search .search-icon .center-vertical {
+	height: 100%;
+	display: flex;
+	display: -webkit-flex;
+	align-items: center;
+	-webkit-align-items: center;
+}
+
+li.hire-faceted-search-text-search .search-icon .center-vertical svg {
+	width: 70%;
+	height: 70%;
+}

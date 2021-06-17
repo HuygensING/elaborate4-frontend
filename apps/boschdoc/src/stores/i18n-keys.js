@@ -1,0 +1,113 @@
+export default {
+	nl: {
+		transcription: "Transcriptie",
+		remarks: "Opmerkingen en verwijzingen",
+		translation: "Vertaling",
+		relatedAnnotationLabel: "Gerelateerd aan",
+		metadata: "Metadata",
+		facetTitles: {
+			Locatie: "Locatie",
+			Datum: "Datum",
+			Boekjaar: "Boekjaar",
+			"Historische instelling": "Historische instelling",
+			"Inventaris nummer": "Inventaris nummer",
+			"Document type": "Document type",
+			"Folio nummer(s)": "Folio nummer(s)",
+			"Pagina nummer(s)": "Pagina nummer(s)",
+			Toegangsnummer: "Toegangsnummer",
+			Titel: "Titel",
+			Auteur: "Auteur",
+			"Plaats van publicatie": "Plaats van publicatie",
+			"Jaar van publicatie": "Jaar van publicatie",
+			"Persons mentioned": "Persons mentioned",
+			"Genoemde personen": "Genoemde personen",
+			"Personas Mencionadas": "Personas Mencionadas",
+			Themes: "Themes",
+			Temas: "Temas",
+			"Thema's": "Thema's"
+		},
+		pagination: {
+			search: "Zoeken",
+			previous: "Vorige",
+			next: "Volgende"
+		},
+		"resultsFound": "resultaten",
+		"sortBy": "Sorteren op",
+		"showAll": "Alles",
+		"newSearch": "Nieuwe zoekvraag"
+	},
+	en: {
+		transcription: "Transcription",
+		remarks: "Comments and References",
+		translation: "Translation",
+		relatedAnnotationLabel: "Related to [...]",
+		metadata: "Metadata",
+		facetTitles: {
+			Locatie: "Location",
+			Datum: "Date",
+			Boekjaar: "Financial year",
+			"Historische instelling": "Historical institution",
+			"Inventaris nummer": "Inventory no.",
+			"Document type": "Document type",
+			"Folio nummer(s)": "Folio no.",
+			"Pagina nummer(s)": "Page no.",
+			Toegangsnummer: "Access no.",
+			Titel: "Title",
+			Auteur: "Author",
+			"Plaats van publicatie": "Place of publication",
+			"Jaar van publicatie": "Year of publication",
+			"Persons mentioned": "Persons mentioned",
+			"Genoemde personen": "Persons mentioned",
+			"Personas Mencionadas": "Persons mentioned",
+			Themes: "Themes",
+			Temas: "Themes",
+			"Thema's": "Themes"
+		},
+		pagination: {
+			search: "Search",
+			previous: "Previous",
+			next: "Next"
+		},
+		"resultsFound": "results found",
+		"sortBy": "Sort by",
+		"showAll": "Show all",
+		"newSearch": "New search"
+	},
+	es: {
+		transcription: "Transcripción",
+		remarks: "Comentarios y referencias",
+		translation: "Traducción",
+		relatedAnnotationLabel: "Relacionado con [...]",
+		metadata: "Metadata",
+		facetTitles: {
+			Locatie: "Localización",
+			Datum: "Fecha",
+			Boekjaar: "Año contable",
+			"Historische instelling": "Institución histórica",
+			"Inventaris nummer": "Número de inventario",
+			"Document type": "Tipo de documento",
+			"Folio nummer(s)": "Número de folio",
+			"Pagina nummer(s)": "Número de página",
+			Toegangsnummer: "Número de acceso",
+			Titel: "Título",
+			Auteur: "Autor",
+			"Plaats van publicatie": "Lugar de publicación",
+			"Jaar van publicatie": "Año de publicación",
+			"Persons mentioned": "Personas Mencionadas",
+			"Genoemde personen": "Personas Mencionadas",
+			"Personas Mencionadas": "Personas Mencionadas",
+			Themes: "Temas",
+			Temas: "Temas",
+			"Thema's": "Temas"
+		},
+		pagination: {
+			search: "Buscar",
+			previous: "Anterior",
+			next: "Siguiente"
+		},
+		"resultsFound": "resultados",
+		"sortBy": "Seleccionar por",
+		"showAll": "Todo",
+		"newSearch": "Nueva Búsqueda"
+	}
+};
