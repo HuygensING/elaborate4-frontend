@@ -1,18 +1,16 @@
-import React from "react";
-import {Tabs, Tab} from "../hire-tabs";
-import TextLayer from "../hire-textlayer";
-import Metadata from "./metadata";
-import SourceInfo from "./source-info";
-import Paginator from "./paginator";
-import ThemesAnnotation from "./themes-annotation";
-import {getNextResultPage} from "../actions/view";
-import languageKeys from "../stores/i18n-keys";
-import appRouter from "../router";
-import appStore from "../app-store";
-
+import React from "react"
+import {Tabs, Tab} from "../hire-tabs"
+import TextLayer from "../hire-textlayer"
+import { Metadata } from "./metadata"
+import SourceInfo from "./source-info"
+import Paginator from "./paginator"
+import ThemesAnnotation from "./themes-annotation"
+import {getNextResultPage} from "../actions/view"
+import { languageKeys } from "../stores/i18n-keys"
+import appRouter from "../router"
+import appStore from "../app-store"
 
 class DocumentController extends React.Component {
-
 	constructor(props) {
 		super(props);
 		this.state = {

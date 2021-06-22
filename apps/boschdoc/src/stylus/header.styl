@@ -1,0 +1,58 @@
+.app > header
+	height headerHeight
+
+	& img.brcp
+		position absolute
+		height 170px
+		top 0
+
+	& > .logo-wrap
+		position absolute
+		z-index 0
+		text-align center
+		width 100%
+		top 0
+
+	& > nav,
+	& > img.hi-logo
+		float right
+
+	& > img.hi-logo
+		margin-top 10px
+
+	& > nav
+		position relative
+		top 90px
+		right 0
+
+		& > a
+			color black
+
+		& > a.selected
+			font-weight 700
+
+	img.radboud
+		position relative
+		top 3px
+		margin-left 30px
+
+	img.sbosch
+		position relative
+		top 4px
+
+	img.sbosch-small,
+	img.radboud-small
+		display none
+
+@media screen and (max-width: 1100px)
+	.app
+		img.sbosch-small,
+		img.radboud-small
+			display inline
+
+		img.radboud-small
+			margin-left 30px
+
+		img.sbosch,
+		img.radboud
+			display none

@@ -113,7 +113,6 @@ class FacetedSearch extends React.Component {
 			);
 		}
 
-		console.log(this.state.labels)
 		return (
 			<div className="hire-faceted-search">
 				<Facets

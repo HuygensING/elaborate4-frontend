@@ -1,31 +1,29 @@
 import React from "react";
-import languageKeys from "../stores/i18n-keys";
-import LanguageFilter from "../stores/i18n-filter";
+import { languageKeys } from "../stores/i18n-keys";
 
-class Metadata extends React.Component {
+const ignoreFacetByLanguage = {
+	nl: new Set(["Persons mentioned", "Personas Mencionadas", "Themes", "Temas", "Document type ENG"]),
+	en: new Set(["Genoemde personen", "Personas Mencionadas", "Temas", "Thema's", "Document type"]),
+	es: new Set(["Genoemde personen", "Persons mentioned", "Thema's", "Themes", "Document type"]),
+};
 
-	constructor(props) {
-		super(props);
-		this.metadataKeys = new LanguageFilter(this.props.language, this.props.metadata.map((entry) => entry.field));
-	}
-
-	renderMetadataField(entry, i) {
-		return (
-			<li key={i}>
-				<label>{languageKeys[this.props.language].facetTitles[entry.field]}</label>
-				<span>{entry.value}</span>
-			</li>
-		);
-	}
-
-	render() {
-		return (
-			<ul className="metadata">
-				{this.props.metadata.filter((entry) => entry.field !== "ISIL" && entry.value !== "" && this.metadataKeys.indexOf(entry.field) > -1).map(this.renderMetadataField.bind(this))}
-			</ul>
-		);
-	}
-}
-
-export default Metadata;
+export const Metadata = ({ metadata, language }) =>
+	<ul className="metadata">
+		{
+			metadata
+				.filter((entry) =>
+					entry.field !== "ISIL" &&
+					entry.value !== "" &&
+					!ignoreFacetByLanguage[language].has(entry.field)
+				)
+				.map(entry =>
+					<li key={entry.field}>
+						<label>
+							{languageKeys[language].facetTitles[entry.field]}
+						</label>
+						<span>{entry.value}</span>
+					</li>
+				)
+		}
+	</ul>
 

@@ -1,6 +1,10 @@
-@import url("http://fonts.googleapis.com/css?family=Merriweather\+Sans:300,300italic,700,700italic");
-@import url("http://fonts.googleapis.com/css?family=Merriweather");
-@import url("http://fonts.googleapis.com/css?family=Bree\+Serif");
+@import url("http://fonts.googleapis.com/css?family=Merriweather\+Sans:300,300italic,700,700italic")
+@import url("http://fonts.googleapis.com/css?family=Merriweather")
+@import url("http://fonts.googleapis.com/css?family=Bree\+Serif")
+
+headerHeight = 128px
+
+@import './header.styl'
 
 html, body
 	background-color #fff
@@ -66,66 +70,6 @@ h2
 	white-space nowrap
 	text-overflow ellipsis
 
-.app > header
-	height 128px
-
-.app > header img.brcp
-	position absolute
-	height 170px
-	top 0
-
-
-.app > header > .logo-wrap
-	position absolute
-	z-index 0
-	text-align center
-	width 100%
-	top 0
-
-.app > header img.radboud
-	position relative
-	top 3px
-	margin-left 30px
-
-.app > header img.sbosch
-	position relative
-	top 4px
-
-.app > header img.sbosch-small,
-.app > header img.radboud-small
-	display none
-
-@media screen and (max-width: 1100px)
-	.app > header img.sbosch-small,
-	.app > header img.radboud-small
-		display inline
-
-	.app > header img.radboud-small
-		margin-left 30px
-
-
-	.app > header img.sbosch,
-	.app > header img.radboud
-		display none
-
-
-.app > header > nav,
-.app > header > img.hi-logo
-	float right
-
-.app > header > img.hi-logo
-	margin-top 10px
-
-.app > header > nav
-	position relative
-	top 90px
-	right 0
-
-.app > header > nav > a
-	color black
-
-.app > header > nav > a.selected
-	font-weight 700
 
 .hire-paginator
 	float right
@@ -166,7 +110,7 @@ body.document
 	height 100%
 
 div.entry-wrapper
-	height calc(100% - 80px)
+	height "calc(100vh - %s)" % headerHeight
 
 article.entry,
 article > div.text,

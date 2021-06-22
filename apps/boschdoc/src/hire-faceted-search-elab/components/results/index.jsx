@@ -1,12 +1,12 @@
 import React from "react";
-import debounce from "lodash.debounce";
-import isEqual from "lodash.isequal";
+import ReactDOM from 'react-dom'
+import debounce from "lodash.debounce"
 
-import Result from "./result";
-import ResultsSortMenu from "./sort-menu";
-import CurrentQuery from "./current-query";
+import Result from "./result"
+import ResultsSortMenu from "./sort-menu"
+import CurrentQuery from "./current-query"
 
-import Loader from "../icons/loader-three-dots";
+import Loader from "../icons/loader-three-dots"
 
 import './index.styl'
 
@@ -34,12 +34,12 @@ class Results extends React.Component {
 	onScroll() {
 		let nth = (this.props.results.last.results.length - this.props.config.rows) + 1;
 
-		let listItem = React.findDOMNode(this).querySelector(`.hire-faceted-search-result-list > li:nth-child(${nth})`);
+		let listItem = ReactDOM.findDOMNode(this).querySelector(`.hire-faceted-search-result-list > li:nth-child(${nth})`);
 		if (listItem && this.props.results.last.hasOwnProperty("_next") && inViewport(listItem)) {
-			let url = this.props.results.last._next.replace("draft//api", "draft/api");
+			let url = this.props.results.last._next
+				.replace('https://boschdoc.huygens.knaw.nl/draft', '')
 			this.props.onFetchNextResults(url);
 		}
-
 	}
 
 	dataToComponents(results) {

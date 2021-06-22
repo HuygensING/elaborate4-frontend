@@ -1,6 +1,6 @@
 import React from "react";
 
-class UncheckedIcon extends React.Component {
+export class UncheckedIcon extends React.Component {
 	render() {
 		let title = this.props.title != null ?
 			<title>{this.props.title}</title>:
@@ -18,4 +18,4 @@ class UncheckedIcon extends React.Component {
 // 	title: PropTypes.string
 // };
 
-export default UncheckedIcon;
+// export default UncheckedIcon;

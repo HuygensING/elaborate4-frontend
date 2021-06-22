@@ -1,6 +1,6 @@
 import React from "react"
 import appRouter from "./router"
-import languageKeys from "./stores/i18n-keys"
+import { languageKeys } from "./stores/i18n-keys"
 // import LanguageFilter from "./stores/i18n-filter"
 import FacetedSearch from "./hire-faceted-search-elab"
 import Document from "./components/document-controller"
@@ -66,25 +66,25 @@ class AppController extends React.Component {
 
 		if(this.state.controller.query) this.themeQuerySet = true
 
-		// let facetList = new LanguageFilter(lang, Object.keys(languageKeys[lang].facetTitles));
-		let facetList = [
-			"Locatie",
-			"Datum",
-			"Boekjaar",
-			"Historische instelling",
-			"Inventaris nummer",
-			"Document type", // visible in the Dutch version
-			"Document type ENG", // visible in the English and Spanish version
-			"Folio nummer(s)",
-			"Pagina nummer(s)",
-			"Toegangsnummer",
-			"Titel",
-			"Auteur",
-			"Plaats van publicatie",
-			"Jaar van publicatie",
-			"Genoemde personen",
-			"Thema's"
-		];
+		let facetList = Object.keys(languageKeys[lang].facetTitles)
+		// let facetList = [
+		// 	"Locatie",
+		// 	"Datum",
+		// 	"Boekjaar",
+		// 	"Historische instelling",
+		// 	"Inventaris nummer",
+		// 	"Document type",		// visible in the Dutch version
+		// 	"Document type ENG",	// visible in the English and Spanish version
+		// 	"Folio nummer(s)",
+		// 	"Pagina nummer(s)",
+		// 	"Toegangsnummer",
+		// 	"Titel",
+		// 	"Auteur",
+		// 	"Plaats van publicatie",
+		// 	"Jaar van publicatie",
+		// 	"Genoemde personen",
+		// 	"Thema's"
+		// ];
 
 		this.cachedViews.search[lang] = (
 			<FacetedSearch

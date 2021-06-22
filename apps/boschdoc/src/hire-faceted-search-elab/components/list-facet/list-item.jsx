@@ -1,7 +1,7 @@
 import React from "react";
 
-import CheckedIcon from "../icons/checked";
-import UncheckedIcon from "../icons/unchecked";
+import { CheckedIcon } from "../icons/checked";
+import { UncheckedIcon } from "../icons/unchecked";
 
 class ListFacetListItem extends React.Component {
 	constructor(props) {
@@ -34,7 +34,8 @@ class ListFacetListItem extends React.Component {
 		return (
 			<li
 				className="hire-list-facet-list-item"
-				onClick={this.handleClick.bind(this)}>
+				onClick={this.handleClick.bind(this)}
+			>
 				{icon}
 				<label title={this.props.name}>{this.props.name}</label>
 				<span className="count">{this.props.count}</span>

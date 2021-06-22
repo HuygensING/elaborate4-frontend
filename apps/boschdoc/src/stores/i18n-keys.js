@@ -1,4 +1,4 @@
-export default {
+export const languageKeys = {
 	nl: {
 		transcription: "Transcriptie",
 		remarks: "Opmerkingen en verwijzingen",
@@ -19,11 +19,11 @@ export default {
 			Auteur: "Auteur",
 			"Plaats van publicatie": "Plaats van publicatie",
 			"Jaar van publicatie": "Jaar van publicatie",
-			"Persons mentioned": "Persons mentioned",
+			// "Persons mentioned": "Persons mentioned",
 			"Genoemde personen": "Genoemde personen",
-			"Personas Mencionadas": "Personas Mencionadas",
-			Themes: "Themes",
-			Temas: "Temas",
+			// "Personas Mencionadas": "Personas Mencionadas",
+			// Themes: "Themes",
+			// Temas: "Temas",
 			"Thema's": "Thema's"
 		},
 		pagination: {
@@ -48,7 +48,7 @@ export default {
 			Boekjaar: "Financial year",
 			"Historische instelling": "Historical institution",
 			"Inventaris nummer": "Inventory no.",
-			"Document type": "Document type",
+			"Document type ENG": "Document type ENG",
 			"Folio nummer(s)": "Folio no.",
 			"Pagina nummer(s)": "Page no.",
 			Toegangsnummer: "Access no.",
@@ -57,11 +57,7 @@ export default {
 			"Plaats van publicatie": "Place of publication",
 			"Jaar van publicatie": "Year of publication",
 			"Persons mentioned": "Persons mentioned",
-			"Genoemde personen": "Persons mentioned",
-			"Personas Mencionadas": "Persons mentioned",
 			Themes: "Themes",
-			Temas: "Themes",
-			"Thema's": "Themes"
 		},
 		pagination: {
 			search: "Search",
@@ -85,7 +81,8 @@ export default {
 			Boekjaar: "Año contable",
 			"Historische instelling": "Institución histórica",
 			"Inventaris nummer": "Número de inventario",
-			"Document type": "Tipo de documento",
+			// "Document type": "Tipo de documento",
+			"Document type ENG": "Document type ENG",
 			"Folio nummer(s)": "Número de folio",
 			"Pagina nummer(s)": "Número de página",
 			Toegangsnummer: "Número de acceso",
@@ -94,11 +91,11 @@ export default {
 			"Plaats van publicatie": "Lugar de publicación",
 			"Jaar van publicatie": "Año de publicación",
 			"Persons mentioned": "Personas Mencionadas",
-			"Genoemde personen": "Personas Mencionadas",
-			"Personas Mencionadas": "Personas Mencionadas",
-			Themes: "Temas",
+			// "Genoemde personen": "Personas Mencionadas",
+			// "Personas Mencionadas": "Personas Mencionadas",
+			// Themes: "Temas",
 			Temas: "Temas",
-			"Thema's": "Temas"
+			// "Thema's": "Temas"
 		},
 		pagination: {
 			search: "Buscar",
