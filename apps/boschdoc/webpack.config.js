@@ -12,7 +12,6 @@ module.exports = () => {
 			target: 'http://localhost:4101/draft',
 			pathRewrite: { '^/draft': '' }
 		},
-		// target: 'https://boschdoc.huygens.knaw.nl'
 	]
 
 	baseConfig.plugins = [
