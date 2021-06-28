@@ -1,12 +1,13 @@
 const path = require('path')
-const baseConfig = require('../../webpack.config.base')
+const baseConfig = require('./webpack.config')
 
 module.exports = () => {
-	delete baseConfig.devServer
+	const config = baseConfig()
+	delete config.devServer
 
-	baseConfig.mode = "production"
+	config.mode = "production"
 
-	baseConfig.output.path = path.resolve(process.cwd(), '../../public/boschdoc')
+	config.output.path = path.resolve(process.cwd(), '../../public/boschdoc')
 
-	return baseConfig
+	return config
 }

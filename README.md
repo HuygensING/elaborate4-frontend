@@ -35,6 +35,10 @@ In the config file, alter the `restUrl` property to match the location of the el
 1. Run the backend locally: `docker run -d -p 4101:8080 --name boschdoc-draft brambdocker/boschdoc-draft`
 2. `npm start`
 
+## BoschDoc production
+- `npm run dist`
+- `docker-compose -p elaborate4 -f apps/boschdoc/docker-compose.yml up --build -d`
+- go to localhost
 
 ## Deploy
 
