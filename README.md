@@ -14,17 +14,6 @@ This repository contains the frontend for the work environment (/apps/work-envir
 $ git clone https://github.com/HuygensING/elaborate4-frontend.git
 $ npm install
 ```
-
-## Edit the config file
-
-elaborate4-frontend makes use of [elaborate-modules](https://github.com/HuygensING/elaborate-modules). These modules aren't part of the elaborate4-frontend repository, because they are also used by other Huygens ING frontend repositories.
-
-The elaborate-modules are installed when `npm install` is run from the command line.
-
-The config file can be found at `./node_modules/elaborate-modules/modules/models/config.coffee`
-
-In the config file, alter the `restUrl` property to match the location of the elaborate-backend server you've set up.
-
 ## Publication development
 
 1. Run the backend locally: `docker run -p 4002:8080 -d brambdocker/hattem-edition`
@@ -40,13 +29,10 @@ In the config file, alter the `restUrl` property to match the location of the el
 - `docker-compose -p elaborate4 -f apps/boschdoc/docker-compose.yml up --build -d`
 - go to localhost
 
-## Deploy
 
-1. Set the remote-destination in `./config.json` (this is not the same as the elaborate-modules config.json!)
-2. Update the version in package.json ($ npm version major|minor|patch)
-3. Run `npm run compile`
-4. Add, commit, push to Github
-5. Run `npm run deploy-test` to simply rsync `./compiled` to the remote destination.
+
+
+
 
 ## Changelog
 

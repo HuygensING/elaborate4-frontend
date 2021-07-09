@@ -8,9 +8,11 @@ module.exports = () => {
 
 	baseConfig.devServer.proxy = [
 		{
-			context: ['/data', '/api/search', '/draft/api/search'],
+			context: [`/data`, `/api/search`, `/draft/api/search`],
 			target: 'http://localhost:4101/draft',
-			pathRewrite: { '^/draft': '' }
+			pathRewrite: {
+				'^/draft': '',
+			}
 		},
 	]
 

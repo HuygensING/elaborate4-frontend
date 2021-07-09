@@ -15,9 +15,6 @@ module.exports = {
 				exclude: /node_modules/,
 				test: /\.ts$/,
 				loader: "ts-loader",
-				// options: {
-				// 	transpileOnly: true
-				// }
 			},
 			{
 				exclude: /node_modules/,
@@ -26,9 +23,6 @@ module.exports = {
 				options: {
 					presets: ['@babel/preset-env', '@babel/preset-react']
 				}
-				// options: {
-				// 	transpileOnly: true
-				// }
 			},
 			{
 				test: /\.styl$/,
@@ -54,9 +48,6 @@ module.exports = {
 
 	resolve: {
 		extensions: [".webpack.js", ".web.js", ".js", ".jsx", ".ts", ".jade"],
-		// alias: {
-		// 	hilib: path.resolve(__dirname, 'src/ts/hilib/')
-		// }
 	},
 
 	devServer: {

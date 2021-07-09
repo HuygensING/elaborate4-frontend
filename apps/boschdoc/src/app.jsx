@@ -11,13 +11,13 @@ import {setResults} from "./actions/view"
 class AppController extends React.Component {
 
 	constructor(props) {
-		super(props);
-		this.state = appStore.getState();
+		super(props)
+		this.state = appStore.getState()
 		this.cachedViews = {
 			search: {}
-		};
-		this.themesSet = false;
-		this.themeQuerySet = false;
+		}
+		this.themesSet = false
+		this.themeQuerySet = false
 	}
 
 	/* eslint react/no-did-mount-set-state: 0 */
@@ -60,31 +60,16 @@ class AppController extends React.Component {
 	}
 
 	renderFacetedSearch(lang) {
-		if(this.cachedViews.search[lang] && (!this.state.controller.query || this.themeQuerySet)) {
+		if(
+			this.cachedViews.search[lang] && (!this.state.controller.query ||
+			this.themeQuerySet)
+		) {
 			return this.cachedViews.search[lang]
 		}
 
 		if(this.state.controller.query) this.themeQuerySet = true
 
 		let facetList = Object.keys(languageKeys[lang].facetTitles)
-		// let facetList = [
-		// 	"Locatie",
-		// 	"Datum",
-		// 	"Boekjaar",
-		// 	"Historische instelling",
-		// 	"Inventaris nummer",
-		// 	"Document type",		// visible in the Dutch version
-		// 	"Document type ENG",	// visible in the English and Spanish version
-		// 	"Folio nummer(s)",
-		// 	"Pagina nummer(s)",
-		// 	"Toegangsnummer",
-		// 	"Titel",
-		// 	"Auteur",
-		// 	"Plaats van publicatie",
-		// 	"Jaar van publicatie",
-		// 	"Genoemde personen",
-		// 	"Thema's"
-		// ];
 
 		this.cachedViews.search[lang] = (
 			<FacetedSearch

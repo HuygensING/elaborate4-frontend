@@ -20,17 +20,18 @@ class Results extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.onScroll = debounce(this.onScroll, 300).bind(this);
+		this.onScroll = debounce(this.onScroll, 300).bind(this)
 	}
 
 	componentDidMount() {
-		window.addEventListener("scroll", this.onScroll);
+		window.addEventListener("scroll", this.onScroll)
 	}
 
 	componentWillUnmount() {
-		window.removeEventListener("scroll", this.onScroll);
+		window.removeEventListener("scroll", this.onScroll)
 	}
 
+	// TODO remove findDOMNode
 	onScroll() {
 		let nth = (this.props.results.last.results.length - this.props.config.rows) + 1;
 

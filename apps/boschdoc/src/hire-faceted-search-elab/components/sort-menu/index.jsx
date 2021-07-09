@@ -1,7 +1,3 @@
-/* TODO Remove sort menu and move sort options (count/alpha) to facet schema.
-	A schema is needed, because different facets, should be able to have different
-	options set. */
-
 import React from "react";
 import cx from "classnames";
 
