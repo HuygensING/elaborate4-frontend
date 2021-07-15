@@ -21,17 +21,22 @@ $ npm install
 
 
 ## BoschDoc development
-1. Run the backend locally: `docker run -d -p 4101:8080 --name boschdoc-draft brambdocker/boschdoc-draft`
-2. `npm start`
+1. `npm start`
 
 ## BoschDoc production
-- cd ./apps/boschdoc
-- edit `.env` for /draft or /edition subdir
-- `npm run dist`
-- cd ../..
-- `docker run -d -p "80:80" -v $PWD/apps/boschdoc/nginx.conf:/etc/nginx/nginx.conf -v $PWD/public/boschdoc:/usr/share/nginx/html nginx:alpine nginx -g 'daemon off;'`
-- go to http://localhost/draft
+1. cd ./apps/boschdoc
+2. edit `.env` for /draft or /edition subdir
+3. `npm run dist`
+4. cd ../..
+5. `docker run -d -p "80:80" -v $PWD/apps/boschdoc/nginx.conf:/etc/nginx/nginx.conf -v $PWD/public/boschdoc:/usr/share/nginx/html nginx:alpine nginx -g 'daemon off;'`
+6. go to http://localhost/draft
 
+## BoschDoc .env example
+```
+PUBLIC_PATH=/draft
+BACKEND_DATA_URL=https://...
+BACKEND_API_URL=https://...
+```
 
 
 
