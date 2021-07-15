@@ -11,5 +11,5 @@ services:
       - ./nginx.conf:/nginx_conf/nginx.conf
       - ../../public/boschdoc:/usr/share/nginx/html
 
-  backend:
-    image: brambdocker/boschdoc-draft
+  # backend:
+  #   image: brambdocker/boschdoc-draft

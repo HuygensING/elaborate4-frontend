@@ -3,7 +3,6 @@ import { setDocumentController, setLanguage, setSearchController } from "./actio
 import appStore from "./app-store"
 
 let AppRouter = Router.extend({
-
 	routes: {
 		"": "search",
 		":lang": "search",

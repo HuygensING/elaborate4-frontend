@@ -1,5 +1,3 @@
-import xhr from "xhr";
-
 export function setResults(results) {
 	results._next = results._next?.replace(`//api`, `/api`)
 	results._prev = results._prev?.replace(`//api`, `/api`)
@@ -16,16 +14,15 @@ export function setResults(results) {
 
 export function getNextResultPage(url) {
 	return function(dispatch) {
-		xhr({
-			method: "GET",
-			uri: url.replace('https://boschdoc.huygens.knaw.nl/draft', '')
-		}, function(err, resp, data) {
-			dispatch({
-				type: "NEXT_PAGES_RECEIVE",
-				data: JSON.parse(data)
-			});
-		});
-	};
+		fetch(url)
+			.then(response => response.json())
+			.then(data => {
+				dispatch({
+					type: "NEXT_PAGES_RECEIVE",
+					data,
+				})
+			})
+	}
 }
 
 
@@ -79,19 +76,18 @@ export function setDocumentController(
 		}
 
 		// Set controller from fetched data
-		xhr({
-			method: "GET",
-			uri: `/data/${id}.json`
-		}, function(err, resp, data) {
-			cached[id] = JSON.parse(data);
+		fetch(`${BACKEND_DATA_URL}${id}.json`)
+			.then(response => response.json())
+			.then(data => {
+				cached[id] = data
 
-			dispatch({
-				type: "SET_CONTROLLER",
-				data: {
-					...shared,
-					data: JSON.parse(data)
-				}
+				dispatch({
+					type: "SET_CONTROLLER",
+					data: {
+						...shared,
+						data,
+					}
+				})
 			})
-		})
 	}
 }

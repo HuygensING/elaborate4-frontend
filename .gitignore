@@ -6,3 +6,4 @@ build
 build-dev-server
 public
 *.tgz
+.env

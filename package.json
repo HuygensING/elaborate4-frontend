@@ -41,6 +41,7 @@
     "async": "^3.2.0",
     "backbone": "^1.4.0",
     "classnames": "^2.3.1",
+    "dotenv-webpack": "^7.0.3",
     "htmlparser2": "^6.1.0",
     "immutable": "^4.0.0-rc.12",
     "jquery": "^3.6.0",

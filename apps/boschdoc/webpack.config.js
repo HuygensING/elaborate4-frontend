@@ -1,5 +1,9 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const baseConfig = require('../../webpack.config.base')
+const webpack = require('webpack')
+const dotenv = require('dotenv')
+const { parsed } = dotenv.config()
+const { BACKEND_API_URL, BACKEND_DATA_URL } = parsed
 
 module.exports = () => {
 	baseConfig.entry = ['./src/index.jsx']
@@ -20,6 +24,11 @@ module.exports = () => {
 		new HtmlWebpackPlugin({
 			title: 'BoschDoc',
 			template: './src/index.html',
+		}),
+		new webpack.DefinePlugin({
+			'PUBLIC_PATH': '""',
+			BACKEND_API_URL: JSON.stringify(BACKEND_API_URL),
+			BACKEND_DATA_URL: JSON.stringify(BACKEND_DATA_URL),
 		})
 	]
 

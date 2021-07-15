@@ -38,7 +38,7 @@ class Results extends React.Component {
 		let listItem = ReactDOM.findDOMNode(this).querySelector(`.hire-faceted-search-result-list > li:nth-child(${nth})`);
 		if (listItem && this.props.results.last.hasOwnProperty("_next") && inViewport(listItem)) {
 			let url = this.props.results.last._next
-				.replace('https://boschdoc.huygens.knaw.nl/draft', '')
+				// .replace('https://boschdoc.huygens.knaw.nl/draft', '')
 			this.props.onFetchNextResults(url);
 		}
 	}

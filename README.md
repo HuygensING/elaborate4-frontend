@@ -25,9 +25,12 @@ $ npm install
 2. `npm start`
 
 ## BoschDoc production
+- cd ./apps/boschdoc
+- edit `.env` for /draft or /edition subdir
 - `npm run dist`
-- `docker-compose -p elaborate4 -f apps/boschdoc/docker-compose.yml up --build -d`
-- go to localhost
+- cd ../..
+- `docker run -d -p "80:80" -v $PWD/apps/boschdoc/nginx.conf:/etc/nginx/nginx.conf -v $PWD/public/boschdoc:/usr/share/nginx/html nginx:alpine nginx -g 'daemon off;'`
+- go to http://localhost/draft
 
 
 
