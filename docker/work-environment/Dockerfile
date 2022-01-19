@@ -6,6 +6,6 @@ RUN npm install && ./dist.sh
 FROM nginx:1.17.5-alpine
 
 COPY docker/work-environment/nginx.conf /nginx_conf/nginx.conf
-COPY public/work-environment /usr/share/nginx/html
+COPY --from=builder public/work-environment /usr/share/nginx/html
 
 CMD ["nginx", "-c", "/nginx_conf/nginx.conf", "-g", "daemon off;"]
