@@ -7,3 +7,5 @@ build-dev-server
 public
 *.tgz
 .env
+.idea/
+**.iml
