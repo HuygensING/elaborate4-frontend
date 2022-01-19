@@ -5,7 +5,8 @@ declare module '*.jade' {
 
 declare var BASE_URL: string
 
-// BoschDoc
-declare var PUBLIC_PATH: string
 declare var BACKEND_DATA_URL: string
 declare var BACKEND_API_URL: string
+
+// BoschDoc
+declare var PUBLIC_PATH: string
