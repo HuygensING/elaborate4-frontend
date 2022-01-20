@@ -1,4 +1,5 @@
 #!/bin/bash
+
 echo "[1/5] cleaning public/ ..."
 rm -rf public/*
 echo

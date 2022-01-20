@@ -1,3 +1,5 @@
+#!/bin/bash
+
 version=$(date +%Y.%m.%d)
 for b in boschdoc publication work-environment; do
   tag="registry.diginfra.net/hi/elab4-$b-frontend:$version"
