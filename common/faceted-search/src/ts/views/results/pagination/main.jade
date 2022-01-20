@@ -1,15 +1,15 @@
 if (step10 && pageCount >= 10)
-	li.prev10(class=currentPageNumber>10?'active':'') &laquo;
-li.prev(class=currentPageNumber>1?'active':'') &lsaquo;
+	li.prev10(class=currentPageNumber>10?'active':'', title='go back 10 pages') &laquo;
+li.prev(class=currentPageNumber>1?'active':'', title='previous page') &lsaquo;
 if (showPageNames != null)
 	li.pageNameSingular= showPageNames[0]
 li.current
 	input(type="text", value=currentPageNumber)
 	span= currentPageNumber
 li.text of
-li.pagecount= pageCount
+li.pagecount=pageCount
 if (showPageNames != null)
 	li.pageNamePlural= showPageNames[1]
-li.next(class=currentPageNumber<pageCount?'active':'') &rsaquo;
+li.next(class=currentPageNumber<pageCount?'active':'', title='next page') &rsaquo;
 if (step10 && pageCount >= 10)
-	li.next10(class=currentPageNumber<=pageCount-10?'active':'') &raquo;
+	li.next10(class=currentPageNumber<=pageCount-10?'active':'', title='go forward 10 pages') &raquo;
