@@ -51,9 +51,12 @@ module.exports = {
 	},
 
 	devServer: {
-		contentBase: path.resolve(process.cwd(), '../../static'),
-		contentBasePublicPath: '/static',
-		disableHostCheck: true,
+		static: {
+			directory: path.resolve(process.cwd(), '../../static'),
+			publicPath: '/static',
+			watch: true
+		},
+		allowedHosts: "all",
 		headers: {
 			"Access-Control-Allow-Origin": "*"
 		},
@@ -63,9 +66,10 @@ module.exports = {
 		host: 'localhost',
 		hot: true,
 		port: 4000,
-		watchOptions: {
-			ignored: /node_modules/
-		}
+	},
+
+	watchOptions: {
+		ignored: /node_modules/
 	},
 
 	entry: ['./src/ts/index.ts'],
