@@ -62,11 +62,10 @@ export default class ListFacetOptions extends Backbone.View {
   }
 
   private rerender() {
-    var i, model, tpl, visible;
-    tpl = '';
-    i = 0;
-    model = this.collection.at(i);
-    visible = model.get('visible');
+    let tpl = '';
+    let i = 0;
+    let model = this.collection.at(i);
+    let visible = model.get('visible');
     while (visible) {
       tpl += this.optionTpl({
         option: model
@@ -143,35 +142,28 @@ export default class ListFacetOptions extends Backbone.View {
     // 	checked.css 'display', 'inline-block'
     // 	unchecked.hide()
     this.collection.get(id).set('checked', $target.hasClass('checked'));
+
     // If there are no checked options or autoSearch is off (false), than triggerChange,
     // otherwise (autoSearch is true and there are options checked), set a 1s timeout to
     // give the user time to check another option before autoSearch kicks in.
-    if (this.$('li.checked').length === 0 || !this.config.get('autoSearch')) {
-      return this.triggerChange();
-    } else {
-      return util.setResetTimeout(1000, () => {
-        return this.triggerChange();
-      });
-    }
+    return (this.$('li.checked').length === 0 || !this.config.get('autoSearch')) ?
+      this.triggerChange() :
+      util.setResetTimeout(1000, () => this.triggerChange())
   }
 
   triggerChange = (values = []) => {
-    var checkedModels;
-    // boundMethodCheck(this, ListFacetOptions);
-    if (values == null) {
-      checkedModels = this.collection.filter(function(item) {
-        return item.get('checked');
-      });
-      values = _.map(checkedModels, function(item) {
-        return item.get('name');
-      });
+    if (values == null || !values.length) {
+      values = this.collection
+        .filter(item => item.get('checked'))
+        .map(item => item.get('name'))
     }
+
     return this.trigger('change', {
       facetValue: {
         name: this.facetName,
         values: values
       }
-    });
+    })
   }
 
   // ### Methods
