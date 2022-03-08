@@ -21,12 +21,14 @@ $ npm install
 ### Publication development
 
 1. Run the backend locally: `docker run -p 4002:8080 -d brambdocker/hattem-edition`
-2. `npm start`
+2. `cd apps/publication`
+3. `npm start`
 
 ## BoschDoc
 
 ### Development
-1. `npm start`
+1. `cd apps/boschdoc`
+2. `npm start`
 
 ### Production
 1. cd ./apps/boschdoc
