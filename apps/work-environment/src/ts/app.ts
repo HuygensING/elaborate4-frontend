@@ -21,7 +21,7 @@ export default function() {
   });
   mainRouter.init();
   return $(document).on('click', 'a:not([data-bypass])', function(e) {
-    var href;
+    var href: string;
     href = $(this).attr('href');
     if (href != null) {
       e.preventDefault();

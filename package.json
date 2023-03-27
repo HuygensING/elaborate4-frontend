@@ -1,6 +1,6 @@
 {
   "name": "elaborate4-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": {
     "name": "Gijsjan Brouwer",
     "email": "gijsjan.brouwer@huygens.knaw.nl"
@@ -22,7 +22,7 @@
     "css-loader": "^5.2.6",
     "html-webpack-plugin": "^5.3.1",
     "nib": "^1.0.2",
-    "pug": "^3.0.2",
+    "pug": "^2.0.4",
     "pug-loader": "^2.4.0",
     "style-loader": "^2.0.0",
     "stylus": "^0.54.8",

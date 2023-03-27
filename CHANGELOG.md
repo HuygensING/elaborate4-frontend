@@ -3,7 +3,7 @@
 ### 2.0.0
 - Remove Gulp and replace with Webpack
 - Remove CoffeeScript and replace with TypeScript
-- Add Docker container for deployement
+- Add Docker container for deployment
 - Remove unused fonts from work environment
 - Remove empty annotation list from publication
 
