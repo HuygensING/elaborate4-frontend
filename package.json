@@ -9,7 +9,9 @@
     "type": "git",
     "url": ""
   },
-  "scripts": {},
+  "scripts": {
+    "test:typescript": "tsc && if [ $? -eq 0 ]; then echo 'TypeScript files are valid.'; else echo 'Error: Invalid TypeScript files.'; exit 1; fi"
+  },
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@babel/preset-env": "^7.14.5",

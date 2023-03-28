@@ -1,37 +1,39 @@
 {
-	"compilerOptions": {
-		"declaration": true,
-		"declarationMap": true,
-		"esModuleInterop": true,
-		"importHelpers": true,
-		"incremental": true,
-		"jsx": "react",
-		"experimentalDecorators": true,
-		// "isolatedModules": true,
-		"lib": [
-			"DOM",
-			"DOM.Iterable",
-			"ES2020"
-		],
-		"module": "es6",
-		"moduleResolution": "node",
-		"noImplicitAny": false,
-		"noUnusedLocals": false,
-		"noUnusedParameters": false,
-		"outDir": "./build",
-		"removeComments": true,
-		"sourceMap": true,
-		"resolveJsonModule": true,
-		"target": "esnext",
-		"types": []
-	},
-	"exclude": [
-		"./build",
-		"./dist",
-		"./node_modules"
-	],
-	"files": [
-		"./custom.d.ts",
-		"./src/ts/index.ts"
-	]
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "incremental": true,
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2020"
+    ],
+    "module": "es6",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": "./build",
+    "removeComments": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "target": "esnext",
+    "types": []
+  },
+  "exclude": [
+    "./build",
+    "./dist",
+    "./node_modules"
+  ],
+  "include": [
+    "common/**/*",
+    "apps/**/*"
+  ],
+  "files": [
+    "./custom.d.ts"
+  ]
 }
