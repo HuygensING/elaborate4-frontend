@@ -1,4 +1,4 @@
-name: build-image
+name: build-docker-images
 
 on:
   push:
@@ -13,8 +13,12 @@ env:
   REGISTRY_FQDN: ghcr.io
   REGISTRY_USERNAME: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-  PUBLICATION_IMAGE_NAME: HuygensING/elaborate-publication-frontend
+  WORK_IMAGE_NAME: huygensing/elaborate-frontend
+  WORK_IMAGE_FILE: docker/work-environment/Dockerfile
+  PUBLICATION_IMAGE_NAME: huygensing/elaborate-publication-frontend
   PUBLICATION_IMAGE_FILE: docker/publication/Dockerfile
+  BOSCHDOC_IMAGE_NAME: huygensing/elaborate-boschdoc-frontend
+  BOSCHDOC_FILE: docker/boschdoc/Dockerfile
 
 jobs:
   build-and-push-image:
@@ -34,6 +38,20 @@ jobs:
           username: ${{ env.REGISTRY_USERNAME }}
           password: ${{ env.REGISTRY_PASSWORD }}
 
+      - name: Extract metadata (tags, labels) for Docker (work-frontend)
+        id: meta
+        uses: docker/metadata-action@v4.1.1
+        with:
+          images: ${{ env.REGISTRY_FQDN }}/${{ env.WORK_IMAGE_NAME }}
+
+      - name: Build and push Docker image (work-frontend)
+        uses: docker/build-push-action@v3.2.0
+        with:
+          file: ${{ env.WORK_IMAGE_FILE }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          push: true
+
       - name: Extract metadata (tags, labels) for Docker (publication-frontend)
         id: meta
         uses: docker/metadata-action@v4.1.1
@@ -44,6 +62,20 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           file: ${{ env.PUBLICATION_IMAGE_FILE }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          push: true
+
+      - name: Extract metadata (tags, labels) for Docker (boschdoc-frontend)
+        id: meta
+        uses: docker/metadata-action@v4.1.1
+        with:
+          images: ${{ env.REGISTRY_FQDN }}/${{ env.BOSCHDOC_IMAGE_NAME }}
+
+      - name: Build and push Docker image (boschdoc-frontend)
+        uses: docker/build-push-action@v3.2.0
+        with:
+          file: ${{ env.BOSCHDOC_IMAGE_FILE }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
           push: true
