@@ -40,7 +40,7 @@
   "dependencies": {
     "@types/prop-types": "^15.7.3",
     "ampersand-router": "^5.0.0",
-    "async": "^3.2.0",
+    "async": "3.2.2",
     "backbone": "^1.4.0",
     "classnames": "^2.3.1",
     "dotenv-webpack": "^7.0.3",
