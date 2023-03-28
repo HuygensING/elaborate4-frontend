@@ -2,7 +2,7 @@ FROM node:slim AS builder
 COPY . /work
 WORKDIR /work
 ENV NODE_OPTIONS=--openssl-legacy-provider
-RUN npm install && ./dist.sh
+RUN npm install && ./scripts/boschdoc-dist.sh
 
 FROM nginx:1.17.5-alpine
 
