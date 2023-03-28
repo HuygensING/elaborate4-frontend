@@ -11,7 +11,7 @@ VERSION = $(shell jq --raw-output .version package.json)
 
 ## work-environment
 
-.make/docker-work: .make apps/work-environment/* common/* docker/work-environment/* package.json
+.make/docker-work: .make apps/work-environment/* common/* docker/work-environment/* package.json static/*
 	docker build -t $(WORK_TAG):$(VERSION) --platform=linux/amd64 -f docker/work-environment/Dockerfile .
 	@touch $@
 
@@ -20,7 +20,7 @@ package-work-environent-frontend: .make/docker-work
 
 ## publication
 
-.make/docker-publication: .make apps/publication/* common/* docker/publication/* package.json
+.make/docker-publication: .make apps/publication/* common/* docker/publication/* package.json static/*
 	docker build -t $(PUBLICATION_TAG):$(VERSION) --platform=linux/amd64 -f docker/publication/Dockerfile .
 	@touch $@
 
@@ -29,7 +29,7 @@ package-publication-frontend: .make/docker-publication
 
 ## boschdoc
 
-.make/docker-boschdoc: .make apps/bocschdoc/* common/* docker/boschdoc/* package.json
+.make/docker-boschdoc: .make apps/bocschdoc/* common/* docker/boschdoc/* package.json static/*
 	docker build -t $(BOSCHDOC_TAG):$(VERSION) --platform=linux/amd64 -f docker/boschdoc/Dockerfile .
 	@touch $@
 
