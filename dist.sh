@@ -18,6 +18,6 @@ echo "[4/5] building apps/boschdoc ..."
 (cd apps/boschdoc; npm run dist)
 echo
 
-echo "[5/5] bundeling output to elaborate4-frontend.tgz ..."
+echo "[5/5] bundling output to elaborate4-frontend.tgz ..."
 tar -cvpzf elaborate4-frontend.tgz public/
 echo
