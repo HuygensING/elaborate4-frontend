@@ -121,7 +121,7 @@ class AppController extends React.Component {
 					<img
 						className="hi-logo"
 						height="66px"
-						src="https://huygens.knaw.nl/wp-content/themes/huygens/img/logo-blue.svg"
+						src="https://huygens.knaw.nl/wp-content/themes/huygens/img/logo-desktop.svg"
 						width="92px"
 					/>
 					<nav>
