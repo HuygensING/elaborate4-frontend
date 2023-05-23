@@ -5,6 +5,7 @@ BUILD_TAG = elab4-build-frontend
 BOSCHDOC_TAG = elab4-boschdoc-frontend
 PUBLICATION_TAG = elab4-publication-frontend
 VERSION = $(shell jq --raw-output .version package.json)
+DOCKER_DOMAIN = registry.diginfra.net/tt
 
 .make:
 	mkdir -p .make
@@ -22,6 +23,8 @@ package-work-environent-frontend: .make/docker-work
 
 .make/docker-publication: .make apps/publication/* common/* docker/publication/* package.json static/* scripts/publication-dist.sh
 	docker build -t $(PUBLICATION_TAG):$(VERSION) --platform=linux/amd64 -f docker/publication/Dockerfile .
+	docker tag $(PUBLICATION_TAG):$(VERSION) $(DOCKER_DOMAIN)/$(PUBLICATION_TAG):$(VERSION)
+	docker push $(DOCKER_DOMAIN)/$(PUBLICATION_TAG):$(VERSION)
 	@touch $@
 
 .PHONY: package-publication-frontend
@@ -55,6 +58,10 @@ clean:
 install:
 	npm install
 
+.PHONY: audit
+audit:
+	npm audit
+
 .PHONY: help
 help:
 	@echo "make-tools for elaborate4-frontend"
@@ -62,6 +69,7 @@ help:
 	@echo
 	@echo "Please use \`make <target>', where <target> is one of:"
 	@echo "  install                             to setup the dependencies"
+	@echo "  audit                               to audit the dependencies"
 	@echo "  package-build-environent-frontend   to build the docker image for the build-environment front-end"
 	@echo "  package-work-environent-frontend    to build the docker image for the elaborate work-environment front-end"
 	@echo "  package-boschdoc-frontend           to build the docker image for the elaborate boschdoc front-end"
