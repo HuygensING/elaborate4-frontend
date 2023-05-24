@@ -74,7 +74,8 @@ export class FacetedSearchResults extends BaseView {
       textSearchOptions: {
         textLayers: this.options.textLayers,
         searchInAnnotations: true,
-        searchInTranscriptions: true
+        searchInTranscriptions: true,
+        term: '*:*'
       },
       queryOptions: {
         sortParameters: sortParameters,
