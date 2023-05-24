@@ -18,7 +18,7 @@ env:
   PUBLICATION_IMAGE_NAME: huygensing/elaborate-publication-frontend
   PUBLICATION_IMAGE_FILE: docker/publication/Dockerfile
   BOSCHDOC_IMAGE_NAME: huygensing/elaborate-boschdoc-frontend
-  BOSCHDOC_FILE: docker/boschdoc/Dockerfile
+  BOSCHDOC_IMAGE_FILE: docker/boschdoc/Dockerfile
 
 jobs:
   build-and-push-image:
