@@ -29,10 +29,10 @@
     "./dist",
     "./node_modules"
   ],
-  "include": [
-    "common/**/*",
-    "apps/**/*"
-  ],
+//  "include": [
+//    "common/**/*",
+//    "apps/**/*"
+//  ],
   "files": [
     "./custom.d.ts"
   ]
