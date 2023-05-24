@@ -238,7 +238,7 @@ export class FacetedSearch extends Backbone.View {
     });
     // Backbone triggers a request event when sending a request to the server.
     // In searchResults the request event is triggered manually, because searchResults.sync
-    // isnt used.
+    // isn't used.
     this.listenTo(this.searchResults, 'request', () => {
       return this.showLoader();
     });
