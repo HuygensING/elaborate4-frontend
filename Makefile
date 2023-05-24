@@ -12,7 +12,7 @@ DOCKER_DOMAIN = registry.diginfra.net/tt
 
 ## work-environment
 
-.make/docker-work: .make apps/work-environment/* common/* docker/work-environment/* package.json static/* scripts/work-environment-dist.sh
+.make/docker-work: .make package.json scripts/work-environment-dist.sh $(shell find apps/work-environment/ common/ docker/work-environment/ static/ -type f)
 	docker build -t $(WORK_TAG):$(VERSION) --platform=linux/amd64 -f docker/work-environment/Dockerfile .
 	@touch $@
 
@@ -21,7 +21,7 @@ package-work-environent-frontend: .make/docker-work
 
 ## publication
 
-.make/docker-publication: .make apps/publication/* common/* docker/publication/* package.json static/* scripts/publication-dist.sh
+.make/docker-publication: .make package.json scripts/publication-dist.sh $(shell find apps/publication/ common/ docker/publication/ static/ -type f)
 	docker build -t $(PUBLICATION_TAG):$(VERSION) --platform=linux/amd64 -f docker/publication/Dockerfile .
 	docker tag $(PUBLICATION_TAG):$(VERSION) $(DOCKER_DOMAIN)/$(PUBLICATION_TAG):$(VERSION)
 	docker push $(DOCKER_DOMAIN)/$(PUBLICATION_TAG):$(VERSION)
@@ -32,7 +32,7 @@ package-publication-frontend: .make/docker-publication
 
 ## boschdoc
 
-.make/docker-boschdoc: .make apps/boschdoc/* common/* docker/boschdoc/* package.json static/* scripts/boschdoc-dist.sh
+.make/docker-boschdoc: .make package.json scripts/boschdoc-dist.sh $(shell find apps/boschdoc/ common/ docker/boschdoc/ static/ -type f)
 	docker build -t $(BOSCHDOC_TAG):$(VERSION) --platform=linux/amd64 -f docker/boschdoc/Dockerfile .
 	@touch $@
 
@@ -41,7 +41,7 @@ package-boschdoc-frontend: .make/docker-boschdoc
 
 ## build-environment
 
-.make/docker-build: .make docker/build-environment/* package.json
+.make/docker-build: .make $(shell find docker/build-environment/ -type f) package.json
 	docker build -t $(BUILD_TAG):$(VERSION) --platform=linux/amd64 -f docker/build-environment/Dockerfile .
 	@touch $@
 
