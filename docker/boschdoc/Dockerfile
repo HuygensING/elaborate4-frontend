@@ -1,6 +1,5 @@
 FROM node:slim AS builder
 COPY . /work
-COPY apps/boschdoc/.env /work/apps/boschdoc/.env
 WORKDIR /work
 ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN npm install && ./scripts/boschdoc-dist.sh
