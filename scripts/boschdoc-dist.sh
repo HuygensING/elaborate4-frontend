@@ -5,5 +5,6 @@ rm -rf public/*
 echo
 
 echo "[4/2] building apps/boschdoc ..."
-(cd apps/boschdoc && npm run dist)
+(cd apps/boschdoc && cat .env)
+#(cd apps/boschdoc && npm run dist)
 echo
