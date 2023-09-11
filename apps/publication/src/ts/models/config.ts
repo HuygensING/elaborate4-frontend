@@ -15,13 +15,13 @@ class Config extends Backbone.Model {
     return {
       templateName: "collection",
       annotationsIndexPath: `${baseUrl}/data/annotation_index.json`,
-      baseUrl,
+      basePath: baseUrl,
       // appRootElement: '#app',
       entryTermSingular: 'entry',
       entryTermPlural: 'entries',
       // searchPath: "elab4-hattem/api/search",
       // searchPath: "elab4-margarethaklooster/api/search",
-      searchPath: "edition/api/search",
+      searchPath: '/api/search',
       resultRows: 25,
       roles: {
         'READER': 10,
