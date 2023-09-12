@@ -86,7 +86,7 @@ class MainRouter extends Backbone.Router {
   showSearch() {
     if (this.searchView == null) {
       this.searchView = new FacetedSearchResults({
-        searchUrl: config.get('baseUrl') + config.get('searchPath'),
+        searchUrl: config.get('basePath') + config.get('searchPath'),
         textLayers: config.get('textLayers'),
         entryTermSingular: config.get('entryTermSingular'),
         entryTermPlural: config.get('entryTermPlural'),
