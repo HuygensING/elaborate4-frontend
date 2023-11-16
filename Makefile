@@ -5,7 +5,7 @@ BUILD_TAG = elab4-build-frontend
 BOSCHDOC_TAG = elab4-boschdoc-frontend
 PUBLICATION_TAG = elab4-publication-frontend
 VERSION = $(shell jq --raw-output .version package.json)
-DOCKER_DOMAIN = registry.diginfra.net/tt
+DOCKER_DOMAIN = registry.diginfra.net/hi
 
 .make:
 	mkdir -p .make
