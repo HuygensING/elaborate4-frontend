@@ -14,10 +14,12 @@ DOCKER_DOMAIN = registry.diginfra.net/tt
 
 .make/docker-work: .make package.json scripts/work-environment-dist.sh $(shell find apps/work-environment/ common/ docker/work-environment/ static/ -type f)
 	docker build -t $(WORK_TAG):$(VERSION) --platform=linux/amd64 -f docker/work-environment/Dockerfile .
+	docker tag $(WORK_TAG):$(VERSION) $(DOCKER_DOMAIN)/$(WORK_TAG):$(VERSION)
+	docker push $(DOCKER_DOMAIN)/$(WORK_TAG):$(VERSION)
 	@touch $@
 
-.PHONY: package-work-environent-frontend
-package-work-environent-frontend: .make/docker-work
+.PHONY: package-work-environment-frontend
+package-work-environment-frontend: .make/docker-work
 
 ## publication
 
@@ -68,11 +70,13 @@ help:
 	@echo "version: $(VERSION)"
 	@echo
 	@echo "Please use \`make <target>', where <target> is one of:"
-	@echo "  install                             to setup the dependencies"
-	@echo "  audit                               to audit the dependencies"
-	@echo "  package-build-environent-frontend   to build the docker image for the build-environment front-end"
-	@echo "  package-work-environent-frontend    to build the docker image for the elaborate work-environment front-end"
-	@echo "  package-boschdoc-frontend           to build the docker image for the elaborate boschdoc front-end"
-	@echo "  package-publication-frontend        to build the docker image for the elaborate publication front-end"
-	@echo "  clean                               to remove generated files"
+	@echo "  install                            - to setup the dependencies"
+	@echo "  audit                              - to audit the dependencies"
+	@echo
+	@echo "  package-build-environment-frontend - to build the docker image for the build-environment front-end"
+	@echo "  package-work-environment-frontend  - to build the docker image for the elaborate work-environment front-end"
+	@echo "  package-boschdoc-frontend          - to build the docker image for the elaborate boschdoc front-end"
+	@echo "  package-publication-frontend       - to build the docker image for the elaborate publication front-end"
+	@echo
+	@echo "  clean                              - to remove generated files"
 	@echo
